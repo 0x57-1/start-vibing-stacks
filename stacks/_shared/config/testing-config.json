@@ -1,0 +1,14 @@
+{
+  "$comment": "Testing configuration — agents read active-project.json for stack-specific commands",
+  "rules": {
+    "unit_tests_required": true,
+    "edge_cases_required": true,
+    "no_skipped_tests": true,
+    "cleanup_test_data": true,
+    "isolated_tests": true
+  },
+  "coverage": {
+    "minimum_percentage": 70,
+    "enforce": false
+  }
+}
