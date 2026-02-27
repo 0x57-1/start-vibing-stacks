@@ -1,13 +1,26 @@
 {
   "id": "php",
   "name": "PHP",
-  "icon": "🐘",
+  "icon": "\ud83d\udc18",
   "runtime": "PHP 8.3+",
   "minVersion": "8.3.0",
   "packageManager": "composer",
-  "extensions": [".php", ".blade.php", ".twig", ".phtml"],
-  "testExtensions": ["*Test.php", "*_test.php"],
-  "detectFiles": ["composer.json", "index.php", "artisan", "public/index.php"],
+  "extensions": [
+    ".php",
+    ".blade.php",
+    ".twig",
+    ".phtml"
+  ],
+  "testExtensions": [
+    "*Test.php",
+    "*_test.php"
+  ],
+  "detectFiles": [
+    "composer.json",
+    "index.php",
+    "artisan",
+    "public/index.php"
+  ],
   "commands": {
     "test": "vendor/bin/phpunit",
     "lint": "vendor/bin/phpstan analyse --level=6",
@@ -16,46 +29,166 @@
     "build": null
   },
   "qualityGates": [
-    { "name": "PHPStan", "command": "vendor/bin/phpstan analyse --level=6", "required": true, "order": 1 },
-    { "name": "PHPUnit", "command": "vendor/bin/phpunit", "required": true, "order": 2 },
-    { "name": "CS Fixer", "command": "vendor/bin/php-cs-fixer fix --dry-run --diff", "required": false, "order": 3 }
+    {
+      "name": "PHPStan",
+      "command": "vendor/bin/phpstan analyse --level=6",
+      "required": true,
+      "order": 1
+    },
+    {
+      "name": "PHPUnit",
+      "command": "vendor/bin/phpunit",
+      "required": true,
+      "order": 2
+    },
+    {
+      "name": "CS Fixer",
+      "command": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+      "required": false,
+      "order": 3
+    }
   ],
   "frameworks": [
-    { "id": "laravel", "name": "Laravel", "icon": "🏗️", "detectFiles": ["artisan", "bootstrap/app.php"] },
-    { "id": "laravel-octane", "name": "Laravel + Octane (RoadRunner)", "icon": "🚀", "detectFiles": ["artisan", "rr.yaml"] },
-    { "id": "symfony", "name": "Symfony", "icon": "🎵", "detectFiles": ["symfony.lock"] },
-    { "id": "codeigniter", "name": "CodeIgniter", "icon": "🧩", "detectFiles": ["spark"] },
-    { "id": "vanilla", "name": "Vanilla PHP", "icon": "📄" }
+    {
+      "id": "laravel",
+      "name": "Laravel",
+      "icon": "\ud83c\udfd7\ufe0f",
+      "detectFiles": [
+        "artisan",
+        "bootstrap/app.php"
+      ]
+    },
+    {
+      "id": "laravel-octane",
+      "name": "Laravel + Octane (RoadRunner)",
+      "icon": "\ud83d\ude80",
+      "detectFiles": [
+        "artisan",
+        "rr.yaml"
+      ]
+    },
+    {
+      "id": "symfony",
+      "name": "Symfony",
+      "icon": "\ud83c\udfb5",
+      "detectFiles": [
+        "symfony.lock"
+      ]
+    },
+    {
+      "id": "codeigniter",
+      "name": "CodeIgniter",
+      "icon": "\ud83e\udde9",
+      "detectFiles": [
+        "spark"
+      ]
+    },
+    {
+      "id": "vanilla",
+      "name": "Vanilla PHP",
+      "icon": "\ud83d\udcc4"
+    }
   ],
   "databases": [
-    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
-    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
-    { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
-    { "id": "sqlite", "name": "SQLite", "icon": "📁" },
-    { "id": "none", "name": "None", "icon": "❌" }
+    {
+      "id": "mysql",
+      "name": "MySQL / MariaDB",
+      "icon": "\ud83d\udc2c"
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "icon": "\ud83d\udc18"
+    },
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "icon": "\ud83c\udf43"
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite",
+      "icon": "\ud83d\udcc1"
+    },
+    {
+      "id": "none",
+      "name": "None",
+      "icon": "\u274c"
+    }
   ],
   "frontendOptions": [
-    { "id": "react-tailwind", "name": "ReactJS 19+ / TailwindCSS 4+", "icon": "⚛️" },
-    { "id": "tailwind-vanilla", "name": "TailwindCSS 4+ / Vanilla JS", "icon": "🎨" },
-    { "id": "blade", "name": "Blade Templates (Laravel)", "icon": "🖼️" },
-    { "id": "livewire", "name": "Livewire + Alpine.js", "icon": "⚡" },
-    { "id": "twig", "name": "Twig Templates (Symfony)", "icon": "🌿" },
-    { "id": "none", "name": "API only — no frontend", "icon": "❌" }
+    {
+      "id": "react-tailwind",
+      "name": "ReactJS 19+ / TailwindCSS 4+",
+      "icon": "\u269b\ufe0f"
+    },
+    {
+      "id": "tailwind-vanilla",
+      "name": "TailwindCSS 4+ / Vanilla JS",
+      "icon": "\ud83c\udfa8"
+    },
+    {
+      "id": "blade",
+      "name": "Blade Templates (Laravel)",
+      "icon": "\ud83d\uddbc\ufe0f"
+    },
+    {
+      "id": "livewire",
+      "name": "Livewire + Alpine.js",
+      "icon": "\u26a1"
+    },
+    {
+      "id": "twig",
+      "name": "Twig Templates (Symfony)",
+      "icon": "\ud83c\udf3f"
+    },
+    {
+      "id": "none",
+      "name": "API only \u2014 no frontend",
+      "icon": "\u274c"
+    }
   ],
   "deployTargets": [
-    { "id": "shared-hosting", "name": "Shared Hosting (FTP)", "icon": "🌐" },
-    { "id": "docker", "name": "Docker", "icon": "🐳" },
-    { "id": "vps-ssh", "name": "VPS (SSH)", "icon": "☁️" },
-    { "id": "cpanel", "name": "cPanel", "icon": "📦" },
-    { "id": "forge", "name": "Laravel Forge", "icon": "🔨" },
-    { "id": "vapor", "name": "Laravel Vapor (AWS)", "icon": "☁️" }
+    {
+      "id": "shared-hosting",
+      "name": "Shared Hosting (FTP)",
+      "icon": "\ud83c\udf10"
+    },
+    {
+      "id": "docker",
+      "name": "Docker",
+      "icon": "\ud83d\udc33"
+    },
+    {
+      "id": "vps-ssh",
+      "name": "VPS (SSH)",
+      "icon": "\u2601\ufe0f"
+    },
+    {
+      "id": "cpanel",
+      "name": "cPanel",
+      "icon": "\ud83d\udce6"
+    },
+    {
+      "id": "forge",
+      "name": "Laravel Forge",
+      "icon": "\ud83d\udd28"
+    },
+    {
+      "id": "vapor",
+      "name": "Laravel Vapor (AWS)",
+      "icon": "\u2601\ufe0f"
+    }
   ],
   "skills": [
     "php-patterns",
     "phpunit-testing",
     "phpstan-analysis",
     "composer-workflow",
-    "security-scan-php"
+    "security-scan-php",
+    "laravel-patterns",
+    "laravel-octane",
+    "api-design"
   ],
   "requirements": [
     {
