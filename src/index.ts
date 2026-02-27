@@ -75,8 +75,7 @@ const AVAILABLE_STACKS: StackChoice[] = [
   { id: 'php', name: 'PHP 8.3+', icon: '🐘', available: true },
   { id: 'nodejs', name: 'Node.js / TypeScript', icon: '📦', available: true },
   { id: 'python', name: 'Python 3.12+', icon: '🐍', available: true },
-  { id: 'rust', name: 'Rust', icon: '🦀', available: false },
-  { id: 'go', name: 'Go', icon: '🐹', available: false },
+
 ];
 
 // =============================================================================
