@@ -47,6 +47,21 @@ $_POST['name']; // ❌
 $_SESSION['user']; // ❌
 ```
 
+### AppServiceProvider — Connection Flush
+
+```php
+// app/Providers/AppServiceProvider.php
+use Laravel\Octane\Facades\Octane;
+
+public function boot(): void
+{
+    // MANDATORY: flush DB connections between requests
+    Octane::prepare(fn ($sandbox) => $sandbox->flushDatabaseConnections());
+}
+```
+
+**Rule:** ALWAYS pair persistent connections with `Octane::prepare` flush in AppServiceProvider.
+
 ### Memoization in Workers
 
 ```php

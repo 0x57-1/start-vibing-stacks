@@ -100,7 +100,25 @@ class UserResource extends JsonResource
 }
 ```
 
-**Rule:** Backend/DB in UTC. Timezone conversion ONLY in API Resources.
+**Implementation:**
+
+```php
+// app/Traits/FormatsDatesForApi.php
+trait FormatsDatesForApi
+{
+    protected function formatDateTime(
+        ?\Carbon\Carbon $date,
+        Request $request,
+        string $format = 'Y-m-d\TH:i:sP'
+    ): ?string {
+        if (!$date) return null;
+        $tz = $request->header('X-Timezone', $request->user()?->timezone ?? 'UTC');
+        return $date->copy()->setTimezone($tz)->format($format);
+    }
+}
+```
+
+**Rule:** Backend/DB in UTC. Timezone conversion ONLY in API Resources. ALL Resources with dates MUST use this trait.
 
 ### Action Endpoints
 
