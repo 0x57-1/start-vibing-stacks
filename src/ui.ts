@@ -4,7 +4,7 @@
 
 import chalk from 'chalk';
 
-const VERSION = '2.0.0';
+const VERSION = '2.0.1';
 
 const gradient = (text: string) => {
   const colors = [chalk.hex('#FF6B6B'), chalk.hex('#FF8E53'), chalk.hex('#FFBD2E'), chalk.hex('#48BB78'), chalk.hex('#4299E1'), chalk.hex('#9F7AEA')];

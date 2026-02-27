@@ -12,31 +12,49 @@ Preline is a **semantic token-based design system** built on TailwindCSS. It pro
 
 ## Installation (Laravel + Inertia)
 
+### Step 1: Install
+
 ```bash
-npm install preline
+npm install preline @tailwindcss/forms
 ```
 
-```js
-// vite.config.js
-export default defineConfig({
-  plugins: [
-    laravel({ input: ['resources/css/app.css', 'resources/js/app.tsx'] }),
-  ],
-});
-```
+### Step 2: CSS Config
 
 ```css
 /* resources/css/app.css */
 @import "tailwindcss";
-@import "preline/themes/theme.css";
+
+/* Preline — MUST be in this order */
+@source "./node_modules/preline/dist/*.js";    /* JS component scanning */
+@import "./node_modules/preline/variants.css";  /* CSS variants */
+@plugin "@tailwindcss/forms";                   /* Forms plugin */
+@import "./node_modules/preline/themes/theme.css"; /* Base theme */
 ```
 
+### Step 3: Vite Config
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [
+    laravel({ input: ['resources/css/app.css', 'resources/js/app.tsx'], refresh: true }),
+    react(),
+  ],
+});
+```
+
+### Step 4: Init Preline in Inertia (MANDATORY)
+
 ```tsx
-// resources/js/app.tsx — init Preline after Inertia navigation
+// resources/js/app.tsx
 import { router } from '@inertiajs/react';
 
+// Re-init Preline components after every SPA navigation
 router.on('navigate', () => {
-  // Re-init Preline components after SPA navigation
   setTimeout(() => {
     import('preline/preline').then(({ HSStaticMethods }) => {
       HSStaticMethods.autoInit();
@@ -44,6 +62,77 @@ router.on('navigate', () => {
   }, 100);
 });
 ```
+
+**Rule:** Without `HSStaticMethods.autoInit()`, dropdowns, modals, and accordions will NOT work after Inertia navigation.
+
+## Templates & Components (840+ free)
+
+### Where to Find
+
+| Source | URL | What |
+|---|---|---|
+| **Docs (components)** | https://preline.co/docs | Buttons, modals, forms, tables, navs |
+| **Examples (blocks)** | https://preline.co/examples.html | 220+ UI blocks (hero, testimonials, pricing, etc.) |
+| **Pro templates** | https://preline.co/pro/templates.html | 21 dashboard/app templates (paid) |
+| **GitHub** | https://github.com/htmlstreamofficial/preline | Source + examples |
+
+### How to Use Templates
+
+1. Browse https://preline.co/examples.html
+2. Click a block → copy the HTML/JSX
+3. Adapt to React + Inertia:
+   - Replace `<a href>` with `<Link href>` (Inertia)
+   - Replace `class=` with `className=`
+   - Add Preline `data-*` attributes for interactive components
+   - Use `usePage().props` for dynamic data
+
+### Example: Copy a Hero Block
+
+```tsx
+// From preline.co/examples.html → Hero sections
+// Adapt HTML to React component:
+export default function HeroSection() {
+  return (
+    <div className="relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        <div className="text-center">
+          <h1 className="text-4xl sm:text-6xl font-bold text-foreground">
+            Build your next idea
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+            Preline UI is an open-source set of prebuilt UI components.
+          </p>
+          <div className="mt-8 flex justify-center gap-3">
+            <Link href="/register"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover font-medium transition-colors">
+              Get Started
+            </Link>
+            <Link href="/docs"
+              className="px-6 py-3 bg-layer border border-layer-line text-layer-foreground rounded-lg hover:bg-layer-hover font-medium transition-colors">
+              Documentation
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+### Key Component Categories (free)
+
+| Category | Count | Examples |
+|---|---|---|
+| **Navigation** | 20+ | Navbar, sidebar, breadcrumb, pagination |
+| **Hero** | 11 | Landing page headers |
+| **Cards** | 15+ | Product, blog, profile, pricing |
+| **Forms** | 20+ | Login, register, contact, checkout |
+| **Tables** | 10+ | Sortable, paginated, striped |
+| **Modals** | 8+ | Confirmation, form, full-screen |
+| **Dropdowns** | 10+ | Menu, select, multi-select |
+| **Testimonials** | 10+ | Quotes, carousel, grid |
+| **Pricing** | 8+ | Monthly/yearly toggle, comparison |
+| **Dashboard** | 5+ | Stats, charts, activity feed |
 
 ## Token Architecture
 
