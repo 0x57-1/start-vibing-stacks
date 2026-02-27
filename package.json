@@ -1,5 +1,5 @@
 {
-  "name": "@f1sc4ll-ai/start-vibing-stacks",
+  "name": "start-vibing-stacks",
   "version": "1.0.0",
   "description": "AI-powered multi-stack dev workflow for Claude Code. Supports PHP, Node.js, Python and more.",
   "type": "module",
@@ -49,9 +49,6 @@
     "@types/semver": "^7.7.1",
     "tsx": "^4.7.0",
     "typescript": "^5.9.3"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
   },
   "repository": {
     "type": "git",
