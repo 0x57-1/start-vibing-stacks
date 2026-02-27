@@ -166,8 +166,21 @@ export async function setupProject(
       copyDirRecursive(sharedCommandsDir, join(claudeDir, 'commands'), options.force);
     }
 
-    // 13. Write settings.json for Claude Code
-    const settings = {
+    // 13. Write settings.json for Claude Code (complete config)
+    const settings: Record<string, any> = {
+      model: 'sonnet',
+      max_tokens: 8192,
+      max_turns: 100,
+
+      enableAllProjectMcpServers: true,
+
+      context: {
+        compaction_threshold: 0.85,
+        enable_compaction: true,
+        enable_semantic_search: true,
+        memory_files: ['.claude/CLAUDE.md', 'CLAUDE.md'],
+      },
+
       permissions: {
         allow: [
           'Bash(*)',
@@ -181,7 +194,99 @@ export async function setupProject(
         ],
         deny: [],
       },
+
+      hooks: {
+        UserPromptSubmit: [
+          {
+            matcher: '',
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx .claude/hooks/run-hook.ts user-prompt-submit',
+                timeout: 10,
+              },
+            ],
+          },
+        ],
+        Stop: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx .claude/hooks/run-hook.ts stop-validator',
+                timeout: 30,
+              },
+            ],
+          },
+        ],
+      },
+
+      agents: {
+        'research-web': {
+          description: 'Researches best practices before implementation',
+        },
+        'documenter': {
+          description: 'Creates and maintains domain documentation',
+        },
+        'domain-updater': {
+          description: 'Records session learnings in domain docs',
+        },
+        'commit-manager': {
+          description: 'Manages commits and git workflow',
+        },
+        'claude-md-compactor': {
+          description: 'Compacts CLAUDE.md when it exceeds 40k chars',
+        },
+        'tester': {
+          description: 'Creates tests using the stack-appropriate framework',
+        },
+      },
+
+      workflow: {
+        default_flow: [
+          'research-web',
+          'tester',
+          'documenter',
+          'domain-updater',
+          'commit-manager',
+        ],
+        config_flow: ['domain-updater', 'commit-manager'],
+      },
+
+      rules: {
+        research: {
+          required_before_implementation: true,
+          must_cite_sources: true,
+        },
+        security: {
+          sanitize_all_responses: true,
+          owasp_validation_required: true,
+        },
+        testing: {
+          unit_tests_required: true,
+          edge_cases_research_required: true,
+        },
+        documentation: {
+          flow_docs_required: true,
+          research_must_be_documented: true,
+        },
+      },
     };
+
+    // Add stack-specific quality gates
+    const stackCfg = loadStackConfig(config.stack);
+    if (stackCfg) {
+      const gates: Record<string, any> = {};
+      for (const gate of stackCfg.qualityGates) {
+        gates[gate.name.toLowerCase().replace(/\s+/g, '_')] = {
+          command: gate.command,
+          required: gate.required,
+          blocking: gate.required,
+        };
+      }
+      settings.quality_gates = gates;
+    }
+
     writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify(settings, null, '\t'));
 
     spinner.succeed(

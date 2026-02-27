@@ -286,11 +286,22 @@ async function main(): Promise<void> {
   console.log('');
 
   if (!FLAGS.noClaude) {
-    console.log(chalk.dim('  Launching Claude Code...'));
-    console.log(chalk.dim('  Run: claude --dangerously-skip-permissions'));
-  }
+    console.log(chalk.dim('  Launching Claude Code...\n'));
 
-  console.log('');
+    const { execSync: run } = await import('child_process');
+    try {
+      run('claude --dangerously-skip-permissions', {
+        cwd: projectDir,
+        stdio: 'inherit',
+        env: { ...process.env },
+      });
+    } catch {
+      console.log('');
+      ui.info('Claude Code session ended. Run again with: claude --dangerously-skip-permissions');
+    }
+  } else {
+    console.log(chalk.dim('  Run: claude --dangerously-skip-permissions\n'));
+  }
 }
 
 main().catch((err) => {
