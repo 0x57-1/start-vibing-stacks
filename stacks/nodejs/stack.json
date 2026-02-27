@@ -1,13 +1,29 @@
 {
   "id": "nodejs",
   "name": "Node.js / TypeScript",
-  "icon": "📦",
+  "icon": "\ud83d\udce6",
   "runtime": "Bun / Node.js 20+",
   "minVersion": "20.0.0",
   "packageManager": "bun|npm|pnpm",
-  "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
-  "testExtensions": ["*.test.ts", "*.spec.ts", "*.test.tsx"],
-  "detectFiles": ["package.json", "tsconfig.json", "bun.lockb", "next.config.js"],
+  "extensions": [
+    ".ts",
+    ".tsx",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs"
+  ],
+  "testExtensions": [
+    "*.test.ts",
+    "*.spec.ts",
+    "*.test.tsx"
+  ],
+  "detectFiles": [
+    "package.json",
+    "tsconfig.json",
+    "bun.lockb",
+    "next.config.js"
+  ],
   "commands": {
     "test": "bun run test",
     "lint": "bun run lint",
@@ -17,41 +33,139 @@
     "typecheck": "bun run typecheck"
   },
   "qualityGates": [
-    { "name": "TypeCheck", "command": "bun run typecheck", "required": true, "order": 1 },
-    { "name": "Lint", "command": "bun run lint", "required": true, "order": 2 },
-    { "name": "Tests", "command": "bun run test", "required": true, "order": 3 },
-    { "name": "Build", "command": "bun run build", "required": true, "order": 4 }
+    {
+      "name": "TypeCheck",
+      "command": "bun run typecheck",
+      "required": true,
+      "order": 1
+    },
+    {
+      "name": "Lint",
+      "command": "bun run lint",
+      "required": true,
+      "order": 2
+    },
+    {
+      "name": "Tests",
+      "command": "bun run test",
+      "required": true,
+      "order": 3
+    },
+    {
+      "name": "Build",
+      "command": "bun run build",
+      "required": true,
+      "order": 4
+    }
   ],
   "frameworks": [
-    { "id": "nextjs", "name": "Next.js (App Router)", "icon": "▲", "detectFiles": ["next.config.js", "next.config.ts", "next.config.mjs"] },
-    { "id": "nuxt", "name": "Nuxt", "icon": "💚", "detectFiles": ["nuxt.config.ts"] },
-    { "id": "astro", "name": "Astro", "icon": "🚀", "detectFiles": ["astro.config.mjs"] },
-    { "id": "express", "name": "Express", "icon": "⚡" },
-    { "id": "fastify", "name": "Fastify", "icon": "🏎️" },
-    { "id": "vanilla", "name": "Vanilla Node.js", "icon": "📄" }
+    {
+      "id": "nextjs",
+      "name": "Next.js (App Router)",
+      "icon": "\u25b2",
+      "detectFiles": [
+        "next.config.js",
+        "next.config.ts",
+        "next.config.mjs"
+      ]
+    },
+    {
+      "id": "nuxt",
+      "name": "Nuxt",
+      "icon": "\ud83d\udc9a",
+      "detectFiles": [
+        "nuxt.config.ts"
+      ]
+    },
+    {
+      "id": "astro",
+      "name": "Astro",
+      "icon": "\ud83d\ude80",
+      "detectFiles": [
+        "astro.config.mjs"
+      ]
+    },
+    {
+      "id": "express",
+      "name": "Express",
+      "icon": "\u26a1"
+    },
+    {
+      "id": "fastify",
+      "name": "Fastify",
+      "icon": "\ud83c\udfce\ufe0f"
+    },
+    {
+      "id": "vanilla",
+      "name": "Vanilla Node.js",
+      "icon": "\ud83d\udcc4"
+    }
   ],
   "databases": [
-    { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
-    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
-    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
-    { "id": "sqlite", "name": "SQLite (Turso / libSQL)", "icon": "📁" },
-    { "id": "redis", "name": "Redis (Upstash)", "icon": "🔴" },
-    { "id": "none", "name": "None", "icon": "❌" }
+    {
+      "id": "mongodb",
+      "name": "MongoDB",
+      "icon": "\ud83c\udf43"
+    },
+    {
+      "id": "postgresql",
+      "name": "PostgreSQL",
+      "icon": "\ud83d\udc18"
+    },
+    {
+      "id": "mysql",
+      "name": "MySQL / MariaDB",
+      "icon": "\ud83d\udc2c"
+    },
+    {
+      "id": "sqlite",
+      "name": "SQLite (Turso / libSQL)",
+      "icon": "\ud83d\udcc1"
+    },
+    {
+      "id": "redis",
+      "name": "Redis (Upstash)",
+      "icon": "\ud83d\udd34"
+    },
+    {
+      "id": "none",
+      "name": "None",
+      "icon": "\u274c"
+    }
   ],
   "frontendOptions": [
-    { "id": "react-tailwind", "name": "React 19+ / TailwindCSS 4+", "icon": "⚛️" },
-    { "id": "vue", "name": "Vue.js / Nuxt", "icon": "💚" },
-    { "id": "svelte", "name": "Svelte / SvelteKit", "icon": "🔥" },
-    { "id": "shadcn", "name": "shadcn/ui + Tailwind", "icon": "🎨" },
-    { "id": "none", "name": "API only — no frontend", "icon": "❌" }
+    {
+      "id": "react-tailwind",
+      "name": "React 19+ / TailwindCSS 4+",
+      "icon": "\u269b\ufe0f"
+    },
+    {
+      "id": "vue",
+      "name": "Vue.js / Nuxt",
+      "icon": "\ud83d\udc9a"
+    },
+    {
+      "id": "svelte",
+      "name": "Svelte / SvelteKit",
+      "icon": "\ud83d\udd25"
+    },
+    {
+      "id": "shadcn",
+      "name": "shadcn/ui + Tailwind",
+      "icon": "\ud83c\udfa8"
+    },
+    {
+      "id": "none",
+      "name": "API only \u2014 no frontend",
+      "icon": "\u274c"
+    }
   ],
   "deployTargets": [
-    { "id": "vercel", "name": "Vercel", "icon": "▲" },
-    { "id": "docker", "name": "Docker", "icon": "🐳" },
-    { "id": "vps-ssh", "name": "VPS (SSH)", "icon": "☁️" },
-    { "id": "railway", "name": "Railway", "icon": "🚂" },
-    { "id": "fly", "name": "Fly.io", "icon": "✈️" },
-    { "id": "netlify", "name": "Netlify", "icon": "🌐" }
+    {
+      "id": "github",
+      "name": "GitHub (git push)",
+      "icon": "\ud83d\udc19"
+    }
   ],
   "skills": [
     "typescript-strict",

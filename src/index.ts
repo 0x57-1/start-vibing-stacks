@@ -180,18 +180,8 @@ async function main(): Promise<void> {
     },
   ]);
 
-  // ─── Step 6: Deploy Target ─────────────────────────────────────────────
-  const { deploy } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'deploy',
-      message: 'Deployment target?',
-      choices: stackConfig.deployTargets.map((d) => ({
-        name: `${d.icon}  ${d.name}`,
-        value: d.id,
-      })),
-    },
-  ]);
+  // ─── Step 6: Deploy — GitHub (default) ──────────────────────────────────
+  const deploy = 'github';
 
   // ─── Step 6b: MCP Servers ────────────────────────────────────────────
   const selectedMcps = FLAGS.noMcp ? [] : await selectMcpServers(stackId, database);
@@ -217,7 +207,7 @@ async function main(): Promise<void> {
     'Framework': framework,
     'Database': database,
     'Frontend': frontend,
-    'Deploy': deploy,
+    'Deploy': '🐙 GitHub (git push)',
     'Agents': '6 universal',
     'Skills': `${stackConfig.skills.length} stack + shared`,
     'Hooks': 'stop-validator + prompt-inject',

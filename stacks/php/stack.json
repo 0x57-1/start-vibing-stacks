@@ -150,34 +150,9 @@
   ],
   "deployTargets": [
     {
-      "id": "shared-hosting",
-      "name": "Shared Hosting (FTP)",
-      "icon": "\ud83c\udf10"
-    },
-    {
-      "id": "docker",
-      "name": "Docker",
-      "icon": "\ud83d\udc33"
-    },
-    {
-      "id": "vps-ssh",
-      "name": "VPS (SSH)",
-      "icon": "\u2601\ufe0f"
-    },
-    {
-      "id": "cpanel",
-      "name": "cPanel",
-      "icon": "\ud83d\udce6"
-    },
-    {
-      "id": "forge",
-      "name": "Laravel Forge",
-      "icon": "\ud83d\udd28"
-    },
-    {
-      "id": "vapor",
-      "name": "Laravel Vapor (AWS)",
-      "icon": "\u2601\ufe0f"
+      "id": "github",
+      "name": "GitHub (git push)",
+      "icon": "\ud83d\udc19"
     }
   ],
   "skills": [
