@@ -4,15 +4,23 @@
 
 import chalk from 'chalk';
 
-export const LOGO = `
-${chalk.red('     /\\                              /\\')}
-${chalk.red('    / \\\\')}  ${chalk.white('██╗   ██╗')}${chalk.red('                / \\\\')}
-${chalk.red('   /   \\\\')} ${chalk.white('████╗ ████║')}${chalk.red('              /   \\\\')}
-${chalk.red('  / /\\  \\\\')}${chalk.white('██╔═██╔═██║')}${chalk.red('            / /\\  \\\\')}
-${chalk.red(' / /  \\  \\\\')}${chalk.white('██║ ██║ ██║')}${chalk.red('          / /  \\  \\\\')}
-${chalk.red('/_/    \\__\\\\')}${chalk.white('╚═╝ ╚═╝ ╚═╝')}${chalk.red('        /_/    \\__\\\\')}
+const VERSION = '1.7.2';
 
-${chalk.bold('  START VIBING STACKS')}${chalk.dim('  ·  Multi-stack AI workflow  ·  v1.0.0')}
+const gradient = (text: string) => {
+  const colors = [chalk.hex('#FF6B6B'), chalk.hex('#FF8E53'), chalk.hex('#FFBD2E'), chalk.hex('#48BB78'), chalk.hex('#4299E1'), chalk.hex('#9F7AEA')];
+  return text.split('').map((c, i) => colors[i % colors.length](c)).join('');
+};
+
+export const LOGO = `
+${chalk.hex('#9F7AEA')('    ╔═══════════════════════════════════════════════╗')}
+${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}   ${chalk.hex('#FF6B6B').bold('⚡')} ${chalk.bold.white('S T A R T')}   ${chalk.bold.white('V I B I N G')}   ${chalk.bold.white('S T A C K S')} ${chalk.hex('#FF6B6B').bold('⚡')}  ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}   ${chalk.hex('#FF8E53')('🐘 PHP')}  ${chalk.hex('#48BB78')('📦 Node')}  ${chalk.hex('#4299E1')('🐍 Python')}  ${chalk.hex('#FF6B6B')('🦀 Rust')}  ${chalk.hex('#FFBD2E')('🐹 Go')}   ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}   ${chalk.dim('AI-powered dev workflow  ·  33 skills  ·  v' + VERSION)}   ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ╚═══════════════════════════════════════════════╝')}
 `;
 
 export function header(text: string): void {
