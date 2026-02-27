@@ -11,7 +11,7 @@ import { join, basename } from 'path';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import * as ui from './ui.js';
-import { detectProject, detectPhpFramework, detectNodeFramework } from './detector.js';
+import { detectProject, detectPhpFramework, detectNodeFramework, detectPythonFramework } from './detector.js';
 import { autoInstall, installComposer, installClaudeCode } from './installer.js';
 import { loadStackConfig, setupProject } from './setup.js';
 import { selectMcpServers, installMcpServers } from './mcp.js';
@@ -74,7 +74,7 @@ interface StackChoice {
 const AVAILABLE_STACKS: StackChoice[] = [
   { id: 'php', name: 'PHP 8.3+', icon: '🐘', available: true },
   { id: 'nodejs', name: 'Node.js / TypeScript', icon: '📦', available: true },
-  { id: 'python', name: 'Python', icon: '🐍', available: false },
+  { id: 'python', name: 'Python 3.12+', icon: '🐍', available: true },
   { id: 'rust', name: 'Rust', icon: '🦀', available: false },
   { id: 'go', name: 'Go', icon: '🐹', available: false },
 ];
@@ -190,7 +190,9 @@ async function main(): Promise<void> {
       ? detectPhpFramework(projectDir)
       : stackId === 'nodejs'
         ? detectNodeFramework(projectDir)
-        : null;
+        : stackId === 'python'
+          ? detectPythonFramework(projectDir)
+          : null;
 
   const { framework } = await inquirer.prompt([
     {

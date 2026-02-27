@@ -5,7 +5,7 @@
  * Also detects .cursorrules, CLAUDE.md, and git presence.
  */
 
-import { existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import type { DetectionResult } from './types.js';
 
@@ -120,5 +120,20 @@ export function detectNodeFramework(projectDir: string): string | null {
     return 'nextjs';
   if (existsSync(join(projectDir, 'nuxt.config.ts'))) return 'nuxt';
   if (existsSync(join(projectDir, 'astro.config.mjs'))) return 'astro';
+  return null;
+}
+
+export function detectPythonFramework(projectDir: string): string | null {
+  // Check manage.py (Django)
+  if (existsSync(join(projectDir, 'manage.py'))) return 'django';
+  // Check for FastAPI in requirements or pyproject
+  for (const reqFile of ['requirements.txt', 'pyproject.toml', 'Pipfile']) {
+    const filePath = join(projectDir, reqFile);
+    if (existsSync(filePath)) {
+      const content = readFileSync(filePath, 'utf8').toLowerCase();
+      if (content.includes('fastapi')) return 'fastapi';
+      if (content.includes('flask')) return 'flask';
+    }
+  }
   return null;
 }

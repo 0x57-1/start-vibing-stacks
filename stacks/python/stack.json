@@ -1,0 +1,45 @@
+{
+  "id": "python",
+  "name": "Python 3.12+",
+  "icon": "🐍",
+  "runtime": "python",
+  "requirements": [
+    { "command": "python3", "minVersion": "3.12.0", "install": "brew install python@3.12" },
+    { "command": "pip3", "minVersion": "23.0", "install": "python3 -m ensurepip --upgrade" },
+    { "command": "uv", "minVersion": "0.1.0", "install": "curl -LsSf https://astral.sh/uv/install.sh | sh", "optional": true }
+  ],
+  "frameworks": [
+    { "id": "fastapi", "name": "FastAPI + Uvicorn", "icon": "⚡" },
+    { "id": "django", "name": "Django 5+", "icon": "🎸" },
+    { "id": "flask", "name": "Flask", "icon": "🧪" },
+    { "id": "vanilla", "name": "Vanilla Python", "icon": "🐍" }
+  ],
+  "databases": [
+    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
+    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
+    { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
+    { "id": "sqlite", "name": "SQLite", "icon": "📦" }
+  ],
+  "frontendOptions": [
+    { "id": "react", "name": "React (SPA)", "icon": "⚛️" },
+    { "id": "htmx", "name": "HTMX + Jinja2", "icon": "🔄" },
+    { "id": "none", "name": "API only (no frontend)", "icon": "🔌" }
+  ],
+  "deployTargets": [
+    { "id": "github", "name": "GitHub (git push)", "icon": "🐙" }
+  ],
+  "skills": [
+    "python-patterns",
+    "fastapi-patterns",
+    "django-patterns",
+    "pydantic-validation",
+    "pytest-testing",
+    "async-patterns",
+    "python-performance"
+  ],
+  "qualityGates": [
+    { "name": "mypy", "command": "mypy .", "description": "Type checking" },
+    { "name": "ruff", "command": "ruff check .", "description": "Linting" },
+    { "name": "pytest", "command": "pytest --tb=short", "description": "Tests" }
+  ]
+}
