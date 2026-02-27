@@ -89,6 +89,57 @@ async function main(): Promise<void> {
   const projectDir = process.cwd();
   const projectName = basename(projectDir);
 
+  // ─── Quick Resume: Skip setup if already configured ─────────────────────
+  const activeProjectPath = join(projectDir, '.claude', 'config', 'active-project.json');
+  if (existsSync(activeProjectPath) && !FLAGS.force) {
+    try {
+      const existing = JSON.parse(readFileSync(activeProjectPath, 'utf8'));
+      ui.success(`Project already configured: ${existing.name || projectName}`);
+      ui.info(`Stack: ${existing.stack} | Framework: ${existing.framework} | DB: ${existing.database}`);
+      console.log('');
+
+      const { action } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'action',
+          message: 'What do you want to do?',
+          choices: [
+            { name: '🚀  Launch Claude Code', value: 'launch' },
+            { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
+            { name: '❌  Exit', value: 'exit' },
+          ],
+        },
+      ]);
+
+      if (action === 'launch') {
+        if (!FLAGS.noClaude) {
+          console.log(chalk.dim('\n  Launching Claude Code...\n'));
+          const { execSync: run } = await import('child_process');
+          try {
+            run('claude --dangerously-skip-permissions', {
+              cwd: projectDir,
+              stdio: 'inherit',
+              env: { ...process.env },
+            });
+          } catch {
+            ui.info('Claude Code session ended.');
+          }
+        }
+        process.exit(0);
+      }
+
+      if (action === 'exit') {
+        process.exit(0);
+      }
+
+      // action === 'reconfig' → continue with full setup below
+      ui.info('Reconfiguring project...');
+      console.log('');
+    } catch {
+      // Corrupted config, continue with fresh setup
+    }
+  }
+
   // ─── Step 1: Detect Project ─────────────────────────────────────────────
   ui.header('🔍 Scanning project directory...');
 
