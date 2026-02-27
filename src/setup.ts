@@ -214,7 +214,7 @@ export async function setupProject(
             hooks: [
               {
                 type: 'command',
-                command: 'npx tsx .claude/hooks/run-hook.ts user-prompt-submit',
+                command: 'bash .claude/hooks/run-hook.sh user-prompt-submit',
                 timeout: 10,
               },
             ],
@@ -225,7 +225,7 @@ export async function setupProject(
             hooks: [
               {
                 type: 'command',
-                command: 'npx tsx .claude/hooks/run-hook.ts stop-validator',
+                command: 'bash .claude/hooks/run-hook.sh stop-validator',
                 timeout: 30,
               },
             ],
