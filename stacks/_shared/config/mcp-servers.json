@@ -1,0 +1,191 @@
+{
+  "$comment": "MCP Server Registry — available servers for all stacks",
+  "servers": {
+    "context7": {
+      "name": "Context7",
+      "description": "Real-time library documentation",
+      "icon": "📚",
+      "tier": "core",
+      "stacks": ["php", "nodejs", "python", "go", "rust"],
+      "install": "npx -y @upstash/context7-mcp@latest",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@upstash/context7-mcp@latest"]
+      },
+      "envVars": [],
+      "publisher": "upstash"
+    },
+    "sequential-thinking": {
+      "name": "Sequential Thinking",
+      "description": "Structured reasoning for complex problems",
+      "icon": "🧠",
+      "tier": "core",
+      "stacks": ["php", "nodejs", "python", "go", "rust"],
+      "install": "npx -y @modelcontextprotocol/server-sequential-thinking",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+      },
+      "envVars": [],
+      "publisher": "modelcontextprotocol"
+    },
+    "playwright": {
+      "name": "Playwright",
+      "description": "Browser automation & E2E testing",
+      "icon": "🎭",
+      "tier": "core",
+      "stacks": ["php", "nodejs", "python"],
+      "install": "npx -y @playwright/mcp@latest",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@playwright/mcp@latest", "--user-data-dir", "./.playwright-data"]
+      },
+      "envVars": [],
+      "publisher": "microsoft"
+    },
+    "memory": {
+      "name": "Memory",
+      "description": "Persistent knowledge graph across sessions",
+      "icon": "💾",
+      "tier": "core",
+      "stacks": ["php", "nodejs", "python", "go", "rust"],
+      "install": "npx -y @modelcontextprotocol/server-memory",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-memory"]
+      },
+      "envVars": [],
+      "publisher": "modelcontextprotocol"
+    },
+    "github": {
+      "name": "GitHub",
+      "description": "Repository management, issues, PRs, CI/CD",
+      "icon": "🐙",
+      "tier": "core",
+      "stacks": ["php", "nodejs", "python", "go", "rust"],
+      "install": null,
+      "config": {
+        "remote": {
+          "url": "https://api.githubcopilot.com/mcp/"
+        }
+      },
+      "envVars": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+      "publisher": "github"
+    },
+    "brave-search": {
+      "name": "Brave Search",
+      "description": "Privacy-first web search",
+      "icon": "🔍",
+      "tier": "productivity",
+      "stacks": ["php", "nodejs", "python", "go", "rust"],
+      "install": "npx -y @modelcontextprotocol/server-brave-search",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-brave-search"]
+      },
+      "envVars": ["BRAVE_API_KEY"],
+      "publisher": "modelcontextprotocol"
+    },
+    "nextjs-devtools": {
+      "name": "Next.js DevTools",
+      "description": "Next.js 16+ error detection and live state",
+      "icon": "▲",
+      "tier": "stack-specific",
+      "stacks": ["nodejs"],
+      "install": "npx -y next-devtools-mcp@latest",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "next-devtools-mcp@latest"]
+      },
+      "envVars": [],
+      "publisher": "vercel"
+    },
+    "mongodb": {
+      "name": "MongoDB",
+      "description": "MongoDB database operations",
+      "icon": "🍃",
+      "tier": "stack-specific",
+      "stacks": ["php", "nodejs", "python"],
+      "install": "npx -y @mongodb-js/mongodb-mcp-server",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@mongodb-js/mongodb-mcp-server"]
+      },
+      "envVars": ["MONGODB_URI"],
+      "publisher": "mongodb-js"
+    },
+    "mysql": {
+      "name": "MySQL",
+      "description": "MySQL/MariaDB database operations",
+      "icon": "🐬",
+      "tier": "stack-specific",
+      "stacks": ["php", "nodejs", "python"],
+      "install": "npx -y @benborla29/mcp-server-mysql",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@benborla29/mcp-server-mysql"]
+      },
+      "envVars": ["MYSQL_HOST", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DATABASE"],
+      "publisher": "benborla29"
+    },
+    "postgres": {
+      "name": "PostgreSQL",
+      "description": "PostgreSQL database operations",
+      "icon": "🐘",
+      "tier": "stack-specific",
+      "stacks": ["php", "nodejs", "python"],
+      "install": "npx -y @modelcontextprotocol/server-postgres",
+      "config": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-postgres"]
+      },
+      "envVars": ["POSTGRES_CONNECTION_STRING"],
+      "publisher": "modelcontextprotocol"
+    },
+    "sentry": {
+      "name": "Sentry",
+      "description": "Error tracking & AI-powered debugging",
+      "icon": "🐛",
+      "tier": "productivity",
+      "stacks": ["php", "nodejs", "python"],
+      "install": null,
+      "config": {
+        "url": "https://mcp.sentry.dev/mcp"
+      },
+      "envVars": [],
+      "publisher": "getsentry"
+    },
+    "figma": {
+      "name": "Figma",
+      "description": "Design-to-code workflows",
+      "icon": "🎨",
+      "tier": "productivity",
+      "stacks": ["php", "nodejs"],
+      "install": null,
+      "config": {
+        "url": "https://mcp.figma.com/mcp"
+      },
+      "envVars": [],
+      "publisher": "figma"
+    },
+    "fetch": {
+      "name": "Fetch",
+      "description": "HTTP requests and web content retrieval",
+      "icon": "🌐",
+      "tier": "productivity",
+      "stacks": ["php", "nodejs", "python", "go", "rust"],
+      "install": "uvx mcp-server-fetch",
+      "config": {
+        "command": "uvx",
+        "args": ["mcp-server-fetch"]
+      },
+      "envVars": [],
+      "publisher": "modelcontextprotocol"
+    }
+  },
+  "tiers": {
+    "core": "Essential for daily development — recommended for all",
+    "stack-specific": "Depends on your stack and database choice",
+    "productivity": "Enhanced productivity — optional"
+  }
+}

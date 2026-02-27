@@ -14,6 +14,7 @@ import * as ui from './ui.js';
 import { detectProject, detectPhpFramework, detectNodeFramework } from './detector.js';
 import { autoInstall, installComposer, installClaudeCode } from './installer.js';
 import { loadStackConfig, setupProject } from './setup.js';
+import { selectMcpServers, installMcpServers } from './mcp.js';
 import type { ProjectConfig, StackConfig } from './types.js';
 
 // =============================================================================
@@ -24,6 +25,7 @@ const args = process.argv.slice(2);
 const FLAGS = {
   force: args.includes('--force'),
   noClaude: args.includes('--no-claude'),
+  noMcp: args.includes('--no-mcp'),
   noInstall: args.includes('--no-install'),
   help: args.includes('--help') || args.includes('-h'),
   version: args.includes('--version') || args.includes('-v'),
@@ -43,6 +45,7 @@ if (FLAGS.help) {
   ${chalk.bold('Options:')}
     --force           Overwrite existing configuration
     --no-claude       Skip Claude Code installation
+    --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
     --help, -h        Show this help
     --version, -v     Show version
@@ -190,6 +193,9 @@ async function main(): Promise<void> {
     },
   ]);
 
+  // ─── Step 6b: MCP Servers ────────────────────────────────────────────
+  const selectedMcps = FLAGS.noMcp ? [] : await selectMcpServers(stackId, database);
+
   // ─── Step 7: Show Summary & Confirm ────────────────────────────────────
   const config: ProjectConfig = {
     name: projectName,
@@ -216,6 +222,7 @@ async function main(): Promise<void> {
     'Skills': `${stackConfig.skills.length} stack + shared`,
     'Hooks': 'stop-validator + prompt-inject',
     'Gates': stackConfig.qualityGates.map((g) => g.name).join(' → '),
+    'MCPs': selectedMcps.length > 0 ? `${selectedMcps.length} servers` : 'None',
   });
 
   const { confirmed } = await inquirer.prompt([
@@ -262,7 +269,12 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // ─── Step 10: Install Claude Code ──────────────────────────────────────
+  // ─── Step 10: Install MCP Servers ───────────────────────────────────
+  if (selectedMcps.length > 0) {
+    await installMcpServers(selectedMcps, projectDir);
+  }
+
+  // ─── Step 11: Install Claude Code ──────────────────────────────────────
   if (!FLAGS.noClaude) {
     console.log('');
     installClaudeCode();
