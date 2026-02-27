@@ -78,6 +78,7 @@ export async function setupProject(
     mkdirSync(join(claudeDir, 'hooks'), { recursive: true });
     mkdirSync(join(claudeDir, 'config'), { recursive: true });
     mkdirSync(join(claudeDir, 'commands'), { recursive: true });
+    mkdirSync(join(claudeDir, 'rules'), { recursive: true });
     mkdirSync(join(claudeDir, 'skills', 'codebase-knowledge', 'domains'), { recursive: true });
     spinner.text = 'Directory structure created';
 
@@ -160,6 +161,15 @@ export async function setupProject(
       }
     }
 
+    // 11b. Ensure CLAUDE.local.md is gitignored
+    const gitignorePath = join(projectDir, '.gitignore');
+    if (existsSync(gitignorePath)) {
+      const gitignore = readFileSync(gitignorePath, 'utf8');
+      if (!gitignore.includes('CLAUDE.local.md')) {
+        writeFileSync(gitignorePath, gitignore.trimEnd() + '\n\n# Claude Code local preferences\nCLAUDE.local.md\n');
+      }
+    }
+
     // 12. Copy commands
     const sharedCommandsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'commands');
     if (existsSync(sharedCommandsDir)) {
@@ -173,6 +183,8 @@ export async function setupProject(
       max_turns: 100,
 
       enableAllProjectMcpServers: true,
+
+      autoMemoryEnabled: true,
 
       context: {
         compaction_threshold: 0.85,
