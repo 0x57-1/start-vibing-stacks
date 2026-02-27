@@ -1,159 +1,66 @@
 {
   "id": "php",
   "name": "PHP",
-  "icon": "\ud83d\udc18",
+  "icon": "🐘",
   "runtime": "PHP 8.3+",
   "minVersion": "8.3.0",
   "packageManager": "composer",
-  "extensions": [
-    ".php",
-    ".blade.php",
-    ".twig",
-    ".phtml"
-  ],
-  "testExtensions": [
-    "*Test.php",
-    "*_test.php"
-  ],
-  "detectFiles": [
-    "composer.json",
-    "index.php",
-    "artisan",
-    "public/index.php"
-  ],
+  "extensions": [".php", ".blade.php"],
+  "testExtensions": ["*Test.php", "*_test.php"],
+  "detectFiles": ["composer.json", "artisan", "public/index.php"],
   "commands": {
     "test": "vendor/bin/phpunit",
     "lint": "vendor/bin/phpstan analyse --level=6",
     "format": "vendor/bin/php-cs-fixer fix",
-    "serve": "php -S localhost:8000 -t public/",
-    "build": null
+    "serve": "php artisan octane:start --watch",
+    "build": "npm run build"
   },
   "qualityGates": [
-    {
-      "name": "PHPStan",
-      "command": "vendor/bin/phpstan analyse --level=6",
-      "required": true,
-      "order": 1
-    },
-    {
-      "name": "PHPUnit",
-      "command": "vendor/bin/phpunit",
-      "required": true,
-      "order": 2
-    },
-    {
-      "name": "CS Fixer",
-      "command": "vendor/bin/php-cs-fixer fix --dry-run --diff",
-      "required": false,
-      "order": 3
-    }
+    { "name": "PHPStan", "command": "vendor/bin/phpstan analyse --level=6", "required": true, "order": 1 },
+    { "name": "PHPUnit", "command": "vendor/bin/phpunit", "required": true, "order": 2 },
+    { "name": "TypeCheck", "command": "npx tsc --noEmit", "required": true, "order": 3 },
+    { "name": "Lint", "command": "npx eslint resources/js/", "required": false, "order": 4 }
   ],
   "frameworks": [
     {
-      "id": "laravel",
-      "name": "Laravel",
-      "icon": "\ud83c\udfd7\ufe0f",
-      "detectFiles": [
-        "artisan",
-        "bootstrap/app.php"
-      ]
-    },
-    {
       "id": "laravel-octane",
-      "name": "Laravel + Octane (RoadRunner)",
-      "icon": "\ud83d\ude80",
-      "detectFiles": [
-        "artisan",
-        "rr.yaml"
-      ]
+      "name": "Laravel 12 + Octane (RoadRunner) + Inertia.js",
+      "icon": "🚀",
+      "detectFiles": ["artisan", "rr.yaml"],
+      "default": true
     },
     {
-      "id": "symfony",
-      "name": "Symfony",
-      "icon": "\ud83c\udfb5",
-      "detectFiles": [
-        "symfony.lock"
-      ]
-    },
-    {
-      "id": "codeigniter",
-      "name": "CodeIgniter",
-      "icon": "\ud83e\udde9",
-      "detectFiles": [
-        "spark"
-      ]
-    },
-    {
-      "id": "vanilla",
-      "name": "Vanilla PHP",
-      "icon": "\ud83d\udcc4"
+      "id": "laravel",
+      "name": "Laravel 12 (standard)",
+      "icon": "🏗️",
+      "detectFiles": ["artisan", "bootstrap/app.php"]
     }
   ],
   "databases": [
-    {
-      "id": "mysql",
-      "name": "MySQL / MariaDB",
-      "icon": "\ud83d\udc2c"
-    },
-    {
-      "id": "postgresql",
-      "name": "PostgreSQL",
-      "icon": "\ud83d\udc18"
-    },
-    {
-      "id": "mongodb",
-      "name": "MongoDB",
-      "icon": "\ud83c\udf43"
-    },
-    {
-      "id": "sqlite",
-      "name": "SQLite",
-      "icon": "\ud83d\udcc1"
-    },
-    {
-      "id": "none",
-      "name": "None",
-      "icon": "\u274c"
-    }
+    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
+    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
+    { "id": "sqlite", "name": "SQLite", "icon": "📁" }
   ],
   "frontendOptions": [
     {
-      "id": "react-tailwind",
-      "name": "ReactJS 19+ / TailwindCSS 4+",
-      "icon": "\u269b\ufe0f"
-    },
-    {
-      "id": "tailwind-vanilla",
-      "name": "TailwindCSS 4+ / Vanilla JS",
-      "icon": "\ud83c\udfa8"
+      "id": "react-inertia",
+      "name": "ReactJS 19 + Inertia.js + TailwindCSS 4",
+      "icon": "⚛️",
+      "default": true
     },
     {
       "id": "blade",
-      "name": "Blade Templates (Laravel)",
-      "icon": "\ud83d\uddbc\ufe0f"
-    },
-    {
-      "id": "livewire",
-      "name": "Livewire + Alpine.js",
-      "icon": "\u26a1"
-    },
-    {
-      "id": "twig",
-      "name": "Twig Templates (Symfony)",
-      "icon": "\ud83c\udf3f"
+      "name": "Blade + TailwindCSS 4",
+      "icon": "🖼️"
     },
     {
       "id": "none",
-      "name": "API only \u2014 no frontend",
-      "icon": "\u274c"
+      "name": "API only — no frontend",
+      "icon": "🔌"
     }
   ],
   "deployTargets": [
-    {
-      "id": "github",
-      "name": "GitHub (git push)",
-      "icon": "\ud83d\udc19"
-    }
+    { "id": "github", "name": "GitHub (git push)", "icon": "🐙" }
   ],
   "skills": [
     "php-patterns",
@@ -192,10 +99,10 @@
       "name": "Node.js",
       "command": "node",
       "versionFlag": "--version",
-      "minVersion": "18.0.0",
+      "minVersion": "20.0.0",
       "installCommand": {
         "macos": "brew install node",
-        "linux": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs"
+        "linux": "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt install -y nodejs"
       },
       "versionRegex": "v?(\\d+\\.\\d+\\.\\d+)"
     }

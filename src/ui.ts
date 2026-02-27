@@ -4,7 +4,7 @@
 
 import chalk from 'chalk';
 
-const VERSION = '1.8.1';
+const VERSION = '1.9.0';
 
 const gradient = (text: string) => {
   const colors = [chalk.hex('#FF6B6B'), chalk.hex('#FF8E53'), chalk.hex('#FFBD2E'), chalk.hex('#48BB78'), chalk.hex('#4299E1'), chalk.hex('#9F7AEA')];
@@ -16,7 +16,7 @@ ${chalk.hex('#9F7AEA')('    ╔════════════════�
 ${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
 ${chalk.hex('#9F7AEA')('    ║')}   ${chalk.hex('#FF6B6B').bold('⚡')} ${chalk.bold.white('S T A R T')}   ${chalk.bold.white('V I B I N G')}   ${chalk.bold.white('S T A C K S')} ${chalk.hex('#FF6B6B').bold('⚡')}  ${chalk.hex('#9F7AEA')('║')}
 ${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
-${chalk.hex('#9F7AEA')('    ║')}   ${chalk.hex('#FF8E53')('🐘 PHP')}  ${chalk.hex('#48BB78')('📦 Node')}  ${chalk.hex('#4299E1')('🐍 Python')}  ${chalk.hex('#FF6B6B')('🦀 Rust')}  ${chalk.hex('#FFBD2E')('🐹 Go')}   ${chalk.hex('#9F7AEA')('║')}
+${chalk.hex('#9F7AEA')('    ║')}      ${chalk.hex('#FF8E53')('🐘 PHP')}    ${chalk.hex('#48BB78')('📦 Node.js')}    ${chalk.hex('#4299E1')('🐍 Python')}      ${chalk.hex('#9F7AEA')('║')}
 ${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}
 ${chalk.hex('#9F7AEA')('    ║')}   ${chalk.dim('AI-powered dev workflow  ·  33 skills  ·  v' + VERSION)}   ${chalk.hex('#9F7AEA')('║')}
 ${chalk.hex('#9F7AEA')('    ║')}                                                 ${chalk.hex('#9F7AEA')('║')}

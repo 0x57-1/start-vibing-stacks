@@ -51,11 +51,9 @@ if (FLAGS.help) {
     --version, -v     Show version
 
   ${chalk.bold('Supported Stacks:')}
-    🐘 PHP 8.3+       Laravel, Symfony, CodeIgniter, Vanilla
+    🐘 PHP 8.3+       Laravel 12 + Octane + Inertia.js (React)
     📦 Node.js/TS     Next.js, Nuxt, Express, Fastify
-    🐍 Python         Django, FastAPI, Flask (coming soon)
-    🦀 Rust           (coming soon)
-    🐹 Go             (coming soon)
+    🐍 Python 3.12+   FastAPI, Django, Flask
   `);
   process.exit(0);
 }
