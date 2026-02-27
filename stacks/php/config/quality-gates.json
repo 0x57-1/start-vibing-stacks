@@ -1,0 +1,23 @@
+{
+  "gates": {
+    "phpstan": {
+      "command": "vendor/bin/phpstan analyse --level=6",
+      "description": "PHPStan static analysis (level 6)",
+      "required": true,
+      "order": 1
+    },
+    "phpunit": {
+      "command": "vendor/bin/phpunit",
+      "description": "PHPUnit tests",
+      "required": true,
+      "order": 2
+    },
+    "csFixer": {
+      "command": "vendor/bin/php-cs-fixer fix --dry-run --diff",
+      "description": "PHP-CS-Fixer code style",
+      "required": false,
+      "order": 3
+    }
+  },
+  "runAll": "vendor/bin/phpstan analyse --level=6 && vendor/bin/phpunit"
+}

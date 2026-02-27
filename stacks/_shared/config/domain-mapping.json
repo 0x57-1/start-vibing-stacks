@@ -1,0 +1,41 @@
+{
+  "$schema": "Domain mapping - maps file patterns to documentation domains",
+  "domains": {
+    "authentication": {
+      "patterns": ["**/auth/**", "**/login/**", "**/session/**", "**/*auth*", "**/*login*"],
+      "description": "User authentication, sessions, tokens"
+    },
+    "api": {
+      "patterns": ["**/api/**", "**/routes/**", "**/routers/**", "**/controllers/**"],
+      "description": "API endpoints and routes"
+    },
+    "database": {
+      "patterns": ["**/models/**", "**/migrations/**", "**/db/**", "**/schemas/**", "**/*.model.*", "**/*.schema.*"],
+      "description": "Database models, schemas, migrations"
+    },
+    "ui-components": {
+      "patterns": ["**/components/**", "**/ui/**", "**/views/**", "**/templates/**"],
+      "description": "Reusable UI components"
+    },
+    "pages": {
+      "patterns": ["**/pages/**", "**/app/**/page.*", "**/app/**/layout.*"],
+      "description": "Page routes and layouts"
+    },
+    "utilities": {
+      "patterns": ["**/lib/**", "**/utils/**", "**/helpers/**", "**/common/**"],
+      "description": "Utility functions and helpers"
+    },
+    "testing": {
+      "patterns": ["**/tests/**", "**/*.test.*", "**/*.spec.*", "**/*Test.php"],
+      "description": "All test files"
+    },
+    "infrastructure": {
+      "patterns": ["**/docker*", "**/Dockerfile*", "**/.github/**", "**/scripts/**", "**/deploy/**"],
+      "description": "Docker, CI/CD, deployment"
+    }
+  },
+  "rules": {
+    "domainFileLocation": ".claude/skills/codebase-knowledge/domains/",
+    "requiredSections": ["Last Update", "Files", "Connections", "Recent Commits", "Attention Points"]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$comment": "Universal security rules. Agents read active-project.json for stack-specific additions.",
+  "validation": {
+    "requireOnAllRoutes": true
+  },
+  "sensitivePatterns": {
+    "forbidden": [
+      "eval(",
+      "exec(",
+      "system(",
+      "passthru(",
+      "shell_exec(",
+      "password:",
+      "passwordHash",
+      "apiKey:",
+      "secret:"
+    ]
+  },
+  "cookies": {
+    "httpOnly": true,
+    "secure": true,
+    "sameSite": "strict"
+  },
+  "owaspChecks": {
+    "a01_brokenAccessControl": true,
+    "a02_cryptographicFailures": true,
+    "a03_injection": true,
+    "a07_authenticationFailures": true,
+    "a09_securityLogging": true
+  }
+}
