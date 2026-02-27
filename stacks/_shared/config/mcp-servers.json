@@ -59,17 +59,16 @@
     },
     "github": {
       "name": "GitHub",
-      "description": "Repository management, issues, PRs, CI/CD",
+      "description": "Repository management, issues, PRs, CI/CD (uses gh CLI auth)",
       "icon": "🐙",
       "tier": "core",
       "stacks": ["php", "nodejs", "python", "go", "rust"],
       "install": null,
       "config": {
-        "remote": {
-          "url": "https://api.githubcopilot.com/mcp/"
-        }
+        "type": "http",
+        "url": "https://api.githubcopilot.com/mcp/"
       },
-      "envVars": ["GITHUB_PERSONAL_ACCESS_TOKEN"],
+      "envVars": [],
       "publisher": "github"
     },
     "brave-search": {
