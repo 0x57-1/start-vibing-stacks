@@ -123,9 +123,17 @@
       "install": "npx -y @benborla29/mcp-server-mysql",
       "config": {
         "command": "npx",
-        "args": ["-y", "@benborla29/mcp-server-mysql"]
+        "args": ["-y", "@benborla29/mcp-server-mysql"],
+        "env": {
+          "MYSQL_HOST": "${DB_HOST}",
+          "MYSQL_PORT": "${DB_PORT}",
+          "MYSQL_USER": "${DB_USERNAME}",
+          "MYSQL_PASSWORD": "${DB_PASSWORD}",
+          "MYSQL_DATABASE": "${DB_DATABASE}"
+        }
       },
-      "envVars": ["MYSQL_HOST", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_DATABASE"],
+      "envVars": [],
+      "laravelEnvMapping": true,
       "publisher": "benborla29"
     },
     "postgres": {

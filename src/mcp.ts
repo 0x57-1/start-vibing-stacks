@@ -140,11 +140,37 @@ export async function installMcpServers(
   // Build Claude Code MCP config
   const mcpConfig: Record<string, any> = {};
 
+  // Load project .env for variable resolution (Laravel DB_* etc.)
+  const dotenvPath = join(projectDir, '.env');
+  const dotenv: Record<string, string> = {};
+  if (existsSync(dotenvPath)) {
+    const envContent = readFileSync(dotenvPath, 'utf8');
+    for (const line of envContent.split('\n')) {
+      const match = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+      if (match) {
+        dotenv[match[1]] = match[2].replace(/^["']|["']$/g, '');
+      }
+    }
+  }
+
+  function resolveEnvVars(obj: any): any {
+    if (typeof obj === 'string') {
+      return obj.replace(/\$\{([^}]+)\}/g, (_, key) => dotenv[key] || process.env[key] || '');
+    }
+    if (Array.isArray(obj)) return obj.map(resolveEnvVars);
+    if (obj && typeof obj === 'object') {
+      const resolved: Record<string, any> = {};
+      for (const [k, v] of Object.entries(obj)) resolved[k] = resolveEnvVars(v);
+      return resolved;
+    }
+    return obj;
+  }
+
   for (const id of selectedIds) {
     const server = registry.servers[id];
     if (!server) continue;
 
-    mcpConfig[id] = server.config;
+    mcpConfig[id] = resolveEnvVars(server.config);
 
     // Try to install stdio-based servers
     if (server.install && server.config.command) {
