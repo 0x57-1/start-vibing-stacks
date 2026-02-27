@@ -1,14 +1,14 @@
 {
-  "name": "start-vibing-stacks",
+  "name": "@f1sc4ll-ai/start-vibing-stacks",
   "version": "1.0.0",
   "description": "AI-powered multi-stack dev workflow for Claude Code. Supports PHP, Node.js, Python and more.",
   "type": "module",
   "bin": {
-    "start-vibing-stacks": "./dist/index.js",
-    "svs": "./dist/index.js"
+    "start-vibing-stacks": "dist/index.js",
+    "svs": "dist/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npx -p typescript tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
     "prepublishOnly": "npm run build"
@@ -44,10 +44,17 @@
     "semver": "^7.6.0"
   },
   "devDependencies": {
-    "@types/inquirer": "^9.0.7",
-    "@types/node": "^20.0.0",
-    "@types/semver": "^7.5.0",
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^20.19.35",
+    "@types/semver": "^7.7.1",
     "tsx": "^4.7.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/f1sc4ll-ai/start-vibing-stacks.git"
   }
 }
