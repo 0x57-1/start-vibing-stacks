@@ -27,13 +27,20 @@
       "name": "Laravel 12 + Octane (RoadRunner) + Inertia.js",
       "icon": "🚀",
       "detectFiles": ["artisan", "rr.yaml"],
-      "default": true
+      "default": true,
+      "skills": [
+        "laravel-patterns",
+        "laravel-octane"
+      ]
     },
     {
       "id": "laravel",
       "name": "Laravel 12 (standard)",
       "icon": "🏗️",
-      "detectFiles": ["artisan", "bootstrap/app.php"]
+      "detectFiles": ["artisan", "bootstrap/app.php"],
+      "skills": [
+        "laravel-patterns"
+      ]
     }
   ],
   "databases": [
@@ -46,12 +53,20 @@
       "id": "react-inertia",
       "name": "ReactJS 19 + Inertia.js + TailwindCSS 4",
       "icon": "⚛️",
-      "default": true
+      "default": true,
+      "frameworks": ["laravel", "laravel-octane"]
     },
     {
       "id": "blade",
       "name": "Blade + TailwindCSS 4",
-      "icon": "🖼️"
+      "icon": "🖼️",
+      "frameworks": ["laravel", "laravel-octane"]
+    },
+    {
+      "id": "livewire",
+      "name": "Livewire + Alpine.js",
+      "icon": "⚡",
+      "frameworks": ["laravel", "laravel-octane"]
     },
     {
       "id": "none",
@@ -68,8 +83,6 @@
     "phpstan-analysis",
     "composer-workflow",
     "security-scan-php",
-    "laravel-patterns",
-    "laravel-octane",
     "api-design"
   ],
   "requirements": [

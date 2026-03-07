@@ -10,8 +10,8 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class User extends Model
 {
     use HasUuids;
-    
-    // Auto-generates UUID for 'id' column
+
+    protected $fillable = ['name', 'email'];
 }
 ```
 
@@ -34,10 +34,11 @@ class User extends Model
 ### JSON Column Handling
 
 ```php
-// ✅ Defensive decoding — assume double-encoding possible
+// Defensive decoding — assume double-encoding possible
 protected $casts = [
     'metadata' => 'array',
     'data' => 'array',
+    'status' => OrderStatus::class,  // Enum casting
 ];
 
 // For manual handling:
@@ -46,54 +47,185 @@ $data = is_string($model->data)
     : $model->data;
 ```
 
+### Mass Assignment
+
+```php
+// ALWAYS define $fillable explicitly
+protected $fillable = ['name', 'email', 'status'];
+
+// Use validated data from Form Requests
+$user = User::create($request->validated());
+
+// NEVER use $guarded = [] (allows everything)
+```
+
+## Controller Standards
+
+### Thin Controllers
+
+Controllers should ONLY handle HTTP concerns. Delegate to Services.
+
+#### Inertia Controllers (Frontend pages)
+
+```php
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
+
+class OrderController extends Controller
+{
+    public function __construct(
+        private readonly OrderService $orderService,
+    ) {}
+
+    public function index(Request $request): InertiaResponse
+    {
+        return Inertia::render('Orders/Index', [
+            'orders' => OrderResource::collection(
+                $this->orderService->listForUser($request->user())
+            ),
+        ]);
+    }
+
+    public function store(StoreOrderRequest $request): RedirectResponse
+    {
+        $this->orderService->create($request->validated());
+
+        return redirect()
+            ->route('orders.index')
+            ->with('success', __('orders.created'));
+    }
+}
+```
+
+#### API Controllers (JSON responses)
+
+```php
+class OrderApiController extends Controller
+{
+    public function __construct(
+        private readonly OrderService $orderService,
+    ) {}
+
+    public function store(StoreOrderRequest $request): JsonResponse
+    {
+        $order = $this->orderService->create($request->validated());
+
+        return OrderResource::make($order)
+            ->response()
+            ->setStatusCode(201);
+    }
+
+    public function resetAttempts(Order $order): JsonResponse
+    {
+        $this->orderService->resetAttempts($order);
+
+        return response()->json(['message' => 'Attempts reset']);
+    }
+}
+```
+
+**Rules:**
+- No business logic in controllers
+- Use Form Requests for validation
+- Inertia: return `Inertia::render()` for GET, `redirect()` for POST/PUT/DELETE
+- API: use API Resources for response formatting
+- Use DI for services (constructor injection)
+
+### Form Request Validation
+
+```php
+class StoreOrderRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user()->can('create', Order::class);
+    }
+
+    public function rules(): array
+    {
+        return [
+            'product_id' => ['required', 'uuid', 'exists:products,id'],
+            'quantity' => ['required', 'integer', 'min:1', 'max:100'],
+            'notes' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+}
+```
+
 ## Service Architecture
+
+### Service Layer Pattern
+
+```php
+class OrderService
+{
+    public function __construct(
+        private readonly PaymentGateway $gateway,
+        private readonly NotificationService $notifications,
+    ) {}
+
+    public function create(array $data): Order
+    {
+        return DB::transaction(function () use ($data) {
+            $order = Order::create($data);
+            $this->gateway->authorize($order);
+            $this->notifications->orderCreated($order);
+
+            return $order;
+        });
+    }
+
+    public function resetAttempts(Order $order): void
+    {
+        $order->update([
+            'status' => OrderStatus::Pending,
+            'attempts' => 0,
+        ]);
+    }
+}
+```
 
 ### Helpers for Complex Services
 
 ```
 App\Services\
-├── UserService.php           # Core service
+├── UserService.php              # Core service
 ├── PaymentService.php
 └── AdPlatforms\
-    ├── AdPlatformService.php  # Main service
+    ├── AdPlatformService.php    # Main service
     └── Helpers\
         ├── GoogleAdsHelper.php  # Extracted logic
         └── MetaAdsHelper.php
 ```
 
-**Rule:** Extract specific logic into `Helpers` sub-namespaces. Avoid bloated service classes.
-
-### Service Naming
-
-- **Convention:** `snake_case` for service container bindings
-- **Class names:** `PascalCase` as standard
+**Rule:** Extract into `Helpers` sub-namespace when service exceeds ~200 lines.
 
 ## API Standards
 
 ### Date Formatting
 
 ```php
-// Trait: FormatsDatesForApi
 trait FormatsDatesForApi
 {
-    protected function formatDateTime($date, Request $request): ?string
-    {
+    protected function formatDateTime(
+        ?Carbon $date,
+        Request $request,
+    ): ?string {
         if (!$date) return null;
-        // DB stores UTC, convert to user timezone in API Resource only
         $tz = $request->header('X-Timezone', 'UTC');
         return $date->setTimezone($tz)->toISOString();
     }
 }
 
-// Usage in API Resource:
 class UserResource extends JsonResource
 {
     use FormatsDatesForApi;
-    
+
     public function toArray(Request $request): array
     {
         return [
             'id' => $this->id,
+            'name' => $this->name,
             'created_at' => $this->formatDateTime($this->created_at, $request),
         ];
     }
@@ -123,57 +255,89 @@ trait FormatsDatesForApi
 ### Action Endpoints
 
 ```php
-// ✅ Dedicated POST endpoints for specific business actions
+// Dedicated POST endpoints for specific business actions
 Route::post('/leads/{lead}/reset-attempts', [LeadController::class, 'resetAttempts']);
 Route::post('/domains/{domain}/refresh-list', [DomainController::class, 'refreshList']);
 
-// ❌ Don't use generic PATCH for specific actions
-Route::patch('/leads/{lead}', ...); // Too generic for business logic
+// DON'T use generic PATCH for business logic
 ```
 
-### Job Design
+### API Resources (Always Use)
 
 ```php
-// ✅ Idempotent jobs — safe to retry
+class LeadResource extends JsonResource
+{
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'status' => $this->status->value,
+            'domain' => DomainResource::make($this->whenLoaded('domain')),
+            'created_at' => $this->formatDateTime($this->created_at, $request),
+        ];
+    }
+}
+```
+
+## Job Design
+
+```php
 class SendConversionJob implements ShouldQueue
 {
-    public function handle(): void
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public int $tries = 3;
+    public int $backoff = 60;
+
+    public function handle(ConversionGateway $gateway): void
     {
-        // Check status BEFORE processing
+        // Idempotent: check status BEFORE processing
         if ($this->lead->conversion_sent) {
-            return; // Already processed
+            return;
         }
-        
-        // Use unique keys for external APIs
-        $api->sendConversion(
+
+        $gateway->send(
             unique_key: $this->lead->order_id,
-            data: $this->lead->toArray(),
+            data: $this->lead->toConversionArray(),
         );
-        
+
         $this->lead->update(['conversion_sent' => true]);
     }
 }
 ```
 
 **Rules:**
-- Jobs MUST be idempotent
+- Jobs MUST be idempotent (safe to retry)
+- Use unique keys for external API calls
 - Reset jobs: set `status = pending`, reset counters
-- Batch processing for high-volume data (chunks)
+- Batch/chunk for high-volume data
+
+### Batch Processing
+
+```php
+Lead::query()
+    ->where('status', OrderStatus::Pending)
+    ->chunkById(100, function ($leads) {
+        foreach ($leads as $lead) {
+            ProcessLeadJob::dispatch($lead);
+        }
+    });
+```
 
 ## Authorization & Caching
 
 ### User-Scoped Queries
 
 ```php
-// ✅ Always filter by authenticated user
 public function index(Request $request): JsonResponse
 {
     $query = Domain::query();
-    
+
     if (!$request->user()->isAdmin()) {
         $query->where('user_id', $request->user()->id);
     }
-    
+
     return DomainResource::collection($query->paginate());
 }
 ```
@@ -181,13 +345,15 @@ public function index(Request $request): JsonResponse
 ### Redis Caching
 
 ```php
-// User-specific cache keys for data isolation
 $domains = Cache::store('redis')
     ->remember(
         "domains:user:{$userId}",
         now()->addMinutes(15),
         fn () => Domain::where('user_id', $userId)->get()
     );
+
+// Invalidate on write
+Cache::forget("domains:user:{$userId}");
 ```
 
 **Rules:**
@@ -198,12 +364,51 @@ $domains = Cache::store('redis')
 ## Migration Safety
 
 ```bash
-# ✅ Always incremental
+# ALWAYS incremental
 php artisan make:migration add_status_to_leads_table
 
-# ❌ NEVER (destroys data)
+# NEVER (destroys data)
 php artisan migrate:fresh
-php artisan migrate:refresh  
+php artisan migrate:refresh
 php artisan db:wipe
 php artisan db:reset
 ```
+
+## Translations
+
+```php
+// Store in lang/en/*.php and lang/pt/*.php
+// Organize by category within files
+return [
+    'orders' => [
+        'created' => 'Order created successfully',
+        'not_found' => 'Order not found',
+    ],
+    'errors' => [
+        'unauthorized' => 'You are not authorized',
+        'rate_limited' => 'Too many attempts',
+    ],
+];
+```
+
+**Rules:**
+- Centralize all user-facing strings in lang files. No hardcoded strings.
+- Always add to BOTH `lang/en/*.php` and `lang/pt/*.php`
+- Error strings in `lang/*/errors.php`
+
+### Translations with Inertia (On-Demand)
+
+Translations are sent to the frontend per-page via `config/translations_inertia.php`:
+
+```php
+// config/translations_inertia.php
+return [
+    'global' => ['common', 'errors', 'validation'],
+    'pages' => [
+        'dashboard' => ['dashboard'],
+        'orders/*' => ['orders', 'products'],
+    ],
+];
+```
+
+The `InertiaShare` class loads and caches translations per locale + route, merging global files with page-specific files. Frontend accesses them via the `__()` helper (see inertia-react skill).

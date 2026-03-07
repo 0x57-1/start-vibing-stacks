@@ -15,7 +15,8 @@ import { detectProject, detectPhpFramework, detectNodeFramework, detectPythonFra
 import { autoInstall, installComposer, installClaudeCode } from './installer.js';
 import { loadStackConfig, setupProject } from './setup.js';
 import { selectMcpServers, installMcpServers } from './mcp.js';
-import type { ProjectConfig, StackConfig } from './types.js';
+import { scanProjectStandards } from './scanner.js';
+import type { ProjectConfig, StackConfig, StandardsReview } from './types.js';
 
 // =============================================================================
 // CLI Arguments
@@ -204,6 +205,8 @@ async function main(): Promise<void> {
     },
   ]);
 
+  const selectedFramework = stackConfig.frameworks.find((f) => f.id === framework);
+
   // ─── Step 4: Select Database ───────────────────────────────────────────
   const { database } = await inquirer.prompt([
     {
@@ -218,12 +221,16 @@ async function main(): Promise<void> {
   ]);
 
   // ─── Step 5: Frontend ──────────────────────────────────────────────────
+  const compatibleFrontends = stackConfig.frontendOptions.filter(
+    (f) => !f.frameworks || f.frameworks.includes(framework)
+  );
+
   const { frontend } = await inquirer.prompt([
     {
       type: 'list',
       name: 'frontend',
       message: 'Frontend included?',
-      choices: stackConfig.frontendOptions.map((f) => ({
+      choices: compatibleFrontends.map((f) => ({
         name: `${f.icon}  ${f.name}`,
         value: f.id,
       })),
@@ -236,6 +243,62 @@ async function main(): Promise<void> {
   // ─── Step 6b: MCP Servers ────────────────────────────────────────────
   const selectedMcps = FLAGS.noMcp ? [] : await selectMcpServers(stackId, database);
 
+  // ─── Step 6c: Standards Review ──────────────────────────────────────────
+  let standardsReview: StandardsReview | undefined;
+
+  const scanResults = scanProjectStandards(projectDir);
+
+  if (scanResults.patterns.length > 0) {
+    console.log('');
+    ui.header('📋 Standards Review');
+    ui.info(`Found ${scanResults.patterns.length} patterns from: ${scanResults.sources.join(', ')}`);
+    console.log('');
+
+    const categories = new Map<string, string[]>();
+    for (const p of scanResults.patterns) {
+      const list = categories.get(p.category) || [];
+      list.push(p.name);
+      categories.set(p.category, list);
+    }
+
+    for (const [category, items] of categories) {
+      console.log(chalk.cyan(`  ${category}:`));
+      for (const item of items.slice(0, 3)) {
+        console.log(chalk.dim(`    • ${item}`));
+      }
+      if (items.length > 3) {
+        console.log(chalk.dim(`    ... and ${items.length - 3} more`));
+      }
+    }
+
+    console.log('');
+    const { adaptStandards } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'adaptStandards',
+        message: 'Adapt AI skills to match your project standards?',
+        choices: [
+          {
+            name: `🎯  Use my standards ${chalk.dim('— import patterns into AI context')}`,
+            value: 'adapt',
+          },
+          {
+            name: `📦  Use defaults ${chalk.dim('— start with plugin defaults')}`,
+            value: 'defaults',
+          },
+        ],
+      },
+    ]);
+
+    scanResults.status = adaptStandards === 'adapt' ? 'adapted' : 'defaults';
+    scanResults.userChoice = adaptStandards;
+    standardsReview = scanResults;
+
+    if (adaptStandards === 'adapt') {
+      ui.success(`${scanResults.patterns.length} patterns will be imported into AI context`);
+    }
+  }
+
   // ─── Step 7: Show Summary & Confirm ────────────────────────────────────
   const config: ProjectConfig = {
     name: projectName,
@@ -246,11 +309,21 @@ async function main(): Promise<void> {
     deploy,
     path: projectDir,
     createdAt: new Date().toISOString(),
-    skills: [...stackConfig.skills],
+    skills: [
+      ...stackConfig.skills,
+      ...(selectedFramework?.skills ?? []),
+    ],
     qualityGates: `stacks/${stackId}/config/quality-gates.json`,
     cursorRules: detection.hasCursorRules,
     domains: {},
+    standardsReview,
   };
+
+  const standardsLabel = standardsReview
+    ? standardsReview.status === 'adapted'
+      ? `${standardsReview.patterns.length} patterns imported`
+      : 'Using defaults'
+    : 'No patterns found';
 
   ui.configSummary({
     'Stack': `${stackConfig.icon}  ${stackConfig.name} (${stackConfig.runtime})`,
@@ -258,6 +331,7 @@ async function main(): Promise<void> {
     'Database': database,
     'Frontend': frontend,
     'Deploy': '🐙 GitHub (git push)',
+    'Standards': standardsLabel,
     'Agents': '6 universal',
     'Skills': `${stackConfig.skills.length} stack + shared`,
     'Hooks': 'stop-validator + prompt-inject',

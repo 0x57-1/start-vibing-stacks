@@ -34,6 +34,7 @@ export interface FrameworkOption {
   name: string;
   icon: string;
   detectFiles?: string[];
+  skills?: string[];
   extra?: Record<string, unknown>;
 }
 
@@ -47,6 +48,7 @@ export interface FrontendOption {
   id: string;
   name: string;
   icon: string;
+  frameworks?: string[];
 }
 
 export interface DeployTarget {
@@ -80,6 +82,7 @@ export interface ProjectConfig {
   qualityGates: string;
   cursorRules: boolean;
   domains: Record<string, { patterns: string[] }>;
+  standardsReview?: StandardsReview;
 }
 
 export interface DetectionResult {
@@ -88,4 +91,24 @@ export interface DetectionResult {
   hasCursorRules: boolean;
   hasClaudeMd: boolean;
   hasGit: boolean;
+}
+
+export interface PatternMatch {
+  category: string;
+  name: string;
+  confidence: number;
+  detail?: string;
+}
+
+export interface ScanResult {
+  source: string;
+  patterns: PatternMatch[];
+}
+
+export interface StandardsReview {
+  status: 'adapted' | 'defaults' | 'pending';
+  scannedAt: string;
+  sources: string[];
+  patterns: PatternMatch[];
+  userChoice: 'adapt' | 'defaults' | 'pending';
 }

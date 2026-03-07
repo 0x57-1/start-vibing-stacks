@@ -21,7 +21,6 @@ const STACK_SIGNATURES: StackSignature[] = [
   { id: 'php', files: ['composer.json'], weight: 90, reason: 'composer.json detected' },
   { id: 'php', files: ['index.php'], weight: 60, reason: 'index.php detected' },
   { id: 'php', files: ['artisan'], weight: 95, reason: 'Laravel artisan detected' },
-  { id: 'php', files: ['symfony.lock'], weight: 95, reason: 'Symfony lock detected' },
   { id: 'php', files: ['public/index.php'], weight: 70, reason: 'public/index.php detected' },
   { id: 'php', files: ['.php-version'], weight: 80, reason: '.php-version detected' },
 
@@ -102,9 +101,10 @@ export function detectProject(projectDir: string): DetectionResult {
  * Detect framework within a PHP project
  */
 export function detectPhpFramework(projectDir: string): string | null {
-  if (existsSync(join(projectDir, 'artisan'))) return 'laravel';
-  if (existsSync(join(projectDir, 'symfony.lock'))) return 'symfony';
-  if (existsSync(join(projectDir, 'spark'))) return 'codeigniter';
+  if (existsSync(join(projectDir, 'artisan'))) {
+    if (existsSync(join(projectDir, 'rr.yaml'))) return 'laravel-octane';
+    return 'laravel';
+  }
   return null;
 }
 

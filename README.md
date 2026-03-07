@@ -20,7 +20,7 @@ svs  # shortcut
 ## ✨ Features
 
 - **🔍 Auto-detection** — Scans your project files to suggest the right stack
-- **🐘 PHP 8.3+** — PHPStan, PHPUnit, Composer, Laravel/Octane, Symfony, Vanilla
+- **🐘 PHP 8.3+** — PHPStan, PHPUnit, Composer, Laravel/Octane
 - **📦 Node.js/TS** — Vitest, TypeScript, Bun, Next.js, Express
 - **🎯 Multi-framework** — Choose your framework, database, frontend, deploy target
 - **🤖 6 Universal Agents** — research, documenter, domain-updater, commit-manager, tester, compactor
@@ -33,7 +33,7 @@ svs  # shortcut
 
 | Stack | Status | Frameworks |
 |-------|--------|------------|
-| 🐘 PHP 8.3+ | ✅ Ready | Laravel, Laravel+Octane, Symfony, CodeIgniter, Vanilla |
+| 🐘 PHP 8.3+ | ✅ Ready | Laravel, Laravel+Octane |
 | 📦 Node.js/TS | ✅ Ready | Next.js, Nuxt, Astro, Express, Fastify |
 | 🐍 Python | 🔜 Soon | Django, FastAPI, Flask |
 | 🦀 Rust | 🔜 Soon | Actix, Axum |

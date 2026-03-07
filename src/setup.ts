@@ -170,6 +170,40 @@ export async function setupProject(
       }
     }
 
+    // 11c. Save standards review results
+    if (config.standardsReview) {
+      const reviewPath = join(claudeDir, 'config', 'standards-review.json');
+      writeFileSync(reviewPath, JSON.stringify(config.standardsReview, null, 2));
+
+      if (config.standardsReview.status === 'adapted' && config.standardsReview.patterns.length > 0) {
+        const claudeMdPath = join(projectDir, 'CLAUDE.md');
+        if (existsSync(claudeMdPath)) {
+          let claudeContent = readFileSync(claudeMdPath, 'utf8');
+
+          const categories = new Map<string, string[]>();
+          for (const p of config.standardsReview.patterns) {
+            const list = categories.get(p.category) || [];
+            list.push(p.name);
+            categories.set(p.category, list);
+          }
+
+          let standardsSection = '\n\n## Project Standards (imported)\n\n';
+          standardsSection += `> Scanned from: ${config.standardsReview.sources.join(', ')}\n\n`;
+          for (const [category, items] of categories) {
+            standardsSection += `### ${category.charAt(0).toUpperCase() + category.slice(1)}\n\n`;
+            for (const item of items) {
+              standardsSection += `- ${item}\n`;
+            }
+            standardsSection += '\n';
+          }
+
+          claudeContent += standardsSection;
+          writeFileSync(claudeMdPath, claudeContent);
+        }
+        spinner.text = `Imported ${config.standardsReview.patterns.length} project standards`;
+      }
+    }
+
     // 12. Copy commands
     const sharedCommandsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'commands');
     if (existsSync(sharedCommandsDir)) {
