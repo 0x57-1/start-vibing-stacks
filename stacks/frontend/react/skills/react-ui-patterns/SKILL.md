@@ -138,7 +138,7 @@ function UserList({ users }: { users: User[] }) {
         icon={<Users className="h-8 w-8" />}
         title="No users yet"
         description="Invite your first team member"
-        action={{ label: 'Invite User', onClick: () => router.visit('/users/invite') }}
+        action={{ label: 'Invite User', onClick: () => window.location.assign('/users/invite') }}
       />
     );
   }
@@ -191,57 +191,76 @@ function EmptyState({ icon, title, description, action }: {
 </button>
 ```
 
-## Form Pattern (Inertia.js)
+## Form Pattern (React Hook Form + Zod)
 
 ```tsx
-import { useForm } from '@inertiajs/react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useMutation } from '@tanstack/react-query';
+import { z } from 'zod';
+import { toast } from 'sonner';
+
+const CreateUserSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  email: z.string().email('Invalid email'),
+});
+
+type CreateUserForm = z.infer<typeof CreateUserSchema>;
 
 export default function CreateUser() {
-  const { data, setData, post, processing, errors, reset } = useForm({
-    name: '',
-    email: '',
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CreateUserForm>({
+    resolver: zodResolver(CreateUserSchema),
   });
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    post('/users', {
-      onSuccess: () => {
-        toast.success('User created!');
-        reset();
-      },
-      onError: () => toast.error('Failed to create user'),
-    });
-  };
+  const mutation = useMutation({
+    mutationFn: (data: CreateUserForm) =>
+      fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).then((res) => {
+        if (!res.ok) throw new Error('Failed to create user');
+        return res.json();
+      }),
+    onSuccess: () => {
+      toast.success('User created!');
+      reset();
+    },
+    onError: () => toast.error('Failed to create user'),
+  });
 
   return (
-    <form onSubmit={submit} className="space-y-4">
+    <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="space-y-4">
       <div>
         <label className="block text-sm font-medium text-foreground mb-1">Name</label>
         <input
-          value={data.name}
-          onChange={e => setData('name', e.target.value)}
+          {...register('name')}
           className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground"
         />
-        {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name}</p>}
+        {errors.name && <p className="mt-1 text-sm text-destructive">{errors.name.message}</p>}
       </div>
 
       <div>
         <label className="block text-sm font-medium text-foreground mb-1">Email</label>
         <input
           type="email"
-          value={data.email}
-          onChange={e => setData('email', e.target.value)}
+          {...register('email')}
           className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground"
         />
-        {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
+        {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email.message}</p>}
       </div>
 
       <button
         type="submit"
-        disabled={processing}
+        disabled={mutation.isPending}
         className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary-hover disabled:opacity-50 transition-colors"
       >
-        {processing ? (
+        {mutation.isPending ? (
           <span className="flex items-center gap-2">
             <Loader className="h-4 w-4 animate-spin" /> Creating...
           </span>
@@ -252,27 +271,44 @@ export default function CreateUser() {
 }
 ```
 
-## Optimistic Updates
+## Optimistic Updates (TanStack Query)
 
 ```tsx
-// Show result immediately, rollback on error
-function ToggleFavorite({ item }: { item: Item }) {
-  const [optimistic, setOptimistic] = useState(item.isFavorite);
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-  const toggle = () => {
-    setOptimistic(!optimistic);  // Instant UI
-    router.post(`/items/${item.id}/favorite`, {}, {
-      preserveState: true,
-      onError: () => {
-        setOptimistic(item.isFavorite);  // Rollback
-        toast.error('Failed to update');
-      },
-    });
-  };
+function ToggleFavorite({ item }: { item: Item }) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      fetch(`/api/items/${item.id}/favorite`, { method: 'POST' }).then((res) => {
+        if (!res.ok) throw new Error('Failed');
+        return res.json();
+      }),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ['items'] });
+      const previous = queryClient.getQueryData<Item[]>(['items']);
+
+      queryClient.setQueryData<Item[]>(['items'], (old) =>
+        old?.map((i) =>
+          i.id === item.id ? { ...i, isFavorite: !i.isFavorite } : i
+        )
+      );
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      queryClient.setQueryData(['items'], context?.previous);
+      toast.error('Failed to update');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['items'] });
+    },
+  });
 
   return (
-    <button onClick={toggle} className="text-xl">
-      {optimistic ? '❤️' : '🤍'}
+    <button onClick={() => mutation.mutate()} className="text-xl">
+      {item.isFavorite ? '❤️' : '🤍'}
     </button>
   );
 }
@@ -294,5 +330,5 @@ function ToggleFavorite({ item }: { item: Item }) {
 1. **`if (loading) return <Spinner />`** — check `loading && !data` instead
 2. **Silent catch** — always toast/display errors to user
 3. **No empty state** — every list needs one
-4. **Clickable button during submit** — always `disabled={processing}`
+4. **Clickable button during submit** — always `disabled={isPending}` or `disabled={isSubmitting}`
 5. **Console.log-only errors** — user must see feedback

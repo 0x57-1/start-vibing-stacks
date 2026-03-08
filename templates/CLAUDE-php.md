@@ -1,5 +1,7 @@
 # {{PROJECT_NAME}}
 
+> **CHARACTER LIMIT**: Max 40,000 chars. Validate with `wc -m CLAUDE.md` before commit.
+
 ## Last Change
 
 **Branch:** main
@@ -78,6 +80,24 @@ project/
 └── CLAUDE.md            # This file
 ```
 
+## CLAUDE.md Update Rules
+
+> After ANY implementation, update this file to reflect the current state.
+
+| Change Type | Sections to Update |
+|-------------|-------------------|
+| Any file change | Last Change (branch, date, summary) |
+| API/routes | Critical Rules, Architecture |
+| New feature | 30s Overview, Architecture |
+| New gotcha | FORBIDDEN or NRY |
+| New dependency | Stack |
+| Workflow change | Workflow section |
+
+1. **Last Change** documents WHAT was done
+2. **Other sections** document HOW things work NOW
+3. **Both must be current** — updating only Last Change is insufficient
+4. Keep only the LATEST Last Change entry (no stacking)
+
 ## Critical Rules
 
 - **PHP >= 8.3** — readonly, enums, typed constants, match expressions
@@ -94,18 +114,80 @@ project/
 - **Config immutable** — never use `config()` to SET values at runtime
 - **Request object** — use `$request->input()`, never `$_GET`/`$_POST`/`$_SESSION`
 
+### Environment Variables & Secrets (MANDATORY)
+
+> **NEVER use `env()` outside config files.** After `config:cache`, `env()` returns null everywhere except config files.
+
+| Location | Access | Safe for |
+|----------|--------|----------|
+| `.env` | `env()` inside `config/*.php` only | API keys, DB credentials, secrets |
+| `config/*.php` | `config('services.stripe.key')` | Application code access |
+| Frontend (Inertia) | `InertiaShare` or controller props | Public data ONLY |
+
+```php
+// config/services.php — Bridge between .env and application
+return [
+    'openai' => [
+        'key' => env('OPENAI_KEY'),
+    ],
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),          // Publishable (sent to frontend)
+        'secret' => env('STRIPE_SECRET'),    // NEVER send to frontend
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+];
+
+// In code: ALWAYS use config()
+$apiKey = config('services.openai.key');
+
+// FORBIDDEN:
+$apiKey = env('OPENAI_KEY'); // Returns null when config is cached!
+```
+
+### Frontend Secret Isolation (MANDATORY)
+
+> **NEVER send API keys, secrets, or tokens to the frontend via Inertia props or JavaScript.**
+
+```php
+// WRONG — secret exposed in page source / DevTools
+return Inertia::render('Dashboard', [
+    'stripeSecret' => config('services.stripe.secret'),
+    'openaiKey' => config('services.openai.key'),
+]);
+
+// CORRECT — only public/publishable data to frontend
+return Inertia::render('Dashboard', [
+    'stripePublicKey' => config('services.stripe.key'), // pk_ only
+]);
+
+// For operations requiring secrets: use backend API routes
+// Frontend calls /api/payment → backend uses secret server-side
+```
+
 ## FORBIDDEN
+
+### Security (CRITICAL)
+
+| Action | Reason |
+|--------|--------|
+| `env()` outside config files | Returns null when config is cached — use `config()` |
+| Send API keys/secrets via Inertia props | Exposed in page source — keep secrets server-side |
+| `$guarded = []` on models | Allows mass assignment of any field — use `$fillable` |
+| `DB::raw()` with user input | SQL injection — use Eloquent or parameterized queries |
+| `{!! $userInput !!}` | XSS — use `{{ }}` (auto-escaped) |
+| Dynamic code execution functions | Remote code execution risk |
+| `md5()` / `sha1()` for passwords | Weak hashing — use `Hash::make()` |
+| `unserialize()` on user data | Object injection — use JSON with model casts |
+| CORS `allowed_origins: ['*']` | Open API — restrict to your domain |
+| `createToken('x', ['*'])` | Over-privileged — use specific abilities |
+| Trust `X-Forwarded-For` directly | Spoofable — use trusted proxies config |
+| `$_GET` / `$_POST` / `$_SESSION` | Stale in Octane — use `$request->input()` |
 
 ### Backend
 
 | Action | Reason |
 |--------|--------|
-| Dynamic code execution functions | Remote code execution risk |
-| `DB::raw()` with user input | SQL injection risk |
-| `{!! $userInput !!}` | XSS — use `{{ }}` instead |
-| Mass assignment without `$fillable` | Uncontrolled field injection |
 | Business logic in controllers | Move to Service classes |
-| `env()` outside config files | Returns null when config is cached |
 | `static` properties on services | Memory leaks in Octane workers |
 | Global variables / superglobals | Stale state in Octane |
 | `die()` / `exit()` | Kills the Octane worker process |
@@ -113,11 +195,13 @@ project/
 | `migrate:fresh` / `db:wipe` / `db:reset` | Destroys production data |
 | `app()` / `resolve()` in constructors | Use constructor DI instead |
 | `Inertia::render()` after POST/PUT/DELETE | Use `redirect()->route()` instead |
+| `dd()` / `dump()` in production code | Use structured `Log::info()` |
 
 ### Frontend (React)
 
 | Action | Reason |
 |--------|--------|
+| Call external APIs with secrets from JS | Exposes tokens — route through Laravel API |
 | `__()` inside JSX / render | Hook violation — define as CONST before hooks |
 | `fetch()` / `axios` for page data | Bypasses Inertia — use props from controller |
 | `<a href>` for internal links | Full page reload — use `<Link>` |
@@ -160,8 +244,45 @@ $results = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
 
 ## Workflow
 
-1. Create feature branch
-2. Implement with types, strict mode, Octane-safe patterns
-3. Run PHPStan + PHPUnit
-4. Update domains & CLAUDE.md
-5. Commit → merge to main
+```
+0. TODO LIST      → Create detailed todo list from prompt
+1. BRANCH         → Create feature/ | fix/ | refactor/ | test/
+2. RESEARCH       → Run research-web agent for NEW features
+3. IMPLEMENT      → Types, strict mode, Octane-safe, DI
+4. TEST           → Run PHPStan + PHPUnit
+5. DOCUMENT       → Run documenter agent for modified files
+6. UPDATE         → Update THIS FILE (CLAUDE.md) with changes
+7. QUALITY        → PHPStan + PHPUnit + PHP-CS-Fixer
+8. COMMIT         → Conventional commits, merge to main
+```
+
+## Domain Documentation
+
+> Domain docs prevent Claude from re-exploring the codebase every session.
+
+```
+.claude/skills/codebase-knowledge/domains/
+├── authentication.md
+├── api.md
+├── database.md
+├── ui-components.md
+└── [domain-name].md
+```
+
+Each domain file tracks: Files, Connections, Recent Commits, Attention Points, Problems & Solutions.
+
+## Configuration
+
+Project settings in `.claude/config/` (generated by start-vibing-stacks):
+
+- `active-project.json` — Stack, framework, database, skills
+- `domain-mapping.json` — File-to-domain mapping
+- `quality-gates.json` — Quality check commands
+- `testing-config.json` — Test framework config
+- `security-rules.json` — Security audit rules
+- `standards-review.json` — Imported project standards
+
+## Setup by start-vibing-stacks
+
+This project was set up with `npx start-vibing-stacks`.
+For updates: `npx start-vibing-stacks --force`

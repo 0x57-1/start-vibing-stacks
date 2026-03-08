@@ -2,14 +2,16 @@
  * Start Vibing Stacks — Terminal UI
  */
 
+import { readFileSync } from 'fs';
+import { join, dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
-const VERSION = '2.2.0';
-
-const gradient = (text: string) => {
-  const colors = [chalk.hex('#FF6B6B'), chalk.hex('#FF8E53'), chalk.hex('#FFBD2E'), chalk.hex('#48BB78'), chalk.hex('#4299E1'), chalk.hex('#9F7AEA')];
-  return text.split('').map((c, i) => colors[i % colors.length](c)).join('');
-};
+const __ui_filename = fileURLToPath(import.meta.url);
+const __ui_dirname = dirname(__ui_filename);
+const VERSION: string = JSON.parse(
+  readFileSync(join(resolve(__ui_dirname, '..'), 'package.json'), 'utf8')
+).version;
 
 export const LOGO = `
 ${chalk.hex('#9F7AEA')('    ╔═══════════════════════════════════════════════╗')}

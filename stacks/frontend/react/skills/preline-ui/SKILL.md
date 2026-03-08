@@ -10,7 +10,7 @@ Preline is a **semantic token-based design system** built on TailwindCSS. It pro
 - Theme generator for custom color schemes
 - Light + dark mode via `data-theme` + `.dark`
 
-## Installation (Laravel + Inertia)
+## Installation
 
 ### Step 1: Install
 
@@ -21,7 +21,7 @@ npm install preline @tailwindcss/forms
 ### Step 2: CSS Config
 
 ```css
-/* resources/css/app.css */
+/* src/app/globals.css (Next.js) or styles/globals.css */
 @import "tailwindcss";
 
 /* Preline — MUST be in this order */
@@ -31,39 +31,35 @@ npm install preline @tailwindcss/forms
 @import "./node_modules/preline/themes/theme.css"; /* Base theme */
 ```
 
-### Step 3: Vite Config
-
-```js
-// vite.config.js
-import { defineConfig } from 'vite';
-import laravel from 'laravel-vite-plugin';
-import react from '@vitejs/plugin-react';
-
-export default defineConfig({
-  plugins: [
-    laravel({ input: ['resources/css/app.css', 'resources/js/app.tsx'], refresh: true }),
-    react(),
-  ],
-});
-```
-
-### Step 4: Init Preline in Inertia (MANDATORY)
+### Step 3: Init Preline on Route Changes (MANDATORY)
 
 ```tsx
-// resources/js/app.tsx
-import { router } from '@inertiajs/react';
+// src/components/PrelineInit.tsx
+'use client';
 
-// Re-init Preline components after every SPA navigation
-router.on('navigate', () => {
-  setTimeout(() => {
-    import('preline/preline').then(({ HSStaticMethods }) => {
-      HSStaticMethods.autoInit();
-    });
-  }, 100);
-});
+import { usePathname } from 'next/navigation';
+import { useEffect } from 'react';
+
+export function PrelineInit() {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      import('preline/preline').then(({ HSStaticMethods }) => {
+        HSStaticMethods.autoInit();
+      });
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  return null;
+}
+
+// Add to root layout:
+// <PrelineInit />
 ```
 
-**Rule:** Without `HSStaticMethods.autoInit()`, dropdowns, modals, and accordions will NOT work after Inertia navigation.
+**Rule:** Without `HSStaticMethods.autoInit()`, dropdowns, modals, and accordions will NOT work after client-side navigation.
 
 ## Templates & Components (840+ free)
 
@@ -80,11 +76,11 @@ router.on('navigate', () => {
 
 1. Browse https://preline.co/examples.html
 2. Click a block → copy the HTML/JSX
-3. Adapt to React + Inertia:
-   - Replace `<a href>` with `<Link href>` (Inertia)
+3. Adapt to React:
+   - Replace `<a href>` with Next.js `<Link href>` (from `next/link`)
    - Replace `class=` with `className=`
    - Add Preline `data-*` attributes for interactive components
-   - Use `usePage().props` for dynamic data
+   - Pass data via props or fetch with TanStack Query / Server Components
 
 ### Example: Copy a Hero Block
 
@@ -245,7 +241,7 @@ function ThemeToggle() {
 }
 ```
 
-## Using Components with React (Inertia)
+## Using Components with React
 
 ### Navbar
 
@@ -327,7 +323,7 @@ function ThemeToggle() {
 
 ```bash
 # Generate theme from config
-npx preline-theme-generator /tmp/config.json ./resources/css/themes/brand.css
+npx preline-theme-generator /tmp/config.json ./src/styles/themes/brand.css
 
 # Config format:
 {
@@ -359,4 +355,4 @@ npx preline-theme-generator /tmp/config.json ./resources/css/themes/brand.css
 | Force HTML class changes | Theme activation via `data-theme` only |
 | Invent token names | Follow Preline's naming system |
 | `@apply` for component styles | React components with token classes |
-| Skip `HSStaticMethods.autoInit()` | Always re-init after Inertia navigation |
+| Skip `HSStaticMethods.autoInit()` | Always re-init after client-side navigation |

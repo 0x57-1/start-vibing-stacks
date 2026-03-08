@@ -35,6 +35,7 @@ export interface FrameworkOption {
   icon: string;
   detectFiles?: string[];
   skills?: string[];
+  default?: boolean;
   extra?: Record<string, unknown>;
 }
 
@@ -49,6 +50,8 @@ export interface FrontendOption {
   name: string;
   icon: string;
   frameworks?: string[];
+  skillsDir?: string;
+  default?: boolean;
 }
 
 export interface DeployTarget {
@@ -75,6 +78,7 @@ export interface ProjectConfig {
   framework: string;
   database: string;
   frontend: string;
+  frontendSkillsDir?: string;
   deploy: string;
   path: string;
   createdAt: string;

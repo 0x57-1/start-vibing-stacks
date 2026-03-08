@@ -113,17 +113,37 @@ if (result.success) {
 
 ### Environment Variables
 
+> **Split server and client env schemas.** `NEXT_PUBLIC_*` is embedded in the browser bundle — NEVER put secrets there.
+
 ```tsx
-const EnvSchema = z.object({
-  NEXT_PUBLIC_API_URL: z.string().url(),
-  NEXT_PUBLIC_STRIPE_KEY: z.string().startsWith('pk_'),
+// lib/env.server.ts — Server-only secrets (NEVER import from client components)
+const ServerEnvSchema = z.object({
   DATABASE_URL: z.string().min(1),
+  OPENAI_KEY: z.string().startsWith('sk-'),
+  STRIPE_SECRET_KEY: z.string().startsWith('sk_'),
   NODE_ENV: z.enum(['development', 'production', 'test']),
 });
 
-// Validate at app startup
-export const env = EnvSchema.parse(process.env);
+export const serverEnv = ServerEnvSchema.parse({
+  DATABASE_URL: process.env['DATABASE_URL'],
+  OPENAI_KEY: process.env['OPENAI_KEY'],
+  STRIPE_SECRET_KEY: process.env['STRIPE_SECRET_KEY'],
+  NODE_ENV: process.env['NODE_ENV'],
+});
+
+// lib/env.client.ts — Public vars only (safe for browser)
+const ClientEnvSchema = z.object({
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+  NEXT_PUBLIC_STRIPE_KEY: z.string().startsWith('pk_'),
+});
+
+export const clientEnv = ClientEnvSchema.parse({
+  NEXT_PUBLIC_APP_URL: process.env['NEXT_PUBLIC_APP_URL'],
+  NEXT_PUBLIC_STRIPE_KEY: process.env['NEXT_PUBLIC_STRIPE_KEY'],
+});
 ```
+
+**Rule:** If a variable contains a key, secret, token, or password, it MUST be in `ServerEnvSchema` without `NEXT_PUBLIC_` prefix.
 
 ### Reusable Schemas
 
@@ -160,26 +180,72 @@ const ContactSchema = z.object({
 });
 ```
 
-## Integration with Laravel (Inertia.js)
+## Integration with Next.js Server Actions
 
 ```tsx
-// Frontend validates BEFORE sending to Laravel
-const StoreLeadSchema = z.object({
+'use server';
+
+import { z } from 'zod';
+
+const CreateLeadSchema = z.object({
   name: z.string().min(2),
-  email: EmailSchema,
-  domain_id: UUIDSchema,
+  email: z.string().email().toLowerCase().trim(),
+  domainId: z.string().uuid(),
 });
 
-// In component
-const handleSubmit = (formData: unknown) => {
-  const result = StoreLeadSchema.safeParse(formData);
+export async function createLead(formData: FormData) {
+  const result = CreateLeadSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    domainId: formData.get('domainId'),
+  });
+
   if (!result.success) {
-    setErrors(result.error.flatten().fieldErrors);
-    return;
+    return { errors: result.error.flatten().fieldErrors };
   }
-  // Send validated data to Laravel
-  router.post('/leads', result.data);
-};
+
+  await db.lead.create({ data: result.data });
+  return { success: true };
+}
+```
+
+### Client-Side with React Hook Form
+
+```tsx
+'use client';
+
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const CreateLeadSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  domainId: z.string().uuid(),
+});
+
+type CreateLeadForm = z.infer<typeof CreateLeadSchema>;
+
+export function LeadForm() {
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateLeadForm>({
+    resolver: zodResolver(CreateLeadSchema),
+  });
+
+  const onSubmit = async (data: CreateLeadForm) => {
+    await fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('name')} />
+      {errors.name && <span>{errors.name.message}</span>}
+      {/* ... */}
+    </form>
+  );
+}
 ```
 
 ## FORBIDDEN

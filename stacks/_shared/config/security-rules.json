@@ -5,16 +5,38 @@
   },
   "sensitivePatterns": {
     "forbidden": [
-      "eval(",
-      "exec(",
-      "system(",
-      "passthru(",
-      "shell_exec(",
       "password:",
       "passwordHash",
       "apiKey:",
       "secret:"
     ]
+  },
+  "envExposure": {
+    "$comment": "NEXT_PUBLIC_ vars are embedded in browser JS bundle. These patterns indicate secrets being exposed to the client.",
+    "forbiddenPublicEnvPatterns": [
+      "NEXT_PUBLIC_.*SECRET",
+      "NEXT_PUBLIC_.*TOKEN",
+      "NEXT_PUBLIC_.*PRIVATE",
+      "NEXT_PUBLIC_.*PASSWORD",
+      "NEXT_PUBLIC_.*CREDENTIAL"
+    ],
+    "forbiddenPublicEnvExact": [
+      "NEXT_PUBLIC_OPENAI_KEY",
+      "NEXT_PUBLIC_OPENAI_API_KEY",
+      "NEXT_PUBLIC_STRIPE_SECRET",
+      "NEXT_PUBLIC_STRIPE_SECRET_KEY",
+      "NEXT_PUBLIC_DATABASE_URL",
+      "NEXT_PUBLIC_SUPABASE_SERVICE_KEY",
+      "NEXT_PUBLIC_FIREBASE_ADMIN_KEY"
+    ],
+    "safePublicEnvPatterns": [
+      "NEXT_PUBLIC_.*URL",
+      "NEXT_PUBLIC_.*ID",
+      "NEXT_PUBLIC_STRIPE_KEY",
+      "NEXT_PUBLIC_GA_",
+      "NEXT_PUBLIC_SENTRY_DSN"
+    ],
+    "rule": "API keys, secrets, and tokens MUST stay server-side. Use Route Handlers or Server Actions as proxy."
   },
   "cookies": {
     "httpOnly": true,

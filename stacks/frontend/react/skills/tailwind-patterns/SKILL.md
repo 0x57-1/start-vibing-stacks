@@ -15,7 +15,7 @@
 ## Setup (v4)
 
 ```css
-/* resources/css/app.css (Laravel + Inertia) */
+/* src/app/globals.css */
 @import "tailwindcss";
 
 @theme {

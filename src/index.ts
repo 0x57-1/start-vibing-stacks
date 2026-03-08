@@ -7,7 +7,8 @@
  */
 
 import { existsSync, readFileSync } from 'fs';
-import { join, basename } from 'path';
+import { join, basename, dirname, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import * as ui from './ui.js';
@@ -16,7 +17,12 @@ import { autoInstall, installComposer, installClaudeCode } from './installer.js'
 import { loadStackConfig, setupProject } from './setup.js';
 import { selectMcpServers, installMcpServers } from './mcp.js';
 import { scanProjectStandards } from './scanner.js';
-import type { ProjectConfig, StackConfig, StandardsReview } from './types.js';
+import type { ProjectConfig, StandardsReview } from './types.js';
+
+const __cli_filename = fileURLToPath(import.meta.url);
+const __cli_dirname = dirname(__cli_filename);
+const CLI_ROOT = resolve(__cli_dirname, '..');
+const PKG_VERSION: string = JSON.parse(readFileSync(join(CLI_ROOT, 'package.json'), 'utf8')).version;
 
 // =============================================================================
 // CLI Arguments
@@ -33,7 +39,7 @@ const FLAGS = {
 };
 
 if (FLAGS.version) {
-  console.log('1.0.0');
+  console.log(PKG_VERSION);
   process.exit(0);
 }
 
@@ -192,12 +198,17 @@ async function main(): Promise<void> {
           ? detectPythonFramework(projectDir)
           : null;
 
+  const defaultFramework =
+    detectedFramework ||
+    stackConfig.frameworks.find((f) => f.default)?.id ||
+    undefined;
+
   const { framework } = await inquirer.prompt([
     {
       type: 'list',
       name: 'framework',
       message: 'Select framework:',
-      default: detectedFramework || undefined,
+      default: defaultFramework,
       choices: stackConfig.frameworks.map((f) => ({
         name: `${f.icon}  ${f.name}`,
         value: f.id,
@@ -225,11 +236,14 @@ async function main(): Promise<void> {
     (f) => !f.frameworks || f.frameworks.includes(framework)
   );
 
+  const defaultFrontend = compatibleFrontends.find((f) => f.default)?.id || undefined;
+
   const { frontend } = await inquirer.prompt([
     {
       type: 'list',
       name: 'frontend',
       message: 'Frontend included?',
+      default: defaultFrontend,
       choices: compatibleFrontends.map((f) => ({
         name: `${f.icon}  ${f.name}`,
         value: f.id,
@@ -300,12 +314,15 @@ async function main(): Promise<void> {
   }
 
   // ─── Step 7: Show Summary & Confirm ────────────────────────────────────
+  const selectedFrontend = compatibleFrontends.find((f) => f.id === frontend);
+
   const config: ProjectConfig = {
     name: projectName,
     stack: stackId,
     framework,
     database,
     frontend,
+    frontendSkillsDir: selectedFrontend?.skillsDir,
     deploy,
     path: projectDir,
     createdAt: new Date().toISOString(),

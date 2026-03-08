@@ -4,7 +4,7 @@
  * Copies and configures stack-specific files into the project.
  */
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync, cpSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
 import { join, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import ora from 'ora';
@@ -109,7 +109,8 @@ export async function setupProject(
 
     // 8. Copy frontend-specific skills if applicable
     if (config.frontend && config.frontend !== 'none') {
-      const frontendDir = join(PACKAGE_ROOT, 'stacks', 'frontend', config.frontend);
+      const frontendId = config.frontendSkillsDir || config.frontend;
+      const frontendDir = join(PACKAGE_ROOT, 'stacks', 'frontend', frontendId);
       if (existsSync(frontendDir)) {
         const feSkillCount = copyDirRecursive(
           join(frontendDir, 'skills'),
@@ -334,6 +335,20 @@ export async function setupProject(
     }
 
     writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify(settings, null, '\t'));
+
+    // 14. Detect Preline and suggest official agent skills
+    const projectPkgPath = join(projectDir, 'package.json');
+    if (existsSync(projectPkgPath)) {
+      try {
+        const projectPkg = JSON.parse(readFileSync(projectPkgPath, 'utf8'));
+        const allDeps = { ...projectPkg.dependencies, ...projectPkg.devDependencies };
+        if (allDeps['preline'] && !existsSync(join(claudeDir, 'skills', 'preline-theme-generator'))) {
+          ui.info('Preline UI detected — run: npx skills add htmlstreamofficial/preline');
+        }
+      } catch {
+        // package.json parse error, skip
+      }
+    }
 
     spinner.succeed(
       `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks`

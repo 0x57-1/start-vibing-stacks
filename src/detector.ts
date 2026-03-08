@@ -38,11 +38,6 @@ const STACK_SIGNATURES: StackSignature[] = [
   { id: 'python', files: ['Pipfile'], weight: 85, reason: 'Pipfile detected' },
   { id: 'python', files: ['setup.py'], weight: 75, reason: 'setup.py detected' },
 
-  // Rust
-  { id: 'rust', files: ['Cargo.toml'], weight: 95, reason: 'Cargo.toml detected' },
-
-  // Go
-  { id: 'go', files: ['go.mod'], weight: 95, reason: 'go.mod detected' },
 ];
 
 export function detectProject(projectDir: string): DetectionResult {
@@ -119,7 +114,22 @@ export function detectNodeFramework(projectDir: string): string | null {
   )
     return 'nextjs';
   if (existsSync(join(projectDir, 'nuxt.config.ts'))) return 'nuxt';
-  if (existsSync(join(projectDir, 'astro.config.mjs'))) return 'astro';
+  if (existsSync(join(projectDir, 'astro.config.mjs')) || existsSync(join(projectDir, 'astro.config.ts'))) return 'astro';
+  if (existsSync(join(projectDir, 'svelte.config.js')) || existsSync(join(projectDir, 'svelte.config.ts'))) return 'svelte';
+
+  const pkgPath = join(projectDir, 'package.json');
+  if (existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+      const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+      if (deps['express']) return 'express';
+      if (deps['fastify']) return 'fastify';
+      if (deps['hono']) return 'hono';
+    } catch {
+      // ignore parse errors
+    }
+  }
+
   return null;
 }
 

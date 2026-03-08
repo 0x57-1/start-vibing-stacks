@@ -5,16 +5,16 @@
 - **ReactJS >= 19** — MANDATORY
 - **TailwindCSS >= 4** — MANDATORY
 
-## Translation Pattern
+## Label Constants Pattern
 
 ```tsx
-// ✅ Translations as CONST at the top, BEFORE hooks
+// ✅ Labels as CONST at the top, BEFORE hooks
 const LABELS = {
-    title: __('dashboard.title'),
-    save: __('common.save'),
-    cancel: __('common.cancel'),
-    errorRequired: __('errors.field_required'),
-};
+    title: 'Dashboard',
+    save: 'Save',
+    cancel: 'Cancel',
+    errorRequired: 'This field is required',
+} as const;
 
 export default function Dashboard() {
     const [data, setData] = useState(null);
@@ -22,14 +22,14 @@ export default function Dashboard() {
     return <h1>{LABELS.title}</h1>;
 }
 
-// ❌ NEVER call __() inside JSX (Hook violations)
-return <h1>{__('dashboard.title')}</h1>; // ❌
+// ❌ NEVER scatter string literals across JSX
+return <h1>Dashboard</h1>; // ❌ Duplicated, hard to maintain
 ```
 
 **Rules:**
-- Translations in `CONST` variables before state hooks
-- New strings → add to `lang/en/*.php` and `lang/pt/*.php`
-- Error strings centralized in `lang/*/errors.php`
+- Labels in `CONST` objects before state hooks for stable references
+- For i18n projects, use `next-intl` or `i18next` — same CONST pattern applies with `t()` calls
+- Error strings centralized in a shared constants file
 
 ## Debug Logging
 
@@ -65,11 +65,11 @@ export default function Dashboard() {
 
 ```tsx
 // ═══════════════════════════════════════════
-// 1. TRANSLATIONS (before hooks)
+// 1. LABELS (before hooks)
 // ═══════════════════════════════════════════
 const LABELS = {
-    title: __('dashboard.title'),
-    save: __('common.save'),
+    title: 'Dashboard',
+    save: 'Save',
 } as const;
 
 // ═══════════════════════════════════════════
@@ -156,7 +156,7 @@ import { cn } from '@/lib/utils';
 5. **Shared styles** — create a `styles.ts` file for cross-component constants
 
 ```tsx
-// resources/js/styles.ts — shared across components
+// src/styles.ts — shared across components
 export const SHARED_STYLES = {
     page: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8',
     btnPrimary: 'px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary-hover ...',
@@ -187,10 +187,10 @@ export default function Bad() {
 ## SVG Icons
 
 ```tsx
-// ✅ Separate files, import with ?react
-// resources/js/Icons/CheckIcon.svg
-import CheckIcon from '@/Icons/CheckIcon.svg?react';
-import { CheckIcon, AlertIcon } from '@/Icons';
+// ✅ Separate files, import with ?react (Vite) or as components
+// src/components/icons/CheckIcon.svg
+import CheckIcon from '@/components/icons/CheckIcon.svg?react';
+import { CheckIcon, AlertIcon } from '@/components/icons';
 
 // ❌ Inline SVG
 <svg viewBox="0 0 24 24">...</svg> // ❌ Bloats JSX

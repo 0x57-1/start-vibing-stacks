@@ -1,29 +1,13 @@
 {
   "id": "nodejs",
   "name": "Node.js / TypeScript",
-  "icon": "\ud83d\udce6",
+  "icon": "📦",
   "runtime": "Bun / Node.js 20+",
   "minVersion": "20.0.0",
   "packageManager": "bun|npm|pnpm",
-  "extensions": [
-    ".ts",
-    ".tsx",
-    ".js",
-    ".jsx",
-    ".mjs",
-    ".cjs"
-  ],
-  "testExtensions": [
-    "*.test.ts",
-    "*.spec.ts",
-    "*.test.tsx"
-  ],
-  "detectFiles": [
-    "package.json",
-    "tsconfig.json",
-    "bun.lockb",
-    "next.config.js"
-  ],
+  "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
+  "testExtensions": ["*.test.ts", "*.spec.ts", "*.test.tsx"],
+  "detectFiles": ["package.json", "tsconfig.json", "bun.lockb", "bun.lock", "next.config.js"],
   "commands": {
     "test": "bun run test",
     "lint": "bun run lint",
@@ -33,146 +17,95 @@
     "typecheck": "bun run typecheck"
   },
   "qualityGates": [
-    {
-      "name": "TypeCheck",
-      "command": "bun run typecheck",
-      "required": true,
-      "order": 1
-    },
-    {
-      "name": "Lint",
-      "command": "bun run lint",
-      "required": true,
-      "order": 2
-    },
-    {
-      "name": "Tests",
-      "command": "bun run test",
-      "required": true,
-      "order": 3
-    },
-    {
-      "name": "Build",
-      "command": "bun run build",
-      "required": true,
-      "order": 4
-    }
+    { "name": "TypeCheck", "command": "bun run typecheck", "required": true, "order": 1 },
+    { "name": "Lint", "command": "bun run lint", "required": true, "order": 2 },
+    { "name": "Tests", "command": "bun run test", "required": true, "order": 3 },
+    { "name": "Build", "command": "bun run build", "required": true, "order": 4 }
   ],
   "frameworks": [
     {
       "id": "nextjs",
       "name": "Next.js (App Router)",
-      "icon": "\u25b2",
-      "detectFiles": [
-        "next.config.js",
-        "next.config.ts",
-        "next.config.mjs"
-      ]
+      "icon": "▲",
+      "detectFiles": ["next.config.js", "next.config.ts", "next.config.mjs"],
+      "default": true,
+      "skills": ["nextjs-app-router"]
     },
     {
       "id": "nuxt",
       "name": "Nuxt",
-      "icon": "\ud83d\udc9a",
-      "detectFiles": [
-        "nuxt.config.ts"
-      ]
+      "icon": "💚",
+      "detectFiles": ["nuxt.config.ts"],
+      "skills": []
     },
     {
       "id": "astro",
       "name": "Astro",
-      "icon": "\ud83d\ude80",
-      "detectFiles": [
-        "astro.config.mjs"
-      ]
+      "icon": "🚀",
+      "detectFiles": ["astro.config.mjs"],
+      "skills": []
     },
     {
       "id": "express",
       "name": "Express",
-      "icon": "\u26a1"
+      "icon": "⚡",
+      "skills": ["trpc-api"]
     },
     {
       "id": "fastify",
       "name": "Fastify",
-      "icon": "\ud83c\udfce\ufe0f"
+      "icon": "🏎️",
+      "skills": ["trpc-api"]
     },
     {
       "id": "vanilla",
       "name": "Vanilla Node.js",
-      "icon": "\ud83d\udcc4"
+      "icon": "📄",
+      "skills": []
     }
   ],
   "databases": [
-    {
-      "id": "mongodb",
-      "name": "MongoDB",
-      "icon": "\ud83c\udf43"
-    },
-    {
-      "id": "postgresql",
-      "name": "PostgreSQL",
-      "icon": "\ud83d\udc18"
-    },
-    {
-      "id": "mysql",
-      "name": "MySQL / MariaDB",
-      "icon": "\ud83d\udc2c"
-    },
-    {
-      "id": "sqlite",
-      "name": "SQLite (Turso / libSQL)",
-      "icon": "\ud83d\udcc1"
-    },
-    {
-      "id": "redis",
-      "name": "Redis (Upstash)",
-      "icon": "\ud83d\udd34"
-    },
-    {
-      "id": "none",
-      "name": "None",
-      "icon": "\u274c"
-    }
+    { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
+    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
+    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
+    { "id": "sqlite", "name": "SQLite (Turso / libSQL)", "icon": "📁" },
+    { "id": "redis", "name": "Redis (Upstash)", "icon": "🔴" },
+    { "id": "none", "name": "None", "icon": "❌" }
   ],
   "frontendOptions": [
     {
       "id": "react-tailwind",
       "name": "React 19+ / TailwindCSS 4+",
-      "icon": "\u269b\ufe0f"
+      "icon": "⚛️",
+      "skillsDir": "react",
+      "default": true,
+      "frameworks": ["nextjs", "express", "fastify", "vanilla"]
     },
     {
       "id": "vue",
       "name": "Vue.js / Nuxt",
-      "icon": "\ud83d\udc9a"
+      "icon": "💚",
+      "frameworks": ["nuxt"]
     },
     {
       "id": "svelte",
       "name": "Svelte / SvelteKit",
-      "icon": "\ud83d\udd25"
-    },
-    {
-      "id": "shadcn",
-      "name": "shadcn/ui + Tailwind",
-      "icon": "\ud83c\udfa8"
+      "icon": "🔥",
+      "frameworks": ["astro", "vanilla"]
     },
     {
       "id": "none",
-      "name": "API only \u2014 no frontend",
-      "icon": "\u274c"
+      "name": "API only — no frontend",
+      "icon": "❌"
     }
   ],
   "deployTargets": [
-    {
-      "id": "github",
-      "name": "GitHub (git push)",
-      "icon": "\ud83d\udc19"
-    }
+    { "id": "github", "name": "GitHub (git push)", "icon": "🐙" }
   ],
   "skills": [
     "typescript-strict",
-    "react-patterns",
-    "nextjs-app-router",
-    "zod-validation",
-    "vitest-testing"
+    "bun-runtime",
+    "zod-validation"
   ],
   "requirements": [
     {
@@ -185,17 +118,6 @@
         "linux": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs"
       },
       "versionRegex": "v?(\\d+\\.\\d+\\.\\d+)"
-    },
-    {
-      "name": "Bun",
-      "command": "bun",
-      "versionFlag": "--version",
-      "minVersion": "1.0.0",
-      "installCommand": {
-        "macos": "brew install oven-sh/bun/bun",
-        "linux": "curl -fsSL https://bun.sh/install | bash"
-      },
-      "versionRegex": "(\\d+\\.\\d+\\.\\d+)"
     }
   ]
 }

@@ -123,6 +123,9 @@ const NPM_PACKAGES: Record<string, { category: string; name: string }> = {
   // Media
   'uploadthing': { category: 'media', name: 'UploadThing file uploads' },
   'sharp': { category: 'media', name: 'Sharp image processing' },
+
+  // Design System
+  'preline': { category: 'ui', name: 'Preline UI design system' },
 };
 
 function readFileIfExists(path: string): string | null {
@@ -509,9 +512,14 @@ function scanProjectFiles(projectDir: string): ScanResult | null {
   }
 
   // Environment files (works for both PHP and Node.js projects)
-  const envContent =
-    readFileIfExists(join(projectDir, '.env.example')) ||
-    readFileIfExists(join(projectDir, '.env'));
+  const envFiles = ['.env.example', '.env', '.env.local', '.env.development', '.env.production'];
+  let envContent: string | null = null;
+  for (const envFile of envFiles) {
+    const content = readFileIfExists(join(projectDir, envFile));
+    if (content) {
+      envContent = (envContent || '') + '\n' + content;
+    }
+  }
   if (envContent) {
     if (/REDIS_HOST|REDIS_URL/i.test(envContent)) {
       patterns.push({ category: 'cache', name: 'Redis configured', confidence: 85 });
@@ -527,6 +535,20 @@ function scanProjectFiles(projectDir: string): ScanResult | null {
     }
     if (/STRIPE_SECRET|STRIPE_KEY/i.test(envContent)) {
       patterns.push({ category: 'billing', name: 'Stripe payments configured', confidence: 85 });
+    }
+
+    // Security: detect NEXT_PUBLIC_ with sensitive values
+    const sensitivePublicEnv = envContent.match(/^NEXT_PUBLIC_\w*(SECRET|TOKEN|PRIVATE|PASSWORD|CREDENTIAL|OPENAI|API_KEY|DATABASE)\w*\s*=/gmi);
+    if (sensitivePublicEnv) {
+      for (const match of sensitivePublicEnv) {
+        const varName = match.split('=')[0].trim();
+        patterns.push({
+          category: 'security',
+          name: `EXPOSED SECRET: ${varName} is public (visible in browser)`,
+          confidence: 100,
+          detail: `${varName} uses NEXT_PUBLIC_ prefix which embeds the value in the client JS bundle. Remove NEXT_PUBLIC_ and access via Route Handler or Server Action.`,
+        });
+      }
     }
   }
 

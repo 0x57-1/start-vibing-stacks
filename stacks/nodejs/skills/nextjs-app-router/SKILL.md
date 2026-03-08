@@ -114,6 +114,104 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 }
 ```
 
+## Environment Variables & API Security (MANDATORY)
+
+> **NEXT_PUBLIC_ vars are embedded in the browser JS bundle.** Anyone can see them in DevTools.
+
+### Server vs Client Environment
+
+| Prefix | Accessible from | Safe for |
+|--------|----------------|----------|
+| No prefix | Server Components, Route Handlers, Server Actions | API keys, secrets, tokens, DB URLs |
+| `NEXT_PUBLIC_*` | Server + Browser (embedded in JS) | Public URLs, analytics IDs, publishable keys |
+
+### FORBIDDEN Environment Patterns
+
+```bash
+# NEVER DO THIS — secret exposed in browser bundle
+NEXT_PUBLIC_OPENAI_KEY=sk-abc123
+NEXT_PUBLIC_STRIPE_SECRET_KEY=sk_live_abc
+NEXT_PUBLIC_DATABASE_URL=postgresql://user:pass@host/db
+
+# CORRECT — server-only (no NEXT_PUBLIC_ prefix)
+OPENAI_KEY=sk-abc123
+STRIPE_SECRET_KEY=sk_live_abc
+DATABASE_URL=postgresql://user:pass@host/db
+
+# OK as NEXT_PUBLIC_ — no secret value
+NEXT_PUBLIC_APP_URL=https://myapp.com
+NEXT_PUBLIC_STRIPE_KEY=pk_live_abc
+NEXT_PUBLIC_GA_ID=G-XXXXX
+```
+
+### API Proxy Pattern (MANDATORY)
+
+External API calls with secrets MUST go through server-side Route Handlers:
+
+```tsx
+// app/api/ai/route.ts — Secret stays on server
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  const { prompt } = await req.json();
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${process.env['OPENAI_KEY']}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4',
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    return NextResponse.json({ error: 'AI request failed' }, { status: 502 });
+  }
+
+  return NextResponse.json(await response.json());
+}
+```
+
+```tsx
+// components/chat.tsx — Client calls YOUR route, not external API
+'use client';
+
+async function sendMessage(prompt: string) {
+  const res = await fetch('/api/ai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt }),
+  });
+  return res.json();
+}
+```
+
+### Server Actions for Mutations
+
+Server Actions also keep secrets server-side:
+
+```tsx
+// app/actions/payment.ts
+'use server';
+
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env['STRIPE_SECRET_KEY']!);
+
+export async function createCheckout(priceId: string) {
+  const session = await stripe.checkout.sessions.create({
+    mode: 'payment',
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${process.env['APP_URL']}/success`,
+    cancel_url: `${process.env['APP_URL']}/cancel`,
+  });
+  return { url: session.url };
+}
+```
+
 ## FORBIDDEN
 
 1. **`'use client'` on server-capable components** — default to server
@@ -121,3 +219,6 @@ export async function generateMetadata({ params }: { params: { id: string } }) {
 3. **`getServerSideProps` / `getStaticProps`** — App Router uses async components
 4. **API routes for server-only data** — use server components directly
 5. **Prop drilling through layouts** — use parallel routes or context
+6. **`NEXT_PUBLIC_` with API keys, secrets, or tokens** — secrets leak to browser bundle
+7. **Calling external APIs from client components** — use Route Handlers as proxy
+8. **`process.env['SECRET']` in `'use client'` files** — only `NEXT_PUBLIC_*` vars work client-side
