@@ -43,6 +43,7 @@ export interface DatabaseOption {
   id: string;
   name: string;
   icon: string;
+  default?: boolean;
 }
 
 export interface FrontendOption {

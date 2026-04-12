@@ -219,11 +219,14 @@ async function main(): Promise<void> {
   const selectedFramework = stackConfig.frameworks.find((f) => f.id === framework);
 
   // ─── Step 4: Select Database ───────────────────────────────────────────
+  const defaultDatabase = stackConfig.databases.find((d) => d.default)?.id || undefined;
+
   const { database } = await inquirer.prompt([
     {
       type: 'list',
       name: 'database',
       message: 'Select database:',
+      default: defaultDatabase,
       choices: stackConfig.databases.map((d) => ({
         name: `${d.icon}  ${d.name}`,
         value: d.id,

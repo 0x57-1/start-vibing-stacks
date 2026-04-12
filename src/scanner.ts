@@ -511,6 +511,14 @@ function scanProjectFiles(projectDir: string): ScanResult | null {
     patterns.push({ category: 'quality', name: 'Prettier config present', confidence: 100 });
   }
 
+  // ── UI/UX Skills ──
+  if (
+    existsSync(join(projectDir, '.cursor', 'skills', 'ui-ux-pro-max', 'SKILL.md')) ||
+    existsSync(join(projectDir, '.claude', 'skills', 'ui-ux-pro-max', 'SKILL.md'))
+  ) {
+    patterns.push({ category: 'ui', name: 'UI/UX Pro Max skill installed', confidence: 100 });
+  }
+
   // Environment files (works for both PHP and Node.js projects)
   const envFiles = ['.env.example', '.env', '.env.local', '.env.development', '.env.production'];
   let envContent: string | null = null;
@@ -540,8 +548,8 @@ function scanProjectFiles(projectDir: string): ScanResult | null {
     // Security: detect NEXT_PUBLIC_ with sensitive values
     const sensitivePublicEnv = envContent.match(/^NEXT_PUBLIC_\w*(SECRET|TOKEN|PRIVATE|PASSWORD|CREDENTIAL|OPENAI|API_KEY|DATABASE)\w*\s*=/gmi);
     if (sensitivePublicEnv) {
-      for (const match of sensitivePublicEnv) {
-        const varName = match.split('=')[0].trim();
+      for (const found of sensitivePublicEnv) {
+        const varName = found.split('=')[0].trim();
         patterns.push({
           category: 'security',
           name: `EXPOSED SECRET: ${varName} is public (visible in browser)`,

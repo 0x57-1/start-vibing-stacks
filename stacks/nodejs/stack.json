@@ -67,7 +67,7 @@
   "databases": [
     { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
     { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
-    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
+    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬", "default": true },
     { "id": "sqlite", "name": "SQLite (Turso / libSQL)", "icon": "📁" },
     { "id": "redis", "name": "Redis (Upstash)", "icon": "🔴" },
     { "id": "none", "name": "None", "icon": "❌" }

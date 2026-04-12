@@ -44,7 +44,7 @@
     }
   ],
   "databases": [
-    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
+    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬", "default": true },
     { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
     { "id": "sqlite", "name": "SQLite", "icon": "📁" }
   ],

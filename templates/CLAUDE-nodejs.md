@@ -120,7 +120,7 @@ project/
 
 | Category | Skills |
 |----------|--------|
-| **Development** | typescript-strict, react-patterns, nextjs-app-router, zod-validation, shadcn-ui, tailwind-patterns |
+| **Development** | typescript-strict, react-patterns, nextjs-app-router, zod-validation, shadcn-ui, tailwind-patterns, ui-ux-pro-max |
 | **Quality** | quality-gate, security-scan, test-coverage, final-check |
 | **Infrastructure** | docker-patterns, git-workflow, performance-patterns, debugging-patterns |
 | **Documentation** | codebase-knowledge, docs-tracker, research-cache, ui-ux-audit |
@@ -250,6 +250,10 @@ source: 'listed' as const;  // CORRECT (literal type)
 | Stack Last Change entries | Keep only the LATEST |
 | Use MUI/Chakra | Use shadcn/ui + Radix |
 | Skip CLAUDE.md update | MUST update after implementations |
+
+## UI/UX Design Intelligence
+
+> When the project has a frontend, the **UI/UX Pro Max** skill is auto-installed. It provides 67 UI styles, 161 color palettes, 57 font pairings, and 161 industry-specific reasoning rules. It activates automatically for any UI/UX task.
 
 ## UI Architecture
 

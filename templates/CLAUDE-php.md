@@ -211,6 +211,10 @@ return Inertia::render('Dashboard', [
 | Inline Tailwind class soup | Unreadable — use STYLES const object |
 | `axios.post()` for forms | No CSRF/errors — use `useForm().post()` |
 
+## UI/UX Design Intelligence
+
+> When the project has a frontend, the **UI/UX Pro Max** skill is auto-installed. It provides 67 UI styles, 161 color palettes, 57 font pairings, and 161 industry-specific reasoning rules. It activates automatically for any UI/UX task.
+
 ## Quality Gates
 
 ```bash

@@ -350,6 +350,25 @@ export async function setupProject(
       }
     }
 
+    // 15. Auto-install UI/UX Pro Max skill for frontend projects
+    const uiproSkillPath = join(projectDir, '.cursor', 'skills', 'ui-ux-pro-max', 'SKILL.md');
+    const uiproClaudePath = join(claudeDir, 'skills', 'ui-ux-pro-max', 'SKILL.md');
+    if (config.frontend && config.frontend !== 'none' && !existsSync(uiproSkillPath) && !existsSync(uiproClaudePath)) {
+      spinner.start('Installing UI/UX Pro Max skill...');
+      try {
+        const { execFileSync: execF } = await import('child_process');
+        execF('npx', ['uipro-cli', 'init', '--ai', 'cursor'], {
+          cwd: projectDir,
+          stdio: 'pipe',
+          timeout: 60000,
+        });
+        spinner.succeed('UI/UX Pro Max skill installed');
+      } catch {
+        spinner.warn('UI/UX Pro Max: auto-install failed');
+        ui.info('Install manually: npx uipro-cli init --ai cursor');
+      }
+    }
+
     spinner.succeed(
       `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks`
     );
