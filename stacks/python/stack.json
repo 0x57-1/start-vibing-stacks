@@ -4,9 +4,28 @@
   "icon": "🐍",
   "runtime": "python",
   "requirements": [
-    { "command": "python3", "minVersion": "3.12.0", "install": "brew install python@3.12" },
-    { "command": "pip3", "minVersion": "23.0", "install": "python3 -m ensurepip --upgrade" },
-    { "command": "uv", "minVersion": "0.1.0", "install": "curl -LsSf https://astral.sh/uv/install.sh | sh", "optional": true }
+    {
+      "name": "Python",
+      "command": "python3",
+      "versionFlag": "--version",
+      "minVersion": "3.12.0",
+      "installCommand": {
+        "macos": "brew install python@3.12",
+        "linux": "sudo apt install -y python3.12 python3.12-venv"
+      },
+      "versionRegex": "Python\\s+(\\d+\\.\\d+\\.\\d+)"
+    },
+    {
+      "name": "pip",
+      "command": "pip3",
+      "versionFlag": "--version",
+      "minVersion": "23.0.0",
+      "installCommand": {
+        "macos": "python3 -m ensurepip --upgrade",
+        "linux": "python3 -m ensurepip --upgrade"
+      },
+      "versionRegex": "pip\\s+(\\d+\\.\\d+\\.?\\d*)"
+    }
   ],
   "frameworks": [
     { "id": "fastapi", "name": "FastAPI + Uvicorn", "icon": "⚡" },
