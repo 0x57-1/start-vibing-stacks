@@ -6,11 +6,13 @@
 
 ```
 What are you building?
-├── API / Microservices     → FastAPI (async, Pydantic, fast)
-├── Full-stack / CMS / Admin → Django (batteries-included)
-├── Simple / Script         → Flask (minimal)
-├── AI/ML API serving       → FastAPI (Pydantic, uvicorn)
-└── Background workers      → Celery + any framework
+├── API / Microservices       → FastAPI (async, Pydantic, fast)
+├── Full-stack / CMS / Admin  → Django (batteries-included)
+├── Lightweight web app       → Flask (minimal)
+├── AI/ML API serving         → FastAPI (Pydantic, uvicorn)
+├── Local scripts / automation → Scripts (httpx, argparse, rich)
+├── WordPress / Ads / ETL     → Scripts (no framework needed)
+└── Background workers        → Celery + any framework
 ```
 
 ## Async vs Sync
@@ -71,6 +73,20 @@ myproject/
 ├── apps/
 │   ├── users/        # Per-app: models, views, serializers, tests
 │   └── products/
+└── tests/
+```
+
+### Local Scripts / Automation
+```
+project/
+├── main.py           # CLI entry (argparse + match/case)
+├── scripts/          # One module per task
+├── lib/
+│   ├── config.py     # Pydantic Settings (.env)
+│   ├── http_client.py # httpx + tenacity retry
+│   └── logger.py     # rich logging
+├── data/             # Input/output files
+├── logs/
 └── tests/
 ```
 

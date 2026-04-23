@@ -378,6 +378,76 @@ function scanEslintConfig(projectDir: string): ScanResult | null {
   };
 }
 
+// ─── Python Scanners ───────────────────────────────────────────────────────
+
+const PYTHON_PACKAGES: Record<string, { category: string; name: string }> = {
+  'fastapi': { category: 'framework', name: 'FastAPI framework' },
+  'django': { category: 'framework', name: 'Django framework' },
+  'flask': { category: 'framework', name: 'Flask framework' },
+  'uvicorn': { category: 'server', name: 'Uvicorn ASGI server' },
+  'gunicorn': { category: 'server', name: 'Gunicorn WSGI server' },
+  'sqlalchemy': { category: 'database', name: 'SQLAlchemy ORM' },
+  'alembic': { category: 'database', name: 'Alembic migrations' },
+  'asyncpg': { category: 'database', name: 'asyncpg (PostgreSQL async)' },
+  'psycopg': { category: 'database', name: 'psycopg (PostgreSQL)' },
+  'mariadb': { category: 'database', name: 'MariaDB connector' },
+  'pymongo': { category: 'database', name: 'PyMongo (MongoDB)' },
+  'beanie': { category: 'database', name: 'Beanie ODM (MongoDB)' },
+  'motor': { category: 'database', name: 'Motor (MongoDB async)' },
+  'pydantic': { category: 'validation', name: 'Pydantic v2 validation' },
+  'pydantic-settings': { category: 'config', name: 'Pydantic Settings' },
+  'httpx': { category: 'http', name: 'httpx HTTP client' },
+  'tenacity': { category: 'reliability', name: 'tenacity retry logic' },
+  'celery': { category: 'queue', name: 'Celery task queue' },
+  'arq': { category: 'queue', name: 'ARQ async task queue' },
+  'redis': { category: 'cache', name: 'Redis client' },
+  'pytest': { category: 'testing', name: 'pytest testing' },
+  'pytest-asyncio': { category: 'testing', name: 'pytest async support' },
+  'mypy': { category: 'quality', name: 'mypy type checker' },
+  'ruff': { category: 'quality', name: 'ruff linter + formatter' },
+  'rich': { category: 'ui', name: 'rich CLI output' },
+  'typer': { category: 'cli', name: 'Typer CLI framework' },
+  'click': { category: 'cli', name: 'Click CLI framework' },
+  'stripe': { category: 'billing', name: 'Stripe payments' },
+  'google-ads': { category: 'ads', name: 'Google Ads API' },
+  'facebook-business': { category: 'ads', name: 'Facebook/Meta Ads API' },
+  'python-wordpress-xmlrpc': { category: 'cms', name: 'WordPress XML-RPC client' },
+};
+
+function scanPyprojectToml(projectDir: string): ScanResult | null {
+  const content =
+    readFileIfExists(join(projectDir, 'pyproject.toml')) ||
+    readFileIfExists(join(projectDir, 'requirements.txt'));
+  if (!content) return null;
+
+  const patterns: PatternMatch[] = [];
+  const lowerContent = content.toLowerCase();
+
+  for (const [pkg, meta] of Object.entries(PYTHON_PACKAGES)) {
+    if (lowerContent.includes(pkg.toLowerCase())) {
+      patterns.push({
+        category: meta.category,
+        name: meta.name,
+        confidence: 95,
+        detail: `Found: ${pkg}`,
+      });
+    }
+  }
+
+  const pythonVersionMatch = content.match(/requires-python\s*=\s*"([^"]+)"/i);
+  if (pythonVersionMatch) {
+    patterns.push({
+      category: 'runtime',
+      name: `Python version constraint: ${pythonVersionMatch[1]}`,
+      confidence: 100,
+    });
+  }
+
+  if (patterns.length === 0) return null;
+
+  return { source: 'pyproject.toml', patterns };
+}
+
 // ─── Shared Scanners ───────────────────────────────────────────────────────
 
 function scanProjectFiles(projectDir: string): ScanResult | null {
@@ -475,6 +545,39 @@ function scanProjectFiles(projectDir: string): ScanResult | null {
     patterns.push({ category: 'runtime', name: 'pnpm package manager in use', confidence: 100 });
   } else if (existsSync(join(projectDir, 'yarn.lock'))) {
     patterns.push({ category: 'runtime', name: 'Yarn package manager in use', confidence: 100 });
+  }
+
+  // ── Python: Project configs ──
+  if (existsSync(join(projectDir, 'pyproject.toml'))) {
+    patterns.push({ category: 'runtime', name: 'pyproject.toml present (modern Python)', confidence: 100 });
+  }
+
+  if (existsSync(join(projectDir, 'uv.lock'))) {
+    patterns.push({ category: 'runtime', name: 'uv package manager in use', confidence: 100 });
+  } else if (existsSync(join(projectDir, 'Pipfile.lock'))) {
+    patterns.push({ category: 'runtime', name: 'Pipenv package manager in use', confidence: 100 });
+  }
+
+  if (existsSync(join(projectDir, 'mypy.ini')) || existsSync(join(projectDir, '.mypy.ini'))) {
+    patterns.push({ category: 'quality', name: 'mypy config present', confidence: 100 });
+  }
+
+  if (existsSync(join(projectDir, 'ruff.toml')) || existsSync(join(projectDir, '.ruff.toml'))) {
+    patterns.push({ category: 'quality', name: 'ruff config present', confidence: 100 });
+  }
+
+  if (existsSync(join(projectDir, 'alembic.ini'))) {
+    patterns.push({ category: 'database', name: 'Alembic migrations present', confidence: 100 });
+  }
+
+  if (existsSync(join(projectDir, 'pytest.ini')) || existsSync(join(projectDir, 'pyproject.toml'))) {
+    if (existsSync(join(projectDir, 'tests'))) {
+      patterns.push({ category: 'testing', name: 'pytest test directory present', confidence: 90 });
+    }
+  }
+
+  if (existsSync(join(projectDir, '.pre-commit-config.yaml'))) {
+    patterns.push({ category: 'quality', name: 'pre-commit hooks configured', confidence: 100 });
   }
 
   // ── Deploy targets ──
@@ -577,6 +680,7 @@ export function scanProjectStandards(projectDir: string): StandardsReview {
     scanPackageJson,
     scanTsConfig,
     scanEslintConfig,
+    scanPyprojectToml,
     scanProjectFiles,
   ];
 

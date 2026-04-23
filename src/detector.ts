@@ -134,9 +134,8 @@ export function detectNodeFramework(projectDir: string): string | null {
 }
 
 export function detectPythonFramework(projectDir: string): string | null {
-  // Check manage.py (Django)
   if (existsSync(join(projectDir, 'manage.py'))) return 'django';
-  // Check for FastAPI in requirements or pyproject
+
   for (const reqFile of ['requirements.txt', 'pyproject.toml', 'Pipfile']) {
     const filePath = join(projectDir, reqFile);
     if (existsSync(filePath)) {
@@ -145,5 +144,14 @@ export function detectPythonFramework(projectDir: string): string | null {
       if (content.includes('flask')) return 'flask';
     }
   }
+
+  // If Python project detected but no web framework, suggest scripts
+  if (
+    existsSync(join(projectDir, 'main.py')) &&
+    !existsSync(join(projectDir, 'app', 'main.py'))
+  ) {
+    return 'scripts';
+  }
+
   return null;
 }

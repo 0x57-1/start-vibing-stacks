@@ -2,7 +2,75 @@
   "id": "python",
   "name": "Python 3.12+",
   "icon": "🐍",
-  "runtime": "python",
+  "runtime": "Python 3.12+",
+  "minVersion": "3.12.0",
+  "packageManager": "uv|pip",
+  "extensions": [".py", ".pyi"],
+  "testExtensions": ["test_*.py", "*_test.py"],
+  "detectFiles": ["pyproject.toml", "requirements.txt", "Pipfile", "setup.py", "manage.py"],
+  "commands": {
+    "test": "pytest --tb=short",
+    "lint": "ruff check .",
+    "format": "ruff format .",
+    "serve": "uvicorn app.main:app --reload",
+    "typecheck": "mypy ."
+  },
+  "qualityGates": [
+    { "name": "mypy", "command": "mypy .", "required": true, "order": 1 },
+    { "name": "ruff", "command": "ruff check .", "required": true, "order": 2 },
+    { "name": "pytest", "command": "pytest --tb=short", "required": true, "order": 3 }
+  ],
+  "frameworks": [
+    {
+      "id": "fastapi",
+      "name": "FastAPI + Uvicorn",
+      "icon": "⚡",
+      "detectFiles": ["app/main.py"],
+      "default": true,
+      "skills": ["fastapi-patterns", "async-patterns"]
+    },
+    {
+      "id": "django",
+      "name": "Django 5+",
+      "icon": "🎸",
+      "detectFiles": ["manage.py"],
+      "skills": ["django-patterns"]
+    },
+    {
+      "id": "flask",
+      "name": "Flask",
+      "icon": "🧪",
+      "detectFiles": ["app.py", "wsgi.py"],
+      "skills": []
+    },
+    {
+      "id": "scripts",
+      "name": "Local Scripts / Automation",
+      "icon": "🤖",
+      "skills": ["scripting-automation"]
+    }
+  ],
+  "databases": [
+    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬", "default": true },
+    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
+    { "id": "sqlite", "name": "SQLite (local)", "icon": "📦" },
+    { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
+    { "id": "none", "name": "No database", "icon": "⬜" }
+  ],
+  "frontendOptions": [
+    { "id": "react", "name": "React (SPA)", "icon": "⚛️", "frameworks": ["fastapi", "flask", "django"] },
+    { "id": "htmx", "name": "HTMX + Jinja2", "icon": "🔄", "frameworks": ["fastapi", "flask", "django"] },
+    { "id": "none", "name": "API only / CLI only", "icon": "🔌", "default": true }
+  ],
+  "deployTargets": [
+    { "id": "github", "name": "GitHub (git push)", "icon": "🐙" }
+  ],
+  "skills": [
+    "python-patterns",
+    "pydantic-validation",
+    "pytest-testing",
+    "python-performance"
+  ],
   "requirements": [
     {
       "name": "Python",
@@ -26,39 +94,5 @@
       },
       "versionRegex": "pip\\s+(\\d+\\.\\d+\\.?\\d*)"
     }
-  ],
-  "frameworks": [
-    { "id": "fastapi", "name": "FastAPI + Uvicorn", "icon": "⚡" },
-    { "id": "django", "name": "Django 5+", "icon": "🎸" },
-    { "id": "flask", "name": "Flask", "icon": "🧪" },
-    { "id": "vanilla", "name": "Vanilla Python", "icon": "🐍" }
-  ],
-  "databases": [
-    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
-    { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬" },
-    { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
-    { "id": "sqlite", "name": "SQLite", "icon": "📦" }
-  ],
-  "frontendOptions": [
-    { "id": "react", "name": "React (SPA)", "icon": "⚛️" },
-    { "id": "htmx", "name": "HTMX + Jinja2", "icon": "🔄" },
-    { "id": "none", "name": "API only (no frontend)", "icon": "🔌" }
-  ],
-  "deployTargets": [
-    { "id": "github", "name": "GitHub (git push)", "icon": "🐙" }
-  ],
-  "skills": [
-    "python-patterns",
-    "fastapi-patterns",
-    "django-patterns",
-    "pydantic-validation",
-    "pytest-testing",
-    "async-patterns",
-    "python-performance"
-  ],
-  "qualityGates": [
-    { "name": "mypy", "command": "mypy .", "description": "Type checking" },
-    { "name": "ruff", "command": "ruff check .", "description": "Linting" },
-    { "name": "pytest", "command": "pytest --tb=short", "description": "Tests" }
   ]
 }
