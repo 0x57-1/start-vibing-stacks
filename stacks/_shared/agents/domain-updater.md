@@ -1,5 +1,6 @@
 ---
 name: domain-updater
+version: 1.0.0
 description: "AUTOMATICALLY invoke BEFORE commit-manager at session end. Records problems, solutions, and learnings in domain docs."
 model: haiku
 tools: Read, Write, Edit, Bash, Grep, Glob

@@ -1,3 +1,8 @@
+---
+name: async-patterns
+version: 1.0.0
+---
+
 # Async Python Patterns — Concurrency & Performance
 
 **ALWAYS invoke when writing async/await code or concurrent operations.**

@@ -1,3 +1,8 @@
+---
+name: laravel-inertia-i18n
+version: 1.0.0
+---
+
 # Laravel + Inertia i18n — Centralized Translations
 
 **ALWAYS invoke when adding translations, creating new pages, or working with multilingual content.**

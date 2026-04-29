@@ -1,3 +1,8 @@
+---
+name: zod-validation
+version: 1.0.0
+---
+
 # Zod Validation — Runtime Type Safety
 
 **ALWAYS use Zod for form validation, API responses, and data boundaries.**

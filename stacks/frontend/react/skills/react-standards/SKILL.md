@@ -1,3 +1,8 @@
+---
+name: react-standards
+version: 1.0.0
+---
+
 # React 19+ Standards
 
 ## Version Requirements

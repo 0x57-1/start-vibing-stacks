@@ -1,3 +1,8 @@
+---
+name: trpc-api
+version: 1.0.0
+---
+
 # tRPC API — End-to-End Type Safety
 
 **ALWAYS invoke when building type-safe API routes with tRPC.**

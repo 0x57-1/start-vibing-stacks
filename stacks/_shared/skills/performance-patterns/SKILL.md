@@ -1,3 +1,8 @@
+---
+name: performance-patterns
+version: 1.0.0
+---
+
 # Performance Patterns
 
 **Invoke when app is slow or needs optimization.**

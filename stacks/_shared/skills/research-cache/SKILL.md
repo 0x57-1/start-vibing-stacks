@@ -1,3 +1,8 @@
+---
+name: research-cache
+version: 1.0.0
+---
+
 # Research Cache — Best Practices Storage
 
 **ALWAYS invoke BEFORE any web research.**

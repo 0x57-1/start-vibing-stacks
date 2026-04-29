@@ -1,5 +1,6 @@
 ---
 name: claude-md-compactor
+version: 1.0.0
 description: "AUTOMATICALLY invoke when CLAUDE.md exceeds 40k chars OR auto memory MEMORY.md exceeds 200 lines. Compacts while preserving critical knowledge by offloading to topic files."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob

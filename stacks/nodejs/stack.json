@@ -105,7 +105,8 @@
   "skills": [
     "typescript-strict",
     "bun-runtime",
-    "zod-validation"
+    "zod-validation",
+    "api-security-node"
   ],
   "requirements": [
     {

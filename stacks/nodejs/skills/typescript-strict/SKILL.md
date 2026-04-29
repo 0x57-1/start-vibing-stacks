@@ -1,3 +1,8 @@
+---
+name: typescript-strict
+version: 1.0.0
+---
+
 # TypeScript Strict — Type Safety Patterns
 
 **ALWAYS invoke when writing .ts/.tsx files.**

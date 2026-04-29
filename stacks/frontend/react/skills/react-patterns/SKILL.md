@@ -1,3 +1,8 @@
+---
+name: react-patterns
+version: 1.0.0
+---
+
 # React Patterns — Modern Component Architecture
 
 **ALWAYS invoke when writing React components, hooks, or state management.**

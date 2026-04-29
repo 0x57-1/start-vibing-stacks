@@ -1,3 +1,8 @@
+---
+name: mongoose-patterns
+version: 1.0.0
+---
+
 # Mongoose Patterns — MongoDB ODM
 
 **ALWAYS invoke when writing Mongoose schemas, queries, or aggregations.**

@@ -1,3 +1,8 @@
+---
+name: git-workflow
+version: 1.0.0
+---
+
 # Git Workflow
 
 ## Branch Naming

@@ -1,5 +1,6 @@
 ---
 name: commit-manager
+version: 1.0.0
 description: "AUTOMATICALLY invoke as FINAL AGENT when implementation is complete. Creates conventional commits, merges to main."
 model: haiku
 tools: Read, Write, Edit, Bash, Grep, Glob

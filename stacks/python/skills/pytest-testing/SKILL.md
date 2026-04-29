@@ -1,3 +1,8 @@
+---
+name: pytest-testing
+version: 1.0.0
+---
+
 # Pytest Testing — Python Testing Patterns
 
 **ALWAYS invoke AFTER implementing any feature.**

@@ -1,3 +1,8 @@
+---
+name: composer-workflow
+version: 1.0.0
+---
+
 # Composer Workflow
 
 ## Requirements

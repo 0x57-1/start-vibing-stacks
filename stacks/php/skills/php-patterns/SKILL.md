@@ -1,3 +1,8 @@
+---
+name: php-patterns
+version: 1.0.0
+---
+
 # PHP 8.3+ Patterns for Laravel
 
 ## Version Requirements

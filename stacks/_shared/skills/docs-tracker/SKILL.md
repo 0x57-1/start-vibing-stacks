@@ -1,3 +1,8 @@
+---
+name: docs-tracker
+version: 1.0.0
+---
+
 # Docs Tracker — Automatic Documentation System
 
 **ALWAYS invoke AFTER implementation completes.**

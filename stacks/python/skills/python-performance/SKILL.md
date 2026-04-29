@@ -1,3 +1,8 @@
+---
+name: python-performance
+version: 1.0.0
+---
+
 # Python Performance — Profiling & Optimization
 
 **ALWAYS invoke when optimizing slow Python code.**

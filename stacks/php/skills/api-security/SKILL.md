@@ -1,3 +1,8 @@
+---
+name: api-security
+version: 1.0.0
+---
+
 # API Security — NSA-Level Hardening for Laravel + Octane
 
 **ALWAYS invoke when building APIs, auth endpoints, or handling user input.**

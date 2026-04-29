@@ -1,3 +1,8 @@
+---
+name: debugging-patterns
+version: 1.0.0
+---
+
 # Debugging Patterns
 
 ## Universal Approach

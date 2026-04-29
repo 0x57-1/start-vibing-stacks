@@ -1,5 +1,56 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 *.tgz
+
+# OS / editor noise
 .DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE / editor workspaces (local-only)
+.idea/
+.vscode/
+*.code-workspace
+
+# Claude Code / AI assistants — local state, never commit
+.claude/
+!.claude/.gitkeep
+.cursor/
+.cursorrules.local
+.aider*
+.github/copilot-instructions.local.md
+
+# Secrets & env vars (commit only .env.example)
+.env
+.env.*
+!.env.example
+!.env.test.example
+*.pem
+*.key
+*.p12
+*.crt
+secrets/
 .npmrc
+
+# Logs & coverage
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+coverage/
+.nyc_output/
+
+# Test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Misc local files
+.tmp/
+tmp/
+.cache/

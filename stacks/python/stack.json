@@ -69,7 +69,8 @@
     "python-patterns",
     "pydantic-validation",
     "pytest-testing",
-    "python-performance"
+    "python-performance",
+    "api-security-python"
   ],
   "requirements": [
     {

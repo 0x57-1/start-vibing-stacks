@@ -205,6 +205,17 @@ export async function setupProject(
       }
     }
 
+    // 11d. Copy CI workflow templates (only when target dir is empty or --force)
+    const stackWorkflowsDir = join(PACKAGE_ROOT, 'stacks', config.stack, 'workflows');
+    if (existsSync(stackWorkflowsDir)) {
+      const ghWorkflowsDir = join(projectDir, '.github', 'workflows');
+      const targetIsEmpty = !existsSync(ghWorkflowsDir);
+      if (targetIsEmpty || options.force) {
+        copyDirRecursive(stackWorkflowsDir, ghWorkflowsDir, options.force);
+        spinner.text = 'Installed CI workflow templates';
+      }
+    }
+
     // 12. Copy commands
     const sharedCommandsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'commands');
     if (existsSync(sharedCommandsDir)) {

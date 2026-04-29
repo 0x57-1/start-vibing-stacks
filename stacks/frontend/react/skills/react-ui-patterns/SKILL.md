@@ -1,3 +1,8 @@
+---
+name: react-ui-patterns
+version: 1.0.0
+---
+
 # React UI Patterns — Loading, Errors, Empty States & Forms
 
 **ALWAYS invoke when handling async UI states, forms, or user feedback.**

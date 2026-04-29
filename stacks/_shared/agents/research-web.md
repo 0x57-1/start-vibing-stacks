@@ -1,5 +1,6 @@
 ---
 name: research-web
+version: 1.0.0
 description: "AUTOMATICALLY invoke BEFORE implementing any new feature or technology. Triggers: new feature, new technology, 'search', 'find info'. Web research specialist."
 model: sonnet
 tools: WebSearch, WebFetch, Read, Write
