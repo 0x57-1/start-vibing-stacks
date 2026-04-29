@@ -1,3 +1,8 @@
+---
+name: test-coverage
+version: 1.0.0
+---
+
 # Test Coverage — Testing Management
 
 **ALWAYS invoke AFTER implementing any feature. Do NOT skip.**

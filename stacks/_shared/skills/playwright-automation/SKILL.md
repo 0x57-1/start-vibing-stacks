@@ -1,3 +1,8 @@
+---
+name: playwright-automation
+version: 1.0.0
+---
+
 # Playwright Automation — E2E Testing
 
 **ALWAYS invoke when writing E2E tests or browser automation.**

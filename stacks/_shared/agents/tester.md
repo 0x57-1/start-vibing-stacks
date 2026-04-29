@@ -1,5 +1,6 @@
 ---
 name: tester
+version: 1.0.0
 description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob

@@ -1,3 +1,8 @@
+---
+name: pydantic-validation
+version: 1.0.0
+---
+
 # Pydantic Validation — Runtime Type Safety for Python
 
 **ALWAYS use Pydantic for API schemas, config, and data boundaries.**

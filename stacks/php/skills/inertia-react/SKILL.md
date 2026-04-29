@@ -1,3 +1,8 @@
+---
+name: inertia-react
+version: 1.0.0
+---
+
 # Inertia.js + React — Laravel Frontend
 
 **ALWAYS invoke when writing Inertia.js pages, components, or shared data.**

@@ -1,3 +1,8 @@
+---
+name: inertia-react
+version: 1.0.0
+---
+
 # Inertia.js + React Integration
 
 ## Architecture Overview

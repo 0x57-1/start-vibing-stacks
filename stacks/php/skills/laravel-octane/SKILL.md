@@ -1,3 +1,8 @@
+---
+name: laravel-octane
+version: 1.0.0
+---
+
 # Laravel Octane (RoadRunner) Patterns
 
 ## How Octane Works

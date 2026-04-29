@@ -1,3 +1,8 @@
+---
+name: api-design
+version: 1.0.0
+---
+
 # PHP API Design Standards
 
 ## RESTful Principles

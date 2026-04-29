@@ -1,3 +1,8 @@
+---
+name: docker-patterns
+version: 1.0.0
+---
+
 # Docker Patterns
 
 ## PHP (PHP-FPM + Nginx)

@@ -1,3 +1,8 @@
+---
+name: hook-development
+version: 1.0.0
+---
+
 # Hook Development — Claude Code Hooks
 
 **ALWAYS invoke when creating or modifying Claude Code hooks.**

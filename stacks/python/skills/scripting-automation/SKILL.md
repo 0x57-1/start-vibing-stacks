@@ -1,3 +1,8 @@
+---
+name: scripting-automation
+version: 1.0.0
+---
+
 # Local Scripts & Automation — Python 3.12+
 
 **ALWAYS invoke when building local scripts, CLI tools, or automation tasks.**

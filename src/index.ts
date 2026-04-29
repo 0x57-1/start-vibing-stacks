@@ -29,6 +29,7 @@ const PKG_VERSION: string = JSON.parse(readFileSync(join(CLI_ROOT, 'package.json
 // =============================================================================
 
 const args = process.argv.slice(2);
+const SUBCOMMAND = args[0] && !args[0].startsWith('-') ? args[0] : null;
 const FLAGS = {
   force: args.includes('--force'),
   noClaude: args.includes('--no-claude'),
@@ -36,6 +37,7 @@ const FLAGS = {
   noInstall: args.includes('--no-install'),
   help: args.includes('--help') || args.includes('-h'),
   version: args.includes('--version') || args.includes('-v'),
+  apply: args.includes('--apply'),
 };
 
 if (FLAGS.version) {
@@ -47,10 +49,16 @@ if (FLAGS.help) {
   console.log(ui.LOGO);
   console.log(`
   ${chalk.bold('Usage:')}
-    npx start-vibing-stacks [options]
+    npx start-vibing-stacks [command] [options]
+
+  ${chalk.bold('Commands:')}
+    (default)         Setup or resume current project
+    migrate           Compare installed vs bundled skill/agent versions
+                      Add --apply to update outdated/missing items
 
   ${chalk.bold('Options:')}
-    --force           Overwrite existing configuration
+    --force           Overwrite existing configuration (default command)
+    --apply           Apply updates (migrate command)
     --no-claude       Skip Claude Code installation
     --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
@@ -62,6 +70,13 @@ if (FLAGS.help) {
     📦 Node.js/TS     Next.js, Nuxt, Express, Fastify
     🐍 Python 3.12+   FastAPI, Django, Flask
   `);
+  process.exit(0);
+}
+
+// Subcommand: migrate
+if (SUBCOMMAND === 'migrate') {
+  const { runMigrate } = await import('./migrate.js');
+  await runMigrate(process.cwd(), { apply: FLAGS.apply });
   process.exit(0);
 }
 

@@ -1,3 +1,8 @@
+---
+name: codebase-knowledge
+version: 1.0.0
+---
+
 # Codebase Knowledge — Domain Mapping System
 
 **ALWAYS invoke BEFORE implementing any feature.**

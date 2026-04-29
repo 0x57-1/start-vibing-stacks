@@ -1,3 +1,8 @@
+---
+name: django-patterns
+version: 1.0.0
+---
+
 # Django Patterns — Full-Stack Python (Django 5+)
 
 **ALWAYS invoke when writing Django models, views, or serializers.**

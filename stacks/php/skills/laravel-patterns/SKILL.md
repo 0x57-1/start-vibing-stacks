@@ -1,3 +1,8 @@
+---
+name: laravel-patterns
+version: 1.0.0
+---
+
 # Laravel Patterns & Standards
 
 ## Model Standards

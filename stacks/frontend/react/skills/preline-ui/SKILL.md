@@ -1,3 +1,8 @@
+---
+name: preline-ui
+version: 1.0.0
+---
+
 # Preline UI — Component & Theme System for TailwindCSS 4
 
 **ALWAYS invoke when using Preline components, creating themes, or customizing design tokens.**

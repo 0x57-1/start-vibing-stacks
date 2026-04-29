@@ -1,3 +1,8 @@
+---
+name: phpunit-testing
+version: 1.0.0
+---
+
 # PHPUnit Testing Skill
 
 ## Setup

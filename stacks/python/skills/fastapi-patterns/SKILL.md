@@ -1,3 +1,8 @@
+---
+name: fastapi-patterns
+version: 1.0.0
+---
+
 # FastAPI Patterns — High-Performance Async APIs
 
 **ALWAYS invoke when writing FastAPI routes, dependencies, or middleware.**

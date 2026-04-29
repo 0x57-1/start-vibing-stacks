@@ -1,3 +1,8 @@
+---
+name: quality-gate
+version: 1.0.0
+---
+
 # Quality Gate — Verification System
 
 **ALWAYS invoke BEFORE any commit.**

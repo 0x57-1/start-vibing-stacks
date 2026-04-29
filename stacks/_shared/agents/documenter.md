@@ -1,5 +1,6 @@
 ---
 name: documenter
+version: 1.0.0
 description: "AUTOMATICALLY invoke AFTER any code implementation. Creates/updates domain documentation. PROACTIVELY runs after implementation."
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash

@@ -1,3 +1,8 @@
+---
+name: nextjs-app-router
+version: 1.0.0
+---
+
 # Next.js App Router — Modern Patterns
 
 **ALWAYS invoke when writing Next.js pages, layouts, or server components.**

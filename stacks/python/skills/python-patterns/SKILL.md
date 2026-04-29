@@ -1,3 +1,8 @@
+---
+name: python-patterns
+version: 1.0.0
+---
+
 # Python Patterns — Architecture & Decision-Making
 
 **ALWAYS invoke when making Python architecture decisions.**

@@ -1,3 +1,8 @@
+---
+name: phpstan-analysis
+version: 1.0.0
+---
+
 # PHPStan Static Analysis
 
 ## Setup

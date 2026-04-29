@@ -1,0 +1,34 @@
+# Belt-and-suspenders: package.json "files" already allowlists what ships.
+# This file is a redundant deny-list for anything that should never reach npm.
+
+# Source & dev tooling
+src/
+node_modules/
+*.tgz
+tsconfig.json
+
+# CI & repo metadata
+.github/
+.git/
+.gitignore
+.npmignore
+.editorconfig
+
+# Local Claude / IDE state
+.claude/
+.cursor/
+.vscode/
+.idea/
+
+# Secrets & env
+.env
+.env.*
+*.pem
+*.key
+
+# Tests / coverage / logs
+tests/
+coverage/
+*.log
+.cache/
+.tmp/

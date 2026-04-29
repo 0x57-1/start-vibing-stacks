@@ -9,6 +9,7 @@
  * 3. CLAUDE.md not updated
  * 4. CLAUDE.md missing required sections
  * 5. CLAUDE.md exceeds 40k chars
+ * 6. Secret pattern detected in committed/staged files (uses gitleaks if present, fallback to regex)
  */
 
 import { execSync } from 'child_process';
@@ -63,6 +64,71 @@ function getModifiedFiles(): string[] {
   const unstaged = cmd('git diff --name-only').split('\n').filter(Boolean);
   const untracked = cmd('git ls-files --others --exclude-standard').split('\n').filter(Boolean);
   return [...new Set([...staged, ...unstaged, ...untracked])];
+}
+
+/**
+ * Run a command capturing stdout, stderr and exit code without throwing.
+ */
+function runCapture(command: string): { code: number; stdout: string; stderr: string } {
+  try {
+    const stdout = execSync(command, {
+      cwd: PROJECT_DIR,
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return { code: 0, stdout: stdout.toString(), stderr: '' };
+  } catch (err: any) {
+    return {
+      code: typeof err?.status === 'number' ? err.status : 1,
+      stdout: err?.stdout?.toString?.() ?? '',
+      stderr: err?.stderr?.toString?.() ?? '',
+    };
+  }
+}
+
+/**
+ * Scan staged + unstaged diff for secret patterns.
+ * Uses gitleaks when installed; otherwise applies a high-signal regex sweep.
+ * Returns a list of findings (empty = clean).
+ */
+function scanSecrets(): string[] {
+  const findings: string[] = [];
+
+  const hasGitleaks = cmd('command -v gitleaks').length > 0;
+  if (hasGitleaks) {
+    const { code, stdout, stderr } = runCapture(
+      'gitleaks detect --no-banner --redact --exit-code 1 --log-level=error'
+    );
+    if (code !== 0) {
+      const out = stdout + '\n' + stderr;
+      const lines = out
+        .split('\n')
+        .filter(l => l.includes('Finding:') || l.includes('File:') || l.includes('Secret:'));
+      if (lines.length > 0) findings.push(...lines.slice(0, 20));
+      else findings.push('gitleaks reported leaks (run `gitleaks detect --redact -v` for details)');
+    }
+    return findings;
+  }
+
+  // Fallback: high-signal regex sweep over staged + unstaged diff
+  const SECRET_RE = /(?:api[_-]?key|secret|token|bearer|password|aws_(?:access|secret)_key|private_key)\s*[:=]\s*["'][A-Za-z0-9/+=_\-.]{16,}["']/i;
+  const PUBLIC_LEAK_RE = /(?:NEXT_PUBLIC|VITE|REACT_APP)_[A-Z_]*(?:SECRET|TOKEN|PRIVATE|PASSWORD|CREDENTIAL)/;
+  const PLACEHOLDER_RE = /<\s*your[_\- ]|YOUR_[A-Z_]+|placeholder|example\.com|sk_test_|sk_xxx|xxxxxxxx/i;
+
+  const diff = cmd('git diff --cached -U0') + '\n' + cmd('git diff -U0');
+  if (!diff.trim()) return findings;
+
+  const lines = diff.split('\n');
+  for (const line of lines) {
+    if (!line.startsWith('+') || line.startsWith('+++')) continue;
+    if (PLACEHOLDER_RE.test(line)) continue;
+    if (SECRET_RE.test(line) || PUBLIC_LEAK_RE.test(line)) {
+      const masked = line.replace(/(["']).{8,}\1/, '$1[REDACTED]$1').slice(0, 160);
+      findings.push(masked);
+      if (findings.length >= 5) break;
+    }
+  }
+  return findings;
 }
 
 function validate(): HookResult {
@@ -132,11 +198,21 @@ function validate(): HookResult {
     };
   }
 
+  // 5. Secret scan (gitleaks or regex fallback)
+  const secrets = scanSecrets();
+  if (secrets.length > 0) {
+    return {
+      continue: true,
+      decision: 'block',
+      reason: `BLOCKED: Potential secrets detected in diff:\n${secrets.map(s => `  - ${s}`).join('\n')}\n\nRotate the credential, remove from diff, and re-run.`,
+    };
+  }
+
   // All good
   return {
     continue: false,
     decision: 'approve',
-    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean`,
+    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean\nSecrets: clean`,
   };
 }
 

@@ -1,3 +1,8 @@
+---
+name: ui-ux-audit
+version: 1.0.0
+---
+
 # UI/UX Audit
 
 **ALWAYS invoke BEFORE implementing any UI feature.**

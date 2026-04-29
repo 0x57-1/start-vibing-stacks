@@ -1,3 +1,8 @@
+---
+name: external-api-patterns
+version: 1.0.0
+---
+
 # External API Patterns — HTTP Client for Laravel + Octane
 
 **ALWAYS invoke when consuming external APIs, webhooks, or third-party services.**

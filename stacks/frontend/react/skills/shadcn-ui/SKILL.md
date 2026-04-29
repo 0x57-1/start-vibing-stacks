@@ -1,3 +1,8 @@
+---
+name: shadcn-ui
+version: 1.0.0
+---
+
 # shadcn/ui — Component Library Patterns
 
 **ALWAYS invoke when adding or modifying shadcn/ui components.**

@@ -1,3 +1,8 @@
+---
+name: mariadb-octane
+version: 1.0.0
+---
+
 # MariaDB + Octane — Database Patterns for Persistent Workers
 
 **ALWAYS invoke when writing queries, migrations, models, or DB config in Laravel Octane.**

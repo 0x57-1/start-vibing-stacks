@@ -1,3 +1,8 @@
+---
+name: security-scan-php
+version: 1.0.0
+---
+
 # Laravel Security Scan
 
 ## OWASP Top 10 for Laravel

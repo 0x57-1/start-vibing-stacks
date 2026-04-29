@@ -1,3 +1,8 @@
+---
+name: bun-runtime
+version: 1.0.0
+---
+
 # Bun Runtime — Fast JavaScript Runtime
 
 **ALWAYS invoke when using Bun for scripts, packages, bundling, or testing.**

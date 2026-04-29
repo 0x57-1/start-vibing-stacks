@@ -1,3 +1,8 @@
+---
+name: tailwind-patterns
+version: 1.0.0
+---
+
 # TailwindCSS 4 — CSS-First Design System
 
 **ALWAYS invoke when writing Tailwind classes, theming, or responsive layouts.**
