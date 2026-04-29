@@ -1,17 +1,23 @@
-name: Auto Release on Version Bump
+name: Auto Release & Publish on Version Bump
 
-# When package.json#version changes on main, create a GitHub Release.
-# The Release event then triggers .github/workflows/publish.yml → npm publish.
+# When package.json#version changes on main, this workflow:
+#   1. Creates a GitHub Release
+#   2. Publishes the package to npm in the same job
 #
-# Skip behavior:
-#  - tag already exists → no-op (idempotent)
-#  - commit message contains "[skip release]" → no-op
-#  - version unchanged from previous commit → no-op
+# We intentionally do NOT split into two workflows chained by a release event:
+# Releases created via GITHUB_TOKEN do not trigger downstream workflows
+# (GitHub's anti-loop protection), which would cause silent publish failures.
 #
-# Manual release path is unaffected — this workflow only fires on push to main.
+# Skip behavior (idempotent):
+#   - tag already exists → no-op
+#   - commit message contains "[skip release]" → no-op
+#   - version unchanged from previous commit → no-op
 #
-# Security: commit messages are attacker-controllable input. We pass them only
-# via env vars and files, never interpolated into shell strings.
+# Manual release path (`.github/workflows/publish.yml`) still works for
+# `gh release create` triggered by a human. This workflow only runs on push.
+#
+# Security: commit messages are attacker-controllable. Always pass them via
+# env vars or files (--notes-file), never interpolated into shell strings.
 
 on:
   push:
@@ -24,11 +30,12 @@ concurrency:
 
 permissions:
   contents: write   # create tags + releases
+  id-token: write   # npm provenance
 
 jobs:
-  release:
+  release-and-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,10 +66,8 @@ jobs:
         if: steps.detect.outputs.changed == 'true'
         run: |
           set -euo pipefail
-          # Write the commit message to a file — never inline it into shell strings
           git log -1 --pretty=%s > .release-title.txt
           git log -1 --pretty=%B > .release-raw.txt
-          # Strip first line (used as title) + Claude trailers from public notes
           tail -n +3 .release-raw.txt \
             | sed -E '/^Generated with Claude Code$/d; /^Co-Authored-By: /d' \
             > .release-body.txt
@@ -78,13 +83,11 @@ jobs:
           NEW_VERSION: ${{ steps.detect.outputs.new }}
         run: |
           set -euo pipefail
-          # Opt-out marker in commit message
           if grep -qF '[skip release]' .release-raw.txt; then
             echo "proceed=false" >> "$GITHUB_OUTPUT"
             echo "Commit opted out via [skip release]."
             exit 0
           fi
-          # Tag already exists?
           TAG="v${NEW_VERSION}"
           if gh release view "$TAG" --json tagName >/dev/null 2>&1; then
             echo "proceed=false" >> "$GITHUB_OUTPUT"
@@ -92,6 +95,19 @@ jobs:
             exit 0
           fi
           echo "proceed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Node + install
+        if: steps.gate.outputs.proceed == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install & build
+        if: steps.gate.outputs.proceed == 'true'
+        run: |
+          npm ci
+          npm run build
 
       - name: Create GitHub Release
         if: steps.gate.outputs.proceed == 'true'
@@ -102,11 +118,15 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${NEW_VERSION}"
-          # Read title from file; sanitize to single line, max 200 chars
           RAW_TITLE=$(head -n 1 .release-title.txt | tr -d '\r' | cut -c1-200)
           TITLE="${TAG} — ${RAW_TITLE}"
           gh release create "$TAG" \
             --title "$TITLE" \
             --notes-file .release-body.txt \
             --target "$COMMIT_SHA"
-          echo "Release $TAG created — publish.yml will run on the release event."
+
+      - name: Publish to npm
+        if: steps.gate.outputs.proceed == 'true'
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

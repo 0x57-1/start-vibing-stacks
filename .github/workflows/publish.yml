@@ -1,14 +1,59 @@
 name: Publish to npm
 
+# Triggered when a human (or the GitHub UI) creates a Release manually.
+# For automated releases driven by package.json bumps, see auto-release.yml —
+# it creates the Release AND publishes in one job, because Releases created
+# via GITHUB_TOKEN do not trigger downstream workflows.
+#
+# workflow_dispatch is included so you can re-publish a specific tag
+# (e.g. recovering from a partial run). The tag input is validated before use.
+
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to publish (must match vX.Y.Z[-suffix]). Empty = use ref.'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write   # npm provenance
 
 jobs:
-  publish:
+  validate-input:
     runs-on: ubuntu-latest
+    outputs:
+      ref: ${{ steps.pick.outputs.ref }}
+    steps:
+      - name: Validate tag input
+        id: pick
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag }}
+          DEFAULT_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if [ -z "${INPUT_TAG}" ]; then
+            echo "ref=${DEFAULT_REF}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Tag must be vX.Y.Z or vX.Y.Z-suffix (semver), no special chars
+          if ! echo "${INPUT_TAG}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.-]+)?$'; then
+            echo "Invalid tag format: ${INPUT_TAG}" >&2
+            exit 1
+          fi
+          echo "ref=${INPUT_TAG}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: validate-input
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.validate-input.outputs.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -17,6 +62,6 @@ jobs:
 
       - run: npm ci
       - run: npm run build
-      - run: npm publish --access public
+      - run: npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
