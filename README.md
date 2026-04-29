@@ -1,183 +1,131 @@
 # Start Vibing Stacks
 
-**Multi-stack AI-powered development workflow for Claude Code & Cursor.**
-
-One command to set up agents, skills, hooks, security rules, and quality gates — tailored to your stack.
+Multi-stack AI workflow for Claude Code & Cursor. One command installs agents, skills, hooks, and quality gates tailored to your stack.
 
 ```bash
 npx start-vibing-stacks
 ```
 
-## What It Does
+## What It Installs
 
-Start Vibing Stacks transforms Claude Code into a stack-aware AI partner. Instead of a generic assistant, you get an AI that understands your framework, enforces your coding standards, and blocks insecure patterns — all before a single line of code is written.
-
-```
-You run the CLI
-    ↓
-Detects your stack (PHP/Node.js) from project files
-    ↓
-Scans existing standards (.cursorrules, composer.json, tsconfig, eslint, .env)
-    ↓
-Asks: adapt to YOUR standards or use defaults?
-    ↓
-Copies 6 agents + 25-40 skills + hooks + security rules
-    ↓
-Generates CLAUDE.md with architecture, rules, FORBIDDEN patterns
-    ↓
-Launches Claude Code — fully configured
-```
+| Layer | Count | Purpose |
+|---|---|---|
+| Agents | 7 universal | research-web, documenter, domain-updater, commit-manager, tester, claude-md-compactor, **security-auditor** (VETO) |
+| Skills | 13 shared + 5–13 stack-specific + 7–9 frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Hooks | `stop-validator`, `final-check`, `user-prompt-submit` | Block completion on git/docs/secrets/code-quality issues |
+| Commands | `/feature`, `/fix`, `/research`, `/validate` | Slash commands |
+| Workflows | `ci.yml` + `security.yml` per stack | Copied to `.github/workflows/` when target is empty |
 
 ## Supported Stacks
 
-### PHP 8.3+
+| Stack | Frameworks | Databases | Frontend |
+|---|---|---|---|
+| 🐘 **PHP 8.3+** | Laravel 12 + Octane, Laravel 12 | MariaDB/MySQL, PostgreSQL, SQLite | Inertia + React, Blade, Livewire, API only |
+| 📦 **Node.js / TS** | Next.js, Nuxt, Astro, Express, Fastify, Vanilla | MongoDB, Postgres, MariaDB/MySQL, SQLite/Turso, Redis, None | React + Tailwind, Vue, Svelte, API only |
+| 🐍 **Python 3.12+** | FastAPI, Django 5, Flask, Local Scripts | MariaDB/MySQL, Postgres, SQLite, MongoDB, None | React, HTMX + Jinja2, API/CLI only |
 
-| Option | Choices |
-|--------|---------|
-| **Frameworks** | Laravel 12 + Octane (RoadRunner) + Inertia.js, Laravel 12 (standard) |
-| **Databases** | MySQL / MariaDB, PostgreSQL, SQLite |
-| **Frontend** | React 19 + Inertia.js + TailwindCSS 4, Blade + TailwindCSS, Livewire + Alpine.js, API only |
-| **Skills** | 13 PHP-specific (Octane, PHPStan, PHPUnit, Eloquent, API Security, Inertia i18n, ...) |
+## Universal Skills (shared across stacks)
 
-### Node.js / TypeScript
+| Skill | Topic |
+|---|---|
+| `security-baseline` | OWASP Top 10 with stack-aware examples |
+| `secrets-management` | `.env` hygiene, gitleaks, rotation playbook |
+| `observability` | Structured logs, OpenTelemetry, Sentry, PII redaction |
+| `error-handling` | Result types, error taxonomy, retry/backoff, circuit breaker |
+| `database-migrations` | Parallel change, lock timeouts, chunked backfills |
+| `accessibility-wcag22` | WCAG 2.2 AA + axe-core/Playwright |
+| `ci-pipelines` | GitHub Actions discipline + ready-to-use templates |
+| `quality-gate` · `final-check` · `git-workflow` · `docker-patterns` · `debugging-patterns` · `performance-patterns` · `playwright-automation` · `test-coverage` · `ui-ux-audit` · `codebase-knowledge` · `docs-tracker` · `research-cache` · `hook-development` | Workflow & tooling |
 
-| Option | Choices |
-|--------|---------|
-| **Frameworks** | Next.js (App Router), Nuxt, Astro, Express, Fastify, Vanilla Node.js |
-| **Databases** | MongoDB, PostgreSQL, MySQL, SQLite/Turso, Redis (Upstash), None |
-| **Frontend** | React 19 + TailwindCSS 4, Vue.js / Nuxt, Svelte / SvelteKit, API only |
-| **Skills** | 5 Node-specific (TypeScript strict, Next.js App Router, tRPC, Bun, Mongoose) + 9 frontend skills |
+Plus stack-specific: `api-security-node`, `api-security-python`, `api-security` (PHP), `typescript-strict`, `nextjs-app-router`, `trpc-api`, `bun-runtime`, `mongoose-patterns`, `pydantic-validation`, `pytest-testing`, `python-patterns`, `python-performance`, `async-patterns`, `fastapi-patterns`, `django-patterns`, `scripting-automation`, `laravel-patterns`, `laravel-octane`, `phpstan-analysis`, `phpunit-testing`, `composer-workflow`, `mariadb-octane`, `external-api-patterns`, `inertia-react`, `laravel-inertia-i18n`, `security-scan-php`, `api-design`, `php-patterns`.
 
-### Python (Coming Soon)
-
-Django, FastAPI, Flask support is planned.
-
-## What Gets Installed
+## Layout in Your Project
 
 ```
 your-project/
-├── CLAUDE.md                    # AI memory — architecture, rules, FORBIDDEN patterns
-└── .claude/
-    ├── agents/                  # 6 universal agents
-    │   ├── research-web.md      # Researches best practices before new features
-    │   ├── documenter.md        # Maps files to domains, tracks changes
-    │   ├── domain-updater.md    # Records problems, solutions, learnings
-    │   ├── commit-manager.md    # Conventional commits, merge workflow
-    │   ├── tester.md            # Creates tests (Vitest/PHPUnit/Playwright)
-    │   └── claude-md-compactor.md  # Compacts CLAUDE.md when > 40k chars
-    ├── skills/                  # 25-40 skills (stack + shared + frontend)
-    │   ├── quality-gate/        # Typecheck, lint, test validation
-    │   ├── security-scan/       # OWASP checks per language
-    │   ├── git-workflow/        # Branch management, conventional commits
-    │   ├── codebase-knowledge/  # Domain documentation system
-    │   └── ...                  # Stack-specific skills
-    ├── hooks/
-    │   ├── stop-validator.ts    # Blocks incomplete tasks (branch, git, docs)
-    │   └── user-prompt-submit.ts  # Injects workflow + standards context
-    ├── commands/                # /feature, /fix, /research, /validate
-    ├── config/
-    │   ├── active-project.json  # Stack, framework, database, skills
-    │   ├── security-rules.json  # OWASP checks + env exposure rules
-    │   ├── standards-review.json  # Imported project standards
-    │   └── ...                  # Quality gates, testing, domain mapping
-    └── settings.json            # Claude Code permissions & model config
+├── CLAUDE.md                       # AI memory: architecture, rules, FORBIDDEN
+├── .claude/
+│   ├── agents/                     # 7 universal agents
+│   ├── skills/                     # versioned skill set (stack + shared + frontend)
+│   ├── hooks/                      # stop-validator, final-check, prompt-submit
+│   ├── commands/                   # /feature, /fix, /research, /validate
+│   └── config/                     # active-project, security-rules, ...
+└── .github/workflows/              # ci.yml + security.yml (if dir was empty)
+```
+
+## CLI
+
+```bash
+npx start-vibing-stacks                # setup or resume current project
+npx start-vibing-stacks migrate        # show outdated/missing skills
+npx start-vibing-stacks migrate --apply  # update outdated skills/agents
+
+# flags: --force --no-claude --no-mcp --no-install --help --version
+```
+
+Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
+
+## Hooks (block completion)
+
+| Hook | Blocks when |
+|---|---|
+| `stop-validator` | not on main, uncommitted changes, CLAUDE.md missing/stale, **secret pattern in diff** (gitleaks or regex) |
+| `final-check` | hardcoded secret, `eval`, SQL string concat, `.skip`/`.only`, `any`, `console.log`, `var_dump` |
+| `user-prompt-submit` | injects workflow + standards context |
+
+## Workflow per Task
+
+```
+1. BRANCH       feature/ | fix/ | refactor/ | test/
+2. RESEARCH     research-web agent (new features)
+3. IMPLEMENT    stack rules + strict types + security
+4. TEST         tester agent (Vitest / pytest / PHPUnit / Playwright)
+5. SECURITY     security-auditor agent — VETO on findings
+6. DOCUMENT     documenter agent
+7. UPDATE       CLAUDE.md "Last Change" section
+8. QUALITY      typecheck → lint → test → build
+9. COMMIT       conventional commit, merge to main
 ```
 
 ## Security Features
 
-### Environment Variable Protection (Node.js)
-
-The tool enforces strict separation of server and client environment variables:
-
-- **Scanner**: Detects `NEXT_PUBLIC_` with sensitive words (SECRET, TOKEN, API_KEY) in `.env*` files
-- **CLAUDE.md**: FORBIDDEN rules prevent AI from exposing secrets in browser bundles
-- **Skills**: Teach API proxy patterns — external API calls must go through Route Handlers
-- **security-rules.json**: Automated detection patterns for security audits
-
-### PHP Security
-
-- OWASP Top 10 adapted for Laravel + Octane
-- Octane-safe patterns (no static state, no globals)
-- `env()` restriction (config files only)
-- Frontend secret isolation (Inertia props)
-- Rate limiting, CORS, CSP, encryption at rest
+- **Environment isolation**: scanner blocks `NEXT_PUBLIC_*SECRET|*TOKEN|*PRIVATE` patterns; teaches Route Handler / Server Action proxy patterns.
+- **OWASP Top 10**: stack-aware skills cover A01–A10 (broken access control, injection, SSRF, etc.).
+- **Secret scanning** in `stop-validator` — gitleaks if installed, regex fallback otherwise.
+- **`security-auditor` agent** with VETO — runs after tester, before commit, blocks insecure code.
+- **CI templates**: gitleaks, `npm audit` / `pip-audit` / `composer audit`, CodeQL/Bandit, weekly cron.
 
 ## Standards Review
 
-Before modifying anything, the CLI scans your project for existing patterns:
+CLI scans existing config (cursorrules, composer.json, tsconfig, eslint, phpstan, `.env*`, lockfiles) and asks **"adapt to your standards or use defaults?"** Imported standards are written to `standards-review.json` and injected into every prompt.
 
-```
-Scans:  .cursorrules, composer.json, package.json, tsconfig.json,
-        eslint config, phpstan.neon, .env files, framework configs,
-        lockfiles, deploy configs, quality tool configs
-
-Detects: 50+ npm packages, 17+ Composer packages, TypeScript strict mode,
-         path aliases, ESLint config, PHPStan level, package manager,
-         deploy targets, exposed secrets in NEXT_PUBLIC_*
-
-Result:  "Adapt to your standards" or "Use plugin defaults"
-         → Saved in standards-review.json
-         → Injected into every Claude prompt via hook
-```
-
-## CLI Options
+## Migrate Existing Projects
 
 ```bash
-npx start-vibing-stacks [options]
-
---force           Overwrite existing configuration
---no-claude       Skip Claude Code launch
---no-install      Skip dependency installation
---help, -h        Show help
---version, -v     Show version
+npx start-vibing-stacks migrate         # report drift
+npx start-vibing-stacks migrate --apply # apply updates
 ```
 
-Or install globally:
-
-```bash
-npm install -g start-vibing-stacks
-svs  # shortcut alias
-```
-
-## How the Workflow Works
-
-Once configured, Claude Code follows this workflow on every task:
-
-```
-0. TODO LIST      → Creates detailed task breakdown
-1. BRANCH         → Creates feature/ | fix/ | refactor/ | test/
-2. RESEARCH       → Runs research-web agent for new features
-3. IMPLEMENT      → Follows stack rules + strict types + security
-4. TEST           → Runs tester agent (PHPUnit / Vitest / Playwright)
-5. DOCUMENT       → Runs documenter agent for modified files
-6. UPDATE         → Updates CLAUDE.md with changes
-7. QUALITY        → Runs quality gates (typecheck, lint, test, build)
-8. COMMIT         → Conventional commits, merge to main
-```
-
-The **stop-validator hook** blocks task completion if:
-- Not on `main` branch (work must be merged)
-- Uncommitted changes exist
-- CLAUDE.md wasn't updated
-- Source files lack documentation
-
-## Cursor IDE Support
-
-If `.cursorrules` is detected, the rules are automatically imported into the Claude configuration. Both AI tools work with the same context.
+Compares `version:` in your installed `SKILL.md` files against the bundled package. Missing → install. Outdated → upgrade. Ahead (you customized) → kept. Unversioned → flagged for manual review.
 
 ## Requirements
 
-| Stack | Requirements |
-|-------|-------------|
-| **PHP** | PHP >= 8.3, Composer >= 2.0, Node.js >= 18 |
-| **Node.js** | Node.js >= 18 (Bun optional) |
+| Stack | Required |
+|---|---|
+| PHP | PHP ≥ 8.3, Composer ≥ 2.0, Node.js ≥ 18 |
+| Node.js | Node.js ≥ 18 (Bun optional) |
+| Python | Python ≥ 3.12, pip ≥ 23 |
 
 Missing dependencies are auto-installed via Homebrew on macOS.
 
+## Releases
+
+GitHub Release → npm publish (workflow `publish.yml`).
+Version bump in `package.json` on `main` → auto-creates the GitHub Release (workflow `auto-release.yml`). Add `[skip release]` to the commit to opt out.
+
 ## Credits
 
-Inspired by [start-vibing](https://www.npmjs.com/package/start-vibing).
-Built by [FantasyLake](https://github.com/f1sc4ll-ai).
+Inspired by [start-vibing](https://www.npmjs.com/package/start-vibing). Built by [FantasyLake](https://github.com/f1sc4ll-ai).
 
 ## License
 
