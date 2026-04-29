@@ -1,0 +1,112 @@
+name: Auto Release on Version Bump
+
+# When package.json#version changes on main, create a GitHub Release.
+# The Release event then triggers .github/workflows/publish.yml → npm publish.
+#
+# Skip behavior:
+#  - tag already exists → no-op (idempotent)
+#  - commit message contains "[skip release]" → no-op
+#  - version unchanged from previous commit → no-op
+#
+# Manual release path is unaffected — this workflow only fires on push to main.
+#
+# Security: commit messages are attacker-controllable input. We pass them only
+# via env vars and files, never interpolated into shell strings.
+
+on:
+  push:
+    branches: [main]
+    paths: ['package.json']
+
+concurrency:
+  group: auto-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write   # create tags + releases
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect version change
+        id: detect
+        run: |
+          set -euo pipefail
+          NEW=$(node -p "require('./package.json').version")
+          if git cat-file -e HEAD~1:package.json 2>/dev/null; then
+            OLD=$(git show HEAD~1:package.json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).version))")
+          else
+            OLD=""
+          fi
+          echo "old=$OLD" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          if [ -z "$OLD" ] || [ "$OLD" = "$NEW" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Version unchanged ($OLD → $NEW). Skipping."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Version bumped: $OLD → $NEW"
+          fi
+
+      - name: Capture commit metadata safely
+        id: commit
+        if: steps.detect.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          # Write the commit message to a file — never inline it into shell strings
+          git log -1 --pretty=%s > .release-title.txt
+          git log -1 --pretty=%B > .release-raw.txt
+          # Strip first line (used as title) + Claude trailers from public notes
+          tail -n +3 .release-raw.txt \
+            | sed -E '/^Generated with Claude Code$/d; /^Co-Authored-By: /d' \
+            > .release-body.txt
+          if ! grep -q '[^[:space:]]' .release-body.txt; then
+            echo "See commit log for details." > .release-body.txt
+          fi
+
+      - name: Check skip conditions
+        id: gate
+        if: steps.detect.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.detect.outputs.new }}
+        run: |
+          set -euo pipefail
+          # Opt-out marker in commit message
+          if grep -qF '[skip release]' .release-raw.txt; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "Commit opted out via [skip release]."
+            exit 0
+          fi
+          # Tag already exists?
+          TAG="v${NEW_VERSION}"
+          if gh release view "$TAG" --json tagName >/dev/null 2>&1; then
+            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            echo "Release $TAG already exists — skipping."
+            exit 0
+          fi
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        if: steps.gate.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.detect.outputs.new }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          TAG="v${NEW_VERSION}"
+          # Read title from file; sanitize to single line, max 200 chars
+          RAW_TITLE=$(head -n 1 .release-title.txt | tr -d '\r' | cut -c1-200)
+          TITLE="${TAG} — ${RAW_TITLE}"
+          gh release create "$TAG" \
+            --title "$TITLE" \
+            --notes-file .release-body.txt \
+            --target "$COMMIT_SHA"
+          echo "Release $TAG created — publish.yml will run on the release event."
