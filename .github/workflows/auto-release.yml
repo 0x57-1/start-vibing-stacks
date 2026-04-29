@@ -30,7 +30,7 @@ concurrency:
 
 permissions:
   contents: write   # create tags + releases
-  id-token: write   # npm provenance
+  # id-token: write — re-enable when the repo goes public (npm provenance requires it)
 
 jobs:
   release-and-publish:
@@ -127,6 +127,6 @@ jobs:
 
       - name: Publish to npm
         if: steps.gate.outputs.proceed == 'true'
-        run: npm publish --access public --provenance
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

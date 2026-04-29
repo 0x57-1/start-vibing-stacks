@@ -20,7 +20,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # npm provenance
+  # id-token: write — re-enable when the repo goes public (npm provenance requires it)
 
 jobs:
   validate-input:
@@ -62,6 +62,6 @@ jobs:
 
       - run: npm ci
       - run: npm run build
-      - run: npm publish --access public --provenance
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
