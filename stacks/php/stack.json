@@ -45,7 +45,7 @@
   ],
   "databases": [
     { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬", "default": true },
-    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
+    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘", "skills": ["postgres-patterns"] },
     { "id": "sqlite", "name": "SQLite", "icon": "📁" }
   ],
   "frontendOptions": [
@@ -83,7 +83,8 @@
     "phpstan-analysis",
     "composer-workflow",
     "security-scan-php",
-    "api-design"
+    "api-design",
+    "openapi-design"
   ],
   "requirements": [
     {

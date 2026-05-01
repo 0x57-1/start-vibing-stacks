@@ -27,21 +27,21 @@
       "icon": "⚡",
       "detectFiles": ["app/main.py"],
       "default": true,
-      "skills": ["fastapi-patterns", "async-patterns"]
+      "skills": ["fastapi-patterns", "async-patterns", "openapi-design"]
     },
     {
       "id": "django",
       "name": "Django 5+",
       "icon": "🎸",
       "detectFiles": ["manage.py"],
-      "skills": ["django-patterns"]
+      "skills": ["django-patterns", "openapi-design"]
     },
     {
       "id": "flask",
       "name": "Flask",
       "icon": "🧪",
       "detectFiles": ["app.py", "wsgi.py"],
-      "skills": []
+      "skills": ["openapi-design"]
     },
     {
       "id": "scripts",
@@ -52,7 +52,7 @@
   ],
   "databases": [
     { "id": "mysql", "name": "MySQL / MariaDB", "icon": "🐬", "default": true },
-    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘" },
+    { "id": "postgresql", "name": "PostgreSQL", "icon": "🐘", "skills": ["postgres-patterns"] },
     { "id": "sqlite", "name": "SQLite (local)", "icon": "📦" },
     { "id": "mongodb", "name": "MongoDB", "icon": "🍃" },
     { "id": "none", "name": "No database", "icon": "⬜" }
