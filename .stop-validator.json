@@ -1,0 +1,6 @@
+{
+	"skip_checks": [
+		"DIRECT_MAIN_COMMIT_FORBIDDEN"
+	],
+	"reason": "Single-maintainer CLI package; .github/workflows/auto-release.yml triggers on package.json bumps pushed to main, so direct-to-main is the intended release flow. Tree-clean check still applies — uncommitted changes are still blocked."
+}

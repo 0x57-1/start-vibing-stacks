@@ -8,7 +8,7 @@
 
 **Branch:** main
 **Date:** 2026-05-01
-**Summary:** v2.8.0 — added three skills closing Core stack gaps: `openapi-design` (universal OpenAPI 3.1 contract patterns) and `postgres-patterns` (universal PG security/design/tuning) in `stacks/_shared/skills/`, plus `fastify-api` (Fastify v5 + Zod + OpenAPI) in `stacks/nodejs/skills/`. Wired skills into the three `stack.json` files via `frameworks[].skills` and `databases[].skills` arrays. Earlier in the session: v2.7.4 — fixed generated hook commands to use `$CLAUDE_PROJECT_DIR` instead of CWD-relative paths (resolved `ERR_MODULE_NOT_FOUND` when Claude Code's CWD is a subfolder).
+**Summary:** Added `.stop-validator.json` opting this repo out of `DIRECT_MAIN_COMMIT_FORBIDDEN` (single-maintainer CLI package; `auto-release.yml` is built around `main` pushes — feature-branch-then-merge would require constant overhead with no benefit). Earlier in the session: v2.8.0 — added three skills closing Core stack gaps: `openapi-design` (universal OpenAPI 3.1 contract patterns) and `postgres-patterns` (universal PG security/design/tuning) in `stacks/_shared/skills/`, plus `fastify-api` (Fastify v5 + Zod + OpenAPI) in `stacks/nodejs/skills/`; wired skills into the three `stack.json` files via `frameworks[].skills` and `databases[].skills` arrays. v2.7.4 — fixed generated hook commands to use `$CLAUDE_PROJECT_DIR` instead of CWD-relative paths (resolved `ERR_MODULE_NOT_FOUND` when Claude Code's CWD is a subfolder).
 
 ---
 
