@@ -77,8 +77,8 @@ console.log(JSON.stringify(result));
 ```json
 {
   "hooks": {
-    "Stop": [{ "hooks": [{ "type": "command", "command": "bash .claude/hooks/run-hook.sh stop-validator", "timeout": 30 }] }],
-    "UserPromptSubmit": [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash .claude/hooks/run-hook.sh user-prompt-submit", "timeout": 10 }] }]
+    "Stop": [{ "hooks": [{ "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/run-hook.sh\" stop-validator", "timeout": 30 }] }],
+    "UserPromptSubmit": [{ "matcher": "", "hooks": [{ "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/run-hook.sh\" user-prompt-submit", "timeout": 10 }] }]
   }
 }
 ```
