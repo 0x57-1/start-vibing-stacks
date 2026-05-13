@@ -8,39 +8,37 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.10.0 — `stacks/_shared/agents/claude-md-compactor.md` rewritten
-to **v2.0.0** grounded 100% in Anthropic's May-2026 official docs
-(`docs.anthropic.com/en/docs/claude-code/memory` + `/skills`). New trigger
-model is **per-file thresholds in tokens/KB** instead of the previous single
-40 KB char limit: project `CLAUDE.md` > 20 KB (50% reduction from baseline)
-OR nested `CLAUDE.md` > 16 KB (stricter — they do **not** survive `/compact`)
-OR `MEMORY.md` > 25 KB / 200 lines (Anthropic hard cap) OR any `SKILL.md` >
-20 KB (~5k tokens — post-`/compact` per-skill cap) OR aggregate persistent
-boot instructions > 64 KB OR `/doctor` reports skill listing budget overflow.
-Adds a **Hierarchy of Offload** table ranking mechanisms by boot cost (hook =
-0 → skill with `paths:` = 0-until-glob → skill auto = ~description-only →
-rule with `paths:` = 0-until-file-opened → CLAUDE.md = full → HTML comment =
-stripped/free), with explicit routing rules for each content type ("always
-run X" → hook, multi-step manual workflow → skill with
-`disable-model-invocation: true`, scoped convention → rule with `paths:`,
-verbose explanation → `<!-- ... -->`). New procedures: mandatory
-`.claude/memory/archive/CLAUDE.md.<date>.bak` backup before any write,
-promotion of fragile nested `CLAUDE.md` to `paths:`-scoped rules (so they
-survive `/compact`), conflict scan across user/project/rules sources,
-`claudeMdExcludes` for monorepos, `skillOverrides` /
-`skillListingBudgetFraction` / `maxSkillDescriptionChars` knobs for skill
-budget management, optional `InstructionsLoaded` hook for permanent load
-visibility, and `CLAUDE_CODE_NEW_INIT=1 /init` bail-out for irrecoverable
-cases. Anti-mythology call-outs: `@import` does NOT save context (loads full
-at launch), CLAUDE.md is delivered as user message AFTER system prompt (no
-strict compliance — use hooks for hard enforcement). Backup of v1.0.0 kept
-at `stacks/_shared/agents/.archive/claude-md-compactor.v1.0.0.md`.
-Earlier: v2.9.0 — PHP stack repositioned as **API-first by default** with
-new default frontend `react-api` (Vite + Axios + Sanctum SPA cookie),
-Inertia.js demoted to LEGACY, new skills `laravel-api-architecture` +
-`axios-laravel-api` + `react-api-standards`. v2.8.0 — added `openapi-design`,
-`postgres-patterns`, `fastify-api`. v2.7.4 — fixed generated hook commands
-to use `$CLAUDE_PROJECT_DIR`.
+**Summary:** v2.11.0 — `stacks/_shared/agents/research-web.md` rewritten to
+**v2.0.0** as MCP-first agent. Primary search backend is now the MCP
+`web-scraper` server (registered in user scope at `~/.claude.json`, source at
+`agents-legolas/.claude/mcp-servers/web-scraper/`) with 8 tools declared:
+`unified_search` (parallel Brave + Vertex AI Gemini grounding + xAI Grok with
+dedupe and scoring), `brave_search`, `grok_search`, `google_search`,
+`scrape_url` (browser stealth + Webshare proxy rotation —
+`use_proxy: true` is mandatory), `sitemap_crawler`, `google_trends`, and
+persistent cross-session `memory`. Built-in `WebSearch` / `WebFetch` is now
+the **Tier 2 fallback** activated only when the MCP is not registered.
+Step 0 capability detection (cached once per session, cheap probe via
+`brave_search count: 1`), intent-based routing table mapping research
+intent (broad / recent / synthesis / speed / read-page / inventory /
+trending / persist) to the right MCP tool, graceful degradation chain
+(`unified_search` → `brave_search` → built-in `WebSearch`) with the
+degradation tier surfaced in the output. Output format gained `Tier`,
+per-result `score` + `engines`, and MCP `memory` key alongside the existing
+`research-cache` key. New `mcp-web-scraper` skill referenced via the agent's
+`skills:` frontmatter (auto-loaded if the user has the companion skill at
+`~/.claude/skills/mcp-web-scraper/SKILL.md`). FORBIDDEN now leads with "call
+`WebSearch` when MCP is registered" and "pass `use_proxy: false` to
+`scrape_url`" (causes `ERR_TOO_MANY_RETRIES`). Backup of v1.0.0 kept at
+`stacks/_shared/agents/.archive/research-web.v1.0.0.md`.
+Earlier: v2.10.0 — `claude-md-compactor` rewritten to v2.0.0 grounded in
+Anthropic's May-2026 docs (per-file thresholds in tokens/KB, hierarchy of
+offload, /compact survival, `claudeMdExcludes`, skill listing budget).
+v2.9.0 — PHP stack repositioned as API-first React SPA (Sanctum cookie +
+Axios), Inertia.js demoted to LEGACY, new skills `laravel-api-architecture`
++ `axios-laravel-api` + `react-api-standards`. v2.8.0 — added
+`openapi-design`, `postgres-patterns`, `fastify-api`. v2.7.4 — fixed
+generated hook commands to use `$CLAUDE_PROJECT_DIR`.
 
 ---
 
