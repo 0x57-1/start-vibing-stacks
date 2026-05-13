@@ -118,15 +118,15 @@ Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
 
 ```
 1. BRANCH         feature/ | fix/ | refactor/ | test/
-2. RESEARCH       research-web agent (MCP-first; new features only)
+2. RESEARCH       research-web (MCP-first; new features only)
 3. IMPLEMENT      stack rules + strict types + security
-4. TEST           tester agent (Vitest / pytest / PHPUnit / Playwright)
-5. SECURITY       security-auditor agent — VETO on findings (CRITICAL/HIGH/MEDIUM block)
-6. QUALITY        typecheck → lint → test → build (quality-gate)
-7. COMMIT         conventional commit, merge to main (commit-manager)
-8. DOCUMENT       documenter agent — appends to .claude/skills/codebase-knowledge/domains/<slug>.md
-9. UPDATE         domain-updater refreshes CLAUDE.md "Last Change"
-10. COMPACT       claude-md-compactor if CLAUDE.md > 20 KB
+4. TEST           tester (Vitest / pytest / PHPUnit / Playwright)
+5. SECURITY       security-auditor — VETO on CRITICAL/HIGH/MEDIUM findings
+6. QUALITY        quality-gate: typecheck → lint → test → build
+7. COMMIT         commit-manager — verifies gates, diff-driven message, push
+8. DOCUMENT       documenter — maps files/commits to domains, regenerates _index.json
+9. WISDOM         domain-updater — records session learnings, refreshes CLAUDE.md Last Change
+10. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
 ```
 
 Steps 5–6 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings.

@@ -222,6 +222,7 @@ Use `Edit` / `StrReplace`, never `Write`, on existing domain files.
 
 - `docs-tracker` skill — file → doc mapping rules + changelog templates
 - `codebase-knowledge` skill — consumer of this layout (reads domains BEFORE implementing)
-- `domain-updater` agent — runs AFTER documenter to refresh `CLAUDE.md` Last Change line
+- `commit-manager` v2.0.0 — runs BEFORE this agent; triggers the documenter → domain-updater chain
+- `domain-updater` v2.0.0 — runs AFTER this agent; records session wisdom + refreshes `CLAUDE.md` Last Change
 - `claude-md-compactor` v2.0.0 — keeps top-level `CLAUDE.md` ≤ 20 KB; this layer keeps each domain ≤ 8 KB
 - `security-auditor` v2.0.0 — vetoes commit if PII/secret leaks into a domain file

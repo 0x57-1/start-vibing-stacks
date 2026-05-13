@@ -8,35 +8,25 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.13.0 — `documenter.md` rewritten to v2.0.0 as a
-**search-optimized memory-layer engineer** (Anthropic May-2026 Skills
-guidance). New layout under `.claude/skills/codebase-knowledge/`: per-domain
-file with **YAML frontmatter** (`domain · tags · owner · last_commit ·
-last_date · files_count · connections · status`); machine-readable
-`_index.json` sidecar regenerated each pass (one `jq` query finds any
-domain); human-readable `_INDEX.md` derived from the JSON. Atomic-file
-rule: ≤ 8 KB / ~2k tokens / 200 lines per domain (auto-split when
-exceeded). `Recent Commits` table capped at 20 entries — older rows roll
-into `<slug>.archive.md`. **Bidirectional connections** (A→B forces
-B←A, atomic rollback). `summary_sha` (sha256 of TL;DR) acts as drift
-detector for CI hooks. Edit-known-anchors policy (never `Write` over an
-existing domain → diff-stable code review). README.md fully rewritten:
-real skill counts (22 shared / 14 PHP / 7 Node / 9 Python / 3 frontend
-trees), v2.12.0 security-auditor VETO matrix, v2.0.0 memory-layer
-section, MCP-first research-web, Node 20+ baseline.
-Earlier: v2.12.0 — `security-auditor.md` v2.0.0 stack-aware adversarial
-auditor (PHP / Node.js / Python forks; CWE-mapped findings; severity
-matrix CRITICAL/HIGH/MEDIUM block, LOW warns; vetoes `commit-manager`
-and `domain-updater`; adversarial probes `npm audit` / `composer
-audit` / `pip-audit` / `gitleaks` / PHPStan). v2.11.1 — CI Node version bumped to 22 (Active LTS),
-`engines.node>=20.0.0`. v2.11.0 — `research-web.md` v2.0.0 MCP-first
-(`web-scraper` Tier 1, built-in `WebSearch`/`WebFetch` Tier 2,
-capability detection + graceful degradation). v2.10.0 —
-`claude-md-compactor` v2.0.0 grounded in Anthropic May-2026 docs.
-v2.9.0 — PHP stack repositioned as API-first React SPA (Sanctum
-cookie + Axios), Inertia.js → LEGACY. v2.8.0 — added `openapi-design`,
-`postgres-patterns`, `fastify-api`. v2.7.4 — fixed generated hook
-commands to use `$CLAUDE_PROJECT_DIR`.
+**Summary:** v2.14.0 — `domain-updater` and `commit-manager` rewritten
+to v2.0.0. domain-updater is now the session wisdom layer (problems,
+root causes, solutions, prevention tips) + CLAUDE.md Last Change
+updater, with deduplication, cap (5 P&S + 10 attn per domain), size
+guard (8 KB), plain-text Last Change ≤ 20 KB. commit-manager is now
+gate-aware (HARD GATE: verifies security-auditor + quality-gate BEFORE
+committing, refuses if vetoed), diff-driven messages (stat-first
+token-efficient analysis, HEREDOC format, ≤ 72 char subject), supports
+both branch-merge and direct-to-main flows, push-failure recovery,
+triggers post-commit chain (documenter → domain-updater). Both upgraded
+from haiku to sonnet model. Workflow chain now explicit: commit-manager
+→ documenter → domain-updater → session end. documenter See Also and
+README workflow updated to match.
+Earlier: v2.13.0 — documenter v2.0.0 search-optimized memory layer
+(YAML frontmatter + _index.json + bidirectional connections). v2.12.0 —
+security-auditor v2.0.0 stack-aware adversarial (PHP/Node/Python,
+CWE-mapped, VETO). v2.11.1 — CI Node 22, engines.node>=20.0.0.
+v2.11.0 — research-web v2.0.0 MCP-first. v2.10.0 — claude-md-compactor
+v2.0.0. v2.9.0 — PHP API-first (Sanctum+Axios), Inertia LEGACY.
 
 ---
 
