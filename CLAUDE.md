@@ -8,37 +8,25 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.11.0 — `stacks/_shared/agents/research-web.md` rewritten to
-**v2.0.0** as MCP-first agent. Primary search backend is now the MCP
-`web-scraper` server (registered in user scope at `~/.claude.json`, source at
-`agents-legolas/.claude/mcp-servers/web-scraper/`) with 8 tools declared:
-`unified_search` (parallel Brave + Vertex AI Gemini grounding + xAI Grok with
-dedupe and scoring), `brave_search`, `grok_search`, `google_search`,
-`scrape_url` (browser stealth + Webshare proxy rotation —
-`use_proxy: true` is mandatory), `sitemap_crawler`, `google_trends`, and
-persistent cross-session `memory`. Built-in `WebSearch` / `WebFetch` is now
-the **Tier 2 fallback** activated only when the MCP is not registered.
-Step 0 capability detection (cached once per session, cheap probe via
-`brave_search count: 1`), intent-based routing table mapping research
-intent (broad / recent / synthesis / speed / read-page / inventory /
-trending / persist) to the right MCP tool, graceful degradation chain
-(`unified_search` → `brave_search` → built-in `WebSearch`) with the
-degradation tier surfaced in the output. Output format gained `Tier`,
-per-result `score` + `engines`, and MCP `memory` key alongside the existing
-`research-cache` key. New `mcp-web-scraper` skill referenced via the agent's
-`skills:` frontmatter (auto-loaded if the user has the companion skill at
-`~/.claude/skills/mcp-web-scraper/SKILL.md`). FORBIDDEN now leads with "call
-`WebSearch` when MCP is registered" and "pass `use_proxy: false` to
-`scrape_url`" (causes `ERR_TOO_MANY_RETRIES`). Backup of v1.0.0 kept at
-`stacks/_shared/agents/.archive/research-web.v1.0.0.md`.
-Earlier: v2.10.0 — `claude-md-compactor` rewritten to v2.0.0 grounded in
-Anthropic's May-2026 docs (per-file thresholds in tokens/KB, hierarchy of
+**Summary:** v2.11.1 — CI Node version bumped from 20 → **22** (current Active
+LTS until Oct 2026) in both `.github/workflows/auto-release.yml` and
+`publish.yml`. `package.json#engines.node` bumped from `>=18.0.0` → `>=20.0.0`
+(Node 18 reached EOL in April 2025 — drops official support to align with
+upstream). Action versions kept at `@v4` for now (still functional until
+GitHub forces Node 24 runtime on June 2 2026 — separate commit when `@v5`
+is verified stable). Build verified locally with `npm run build` on Node 22.
+Earlier: v2.11.0 — `research-web.md` rewritten to v2.0.0 as MCP-first agent
+with `web-scraper` server as Tier 1 (8 MCP tools incl. `unified_search`
+parallel Brave + Vertex AI + Grok with dedupe + scoring, `scrape_url` with
+stealth + proxy, persistent `memory`); built-in `WebSearch`/`WebFetch`
+fallback as Tier 2; capability detection + intent-based routing + graceful
+degradation. v2.10.0 — `claude-md-compactor` rewritten to v2.0.0 grounded in
+Anthropic May-2026 docs (per-file thresholds in tokens/KB, hierarchy of
 offload, /compact survival, `claudeMdExcludes`, skill listing budget).
 v2.9.0 — PHP stack repositioned as API-first React SPA (Sanctum cookie +
-Axios), Inertia.js demoted to LEGACY, new skills `laravel-api-architecture`
-+ `axios-laravel-api` + `react-api-standards`. v2.8.0 — added
-`openapi-design`, `postgres-patterns`, `fastify-api`. v2.7.4 — fixed
-generated hook commands to use `$CLAUDE_PROJECT_DIR`.
+Axios), Inertia.js demoted to LEGACY. v2.8.0 — added `openapi-design`,
+`postgres-patterns`, `fastify-api`. v2.7.4 — fixed generated hook commands
+to use `$CLAUDE_PROJECT_DIR`.
 
 ---
 
