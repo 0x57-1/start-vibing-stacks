@@ -1,63 +1,100 @@
 # Start Vibing Stacks
 
-Multi-stack AI workflow for Claude Code & Cursor. One command installs agents, skills, hooks, and quality gates tailored to your stack.
+Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs agents, skills, hooks, and quality gates tailored to your stack.
 
 ```bash
 npx start-vibing-stacks
 ```
 
-## What It Installs
+> Latest: **v2.12.0** — `security-auditor` rewritten as stack-aware adversarial auditor with VETO power; `documenter` rewritten with search-optimized memory layer (YAML frontmatter + `_index.json` sidecar); `research-web` MCP-first; CI on Node 22.
+
+---
+
+## What it installs
 
 | Layer | Count | Purpose |
 |---|---|---|
-| Agents | 7 universal | research-web, documenter, domain-updater, commit-manager, tester, claude-md-compactor, **security-auditor** (VETO) |
-| Skills | 13 shared + 5–13 stack-specific + 7–9 frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
-| Hooks | `stop-validator`, `final-check`, `user-prompt-submit` | Block completion on git/docs/secrets/code-quality issues |
-| Commands | `/feature`, `/fix`, `/research`, `/validate` | Slash commands |
+| Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
+| Skills | **22** shared + **7–14** stack-specific + **2–7** frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Hooks | `stop-validator` · `final-check` · `user-prompt-submit` | Block completion on git/docs/secrets/code-quality issues |
+| Commands | `/feature` · `/fix` · `/research` · `/validate` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack | Copied to `.github/workflows/` when target is empty |
+| Configs | `active-project.json` · `domain-mapping.json` · `security-rules.json` · `standards-review.json` | Drives every agent's stack detection |
 
-## Supported Stacks
+---
+
+## Supported stacks
 
 | Stack | Frameworks | Databases | Frontend |
 |---|---|---|---|
-| 🐘 **PHP 8.3+** | Laravel 12 + Octane, Laravel 12 | MariaDB/MySQL, PostgreSQL, SQLite | Inertia + React, Blade, Livewire, API only |
-| 📦 **Node.js / TS** | Next.js, Nuxt, Astro, Express, Fastify, Vanilla | MongoDB, Postgres, MariaDB/MySQL, SQLite/Turso, Redis, None | React + Tailwind, Vue, Svelte, API only |
-| 🐍 **Python 3.12+** | FastAPI, Django 5, Flask, Local Scripts | MariaDB/MySQL, Postgres, SQLite, MongoDB, None | React, HTMX + Jinja2, API/CLI only |
+| 🐘 **PHP 8.3+** | Laravel 12 + Octane, Laravel 12 | MariaDB/MySQL, PostgreSQL, SQLite | **React + Axios (API-first, default)** · Blade · Livewire · Inertia + React (legacy) |
+| 📦 **Node.js / TS** | Next.js · Nuxt · Astro · Express · Fastify · Vanilla | MongoDB · Postgres · MariaDB/MySQL · SQLite/Turso · Redis · None | React + Tailwind · Vue · Svelte · API only |
+| 🐍 **Python 3.12+** | FastAPI · Django 5 · Flask · Local Scripts | MariaDB/MySQL · Postgres · SQLite · MongoDB · None | React · HTMX + Jinja2 · API/CLI only |
 
-## Universal Skills (shared across stacks)
+---
 
-| Skill | Topic |
+## Skill matrix
+
+### Universal (22 — shared across stacks)
+
+| Group | Skills |
 |---|---|
-| `security-baseline` | OWASP Top 10 with stack-aware examples |
-| `secrets-management` | `.env` hygiene, gitleaks, rotation playbook |
-| `observability` | Structured logs, OpenTelemetry, Sentry, PII redaction |
-| `error-handling` | Result types, error taxonomy, retry/backoff, circuit breaker |
-| `database-migrations` | Parallel change, lock timeouts, chunked backfills |
-| `accessibility-wcag22` | WCAG 2.2 AA + axe-core/Playwright |
-| `ci-pipelines` | GitHub Actions discipline + ready-to-use templates |
-| `quality-gate` · `final-check` · `git-workflow` · `docker-patterns` · `debugging-patterns` · `performance-patterns` · `playwright-automation` · `test-coverage` · `ui-ux-audit` · `codebase-knowledge` · `docs-tracker` · `research-cache` · `hook-development` | Workflow & tooling |
+| **Security** | `security-baseline` · `secrets-management` |
+| **Observability** | `observability` |
+| **Reliability** | `error-handling` · `database-migrations` |
+| **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
+| **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
+| **Infra** | `docker-patterns` · `hook-development` |
+| **Testing** | `playwright-automation` · `test-coverage` |
+| **Performance** | `performance-patterns` |
+| **API design** | `openapi-design` · `postgres-patterns` |
+| **Memory layer** | `codebase-knowledge` · `docs-tracker` · `research-cache` |
+| **Debug** | `debugging-patterns` |
 
-Plus stack-specific: `api-security-node`, `api-security-python`, `api-security` (PHP), `typescript-strict`, `nextjs-app-router`, `trpc-api`, `bun-runtime`, `mongoose-patterns`, `pydantic-validation`, `pytest-testing`, `python-patterns`, `python-performance`, `async-patterns`, `fastapi-patterns`, `django-patterns`, `scripting-automation`, `laravel-patterns`, `laravel-octane`, `phpstan-analysis`, `phpunit-testing`, `composer-workflow`, `mariadb-octane`, `external-api-patterns`, `inertia-react`, `laravel-inertia-i18n`, `security-scan-php`, `api-design`, `php-patterns`.
+### Stack-specific (added on top of the universal set)
 
-## Layout in Your Project
+| Stack | Count | Skills |
+|---|---|---|
+| **PHP** | 14 | `api-design` · `api-security` (Sanctum SPA, v2.0.0) · `composer-workflow` · `external-api-patterns` · `inertia-react` (legacy) · **`laravel-api-architecture`** · `laravel-inertia-i18n` (legacy) · `laravel-octane` · `laravel-patterns` · `mariadb-octane` · `php-patterns` · `phpstan-analysis` · `phpunit-testing` · `security-scan-php` |
+| **Node.js** | 7 | `api-security-node` · `bun-runtime` · `fastify-api` · `mongoose-patterns` · `nextjs-app-router` · `trpc-api` · `typescript-strict` |
+| **Python** | 9 | `api-security-python` · `async-patterns` · `django-patterns` · `fastapi-patterns` · `pydantic-validation` · `pytest-testing` · `python-patterns` · `python-performance` · `scripting-automation` |
+
+### Frontend (3 options, opt-in)
+
+| Folder | Skills | Inherits from |
+|---|---|---|
+| `react` (generic) | `react-patterns` · `react-standards` · `react-ui-patterns` · `shadcn-ui` · `preline-ui` · `tailwind-patterns` · `zod-validation` | — |
+| **`react-api` (default for new PHP/Node API stacks)** | `axios-laravel-api` · `react-api-standards` | `react/` |
+| `react-inertia` (legacy) | `inertia-react` · `react-standards` | `react/` |
+
+---
+
+## Layout in your project
 
 ```
 your-project/
-├── CLAUDE.md                       # AI memory: architecture, rules, FORBIDDEN
+├── CLAUDE.md                                  # AI memory — ≤ 20 KB target (Anthropic May-2026)
 ├── .claude/
-│   ├── agents/                     # 7 universal agents
-│   ├── skills/                     # versioned skill set (stack + shared + frontend)
-│   ├── hooks/                      # stop-validator, final-check, prompt-submit
-│   ├── commands/                   # /feature, /fix, /research, /validate
-│   └── config/                     # active-project, security-rules, ...
-└── .github/workflows/              # ci.yml + security.yml (if dir was empty)
+│   ├── agents/                                # 7 universal agents
+│   ├── skills/
+│   │   ├── codebase-knowledge/
+│   │   │   ├── _INDEX.md                      # human-readable domain index
+│   │   │   ├── _index.json                    # machine-readable, regenerated by documenter
+│   │   │   └── domains/                       # one file per domain (≤ 8 KB each)
+│   │   └── <other skills>/
+│   ├── hooks/                                 # stop-validator, final-check, prompt-submit
+│   ├── commands/                              # /feature, /fix, /research, /validate
+│   └── config/                                # active-project, domain-mapping, security-rules, ...
+└── .github/workflows/                         # ci.yml + security.yml (if dir was empty)
 ```
+
+---
 
 ## CLI
 
 ```bash
-npx start-vibing-stacks                # setup or resume current project
-npx start-vibing-stacks migrate        # show outdated/missing skills
+npx start-vibing-stacks                  # setup or resume current project
+npx start-vibing-stacks migrate          # show outdated/missing skills
 npx start-vibing-stacks migrate --apply  # update outdated skills/agents
 
 # flags: --force --no-claude --no-mcp --no-install --help --version
@@ -65,63 +102,117 @@ npx start-vibing-stacks migrate --apply  # update outdated skills/agents
 
 Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
 
+---
+
 ## Hooks (block completion)
 
 | Hook | Blocks when |
 |---|---|
-| `stop-validator` | not on main, uncommitted changes, CLAUDE.md missing/stale, **secret pattern in diff** (gitleaks or regex) |
-| `final-check` | hardcoded secret, `eval`, SQL string concat, `.skip`/`.only`, `any`, `console.log`, `var_dump` |
-| `user-prompt-submit` | injects workflow + standards context |
+| `stop-validator` | not on `main` (configurable) · uncommitted changes · `CLAUDE.md` missing/stale · secret pattern in diff (gitleaks if installed, regex fallback) |
+| `final-check` | hardcoded secret · `eval` · SQL string concat · `.skip`/`.only` · `any` (TS) · `console.log` · `var_dump` |
+| `user-prompt-submit` | injects workflow + standards context into every prompt |
 
-## Workflow per Task
+---
+
+## Workflow per task
 
 ```
-1. BRANCH       feature/ | fix/ | refactor/ | test/
-2. RESEARCH     research-web agent (new features)
-3. IMPLEMENT    stack rules + strict types + security
-4. TEST         tester agent (Vitest / pytest / PHPUnit / Playwright)
-5. SECURITY     security-auditor agent — VETO on findings
-6. DOCUMENT     documenter agent
-7. UPDATE       CLAUDE.md "Last Change" section
-8. QUALITY      typecheck → lint → test → build
-9. COMMIT       conventional commit, merge to main
+1. BRANCH         feature/ | fix/ | refactor/ | test/
+2. RESEARCH       research-web agent (MCP-first; new features only)
+3. IMPLEMENT      stack rules + strict types + security
+4. TEST           tester agent (Vitest / pytest / PHPUnit / Playwright)
+5. SECURITY       security-auditor agent — VETO on findings (CRITICAL/HIGH/MEDIUM block)
+6. QUALITY        typecheck → lint → test → build (quality-gate)
+7. COMMIT         conventional commit, merge to main (commit-manager)
+8. DOCUMENT       documenter agent — appends to .claude/skills/codebase-knowledge/domains/<slug>.md
+9. UPDATE         domain-updater refreshes CLAUDE.md "Last Change"
+10. COMPACT       claude-md-compactor if CLAUDE.md > 20 KB
 ```
 
-## Security Features
+Steps 5–6 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings.
 
-- **Environment isolation**: scanner blocks `NEXT_PUBLIC_*SECRET|*TOKEN|*PRIVATE` patterns; teaches Route Handler / Server Action proxy patterns.
-- **OWASP Top 10**: stack-aware skills cover A01–A10 (broken access control, injection, SSRF, etc.).
+---
+
+## Memory layer (v2.0.0 — search-optimized)
+
+`documenter` v2.0.0 maintains `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore your repo.
+
+| Property | Value | Why |
+|---|---|---|
+| File size cap | ≤ 8 KB / ~2k tokens / 200 lines per domain | Cheap local grep; auto-split on overflow |
+| Frontmatter | `domain · tags · owner · last_commit · last_date · files_count · connections · status` | Machine-filterable without parsing markdown |
+| Index | `_index.json` (regenerated each pass) + `_INDEX.md` (human view) | One `jq` query finds any domain |
+| Commit log | Capped at 20 entries; older rolls into `<slug>.archive.md` | Live file stays small, history one click away |
+| Connections | Bidirectional (A→B forces B←A) | No dangling links |
+| Edit policy | `Edit` known anchors; never `Write` over an existing domain | Diff stability for code review |
+| `summary_sha` | sha256 of the TL;DR block | Drift detector for CI hooks |
+
+This layer is **separate** from `CLAUDE.md`: that file holds project-wide rules and "Last Change"; the memory layer holds domain knowledge.
+
+---
+
+## Security features
+
+- **`security-auditor` v2.0.0** — stack-aware (forks on PHP / Node / Python), CWE-mapped findings, severity matrix (CRITICAL · HIGH · MEDIUM block; LOW warns), VETO power against `commit-manager` and `domain-updater`. Adversarial probes: `npm audit` · `composer audit` · `pip-audit` · `gitleaks` · PHPStan.
+- **OWASP Top 10** — `security-baseline` (universal A01–A10) + `security-scan-php` (Laravel-specific) + `api-security-node` + `api-security-python`.
+- **Environment isolation** — scanner blocks `NEXT_PUBLIC_*SECRET|*TOKEN|*PRIVATE` and `VITE_*SECRET|*TOKEN|*PRIVATE` patterns; teaches Route Handler / Server Action proxy patterns.
 - **Secret scanning** in `stop-validator` — gitleaks if installed, regex fallback otherwise.
-- **`security-auditor` agent** with VETO — runs after tester, before commit, blocks insecure code.
-- **CI templates**: gitleaks, `npm audit` / `pip-audit` / `composer audit`, CodeQL/Bandit, weekly cron.
+- **CI templates** — gitleaks · `npm audit` / `pip-audit` / `composer audit` · CodeQL/Bandit · weekly cron.
 
-## Standards Review
+---
 
-CLI scans existing config (cursorrules, composer.json, tsconfig, eslint, phpstan, `.env*`, lockfiles) and asks **"adapt to your standards or use defaults?"** Imported standards are written to `standards-review.json` and injected into every prompt.
+## Standards review
 
-## Migrate Existing Projects
+CLI scans existing config (`.cursorrules` · `composer.json` · `tsconfig.json` · `.eslintrc*` · `phpstan.neon` · `.env*` · lockfiles) and asks **"adapt to your standards or use defaults?"** Imported standards are written to `standards-review.json` and injected into every prompt by `user-prompt-submit`.
+
+---
+
+## Migrate existing projects
 
 ```bash
-npx start-vibing-stacks migrate         # report drift
+npx start-vibing-stacks migrate         # report drift only
 npx start-vibing-stacks migrate --apply # apply updates
 ```
 
-Compares `version:` in your installed `SKILL.md` files against the bundled package. Missing → install. Outdated → upgrade. Ahead (you customized) → kept. Unversioned → flagged for manual review.
+Compares `version:` in your installed `SKILL.md` / agent files against the bundled package:
+
+| Result | Action |
+|---|---|
+| Missing | install |
+| Outdated | upgrade (older ones moved to `.archive/`) |
+| Ahead (you customized) | kept as-is |
+| Unversioned | flagged for manual review |
+
+---
 
 ## Requirements
 
 | Stack | Required |
 |---|---|
-| PHP | PHP ≥ 8.3, Composer ≥ 2.0, Node.js ≥ 18 |
-| Node.js | Node.js ≥ 18 (Bun optional) |
-| Python | Python ≥ 3.12, pip ≥ 23 |
+| PHP | PHP ≥ 8.3 · Composer ≥ 2.0 · Node.js ≥ 20 |
+| Node.js | Node.js ≥ 20 (Bun optional) |
+| Python | Python ≥ 3.12 · pip ≥ 23 |
 
 Missing dependencies are auto-installed via Homebrew on macOS.
+
+---
 
 ## Releases
 
 GitHub Release → npm publish (workflow `publish.yml`).
-Version bump in `package.json` on `main` → auto-creates the GitHub Release (workflow `auto-release.yml`). Add `[skip release]` to the commit to opt out.
+Version bump in `package.json` on `main` → auto-creates the GitHub Release (workflow `auto-release.yml`).
+Both workflows run on **Node 22** (Active LTS until Oct 2026).
+Add `[skip release]` to the commit message to opt out of auto-release.
+
+---
+
+## MCP integrations (optional)
+
+`research-web` v2.0.0 is **MCP-first**: it prefers a local `web-scraper` MCP (Brave + Vertex AI + Grok with dedupe + scoring · stealth scraping · sitemap crawler · persistent memory) and falls back gracefully to built-in `WebSearch` / `WebFetch` if the MCP is not registered. Capability detection happens once per session.
+
+Run `npx start-vibing-stacks --no-mcp` to skip MCP wiring entirely.
+
+---
 
 ## Credits
 

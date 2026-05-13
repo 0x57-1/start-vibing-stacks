@@ -8,22 +8,27 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.12.0 — `security-auditor.md` rewritten to v2.0.0 as a
-**stack-aware adversarial auditor** with VETO power. Forks on
-`active-project.json#stack` into PHP / Node.js / Python sections; each
-finding maps to a CWE id and cites the exact skill section that
-contains the fix (`api-security §1.A`, `security-scan-php "Octane
-Security"`, `api-security-node §5`, `api-security-python §7`, etc.).
-Universal matrix (A-J: authn/session, authz, input, secrets, cookies,
-CORS/headers, rate limit, logging/PII, SSRF, deserialization/RCE) plus
-stack-specific stage 4 plus optional React frontend overlay (stage 5)
-plus mandatory adversarial probes (`npm audit` / `composer audit` /
-`pip-audit` / `gitleaks` / PHPStan) in stage 6. Severity matrix
-(CRITICAL/HIGH/MEDIUM block, LOW warns); `domain-updater` and
-`commit-manager` are vetoed while findings remain open. All 8
-referenced skills already carried the cited anchors — no skill content
-changes needed.
-Earlier: v2.11.1 — CI Node version bumped to 22 (Active LTS),
+**Summary:** v2.13.0 — `documenter.md` rewritten to v2.0.0 as a
+**search-optimized memory-layer engineer** (Anthropic May-2026 Skills
+guidance). New layout under `.claude/skills/codebase-knowledge/`: per-domain
+file with **YAML frontmatter** (`domain · tags · owner · last_commit ·
+last_date · files_count · connections · status`); machine-readable
+`_index.json` sidecar regenerated each pass (one `jq` query finds any
+domain); human-readable `_INDEX.md` derived from the JSON. Atomic-file
+rule: ≤ 8 KB / ~2k tokens / 200 lines per domain (auto-split when
+exceeded). `Recent Commits` table capped at 20 entries — older rows roll
+into `<slug>.archive.md`. **Bidirectional connections** (A→B forces
+B←A, atomic rollback). `summary_sha` (sha256 of TL;DR) acts as drift
+detector for CI hooks. Edit-known-anchors policy (never `Write` over an
+existing domain → diff-stable code review). README.md fully rewritten:
+real skill counts (22 shared / 14 PHP / 7 Node / 9 Python / 3 frontend
+trees), v2.12.0 security-auditor VETO matrix, v2.0.0 memory-layer
+section, MCP-first research-web, Node 20+ baseline.
+Earlier: v2.12.0 — `security-auditor.md` v2.0.0 stack-aware adversarial
+auditor (PHP / Node.js / Python forks; CWE-mapped findings; severity
+matrix CRITICAL/HIGH/MEDIUM block, LOW warns; vetoes `commit-manager`
+and `domain-updater`; adversarial probes `npm audit` / `composer
+audit` / `pip-audit` / `gitleaks` / PHPStan). v2.11.1 — CI Node version bumped to 22 (Active LTS),
 `engines.node>=20.0.0`. v2.11.0 — `research-web.md` v2.0.0 MCP-first
 (`web-scraper` Tier 1, built-in `WebSearch`/`WebFetch` Tier 2,
 capability detection + graceful degradation). v2.10.0 —
