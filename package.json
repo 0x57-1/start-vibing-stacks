@@ -1,6 +1,6 @@
 {
   "name": "start-vibing-stacks",
-  "version": "2.11.1",
+  "version": "2.12.0",
   "description": "AI-powered multi-stack dev workflow for Claude Code. Supports PHP, Node.js, Python and more.",
   "type": "module",
   "bin": {
@@ -55,6 +55,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/f1sc4ll-ai/start-vibing-stacks.git"
+    "url": "https://github.com/f1sc4ll/start-vibing-stacks.git"
   }
 }

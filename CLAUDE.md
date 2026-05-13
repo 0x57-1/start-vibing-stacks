@@ -8,25 +8,30 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.11.1 — CI Node version bumped from 20 → **22** (current Active
-LTS until Oct 2026) in both `.github/workflows/auto-release.yml` and
-`publish.yml`. `package.json#engines.node` bumped from `>=18.0.0` → `>=20.0.0`
-(Node 18 reached EOL in April 2025 — drops official support to align with
-upstream). Action versions kept at `@v4` for now (still functional until
-GitHub forces Node 24 runtime on June 2 2026 — separate commit when `@v5`
-is verified stable). Build verified locally with `npm run build` on Node 22.
-Earlier: v2.11.0 — `research-web.md` rewritten to v2.0.0 as MCP-first agent
-with `web-scraper` server as Tier 1 (8 MCP tools incl. `unified_search`
-parallel Brave + Vertex AI + Grok with dedupe + scoring, `scrape_url` with
-stealth + proxy, persistent `memory`); built-in `WebSearch`/`WebFetch`
-fallback as Tier 2; capability detection + intent-based routing + graceful
-degradation. v2.10.0 — `claude-md-compactor` rewritten to v2.0.0 grounded in
-Anthropic May-2026 docs (per-file thresholds in tokens/KB, hierarchy of
-offload, /compact survival, `claudeMdExcludes`, skill listing budget).
-v2.9.0 — PHP stack repositioned as API-first React SPA (Sanctum cookie +
-Axios), Inertia.js demoted to LEGACY. v2.8.0 — added `openapi-design`,
-`postgres-patterns`, `fastify-api`. v2.7.4 — fixed generated hook commands
-to use `$CLAUDE_PROJECT_DIR`.
+**Summary:** v2.12.0 — `security-auditor.md` rewritten to v2.0.0 as a
+**stack-aware adversarial auditor** with VETO power. Forks on
+`active-project.json#stack` into PHP / Node.js / Python sections; each
+finding maps to a CWE id and cites the exact skill section that
+contains the fix (`api-security §1.A`, `security-scan-php "Octane
+Security"`, `api-security-node §5`, `api-security-python §7`, etc.).
+Universal matrix (A-J: authn/session, authz, input, secrets, cookies,
+CORS/headers, rate limit, logging/PII, SSRF, deserialization/RCE) plus
+stack-specific stage 4 plus optional React frontend overlay (stage 5)
+plus mandatory adversarial probes (`npm audit` / `composer audit` /
+`pip-audit` / `gitleaks` / PHPStan) in stage 6. Severity matrix
+(CRITICAL/HIGH/MEDIUM block, LOW warns); `domain-updater` and
+`commit-manager` are vetoed while findings remain open. All 8
+referenced skills already carried the cited anchors — no skill content
+changes needed.
+Earlier: v2.11.1 — CI Node version bumped to 22 (Active LTS),
+`engines.node>=20.0.0`. v2.11.0 — `research-web.md` v2.0.0 MCP-first
+(`web-scraper` Tier 1, built-in `WebSearch`/`WebFetch` Tier 2,
+capability detection + graceful degradation). v2.10.0 —
+`claude-md-compactor` v2.0.0 grounded in Anthropic May-2026 docs.
+v2.9.0 — PHP stack repositioned as API-first React SPA (Sanctum
+cookie + Axios), Inertia.js → LEGACY. v2.8.0 — added `openapi-design`,
+`postgres-patterns`, `fastify-api`. v2.7.4 — fixed generated hook
+commands to use `$CLAUDE_PROJECT_DIR`.
 
 ---
 
