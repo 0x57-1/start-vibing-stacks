@@ -8,25 +8,27 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.14.0 — `domain-updater` and `commit-manager` rewritten
-to v2.0.0. domain-updater is now the session wisdom layer (problems,
-root causes, solutions, prevention tips) + CLAUDE.md Last Change
-updater, with deduplication, cap (5 P&S + 10 attn per domain), size
-guard (8 KB), plain-text Last Change ≤ 20 KB. commit-manager is now
-gate-aware (HARD GATE: verifies security-auditor + quality-gate BEFORE
-committing, refuses if vetoed), diff-driven messages (stat-first
-token-efficient analysis, HEREDOC format, ≤ 72 char subject), supports
-both branch-merge and direct-to-main flows, push-failure recovery,
-triggers post-commit chain (documenter → domain-updater). Both upgraded
-from haiku to sonnet model. Workflow chain now explicit: commit-manager
-→ documenter → domain-updater → session end. documenter See Also and
-README workflow updated to match.
-Earlier: v2.13.0 — documenter v2.0.0 search-optimized memory layer
-(YAML frontmatter + _index.json + bidirectional connections). v2.12.0 —
-security-auditor v2.0.0 stack-aware adversarial (PHP/Node/Python,
-CWE-mapped, VETO). v2.11.1 — CI Node 22, engines.node>=20.0.0.
-v2.11.0 — research-web v2.0.0 MCP-first. v2.10.0 — claude-md-compactor
-v2.0.0. v2.9.0 — PHP API-first (Sanctum+Axios), Inertia LEGACY.
+**Summary:** v2.15.0 — versioning audit + first batch of `_shared`
+skills aligned with the v2.0.0 agent chain. All 4 commands
+(`/feature`, `/fix`, `/research`, `/validate`) gained Anthropic-2026
+frontmatter (`name` + `description` + `version: 1.0.0`) and were
+rewritten to follow the new chain (security-auditor + quality-gate
+before commit-manager; documenter + domain-updater after push).
+TEMPLATE.md for new domain files updated to match documenter v2.0.0
+(frontmatter + TL;DR + bidirectional connections + caps).
+Three `_shared` skills bumped to v2.0.0 with 100% certainty (because
+they document agents we just rewrote): codebase-knowledge (reads
+_index.json first; never cat domains/*.md), docs-tracker (action
+matrix per git status; bidirectional rule; CI hook to detect stale
+_index.json), research-cache (frontmatter with expires_on / tier /
+engines / confidence; TTL by topic kind; source ranking). Remaining
+18 _shared skills at v1.0.0 — kept until confirmed 2026 update path.
+Earlier: v2.14.0 — domain-updater + commit-manager v2.0.0
+(gate-aware, diff-driven, sonnet model). v2.13.0 — documenter v2.0.0
+(YAML frontmatter + _index.json). v2.12.0 — security-auditor v2.0.0
+stack-aware (VETO). v2.11.1 — CI Node 22. v2.11.0 — research-web
+v2.0.0 MCP-first. v2.10.0 — claude-md-compactor v2.0.0. v2.9.0 —
+PHP API-first (Sanctum+Axios), Inertia LEGACY.
 
 ---
 
