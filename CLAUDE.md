@@ -1,6 +1,6 @@
 # start-vibing-stacks
 
-> **CHARACTER LIMIT**: Max 40,000 chars. Validate with `wc -m CLAUDE.md` before commit.
+> **SIZE LIMIT**: Target ≤ 20 KB / ~280 lines (Anthropic May-2026 best practice — see `stacks/_shared/agents/claude-md-compactor.md`). Validate with `wc -c -l CLAUDE.md` before commit.
 
 ---
 
@@ -8,30 +8,39 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.9.0 — PHP stack repositioned as **API-first by default**. New
-default frontend `react-api` (ReactJS 19 + Vite + Axios + Sanctum SPA cookie
-auth), making Inertia.js a **LEGACY** option (kept available for existing
-projects). Added two new skills: `stacks/php/skills/laravel-api-architecture/`
-(end-to-end pipeline Route → Controller → FormRequest → Policy → Service →
-Resource → JSON, with full Sanctum SPA wiring for `bootstrap/app.php`,
-`config/sanctum.php`, `cors.php`, `session.php`) and
-`stacks/frontend/react-api/skills/{axios-laravel-api,react-api-standards}/`
-(`api.js` instance with `withCredentials`+`withXSRFToken`+401/403/419/422/5xx
-interceptors; Page contract = shell + skeleton on first paint, async data via
-`api.get`). Bumped existing skills to `2.0.0` with refreshed `description:`
-frontmatter: `laravel-patterns`, `api-design`, `api-security` (now Sanctum SPA
-cookie first, token for mobile/3rd-party), `inertia-react` (PHP+frontend),
-`react-standards` (frontend/react-inertia), `laravel-inertia-i18n` — all
-flagged LEGACY in the description so the agent only auto-loads them in
-existing Inertia codebases. New `FrontendOption.baseSkillsDir` field +
-`ProjectConfig.frontendBaseSkillsDir` let `react-api` inherit
-`stacks/frontend/react/skills/` (generic React+Tailwind+shadcn) before
-layering its own skills. `CLAUDE-php.md` template rewritten around the new
-pipeline with FORBIDDEN now leading with the architecture rules
-(`Inertia::render()` for new endpoints → forbidden;
-`localStorage.setItem('token', ...)` → forbidden; cookie auth mandatory).
-Earlier: v2.8.0 — added `openapi-design`, `postgres-patterns`, `fastify-api`.
-v2.7.4 — fixed generated hook commands to use `$CLAUDE_PROJECT_DIR`.
+**Summary:** v2.10.0 — `stacks/_shared/agents/claude-md-compactor.md` rewritten
+to **v2.0.0** grounded 100% in Anthropic's May-2026 official docs
+(`docs.anthropic.com/en/docs/claude-code/memory` + `/skills`). New trigger
+model is **per-file thresholds in tokens/KB** instead of the previous single
+40 KB char limit: project `CLAUDE.md` > 20 KB (50% reduction from baseline)
+OR nested `CLAUDE.md` > 16 KB (stricter — they do **not** survive `/compact`)
+OR `MEMORY.md` > 25 KB / 200 lines (Anthropic hard cap) OR any `SKILL.md` >
+20 KB (~5k tokens — post-`/compact` per-skill cap) OR aggregate persistent
+boot instructions > 64 KB OR `/doctor` reports skill listing budget overflow.
+Adds a **Hierarchy of Offload** table ranking mechanisms by boot cost (hook =
+0 → skill with `paths:` = 0-until-glob → skill auto = ~description-only →
+rule with `paths:` = 0-until-file-opened → CLAUDE.md = full → HTML comment =
+stripped/free), with explicit routing rules for each content type ("always
+run X" → hook, multi-step manual workflow → skill with
+`disable-model-invocation: true`, scoped convention → rule with `paths:`,
+verbose explanation → `<!-- ... -->`). New procedures: mandatory
+`.claude/memory/archive/CLAUDE.md.<date>.bak` backup before any write,
+promotion of fragile nested `CLAUDE.md` to `paths:`-scoped rules (so they
+survive `/compact`), conflict scan across user/project/rules sources,
+`claudeMdExcludes` for monorepos, `skillOverrides` /
+`skillListingBudgetFraction` / `maxSkillDescriptionChars` knobs for skill
+budget management, optional `InstructionsLoaded` hook for permanent load
+visibility, and `CLAUDE_CODE_NEW_INIT=1 /init` bail-out for irrecoverable
+cases. Anti-mythology call-outs: `@import` does NOT save context (loads full
+at launch), CLAUDE.md is delivered as user message AFTER system prompt (no
+strict compliance — use hooks for hard enforcement). Backup of v1.0.0 kept
+at `stacks/_shared/agents/.archive/claude-md-compactor.v1.0.0.md`.
+Earlier: v2.9.0 — PHP stack repositioned as **API-first by default** with
+new default frontend `react-api` (Vite + Axios + Sanctum SPA cookie),
+Inertia.js demoted to LEGACY, new skills `laravel-api-architecture` +
+`axios-laravel-api` + `react-api-standards`. v2.8.0 — added `openapi-design`,
+`postgres-patterns`, `fastify-api`. v2.7.4 — fixed generated hook commands
+to use `$CLAUDE_PROJECT_DIR`.
 
 ---
 
