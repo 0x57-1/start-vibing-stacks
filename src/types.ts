@@ -52,6 +52,12 @@ export interface FrontendOption {
   icon: string;
   frameworks?: string[];
   skillsDir?: string;
+  /**
+   * Optional sibling folder under `stacks/frontend/` whose `skills/` directory
+   * is copied BEFORE this option's own `skills/`. Lets a stack inherit base
+   * skills (e.g. `react-api` re-uses `react/skills/` plus its own additions).
+   */
+  baseSkillsDir?: string;
   default?: boolean;
 }
 
@@ -80,6 +86,8 @@ export interface ProjectConfig {
   database: string;
   frontend: string;
   frontendSkillsDir?: string;
+  /** Inherited base frontend folder copied BEFORE the main frontend skills. */
+  frontendBaseSkillsDir?: string;
   deploy: string;
   path: string;
   createdAt: string;

@@ -1,9 +1,18 @@
 ---
 name: inertia-react
-version: 1.0.0
+version: 2.0.0
+description: LEGACY skill — Inertia.js + React frontend integration with
+  Laravel-rendered pages. Use ONLY in pre-existing Inertia projects. For NEW
+  projects use the `react-api` frontend stack (`axios-laravel-api` +
+  `react-api-standards`) which decouples render from data fetching.
 ---
 
-# Inertia.js + React Integration
+# Inertia.js + React Integration (LEGACY)
+
+> **STATUS: LEGACY.** New projects use the **React API SPA** stack — Laravel
+> serves a Vite shell, React owns routing client-side, and data is fetched via
+> Axios with Sanctum cookie auth. See `axios-laravel-api` and
+> `react-api-standards`.
 
 ## Architecture Overview
 

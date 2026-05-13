@@ -108,17 +108,32 @@ export async function setupProject(
     copyDirRecursive(stackConfigDir, join(claudeDir, 'config'), options.force);
 
     // 8. Copy frontend-specific skills if applicable
+    //    Order matters: base first, then specific (specific can override base).
     if (config.frontend && config.frontend !== 'none') {
+      let feSkillCount = 0;
+
+      if (config.frontendBaseSkillsDir) {
+        const baseDir = join(PACKAGE_ROOT, 'stacks', 'frontend', config.frontendBaseSkillsDir);
+        if (existsSync(baseDir)) {
+          feSkillCount += copyDirRecursive(
+            join(baseDir, 'skills'),
+            join(claudeDir, 'skills'),
+            options.force
+          );
+        }
+      }
+
       const frontendId = config.frontendSkillsDir || config.frontend;
       const frontendDir = join(PACKAGE_ROOT, 'stacks', 'frontend', frontendId);
       if (existsSync(frontendDir)) {
-        const feSkillCount = copyDirRecursive(
+        feSkillCount += copyDirRecursive(
           join(frontendDir, 'skills'),
           join(claudeDir, 'skills'),
           options.force
         );
-        spinner.text = `Loaded ${feSkillCount} frontend skills`;
       }
+
+      spinner.text = `Loaded ${feSkillCount} frontend skills`;
     }
 
     // 9. Write active-project.json

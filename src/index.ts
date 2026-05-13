@@ -66,7 +66,7 @@ if (FLAGS.help) {
     --version, -v     Show version
 
   ${chalk.bold('Supported Stacks:')}
-    🐘 PHP 8.3+       Laravel 12 + Octane + Inertia.js (React)
+    🐘 PHP 8.3+       Laravel 12 + Octane + Sanctum SPA API + React/Vite/Axios
     📦 Node.js/TS     Next.js, Nuxt, Express, Fastify
     🐍 Python 3.12+   FastAPI, Django, Flask
   `);
@@ -341,6 +341,7 @@ async function main(): Promise<void> {
     database,
     frontend,
     frontendSkillsDir: selectedFrontend?.skillsDir,
+    frontendBaseSkillsDir: selectedFrontend?.baseSkillsDir,
     deploy,
     path: projectDir,
     createdAt: new Date().toISOString(),

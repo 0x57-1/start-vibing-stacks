@@ -6,11 +6,14 @@
 
 **Branch:** main
 **Date:** {{DATE}}
-**Summary:** Initial project setup with start-vibing-stacks (PHP)
+**Summary:** Initial project setup with start-vibing-stacks (PHP — API-first React SPA)
 
 ## 30 Seconds Overview
 
-{{PROJECT_NAME}} is a PHP 8.3+ project using {{FRAMEWORK}}.
+{{PROJECT_NAME}} is a PHP 8.3+ project using {{FRAMEWORK}}, serving a JSON API
+consumed by a React 19 + Vite SPA via Axios. Authentication uses Laravel
+Sanctum SPA (HttpOnly session cookie + CSRF). Pages render shell + skeleton
+instantly; data is fetched async via the `api` Axios instance.
 
 ## Stack
 
@@ -19,65 +22,117 @@
 | Language | PHP >= 8.3 |
 | Framework | {{FRAMEWORK}} |
 | Server | Octane + RoadRunner |
-| Frontend | ReactJS 19+ / Inertia.js / TailwindCSS 4+ |
+| Auth | Sanctum SPA (HttpOnly cookie + CSRF) |
+| API contract | JSON Resource + paginate (data + meta + links) |
+| Frontend | React 19 + Vite + TailwindCSS 4 + React Router |
+| HTTP client | Axios (`withCredentials`, `withXSRFToken`, interceptors) |
+| Server cache | TanStack Query (recommended) |
 | Database | {{DATABASE}} |
-| Package Manager | Composer |
+| Package Manager | Composer / npm (or pnpm/bun) |
 | Static Analysis | PHPStan (level 6) |
-| Testing | PHPUnit |
+| Testing | PHPUnit / Pest |
 | Code Style | PHP-CS-Fixer (PSR-12) |
 
-## Architecture
+## Architecture (API-first — DEFAULT)
+
+```
+Browser (React Vite SPA)        Laravel 12 + Octane (RoadRunner)
+─────────────────────────       ───────────────────────────────────────
+GET  /                       →  routes/web.php catch-all → app.blade (Vite shell)
+GET  /sanctum/csrf-cookie    →  XSRF-TOKEN cookie set
+POST /login                  →  AuthController → session cookie set
+GET  /api/orders             →  Route → Controller → FormRequest (rules + Policy)
+                                            → Service (DB / business)
+                                            → Resource (JSON whitelist)
+                                            → JsonResponse
+                ↓ async via Axios api instance
+React Page renders shell + skeleton instantly; data arrives → renders rows.
+```
+
+### Pipeline — One Responsibility per Layer
+
+| Layer | File | Responsibility |
+|-------|------|------------------|
+| React Page | `resources/js/Pages/*/Index.jsx` | Render shell + skeleton; `api.get(...)` |
+| Axios | `resources/js/lib/api.js` | `withCredentials`, CSRF, 401/403/419/422/5xx interceptors |
+| Route | `routes/api.php` | URL ↔ Controller; group by `auth:sanctum` + `throttle` |
+| Controller | `app/Http/Controllers/Api/*Controller.php` | Receive Request, call Service, return Resource |
+| FormRequest | `app/Http/Requests/*/...Request.php` | `rules()` validate + `authorize()` → Policy |
+| Policy | `app/Policies/*Policy.php` | `before()` super-admin bypass; per-action checks |
+| Service | `app/Services/*Service.php` | Business logic, transactions, scoping |
+| Resource | `app/Http/Resources/*Resource.php` | Eloquent → safe JSON; whitelist fields |
 
 ```
 project/
 ├── app/
-│   ├── Console/         # Artisan commands
-│   ├── Exceptions/      # Exception handlers
+│   ├── Console/                # Artisan commands
+│   ├── Exceptions/             # Exception handlers
 │   ├── Http/
-│   │   ├── Controllers/ # Thin controllers (Inertia::render + Services)
-│   │   ├── Middleware/  # HTTP middleware (HandleInertiaRequests)
-│   │   └── Requests/   # Form request validation
-│   ├── Models/          # Eloquent models (UUIDs, $fillable)
-│   ├── Providers/       # Service providers
-│   ├── Services/        # Business logic (single responsibility)
-│   │   └── Helpers/     # Extracted logic for complex services
-│   ├── Support/         # Helper classes (InertiaShare)
-│   ├── Traits/          # Shared traits (Loggable, FormatsDatesForApi)
-│   └── Jobs/            # Queue jobs (idempotent, chunked)
-├── bootstrap/           # Framework bootstrap
-├── config/              # Configuration (immutable at runtime)
-│   └── translations_inertia.php  # Per-page translation mapping
+│   │   ├── Controllers/
+│   │   │   └── Api/            # JSON-only controllers (DEFAULT)
+│   │   ├── Middleware/         # SecurityHeaders, RequestId, throttle, ...
+│   │   ├── Requests/           # FormRequests grouped by resource
+│   │   │   └── Order/
+│   │   │       ├── IndexOrderRequest.php
+│   │   │       └── StoreOrderRequest.php
+│   │   └── Resources/          # JsonResource classes (date trait, whitelist)
+│   ├── Models/                 # Eloquent models (UUIDs, $fillable)
+│   ├── Policies/               # OrderPolicy, UserPolicy, ... (before() bypass)
+│   ├── Providers/              # AppServiceProvider (RateLimiter, Octane prepare)
+│   ├── Services/               # Business logic (single responsibility)
+│   │   ├── External/           # 3rd-party API services (with DTOs)
+│   │   └── Helpers/            # Extracted logic for complex services
+│   ├── Traits/                 # FormatsDatesForApi, Auditable, ApiResponse
+│   └── Jobs/                   # Idempotent queue jobs
+├── bootstrap/
+│   └── app.php                 # ->statefulApi() + middleware aliases
+├── config/
+│   ├── sanctum.php             # SANCTUM_STATEFUL_DOMAINS
+│   ├── cors.php                # supports_credentials=true, specific origin
+│   ├── session.php             # http_only, secure, same_site=lax
+│   └── services.php            # bridge env() ↔ application
 ├── database/
-│   ├── factories/       # Model factories
-│   ├── migrations/      # Incremental migrations ONLY
-│   └── seeders/         # Database seeders
+│   ├── factories/
+│   ├── migrations/             # incremental ONLY
+│   └── seeders/
 ├── lang/
-│   ├── en/              # English translations
-│   └── pt/              # Portuguese translations
-├── public/              # Web root (index.php)
+│   ├── en/                     # PHP arrays — single source for all i18n
+│   └── pt/
+├── public/
 ├── resources/
-│   ├── views/           # Blade root template (app.blade.php)
-│   ├── css/             # Stylesheets (TailwindCSS)
+│   ├── css/                    # TailwindCSS 4
+│   ├── views/
+│   │   └── app.blade.php       # Single Vite shell (catch-all)
 │   └── js/
-│       ├── Pages/       # React page components (mapped by Inertia)
-│       ├── Components/  # Reusable React components
-│       ├── Layouts/     # Page layouts (Authenticated, Guest)
-│       ├── Icons/       # SVG icons (import with ?react)
-│       └── Utils/
-│           └── translate.js  # __() translation helper
+│       ├── app.jsx             # createRoot + BrowserRouter + QueryClientProvider
+│       ├── App.jsx             # <Routes> + <ProtectedRoute>
+│       ├── lib/
+│       │   ├── api.js          # Axios instance + interceptors
+│       │   ├── auth.js         # login / logout / fetchCurrentUser
+│       │   └── queryClient.ts  # TanStack Query
+│       ├── store/              # Zustand / Context (auth, ui)
+│       ├── Pages/              # Pages own routing client-side
+│       │   └── Orders/
+│       │       ├── Index.tsx   # api.get('/api/orders') + skeleton
+│       │       └── _components/
+│       ├── Components/         # Reusable (ErrorState, EmptyState, ...)
+│       ├── Layouts/            # AuthenticatedLayout, GuestLayout
+│       └── Icons/              # SVG files imported with ?react
 ├── routes/
-│   ├── api.php          # API routes (RESTful + action endpoints)
-│   └── web.php          # Web routes (Inertia pages)
-├── storage/             # Logs, cache, uploads
+│   ├── api.php                 # auth:sanctum + throttle:api groups
+│   ├── web.php                 # /login, /logout, catch-all → app.blade
+│   └── console.php
+├── storage/
 ├── tests/
-│   ├── Unit/            # PHPUnit unit tests
-│   └── Feature/         # Feature/integration tests
-├── .claude/             # AI agent configuration
-├── artisan              # CLI entry point
-├── rr.yaml              # RoadRunner config (Octane)
-├── composer.json        # Dependencies
-├── phpstan.neon         # Static analysis config
-└── CLAUDE.md            # This file
+│   ├── Unit/
+│   └── Feature/                # API endpoints: happy + 401 + 403 + 422
+├── .claude/                    # AI agent configuration
+├── artisan
+├── rr.yaml                     # RoadRunner / Octane
+├── vite.config.js              # @vitejs/plugin-react + laravel-vite-plugin
+├── composer.json
+├── phpstan.neon
+└── CLAUDE.md
 ```
 
 ## CLAUDE.md Update Rules
@@ -100,19 +155,58 @@ project/
 
 ## Critical Rules
 
+### PHP / Laravel
+
 - **PHP >= 8.3** — readonly, enums, typed constants, match expressions
 - **`declare(strict_types=1)`** in EVERY PHP file
 - **Octane-safe code** — no static state, no globals, no `die()`/`exit()`
 - **Dependency Injection** — use DI over `app()` or `resolve()`
-- **Thin controllers** — delegate business logic to Service classes
-- **Form Requests** — validate input in dedicated request classes
+- **Thin controllers** — delegate business logic to Services
+- **FormRequest + Policy** — every protected endpoint goes through both
+- **API Resource** — every response wrapped in `JsonResource`
 - **Type everything** — properties, params, returns (no `mixed` without justification)
 - **UUIDs** — all new models use `HasUuids` trait as primary key
-- **Mass assignment** — always define `$fillable` on models
-- **Auditing** — critical models use `Loggable` trait
+- **Mass assignment** — always define `$fillable`; never `$guarded = []`
 - **Eloquent only** — no raw SQL unless strictly justified with parameter binding
 - **Config immutable** — never use `config()` to SET values at runtime
 - **Request object** — use `$request->input()`, never `$_GET`/`$_POST`/`$_SESSION`
+
+### React / Frontend
+
+- **Page contract** — render shell + skeleton on first paint; fetch via `api.get()`
+- **NO `Inertia::render()`** for new endpoints — pure JSON API + Axios
+- **`api` instance only** — never raw `axios` or `fetch` in components
+- **422 binding** — render validation errors inline under fields (not toast)
+- **LABELS + STYLES const** above the component (stable refs, no Hook abuse)
+- **No tokens in `localStorage`** — Sanctum SPA cookie only
+- **Skeletons match shape** of the loaded content (per-component)
+- **Filters in URL** via `useSearchParams` — bookmarkable views
+
+### Sanctum SPA Auth (MANDATORY config)
+
+```php
+// bootstrap/app.php
+$middleware->statefulApi();
+
+// config/cors.php
+'supports_credentials' => true,
+'allowed_origins' => [env('FRONTEND_URL')],   // SPECIFIC origin
+
+// config/session.php  (production)
+'http_only' => true,
+'secure'    => true,         // HTTPS only
+'same_site' => 'lax',        // 'none' only if cross-origin (also requires secure)
+
+// .env
+SANCTUM_STATEFUL_DOMAINS=app.example.com
+SESSION_DOMAIN=.example.com  // shared subdomains
+```
+
+```js
+// resources/js/lib/api.js  (Axios)
+axios.defaults.withCredentials = true;
+axios.defaults.withXSRFToken   = true;
+```
 
 ### Environment Variables & Secrets (MANDATORY)
 
@@ -122,17 +216,14 @@ project/
 |----------|--------|----------|
 | `.env` | `env()` inside `config/*.php` only | API keys, DB credentials, secrets |
 | `config/*.php` | `config('services.stripe.key')` | Application code access |
-| Frontend (Inertia) | `InertiaShare` or controller props | Public data ONLY |
+| Frontend (`VITE_*`) | `import.meta.env.VITE_API_URL` | PUBLIC values ONLY (bundled) |
 
 ```php
 // config/services.php — Bridge between .env and application
 return [
-    'openai' => [
-        'key' => env('OPENAI_KEY'),
-    ],
     'stripe' => [
-        'key' => env('STRIPE_KEY'),          // Publishable (sent to frontend)
-        'secret' => env('STRIPE_SECRET'),    // NEVER send to frontend
+        'key'    => env('STRIPE_KEY'),         // publishable (public ok)
+        'secret' => env('STRIPE_SECRET'),      // server-side ONLY
         'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 ];
@@ -140,76 +231,84 @@ return [
 // In code: ALWAYS use config()
 $apiKey = config('services.openai.key');
 
-// FORBIDDEN:
-$apiKey = env('OPENAI_KEY'); // Returns null when config is cached!
+// FORBIDDEN
+$apiKey = env('OPENAI_KEY');                   // returns null when config is cached
 ```
 
 ### Frontend Secret Isolation (MANDATORY)
 
-> **NEVER send API keys, secrets, or tokens to the frontend via Inertia props or JavaScript.**
+> **NEVER send API secrets to the frontend bundle.** Anything in `VITE_*` or
+> in JSON returned to the browser is PUBLIC.
 
-```php
-// WRONG — secret exposed in page source / DevTools
-return Inertia::render('Dashboard', [
-    'stripeSecret' => config('services.stripe.secret'),
-    'openaiKey' => config('services.openai.key'),
-]);
+```js
+// FORBIDDEN — secret embedded in bundle
+const stripeSecret = import.meta.env.VITE_STRIPE_SECRET;
 
-// CORRECT — only public/publishable data to frontend
-return Inertia::render('Dashboard', [
-    'stripePublicKey' => config('services.stripe.key'), // pk_ only
-]);
+// CORRECT — only publishable keys cross the wire
+const stripePublishable = import.meta.env.VITE_STRIPE_KEY;   // pk_...
 
-// For operations requiring secrets: use backend API routes
-// Frontend calls /api/payment → backend uses secret server-side
+// For operations needing the secret: call your Laravel API
+//   Browser → POST /api/payment → backend uses the SECRET server-side → JSON
 ```
 
 ## FORBIDDEN
 
-### Security (CRITICAL)
+### Architecture (CRITICAL)
+
+| Action | Reason |
+|--------|--------|
+| `Inertia::render()` for new endpoints | Blocks first paint on DB query — use API + Axios |
+| Eloquent query inside a Controller | Move it to a Service |
+| FormRequest `authorize(): true` blindly | Must call Policy or be index w/ Service scope |
+| Resource performing DB queries | Use `whenLoaded()` and pre-load in Service |
+| `axios.get(...)` directly in components | Bypasses interceptors — use `@/lib/api` |
+| `localStorage.setItem('token', ...)` | XSS-readable — use HttpOnly Sanctum cookie |
+| Page that blocks render on first fetch | Defeats the API-first model |
+
+### Security
 
 | Action | Reason |
 |--------|--------|
 | `env()` outside config files | Returns null when config is cached — use `config()` |
-| Send API keys/secrets via Inertia props | Exposed in page source — keep secrets server-side |
-| `$guarded = []` on models | Allows mass assignment of any field — use `$fillable` |
-| `DB::raw()` with user input | SQL injection — use Eloquent or parameterized queries |
+| Send API secrets to the browser | Embedded in bundle — keep server-side |
+| `$guarded = []` on models | Allows mass assignment — use `$fillable` |
+| `DB::raw()` with user input | SQL injection — use Eloquent / parameterized |
 | `{!! $userInput !!}` | XSS — use `{{ }}` (auto-escaped) |
 | Dynamic code execution functions | Remote code execution risk |
 | `md5()` / `sha1()` for passwords | Weak hashing — use `Hash::make()` |
-| `unserialize()` on user data | Object injection — use JSON with model casts |
-| CORS `allowed_origins: ['*']` | Open API — restrict to your domain |
+| `unserialize()` on user data | Object injection — use JSON casts |
+| `'allowed_origins' => ['*']` with credentials | Browser rejects — list specific origins |
 | `createToken('x', ['*'])` | Over-privileged — use specific abilities |
 | Trust `X-Forwarded-For` directly | Spoofable — use trusted proxies config |
 | `$_GET` / `$_POST` / `$_SESSION` | Stale in Octane — use `$request->input()` |
+| Login route on `/api/*` | Login goes on `routes/web.php` (session middleware) |
 
-### Backend
+### Backend (Octane safety)
 
 | Action | Reason |
 |--------|--------|
 | Business logic in controllers | Move to Service classes |
-| `static` properties on services | Memory leaks in Octane workers |
+| `static` properties on services | Memory leaks across requests |
 | Global variables / superglobals | Stale state in Octane |
-| `die()` / `exit()` | Kills the Octane worker process |
+| `die()` / `exit()` / `dd()` | Kills the worker process |
 | `config(['key' => 'val'])` at runtime | Affects all concurrent requests |
 | `migrate:fresh` / `db:wipe` / `db:reset` | Destroys production data |
-| `app()` / `resolve()` in constructors | Use constructor DI instead |
-| `Inertia::render()` after POST/PUT/DELETE | Use `redirect()->route()` instead |
-| `dd()` / `dump()` in production code | Use structured `Log::info()` |
+| `app()` / `resolve()` in constructors | Use constructor DI |
+| `dump()` / `dd()` in production | Use structured `Log::info()` |
 
 ### Frontend (React)
 
 | Action | Reason |
 |--------|--------|
-| Call external APIs with secrets from JS | Exposes tokens — route through Laravel API |
-| `__()` inside JSX / render | Hook violation — define as CONST before hooks |
-| `fetch()` / `axios` for page data | Bypasses Inertia — use props from controller |
-| `<a href>` for internal links | Full page reload — use `<Link>` |
-| `window.location` for navigation | Full reload — use `router.visit()` |
+| `Inertia::render()` / `useForm()` from Inertia | Use API + Axios (Inertia is LEGACY) |
+| `fetch()` for page data | Bypasses interceptors — use `api.get()` |
+| `<a href>` for internal links | Full page reload — use `<Link>` from react-router-dom |
+| `window.location` for SPA navigation | Full reload — use `useNavigate()` |
 | Inline SVGs in JSX | Bloats components — use SVG files with `?react` |
 | Raw `console.log` | Uncontrolled — use debug constant pattern |
 | Inline Tailwind class soup | Unreadable — use STYLES const object |
-| `axios.post()` for forms | No CSRF/errors — use `useForm().post()` |
+| `useEffect` to derive state | Anti-pattern — use `useMemo` |
+| Skipping skeleton/empty/error states | Bad UX — all three are mandatory per page |
 
 ## UI/UX Design Intelligence
 
@@ -219,9 +318,11 @@ return Inertia::render('Dashboard', [
 
 ```bash
 vendor/bin/phpstan analyse --level=6   # Static analysis
-vendor/bin/phpunit                      # Tests
+vendor/bin/phpunit                      # Tests (or Pest)
 vendor/bin/php-cs-fixer fix --dry-run   # Code style
 php artisan test                        # Laravel test runner
+npx tsc --noEmit                        # Frontend type check
+npx eslint resources/js/                 # Frontend lint (optional)
 ```
 
 ## Database
@@ -249,15 +350,15 @@ $results = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
 ## Workflow
 
 ```
-0. TODO LIST      → Create detailed todo list from prompt
-1. BRANCH         → Create feature/ | fix/ | refactor/ | test/
-2. RESEARCH       → Run research-web agent for NEW features
-3. IMPLEMENT      → Types, strict mode, Octane-safe, DI
-4. TEST           → Run PHPStan + PHPUnit
-5. DOCUMENT       → Run documenter agent for modified files
-6. UPDATE         → Update THIS FILE (CLAUDE.md) with changes
-7. QUALITY        → PHPStan + PHPUnit + PHP-CS-Fixer
-8. COMMIT         → Conventional commits, merge to main
+0. TODO LIST      → Detailed plan from prompt; identify affected layer(s)
+1. BRANCH         → feature/ | fix/ | refactor/ | test/
+2. RESEARCH       → research-web for new features (cite sources)
+3. IMPLEMENT      → Bottom-up: FormRequest+Policy → Service → Resource → Controller → Route → React page
+4. TEST           → PHPUnit feature tests (happy + 401 + 403 + 422); React: api.test.ts
+5. DOCUMENT       → documenter agent for modified files; update domain docs
+6. UPDATE         → Update THIS FILE (CLAUDE.md) — Last Change + relevant sections
+7. QUALITY        → PHPStan + PHPUnit + PHP-CS-Fixer + tsc + eslint
+8. COMMIT         → Conventional commits; merge to main
 ```
 
 ## Domain Documentation

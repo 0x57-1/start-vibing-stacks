@@ -24,22 +24,26 @@
   "frameworks": [
     {
       "id": "laravel-octane",
-      "name": "Laravel 12 + Octane (RoadRunner) + Inertia.js",
+      "name": "Laravel 12 + Octane (RoadRunner) + Sanctum SPA API",
       "icon": "🚀",
       "detectFiles": ["artisan", "rr.yaml"],
       "default": true,
       "skills": [
         "laravel-patterns",
-        "laravel-octane"
+        "laravel-octane",
+        "laravel-api-architecture",
+        "api-security"
       ]
     },
     {
       "id": "laravel",
-      "name": "Laravel 12 (standard)",
+      "name": "Laravel 12 (standard) + Sanctum SPA API",
       "icon": "🏗️",
       "detectFiles": ["artisan", "bootstrap/app.php"],
       "skills": [
-        "laravel-patterns"
+        "laravel-patterns",
+        "laravel-api-architecture",
+        "api-security"
       ]
     }
   ],
@@ -50,10 +54,17 @@
   ],
   "frontendOptions": [
     {
-      "id": "react-inertia",
-      "name": "ReactJS 19 + Inertia.js + TailwindCSS 4",
+      "id": "react-api",
+      "name": "ReactJS 19 + Vite + Axios (Sanctum SPA API)",
       "icon": "⚛️",
       "default": true,
+      "frameworks": ["laravel", "laravel-octane"],
+      "baseSkillsDir": "react"
+    },
+    {
+      "id": "react-inertia",
+      "name": "ReactJS 19 + Inertia.js (LEGACY)",
+      "icon": "🪦",
       "frameworks": ["laravel", "laravel-octane"]
     },
     {
@@ -84,6 +95,8 @@
     "composer-workflow",
     "security-scan-php",
     "api-design",
+    "api-security",
+    "laravel-api-architecture",
     "openapi-design"
   ],
   "requirements": [

@@ -7,8 +7,31 @@
 ## Last Change
 
 **Branch:** main
-**Date:** 2026-05-01
-**Summary:** Added `.stop-validator.json` opting this repo out of `DIRECT_MAIN_COMMIT_FORBIDDEN` (single-maintainer CLI package; `auto-release.yml` is built around `main` pushes — feature-branch-then-merge would require constant overhead with no benefit). Earlier in the session: v2.8.0 — added three skills closing Core stack gaps: `openapi-design` (universal OpenAPI 3.1 contract patterns) and `postgres-patterns` (universal PG security/design/tuning) in `stacks/_shared/skills/`, plus `fastify-api` (Fastify v5 + Zod + OpenAPI) in `stacks/nodejs/skills/`; wired skills into the three `stack.json` files via `frameworks[].skills` and `databases[].skills` arrays. v2.7.4 — fixed generated hook commands to use `$CLAUDE_PROJECT_DIR` instead of CWD-relative paths (resolved `ERR_MODULE_NOT_FOUND` when Claude Code's CWD is a subfolder).
+**Date:** 2026-05-13
+**Summary:** v2.9.0 — PHP stack repositioned as **API-first by default**. New
+default frontend `react-api` (ReactJS 19 + Vite + Axios + Sanctum SPA cookie
+auth), making Inertia.js a **LEGACY** option (kept available for existing
+projects). Added two new skills: `stacks/php/skills/laravel-api-architecture/`
+(end-to-end pipeline Route → Controller → FormRequest → Policy → Service →
+Resource → JSON, with full Sanctum SPA wiring for `bootstrap/app.php`,
+`config/sanctum.php`, `cors.php`, `session.php`) and
+`stacks/frontend/react-api/skills/{axios-laravel-api,react-api-standards}/`
+(`api.js` instance with `withCredentials`+`withXSRFToken`+401/403/419/422/5xx
+interceptors; Page contract = shell + skeleton on first paint, async data via
+`api.get`). Bumped existing skills to `2.0.0` with refreshed `description:`
+frontmatter: `laravel-patterns`, `api-design`, `api-security` (now Sanctum SPA
+cookie first, token for mobile/3rd-party), `inertia-react` (PHP+frontend),
+`react-standards` (frontend/react-inertia), `laravel-inertia-i18n` — all
+flagged LEGACY in the description so the agent only auto-loads them in
+existing Inertia codebases. New `FrontendOption.baseSkillsDir` field +
+`ProjectConfig.frontendBaseSkillsDir` let `react-api` inherit
+`stacks/frontend/react/skills/` (generic React+Tailwind+shadcn) before
+layering its own skills. `CLAUDE-php.md` template rewritten around the new
+pipeline with FORBIDDEN now leading with the architecture rules
+(`Inertia::render()` for new endpoints → forbidden;
+`localStorage.setItem('token', ...)` → forbidden; cookie auth mandatory).
+Earlier: v2.8.0 — added `openapi-design`, `postgres-patterns`, `fastify-api`.
+v2.7.4 — fixed generated hook commands to use `$CLAUDE_PROJECT_DIR`.
 
 ---
 

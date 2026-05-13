@@ -1,11 +1,19 @@
 ---
 name: laravel-inertia-i18n
-version: 1.0.0
+version: 2.0.0
+description: LEGACY — Inertia-specific i18n (translations shared per page via
+  Inertia props). Use ONLY in pre-existing Inertia projects. For NEW projects
+  see the i18n section in `laravel-patterns` (single `/api/i18n/{locale}`
+  endpoint consumed by the React SPA).
 ---
 
-# Laravel + Inertia i18n — Centralized Translations
+# Laravel + Inertia i18n — Centralized Translations (LEGACY)
 
-**ALWAYS invoke when adding translations, creating new pages, or working with multilingual content.**
+> **STATUS: LEGACY.** New projects use a single `/api/i18n/{locale}` endpoint
+> consumed by the SPA at boot (see `laravel-patterns` → "Translations for
+> API-First Frontend"). Keep this loaded only for legacy Inertia codebases.
+
+**ALWAYS invoke when adding translations, creating new pages, or working with multilingual content in LEGACY Inertia projects only.**
 
 ## Architecture
 

@@ -1,9 +1,16 @@
 ---
 name: react-standards
-version: 1.0.0
+version: 2.0.0
+description: LEGACY — React 19 standards for Inertia.js projects (controller
+  props, useForm, Inertia router). Use ONLY in pre-existing Inertia projects.
+  For NEW projects use `react-api-standards` (Axios + TanStack Query + React
+  Router) instead.
 ---
 
-# React 19+ Standards (with Inertia.js)
+# React 19+ Standards with Inertia.js (LEGACY)
+
+> **STATUS: LEGACY.** New projects use `react-api-standards` (API-first SPA).
+> Keep this loaded only for legacy Inertia codebases.
 
 ## Version Requirements
 

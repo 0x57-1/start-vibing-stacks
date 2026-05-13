@@ -1,58 +1,124 @@
 ---
 name: api-security
-version: 1.0.0
+version: 2.0.0
+description: Laravel 12 + Sanctum + Octane API hardening — cookie-based SPA auth
+  by default, token auth for mobile/3rd-party, CORS/CSRF/HSTS/CSP, rate limiting,
+  brute-force protection, audit logging, encryption at rest. Use when building
+  any auth endpoint, public API, or handling user input. Pairs with
+  `laravel-api-architecture` and `axios-laravel-api`.
 ---
 
-# API Security — NSA-Level Hardening for Laravel + Octane
+# API Security — NSA-Level Hardening for Laravel 12 + Octane
 
 **ALWAYS invoke when building APIs, auth endpoints, or handling user input.**
 
 ## Security Layers
 
 ```
-Internet → Cloudflare WAF → Rate Limiting → CORS → Auth Middleware
-  → Input Validation → Business Logic → Output Sanitization → Response
+Internet → CDN/WAF → Rate Limiter → CORS → Auth Middleware
+  → CSRF (cookie clients) → FormRequest validation → Policy
+  → Service business logic → Resource output sanitization → JSON
 
 Every layer is a wall. Assume the previous one failed.
 ```
 
-## 1. Authentication (Sanctum + Octane)
+## 1. Authentication
 
-### Token-Based (API)
+### Choose ONE per client type
+
+| Client | Mode | Why |
+|--------|------|-----|
+| **Same / cross-origin React SPA** | **Sanctum SPA (cookie)** | XSS-safe HttpOnly cookie; no token storage in JS |
+| Mobile app | Sanctum personal access token | No browser cookie context |
+| 3rd-party server-to-server | Sanctum token (scoped abilities) | Long-lived; per-key access |
+
+### A. Sanctum SPA (Cookie) — DEFAULT for React
+
+```php
+// bootstrap/app.php
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->statefulApi();      // accepts session cookie on /api/*
+})
+
+// config/sanctum.php
+'stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS',
+    'localhost,localhost:5173,127.0.0.1,127.0.0.1:8000'
+)),
+'guard' => ['web'],
+
+// config/session.php — production
+'driver'    => 'cookie',
+'http_only' => true,                  // MANDATORY: blocks JS access
+'secure'    => true,                  // MANDATORY in HTTPS prod
+'same_site' => 'lax',                 // 'none' only if cross-origin AND HTTPS
+'domain'    => '.example.com',        // shared across subdomains
+
+// config/cors.php
+'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
+'allowed_origins' => [env('FRONTEND_URL')],
+'supports_credentials' => true,       // MANDATORY for cookie auth
+```
+
+```php
+// routes/web.php — login on web so session middleware runs
+Route::post('/login',  [AuthController::class, 'login'])->middleware('throttle:auth');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+// routes/api.php — protected JSON endpoints
+Route::middleware(['auth:sanctum', 'throttle:api'])->group(function () {
+    Route::apiResource('orders', OrderController::class);
+});
+```
+
+```php
+// AuthController::login (regenerate session = anti-fixation)
+if (! Auth::attempt($request->validated(), remember: true)) {
+    return response()->json(['message' => 'Invalid credentials'], 422);
+}
+$request->session()->regenerate();
+return response()->json(['data' => UserResource::make($request->user())]);
+```
+
+**Rules:**
+- `http_only: true` is non-negotiable — XSS cannot read the session cookie.
+- `secure: true` in any HTTPS environment (so dev = false, prod = true).
+- `SameSite=Lax` for same-origin SPAs. `SameSite=None; Secure` for cross-origin.
+- Always `regenerate()` after login.
+- Frontend must set `withCredentials: true` and `withXSRFToken: true` (Axios).
+  See `axios-laravel-api`.
+
+### B. Sanctum Token (Mobile / 3rd-Party)
 
 ```php
 // config/sanctum.php
-'expiration' => 60 * 24,     // 24h token expiry (MANDATORY)
-'token_prefix' => 'flk_',    // Prefix for easy log scanning
+'expiration'   => 60 * 24,    // 24h token expiry (MANDATORY for tokens)
+'token_prefix' => 'app_',     // prefix for log scanning + secret-scanner tools
 
 // Issue token with abilities (least privilege)
 $token = $user->createToken('api-client', [
     'read:leads',
     'write:leads',
-    // NOT '*' — never wildcard abilities
+    // NEVER '*' — no wildcard abilities
 ])->plainTextToken;
 
-// Middleware: check specific ability
+// Per-route ability check
 Route::middleware(['auth:sanctum', 'ability:read:leads'])->group(function () {
     Route::get('/api/v1/leads', [LeadController::class, 'index']);
 });
 ```
 
-### Token Rotation
+### Token Rotation (sensitive actions)
 
 ```php
-// Rotate on every sensitive action
-public function changePassword(Request $request): JsonResponse
+public function changePassword(ChangePasswordRequest $request): JsonResponse
 {
     // ... change password logic
 
-    // Revoke ALL tokens (force re-login everywhere)
-    $request->user()->tokens()->delete();
-
-    // Issue fresh token
+    $request->user()->tokens()->delete();                            // revoke all
     $newToken = $request->user()->createToken('session', ['*'])->plainTextToken;
 
-    return $this->success(['token' => $newToken]);
+    return response()->json(['token' => $newToken]);                 // token clients
+    // Cookie clients: also call $request->session()->regenerate()
 }
 ```
 
@@ -64,7 +130,6 @@ use Laravel\Octane\Facades\Octane;
 
 public function boot(): void
 {
-    // MANDATORY: flush auth state between requests
     Octane::prepare(function ($sandbox) {
         $sandbox->forgetScopedInstances();
         $sandbox->flushDatabaseConnections();
@@ -184,26 +249,32 @@ Route::middleware('throttle:sensitive')->group(function () {
 });
 ```
 
-## 4. CORS (Restrictive)
+## 4. CORS (Restrictive — credentials-aware)
 
 ```php
 // config/cors.php
 return [
-    'paths' => ['api/*'],
-    'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie', 'login', 'logout'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     'allowed_origins' => [
-        env('APP_URL'),                           // Only your domain
-        // NOT '*' — NEVER wildcard in production
+        env('FRONTEND_URL', env('APP_URL')),    // SPECIFIC origin, never '*'
+    ],
+    'allowed_origins_patterns' => [
+        // optional: '#^https://([a-z0-9-]+\.)?example\.com$#'
     ],
     'allowed_headers' => [
         'Content-Type', 'Authorization', 'X-Requested-With',
-        'X-Timezone', 'Accept', 'X-CSRF-TOKEN',
+        'X-Timezone', 'Accept', 'X-XSRF-TOKEN', 'X-CSRF-TOKEN',
     ],
     'exposed_headers' => ['X-Request-ID', 'Retry-After'],
-    'max_age' => 86400,                           // 24h preflight cache
-    'supports_credentials' => true,
+    'max_age' => 86400,                          // 24h preflight cache
+    'supports_credentials' => true,              // MANDATORY for cookie auth
 ];
 ```
+
+**Critical:** `supports_credentials: true` is INCOMPATIBLE with
+`allowed_origins: ['*']`. Browsers will reject the response. Always list
+specific origins. For multiple subdomains, use `allowed_origins_patterns`.
 
 ## 5. Security Headers Middleware
 
@@ -402,35 +473,43 @@ class RequestId
 
 ## Security Checklist — Before Deploy
 
-- [ ] All endpoints have auth middleware
-- [ ] All input validated via FormRequest
-- [ ] Rate limiting on auth + sensitive endpoints
-- [ ] CORS restricted to your domain only
-- [ ] Security headers middleware active
+- [ ] `statefulApi()` middleware enabled in `bootstrap/app.php`
+- [ ] `SANCTUM_STATEFUL_DOMAINS` lists exact frontend hostnames
+- [ ] `config/session.php`: `http_only=true`, `secure=true` (prod), `same_site=lax`
+- [ ] `config/cors.php`: `supports_credentials=true`, specific `allowed_origins`
+- [ ] All endpoints have `auth:sanctum` middleware (or explicit public reasoning)
+- [ ] All input validated via FormRequest with Policy in `authorize()`
+- [ ] Rate limiting: `throttle:auth` on `/login`, `throttle:api` on protected
+- [ ] Brute force protection on login (progressive lockout)
 - [ ] Sensitive fields `$hidden` on models
-- [ ] API keys encrypted at rest
-- [ ] Audit logging on sensitive models
-- [ ] Brute force protection on login
-- [ ] Request ID tracking in all logs
-- [ ] No `env()` in code (only `config()`)
+- [ ] API tokens encrypted at rest (`'encrypted'` cast on `ApiCredential`)
+- [ ] Audit logging on sensitive models (Auditable trait)
+- [ ] Request ID tracking in all logs (X-Request-ID middleware)
+- [ ] Security headers middleware (CSP, HSTS, X-Frame-Options, X-Content-Type)
+- [ ] No `env()` outside `config/*.php`
 - [ ] No `*` in token abilities
 - [ ] No `$guarded = []` on models
-- [ ] CSP headers configured
-- [ ] HSTS enabled
-- [ ] Webhook signatures verified
-- [ ] Error responses don't expose internals
+- [ ] No `Inertia::render()` for new endpoints (use API + Resource)
+- [ ] No tokens in `localStorage` (cookie auth for SPAs)
+- [ ] Webhook signatures verified before processing
+- [ ] Error responses don't expose stack traces in production
 
 ## FORBIDDEN
 
 | ❌ Don't | ✅ Do |
 |---|---|
+| Store JWT/Sanctum token in `localStorage` | HttpOnly session cookie (Sanctum SPA) |
+| `'allowed_origins' => ['*']` with credentials | Specific origins or patterns |
+| `axios.defaults.withCredentials = false` | `true` is MANDATORY for cookie auth |
+| `same_site=none` over HTTP | `none` requires `secure=true` (HTTPS) |
 | `$guarded = []` | Explicit `$fillable` |
-| `'allowed_origins' => ['*']` | Your domain only |
-| `createToken('x', ['*'])` | Specific abilities |
-| `"WHERE email = '$email'"` | Parameterized queries |
-| `dd($user)` in production | `Log::info()` structured |
-| Generic error messages with stack traces | Clean error + request_id for debugging |
-| Store API keys in plaintext | `'encrypted'` cast |
+| `createToken('x', ['*'])` | Specific abilities (least privilege) |
+| `"WHERE email = '$email'"` | Parameterized queries / Eloquent |
+| `dd($user)` in production | Structured `Log::info()` |
+| Generic error responses leaking stack trace | Clean message + `request_id` for support |
+| Store API keys in plaintext | `'encrypted'` cast on the column |
 | Same rate limit for all endpoints | Progressive: auth(5/min) < api(60/min) |
-| Trust `X-Forwarded-For` directly | Use trusted proxies config |
-| No token expiry | 24h max, rotate on sensitive actions |
+| Trust `X-Forwarded-For` directly | Use Laravel's trusted proxies config |
+| No token expiry | 24h max + rotate on sensitive actions |
+| Login route on `/api/*` | Login goes on `routes/web.php` (session middleware) |
+| `Inertia::render()` for new endpoints | API + Resource consumed by Axios |

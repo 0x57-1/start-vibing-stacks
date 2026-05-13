@@ -1,11 +1,24 @@
 ---
 name: inertia-react
-version: 1.0.0
+version: 2.0.0
+description: LEGACY skill — Inertia.js + React with Laravel-rendered pages. Use
+  ONLY in pre-existing projects already built on Inertia. For NEW projects use
+  `laravel-api-architecture` + `axios-laravel-api` + `react-api-standards`
+  (API-first React SPA, no controller-rendered pages).
 ---
 
-# Inertia.js + React — Laravel Frontend
+# Inertia.js + React — Laravel Frontend (LEGACY)
 
-**ALWAYS invoke when writing Inertia.js pages, components, or shared data.**
+> **STATUS: LEGACY.** Do NOT pick this stack for new projects. Inertia couples
+> the controller's first byte to a database query, blocking the page render.
+> The modern default is **Laravel API + Axios + React SPA** (see the skills
+> `laravel-api-architecture`, `axios-laravel-api`, `react-api-standards`).
+>
+> Keep this skill loaded **only** when extending an existing Inertia codebase
+> that you cannot rewrite in the same change.
+
+**ALWAYS invoke when writing Inertia.js pages, components, or shared data in
+LEGACY projects only.**
 
 ## How Inertia Works
 
