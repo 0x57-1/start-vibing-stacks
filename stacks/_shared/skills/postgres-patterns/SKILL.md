@@ -1,16 +1,97 @@
 ---
 name: postgres-patterns
-version: 1.0.0
-description: PostgreSQL design, security, and tuning at the SQL/operations layer — role separation, Row-Level Security (RLS), connection security, JSONB, partitioning, indexing strategy (BTREE/GIN/BRIN/partial/expression), EXPLAIN ANALYZE, isolation levels, locking, advisory locks, connection pool sizing. Stack-agnostic. Invoke when designing Postgres schemas, hardening database access, or debugging Postgres query performance. Complements per-stack ORM skills (Drizzle, SQLAlchemy, Eloquent, Mongoose) and the database-migrations skill.
+version: 2.0.0
+description: "PostgreSQL design, security, and tuning at the SQL/operations layer — role separation, Row-Level Security (RLS), connection security, JSONB, partitioning, indexing strategy (BTREE/GIN/BRIN/skip-scan/partial/expression), EXPLAIN ANALYZE, isolation levels, locking, advisory locks, connection pool sizing, plus PG 18 (Sept 2025) features: uuidv7(), virtual generated columns (now default), temporal constraints, asynchronous I/O, OAuth 2.0 auth. Stack-agnostic. Invoke when designing Postgres schemas, hardening database access, or debugging Postgres query performance. Complements per-stack ORM skills (Drizzle, SQLAlchemy, Eloquent, Mongoose) and the database-migrations skill."
 ---
 
-# PostgreSQL — Design, Security, and Tuning
+# PostgreSQL — Design, Security, and Tuning (PG 17 / 18-aware)
 
 **Invoke when designing a Postgres schema, granting database access, picking an index, debugging a slow query, or hardening prod connection settings.**
 
 > Postgres is the same on every stack. The application code differs. This skill covers the database side — what to ask of it, how to lock it down, and how to read its performance signals. For schema **deployment** (concurrent indexes, lock timeouts, backfills, parallel change), see `database-migrations`.
 
-This skill assumes Postgres ≥ 15 (14 still supported but missing some features called out below). PG 16/17 add more — flagged where relevant.
+This skill assumes Postgres ≥ 16. **PG 18 (released Sept 25, 2025) is the recommended target for new projects** — see §0 for headline features. PG 17 (Sept 2024) is the safe LTS-style choice for production today; PG 14/15 are still supported but missing features called out below.
+
+---
+
+## 0. PG 18 — What changed (Sept 25, 2025)
+
+The most consequential release for application code in years. Adopt for greenfield; plan migration for prod.
+
+| Feature | Why it matters |
+|---|---|
+| **`uuidv7()`** built-in function | Time-ordered UUIDs → drastically better B-tree locality than `gen_random_uuid()` (uuidv4). Use as PK default. |
+| **Virtual generated columns** (now the **default** for `GENERATED ... AS (...)` without `STORED`) | Computed at read time, no write amplification. PG 17 only had `STORED`. |
+| **Temporal constraints** on PK / UNIQUE / FK (`PERIOD`) | Native bitemporal modelling — no more manual `tstzrange` + EXCLUDE workarounds for "valid history" tables. |
+| **Asynchronous I/O (AIO) subsystem** | Up to **3×** sequential-scan / bitmap-heap / vacuum perf. Tunable via `io_method` GUC. |
+| **Skip-scan on multicolumn B-tree indexes** | Index `(a, b)` is now usable to filter by `b` alone (with `a`-cardinality penalty). Reduces "wrong-prefix" index proliferation. |
+| **OAuth 2.0 authentication** | Native SSO at the wire protocol — no PAM/LDAP gymnastics. |
+| **`pg_upgrade` keeps optimizer stats** | Post-upgrade slow-down on first day eliminated. |
+| **OLD / NEW in `RETURNING`** | `UPDATE ... RETURNING OLD.balance, NEW.balance` — audit trails without triggers. |
+
+### `uuidv7()` as PK default *(PG 18 idiom)*
+
+```sql
+-- PG 18+
+CREATE TABLE orders (
+  id   uuid PRIMARY KEY DEFAULT uuidv7(),
+  ...
+);
+
+-- PG ≤ 17 — emulate via extension
+CREATE EXTENSION IF NOT EXISTS pg_uuidv7;   -- third-party
+```
+
+UUIDv7 layout: 48-bit unix-ms timestamp + random tail. Inserts hit the *right* edge of the B-tree → no random-IO write amplification (the well-known v4 problem).
+
+### Virtual generated columns
+
+```sql
+-- PG 18 — default is VIRTUAL (computed at read)
+CREATE TABLE invoices (
+  amount_cents int  NOT NULL,
+  tax_cents    int  GENERATED ALWAYS AS (amount_cents * 0.1) NOT STORED,    -- still works; explicit NOT STORED
+  total_cents  int  GENERATED ALWAYS AS (amount_cents + (amount_cents * 0.1))  -- DEFAULT virtual in PG 18
+);
+```
+
+Use VIRTUAL for cheap derivations; STORED when the value is read >> written or indexed.
+
+### Temporal constraints
+
+```sql
+-- PG 18 — native bitemporal PK
+CREATE TABLE employee_salary (
+  employee_id int NOT NULL,
+  salary      numeric NOT NULL,
+  valid       tstzrange NOT NULL,
+  PRIMARY KEY (employee_id, valid WITHOUT OVERLAPS)
+);
+-- INSERTs that overlap on `valid` for the same employee are rejected — no EXCLUDE-with-gist hack.
+```
+
+### Tuning AIO
+
+```
+# postgresql.conf — PG 18
+io_method = 'io_uring'    # Linux ≥ 5.x recommended; 'worker' fallback on others
+io_workers = 3            # tune to NVMe queue depth
+```
+
+---
+
+## PG 17 — Still excellent (Sept 2024)
+
+If you're not yet on 18, prioritize these PG 17 features:
+
+- **VACUUM** memory cut up to 20× → much shorter maintenance windows.
+- **WAL throughput** up to 2× under heavy write concurrency.
+- **`pg_createsubscriber`** — promote a physical standby to a logical subscriber in minutes (cuts initial-sync time).
+- **`JSON_TABLE()`** — SQL-standard way to flatten JSONB into rows; avoid hand-written `jsonb_to_recordset` plumbing.
+- **`COPY ... ON_ERROR ignore`** — bulk loads tolerate single bad rows without aborting.
+- **BRIN parallel build** — finally usable for big append-only tables.
+
+---
 
 ---
 

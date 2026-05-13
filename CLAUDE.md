@@ -8,27 +8,38 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.15.0 — versioning audit + first batch of `_shared`
-skills aligned with the v2.0.0 agent chain. All 4 commands
-(`/feature`, `/fix`, `/research`, `/validate`) gained Anthropic-2026
-frontmatter (`name` + `description` + `version: 1.0.0`) and were
-rewritten to follow the new chain (security-auditor + quality-gate
-before commit-manager; documenter + domain-updater after push).
-TEMPLATE.md for new domain files updated to match documenter v2.0.0
-(frontmatter + TL;DR + bidirectional connections + caps).
-Three `_shared` skills bumped to v2.0.0 with 100% certainty (because
-they document agents we just rewrote): codebase-knowledge (reads
-_index.json first; never cat domains/*.md), docs-tracker (action
-matrix per git status; bidirectional rule; CI hook to detect stale
-_index.json), research-cache (frontmatter with expires_on / tier /
-engines / confidence; TTL by topic kind; source ranking). Remaining
-18 _shared skills at v1.0.0 — kept until confirmed 2026 update path.
-Earlier: v2.14.0 — domain-updater + commit-manager v2.0.0
-(gate-aware, diff-driven, sonnet model). v2.13.0 — documenter v2.0.0
-(YAML frontmatter + _index.json). v2.12.0 — security-auditor v2.0.0
-stack-aware (VETO). v2.11.1 — CI Node 22. v2.11.0 — research-web
-v2.0.0 MCP-first. v2.10.0 — claude-md-compactor v2.0.0. v2.9.0 —
-PHP API-first (Sanctum+Axios), Inertia LEGACY.
+**Summary:** v2.16.0 — `_shared` skills batch 2: 10 skills bumped to
+v2.0.0 with 100% confirmed 2026 facts; 8 kept at v1.0.0 (no concrete
+update path). Bumped: **security-baseline** (OWASP Top 10:2025
+released Nov 2025 — SSRF removed/folded into A01, Software Supply
+Chain Failures NEW at A03, Mishandling of Exceptional Conditions
+NEW at A10; §A01–§A10 anchors KEPT STABLE for security-auditor
+cross-refs). **secrets-management** (OIDC federation 2026 default
+for CI/CD; gitleaks 3-layer pattern: pre-commit + CI +
+GitHub Push Protection; 28.65M secrets leaked on GitHub in 2025).
+**playwright-automation** (Playwright 1.60: Agents 1.56,
+HAR API 1.60, screencast 1.59, UI Mode v2 search/system-theme 1.58).
+**observability** (OTel semconv 1.41 + GenAI semconv for
+Anthropic / OpenAI / Bedrock / Azure AI / MCP — events not deprecated
+attrs). **postgres-patterns** (PG 18 Sept 2025: uuidv7(), virtual
+generated columns default, temporal constraints, AIO 3× perf,
+skip-scan, OAuth 2.0). **docker-patterns** (Compose Bake default
+since Jun 2025, distroless/chiseled non-root, additional_contexts,
+build-time secret mounts). **openapi-design** (OpenAPI 3.2 Sept 2025
+backward-compat: SSE native, JSON Lines, hierarchical tags,
+QUERY method, $self). **hook-development** (Claude Code 9 events:
+Session{Start,End}, PreCompact, SubagentStop added; execFileSync
+example). **git-workflow** (no AI-attribution footers; aligns with
+commit-manager v2.0.0). **ui-ux-audit** (WCAG 2.2 AA — 24×24 target,
+focus-not-obscured, redundant entry / accessible auth). Kept v1.0.0:
+accessibility-wcag22, database-migrations, error-handling,
+ci-pipelines, quality-gate, test-coverage, debugging-patterns,
+performance-patterns. Earlier: v2.15.0 — _shared batch 1
+(codebase-knowledge, docs-tracker, research-cache + 4 commands).
+v2.14.0 — domain-updater + commit-manager v2.0.0. v2.13.0 —
+documenter v2.0.0. v2.12.0 — security-auditor v2.0.0. v2.11.1 — CI
+Node 22. v2.11.0 — research-web v2.0.0 MCP-first. v2.10.0 —
+claude-md-compactor v2.0.0. v2.9.0 — PHP API-first.
 
 ---
 

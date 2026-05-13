@@ -1,12 +1,14 @@
 ---
 name: secrets-management
-version: 1.0.0
-description: Environment variable hygiene, secret detection, rotation, and secret-store patterns. Invoke whenever .env, secrets, API keys, or env-var-reading code are touched.
+version: 2.0.0
+description: "Environment variable hygiene, OIDC federation for CI/CD (2026 default — replaces long-lived static secrets), secret detection (gitleaks 3-layer: pre-commit + CI + GitHub push protection), rotation, and secret-store patterns. Invoke whenever .env, secrets, API keys, env-var-reading code, or CI cloud-deploy credentials are touched."
 ---
 
 # Secrets Management
 
-**ALWAYS invoke when touching `.env`, `process.env`, `os.environ`, secrets, API keys, or auth credentials.**
+**ALWAYS invoke when touching `.env`, `process.env`, `os.environ`, secrets, API keys, auth credentials, or CI workflows that authenticate to cloud providers.**
+
+> 2026 reality check: **28.65 million** new hardcoded secrets were added to public GitHub repositories in 2025 (+34% YoY, source: Snyk State of Secrets). The threat model is "an attacker is already scanning every commit you push, in real time."
 
 ## Core Rules
 
@@ -16,6 +18,7 @@ description: Environment variable hygiene, secret detection, rotation, and secre
 4. **No secrets in error messages** returned to clients.
 5. **`.env` is in `.gitignore`. `.env.example` is committed.** No exceptions.
 6. **Rotate after any leak.** Even suspected. The risk window is the time it takes to rotate, not when you think the leak started.
+7. **Prefer OIDC federation over static cloud creds in CI.** A leaked OIDC trust policy needs branch-+-repo match to be exploited; a leaked AWS access key works from anywhere until rotated.
 
 ---
 
@@ -122,34 +125,114 @@ return [
 | **Vercel/Netlify env vars** | Simple deployments |
 | **AWS Secrets Manager** / **GCP Secret Manager** / **Azure Key Vault** | Cloud-native, IAM-scoped |
 | **Doppler** | Multi-environment sync |
-| **HashiCorp Vault** | On-prem / self-hosted, dynamic creds |
-| **SOPS + age** | Git-encrypted secrets (GitOps) |
+| **HashiCorp Vault** | On-prem / self-hosted, dynamic creds (auto-revoked) |
+| **SOPS + age** | Git-encrypted secrets (GitOps) — `age` recommended over PGP for new repos (no keyring management, single-line keys) |
 | **1Password Connect / op-cli** | Team-shared dev secrets |
 
 **Rule:** `.env.production` is **never** committed. Production secrets live in the platform store and are injected at deploy/runtime.
 
+### 2026 reference architecture (defense in depth)
+
+1. **Short-lived credentials via OIDC** for CI/CD → no static cloud secrets
+2. **Encrypted secrets in Git via SOPS+age** for app config that must travel with code
+3. **Dynamic secrets via Vault** for DB/API tokens generated on-demand and auto-revoked
+
 ---
 
-## Detection — Block Before Commit
+## OIDC Federation — CI/CD Without Static Cloud Secrets *(2026 default)*
 
-### gitleaks (recommended)
+GitHub Actions presents a JWT to the cloud's STS; cloud returns a short-lived (≤ 1h) credential. **No long-lived `AWS_SECRET_ACCESS_KEY` in repo secrets.**
 
-Install:
+### AWS — IAM Role + Trust Policy
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Principal": { "Federated": "arn:aws:iam::ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com" },
+    "Action": "sts:AssumeRoleWithWebIdentity",
+    "Condition": {
+      "StringEquals": {
+        "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+      },
+      "StringLike": {
+        "token.actions.githubusercontent.com:sub": "repo:my-org/my-repo:ref:refs/heads/main"
+      }
+    }
+  }]
+}
+```
+
+```yaml
+permissions:
+  id-token: write              # MANDATORY for OIDC
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::ACCOUNT_ID:role/gha-deployer
+          aws-region: us-east-1
+      - run: aws s3 sync ./dist s3://my-bucket
+```
+
+### GCP — Workload Identity Federation
+```yaml
+- uses: google-github-actions/auth@v2
+  with:
+    workload_identity_provider: 'projects/.../providers/github'
+    service_account: 'gha-deployer@my-project.iam.gserviceaccount.com'
+```
+
+### npm publish — provenance via OIDC (no `NPM_TOKEN`)
+```yaml
+permissions:
+  id-token: write
+  contents: read
+- run: npm publish --provenance --access public
+```
+
+**Anti-pattern:** storing `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` as repo secrets. If you can use OIDC, you must.
+
+---
+
+## Detection — Three-Layer Defense *(2026 standard)*
+
+A single layer is insufficient. Deploy **all three** so a bypass at one layer is caught at the next.
+
+### Layer 1 — Local pre-commit hook (developer machine)
+
+Catches before the secret ever leaves the laptop.
+
 ```bash
 brew install gitleaks       # macOS
 # or: docker run --rm -v $(pwd):/repo zricethezav/gitleaks:latest detect -s /repo
 ```
 
-Pre-commit hook:
+`.git/hooks/pre-commit` (or via `pre-commit` framework):
 ```bash
 gitleaks protect --staged --redact --verbose
 ```
 
-CI step:
+Gitleaks ships rules for **150+ credential patterns** (AWS, GCP, GitHub, Stripe, OpenAI, Anthropic, Slack, JWT, private keys, etc.).
+
+### Layer 2 — CI scan on every PR (server-side)
+
+Blocks PRs that slipped past Layer 1.
+
 ```yaml
 - name: Gitleaks scan
   uses: gitleaks/gitleaks-action@v2
+  env:
+    GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}   # only needed for org accounts
 ```
+
+### Layer 3 — GitHub Push Protection (platform-side)
+
+Enable in **Settings → Code security → Secret scanning → Push protection**. GitHub's own scanner blocks the `git push` itself for known provider patterns. Free for public repos; **GitHub Advanced Security** for private.
 
 ### Quick grep (as a fallback)
 
@@ -233,13 +316,16 @@ Lockfile rules:
 
 - [ ] `.env` in `.gitignore`
 - [ ] `.env.example` updated when new var added
-- [ ] gitleaks (or fallback grep) clean
+- [ ] gitleaks (Layer 1) clean
 - [ ] No secret in code, tests, fixtures, comments, logs
 - [ ] No `NEXT_PUBLIC_*SECRET|*TOKEN|*PRIVATE` patterns
 - [ ] Env vars validated at boot (Zod / Pydantic / config())
+- [ ] CI workflows that touch cloud use **OIDC**, not static keys
+- [ ] GitHub Push Protection enabled on the repo
 
 ## See Also
 
-- `security-baseline` — broader OWASP scope
+- `security-baseline` — broader OWASP scope (2025-A03 Software Supply Chain Failures)
 - `observability` — log redaction details
+- `ci-pipelines` — OIDC patterns + workflow permissions
 - Stack `api-security-*` — usage patterns

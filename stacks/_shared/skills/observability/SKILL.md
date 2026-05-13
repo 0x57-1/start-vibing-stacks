@@ -1,7 +1,7 @@
 ---
 name: observability
-version: 1.0.0
-description: Structured logging, correlation IDs, OpenTelemetry tracing, error tracking (Sentry), metrics, and PII redaction. Invoke when adding logging, instrumentation, or debugging production issues.
+version: 2.0.0
+description: "Structured logging, correlation IDs, OpenTelemetry tracing (semconv 1.41+, including GenAI conventions for Anthropic / OpenAI / AWS Bedrock / Azure AI / MCP), error tracking (Sentry), metrics, PII redaction, audit log separation. Invoke when adding logging, instrumentation, AI/LLM observability, or debugging production issues."
 ---
 
 # Observability — Logs, Traces, Metrics
@@ -285,6 +285,75 @@ Cardinality rule: never tag with user_id, email, or unbounded values — explode
 
 ---
 
+## 6.5. AI / LLM Observability — OTel GenAI Semantic Conventions *(2026)*
+
+OpenTelemetry GenAI conventions (semconv ≥ 1.37, current ≥ 1.41) standardize how LLM calls are traced. They cover: **model spans**, **agent spans**, **events** (inputs/outputs), and provider-specific conventions for **Anthropic, OpenAI, AWS Bedrock, Azure AI Inference, and MCP (Model Context Protocol)**.
+
+> Status: Development (not yet stable). Set `OTEL_SEMCONV_STABILITY_OPT_IN=gen_ai_latest_experimental` to opt in to current attribute names. **Do not use deprecated `gen_ai.prompt` / `gen_ai.completion` attributes** — they were removed in 1.28 in favor of log-based events.
+
+### Required attributes on every LLM span
+
+| Attribute | Example |
+|---|---|
+| `gen_ai.system` | `"anthropic"`, `"openai"`, `"aws.bedrock"`, `"azure.ai.inference"` |
+| `gen_ai.operation.name` | `"chat"`, `"text_completion"`, `"embeddings"` |
+| `gen_ai.request.model` | `"claude-opus-4-5"`, `"gpt-5"`, `"sonnet-4-5"` |
+| `gen_ai.response.model` | The actual model that served the request (may differ on Bedrock/Gateway) |
+| `gen_ai.usage.input_tokens` | Numeric |
+| `gen_ai.usage.output_tokens` | Numeric |
+| `gen_ai.response.finish_reasons` | `["stop"]`, `["length"]`, `["tool_calls"]` |
+
+### Recording inputs/outputs as **events** (not attributes)
+
+```ts
+import { trace, SpanKind } from '@opentelemetry/api';
+const tracer = trace.getTracer('llm');
+
+await tracer.startActiveSpan('chat anthropic', { kind: SpanKind.CLIENT }, async (span) => {
+  span.setAttributes({
+    'gen_ai.system': 'anthropic',
+    'gen_ai.operation.name': 'chat',
+    'gen_ai.request.model': 'claude-opus-4-5',
+  });
+
+  // Inputs/outputs go as EVENTS, not attributes — keeps spans cheap, allows redaction
+  span.addEvent('gen_ai.user.message', { 'gen_ai.message.content': redact(userMsg) });
+
+  const res = await anthropic.messages.create({ /* ... */ });
+
+  span.setAttributes({
+    'gen_ai.response.model': res.model,
+    'gen_ai.usage.input_tokens': res.usage.input_tokens,
+    'gen_ai.usage.output_tokens': res.usage.output_tokens,
+    'gen_ai.response.finish_reasons': [res.stop_reason],
+  });
+  span.addEvent('gen_ai.assistant.message', { 'gen_ai.message.content': redact(res.content) });
+  span.end();
+  return res;
+});
+```
+
+### MCP (Model Context Protocol) spans
+
+For agentic flows that call MCP servers:
+- `gen_ai.system`: `"mcp"`
+- `gen_ai.tool.name`: tool invoked
+- Span kind: `CLIENT` (your agent → MCP server)
+
+### Cost & token metrics
+
+```ts
+const meter = metrics.getMeter('llm');
+const tokensUsed = meter.createCounter('gen_ai.client.token.usage', { unit: '{token}' });
+
+tokensUsed.add(res.usage.input_tokens,  { 'gen_ai.system': 'anthropic', 'gen_ai.token.type': 'input',  'gen_ai.request.model': 'claude-opus-4-5' });
+tokensUsed.add(res.usage.output_tokens, { 'gen_ai.system': 'anthropic', 'gen_ai.token.type': 'output', 'gen_ai.request.model': 'claude-opus-4-5' });
+```
+
+**PII rules still apply** — redact user content in events the same way you redact request bodies in HTTP logs.
+
+---
+
 ## 7. Health Checks
 
 Two endpoints, distinct semantics:
@@ -331,6 +400,7 @@ Different retention (often longer), different access (security team), different 
 - [ ] Sentry initialized with `beforeSend` scrubber
 - [ ] Tracing initialized at process start (before app code)
 - [ ] `/healthz` + `/readyz` endpoints exist
+- [ ] LLM calls emit `gen_ai.*` attributes + token-usage metrics; user content redacted
 
 ## FORBIDDEN
 

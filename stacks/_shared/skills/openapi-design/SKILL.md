@@ -1,16 +1,37 @@
 ---
 name: openapi-design
-version: 1.0.0
-description: OpenAPI 3.1 spec design — resource naming, status codes, problem+json (RFC 9457) errors, pagination, versioning, security schemes, idempotency, deprecation. Stack-agnostic. Invoke when designing or documenting any HTTP/REST API that publishes an OpenAPI spec, regardless of framework (Fastify, Hono, FastAPI, Laravel, Express, etc.).
+version: 2.0.0
+description: "OpenAPI 3.1 / 3.2 spec design — resource naming, status codes, problem+json (RFC 9457) errors, pagination, versioning, security schemes, idempotency, deprecation. Covers OpenAPI 3.2 (Sept 2025) deltas: native Server-Sent Events (SSE), JSON Lines streaming, hierarchical tags (parent/kind), QUERY HTTP method, additionalOperations, querystring location, $self document URI, OAuth2 device flow. Fully backward-compatible with 3.1 (no breaking changes). Stack-agnostic. Invoke when designing or documenting any HTTP/REST API that publishes an OpenAPI spec, regardless of framework (Fastify, Hono, FastAPI, Laravel, Express, etc.)."
 ---
 
-# OpenAPI Design — Universal API Contract
+# OpenAPI Design — Universal API Contract (3.1 + 3.2)
 
 **Invoke before adding a new endpoint, before publishing a public API, and during code review of any route handler.**
 
 > The OpenAPI document is the contract. Code that drifts from it lies to clients. Generate the spec from code (Zod / Pydantic / DTO classes) — never write it by hand for a real service.
 
 This skill covers **what the spec should look like**. For **how to generate it** in your stack, see the per-framework skill (`fastify-api`, `hono-api`, `fastapi-patterns`, `laravel-patterns`, etc.).
+
+## Version policy (2026)
+
+- **OpenAPI 3.2** (Sept 2025): adopt for new specs — fully backward-compatible with 3.1, just bump the `openapi` field. **Zero breaking changes.**
+- **OpenAPI 3.1** (Feb 2021): full JSON Schema 2020-12 — still fine for stable APIs.
+- **OpenAPI 3.0**: legacy. Migrate when convenient.
+
+### What 3.2 adds (cheat sheet)
+
+| Feature | Use when |
+|---|---|
+| **Server-Sent Events (SSE)** as a first-class media type | Long-running progress, AI streaming responses, live dashboards |
+| **JSON Lines** (`application/jsonl`) | Streaming row-oriented data (logs, exports) |
+| **Multipart streaming** | Upload progress with metadata |
+| **Hierarchical tags** (`parent`, `kind`, `summary`) | Replaces vendor-extensions `x-tagGroups`, `x-displayName`. Native nav for large APIs. |
+| **`QUERY` HTTP method** | Safe & idempotent reads with a request body (search APIs that exceed URL limits) |
+| **`additionalOperations`** field | Document custom HTTP verbs without spec extensions |
+| **`querystring` parameter location** | Describe an entire query string as a single typed parameter |
+| **`$self`** document URI | Solves multi-document `$ref` resolution |
+| **OAuth2 Device Authorization flow** | CLI / IoT auth |
+| **Discriminator `defaultMapping`** | Cleaner polymorphic schemas |
 
 ---
 
@@ -49,6 +70,93 @@ The action sub-resource pattern (`/orders/{id}/cancel`) is the escape hatch when
 **Never** return `200` with `{ "success": false, "error": ... }`. That breaks every reverse proxy, CDN cache, and HTTP client retry policy. Use the right code.
 
 `401` vs `403`: 401 = "I don't know who you are". 403 = "I know who you are and you can't do this". Resources you don't want to leak the existence of: return `404` even if authenticated (with a security review note in the spec).
+
+---
+
+## 2.5. Streaming Responses *(OpenAPI 3.2)*
+
+Stop documenting streams as `200 application/json` with hand-rolled extensions. 3.2 lets you describe SSE, JSON Lines, and multipart streams natively.
+
+### Server-Sent Events (SSE)
+
+```yaml
+paths:
+  /chat/{id}/stream:
+    get:
+      summary: Stream assistant tokens as they generate
+      responses:
+        '200':
+          description: SSE stream
+          content:
+            text/event-stream:
+              schema:
+                type: object
+                properties:
+                  event: { type: string, enum: [token, tool_call, done] }
+                  data:  { type: object }
+```
+
+### JSON Lines (newline-delimited JSON)
+
+```yaml
+paths:
+  /exports/{id}:
+    get:
+      responses:
+        '200':
+          description: One JSON object per line
+          content:
+            application/jsonl:
+              schema:
+                $ref: '#/components/schemas/Order'
+```
+
+Use SSE for **client subscribes to live updates** (chat tokens, progress); JSON Lines for **bulk row export** (logs, analytics dumps). Document the terminator (`event: done` for SSE; EOF for JSON Lines) so codegen clients know when to stop reading.
+
+---
+
+## 2.6. Hierarchical Tags *(OpenAPI 3.2)*
+
+Replaces the legacy `x-tagGroups` / `x-displayName` extensions. Native nested navigation in tools that support 3.2.
+
+```yaml
+tags:
+  - name: billing
+    summary: Billing
+    kind: nav            # 'nav' = navigation group only, no operations directly under it
+  - name: invoices
+    parent: billing
+    summary: Invoices
+  - name: payments
+    parent: billing
+    summary: Payments
+```
+
+For tools still on 3.1, the same effect is achieved with `x-tagGroups` / `x-displayName`. Specs published as 3.2 should drop the extensions.
+
+---
+
+## 2.7. The `QUERY` HTTP method *(OpenAPI 3.2)*
+
+For **safe & idempotent** reads whose parameters exceed URL length limits (complex search, large filter sets). Bodies on `GET` are technically legal but proxies eat them; `QUERY` is the standardized escape hatch.
+
+```yaml
+paths:
+  /search:
+    additionalOperations:
+      QUERY:
+        summary: Complex search
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchRequest'
+        responses:
+          '200': { $ref: '#/components/responses/SearchResults' }
+```
+
+`QUERY` is **safe** (no side effects) and **idempotent** (same body → same response) — clients and caches treat it like `GET`.
 
 ---
 

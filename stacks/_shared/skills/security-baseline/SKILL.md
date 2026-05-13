@@ -1,14 +1,37 @@
 ---
 name: security-baseline
-version: 1.0.0
-description: Universal OWASP Top 10 baseline with stack-aware examples. Invoke before designing or reviewing any feature that touches user data, auth, persistence, or external IO.
+version: 2.0.0
+description: "Universal OWASP Top 10 baseline with stack-aware examples. Covers BOTH OWASP 2021 (numbering kept stable for security-auditor §A01–§A10 cross-references) AND OWASP 2025 deltas (Software Supply Chain Failures new at A03, Mishandling Exceptional Conditions new at A10, SSRF demoted into Broken Access Control). Invoke before designing or reviewing any feature that touches user data, auth, persistence, supply chain, or external IO."
 ---
 
-# Security Baseline — OWASP Top 10 (2021)
+# Security Baseline — OWASP Top 10 (2021 + 2025 deltas)
 
-**ALWAYS invoke when designing auth, APIs, persistence, file uploads, or any user-input flow.**
+**ALWAYS invoke when designing auth, APIs, persistence, file uploads, supply-chain integrations, or any user-input flow.**
 
 > Threat model first. Then code. Defense in depth: every layer assumes the previous one failed.
+
+## OWASP Top 10 — 2021 vs 2025 (released Nov 2025)
+
+OWASP Top 10:2025 was published at OWASP Global AppSec DC in November 2025. Material changes:
+
+| 2021 | 2025 | Status |
+|---|---|---|
+| A01 Broken Access Control | A01 Broken Access Control | Same #1; **SSRF folded in here** |
+| A02 Cryptographic Failures | A04 Cryptographic Failures | Demoted |
+| A03 Injection | A05 Injection | Demoted |
+| A04 Insecure Design | A06 Insecure Design | Demoted |
+| A05 Security Misconfiguration | **A02 Security Misconfiguration** | Promoted (most observed) |
+| A06 Vulnerable Components | (covered by 2025-A03) | Subsumed |
+| A07 Authentication Failures | A07 Authentication Failures | Same |
+| A08 Software & Data Integrity | A08 Software or Data Integrity Failures | Same |
+| A09 Security Logging Failures | A09 Security Logging and Alerting Failures | Same |
+| A10 SSRF | (folded into A01) | **Removed as a top-10 category — STILL DANGEROUS, see A01** |
+| — | **A03 Software Supply Chain Failures** | **NEW** (was A06 Vulnerable Components, expanded) |
+| — | **A10 Mishandling of Exceptional Conditions** | **NEW** (error handling that fails open / leaks state) |
+
+**This skill keeps the §A01–§A10 anchors using the 2021 numbering** because cross-references in `security-auditor` v2.0.0, `api-security-*` skills, and stack overlays already cite them. The 2025 deltas are documented inline (see §A03+, §A06, §A10 sections).
+
+---
 
 ## Core Principles
 
@@ -114,11 +137,41 @@ User.findOne({ email });
 
 ---
 
-## A06 — Vulnerable Components
+## A06 — Vulnerable Components  *(2025: subsumed into the new A03 — Software Supply Chain Failures)*
 
 - Run `npm audit` / `pip-audit` / `composer audit` in CI.
 - Pin lockfiles. Use Dependabot/Renovate.
-- See `supply-chain` notes in `secrets-management` skill.
+- See `supply-chain` notes in `secrets-management` skill and the **A03+ (2025) Software Supply Chain Failures** section below.
+
+---
+
+## A03+ (2025 only) — Software Supply Chain Failures *(NEW in 2025)*
+
+Expanded from 2021's A06. Treats the **build, dependency, and distribution pipeline** as part of the threat surface.
+
+| Threat | Mitigation |
+|---|---|
+| Malicious dependency (typosquat, dependency confusion) | Lock to private registries first; pin by hash where possible (npm `--integrity`, pip hashes) |
+| Compromised maintainer / token | Require 2FA on maintainer accounts; mandatory provenance for first-party publishes |
+| Build pipeline injection | Pin GitHub Actions by SHA, not tag; least-privilege `permissions:`; OIDC for cloud auth |
+| Unsigned artifacts | Sign releases (Sigstore / cosign); verify signatures at deploy |
+| `postinstall` script abuse | `npm config set ignore-scripts true` for CI installs; allowlist trusted packages |
+| Lockfile drift | Fail CI when lockfile changes without manual review |
+
+```yaml
+# Pin GitHub Actions by SHA
+- uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11   # v4.1.1
+- uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+
+# Provenance + ignore scripts
+permissions:
+  id-token: write              # OIDC for npm publish provenance
+  contents: read
+- run: npm ci --ignore-scripts
+- run: npm publish --provenance --access public
+```
+
+See `secrets-management` (OIDC federation), `ci-pipelines` (pinning + provenance), and `secrets-management` (28M secrets leaked on GitHub in 2025 — supply chain hygiene matters).
 
 ---
 
@@ -153,11 +206,14 @@ const event = stripe.webhooks.constructEvent(rawBody, sig, secret);
 
 ---
 
-## A10 — Server-Side Request Forgery (SSRF)
+## A10 — Server-Side Request Forgery (SSRF)  *(2025: folded into A01 — Broken Access Control)*
+
+OWASP 2025 removed SSRF as a standalone category and treats it as a sub-class of A01. **The risk did not decrease** — apply the same controls. The numbering here is preserved so cross-references in `security-auditor` and per-stack overlays keep working.
 
 - Allowlist outbound destinations when fetching user-supplied URLs.
 - Block private IP ranges (10/8, 172.16/12, 192.168/16, 169.254/16, ::1, fc00::/7).
 - Resolve DNS yourself and check the IP — defeats DNS rebinding.
+- Cloud metadata endpoints (`169.254.169.254`, `metadata.google.internal`) — **always block**, regardless of allowlist.
 
 ```ts
 import { isIP } from 'net';
@@ -166,6 +222,41 @@ const url = new URL(userUrl);
 const ip = await dns.lookup(url.hostname);
 if (PRIVATE.test(ip.address)) throw new ForbiddenError('Private IP not allowed');
 ```
+
+---
+
+## A10+ (2025 only) — Mishandling of Exceptional Conditions *(NEW in 2025)*
+
+Errors that **fail open**, leak internals, or leave the system in an inconsistent state. Distinct from A09 (which is about *whether* you logged it) — this is about *how the code reacts*.
+
+| Anti-pattern | Why dangerous | Fix |
+|---|---|---|
+| `try { ... } catch (e) { /* ignore */ }` | Swallows security-relevant failures (e.g. authz check threw) | Log + rethrow, OR explicit comment why it's safe to ignore |
+| Auth check inside `try`, success path outside | If auth throws, code may continue as if authenticated | Authz **fails closed**: throw → caller treats as denied |
+| 500 with full stack trace to client | Leaks file paths, library versions, ORM internals | Generic message to client; full trace to logger only |
+| Webhook handler returns 500 on parse error | Provider retries forever; floods queue | Validate signature first; on parse error log + return 200 (idempotently dropped) |
+| Partial write on transaction failure | Money charged but order not created | Wrap multi-step writes in a transaction; on error, rollback all |
+| Default-allow on missing config (`if (!config.requireMfa) skip`) | Misconfiguration → security off | Default-deny: missing config = block |
+
+```ts
+// WRONG — fail open
+try {
+  await assertCanAccess(user, resource);
+} catch (e) {
+  console.log(e);
+  // ...code continues, request succeeds
+}
+
+// CORRECT — fail closed
+try {
+  await assertCanAccess(user, resource);
+} catch (e) {
+  logger.warn({ event: 'authz.error', err: e, userId: user.id, resourceId: resource.id });
+  throw e;             // caller maps to 403
+}
+```
+
+See `error-handling` skill for full taxonomy and Result-type patterns.
 
 ---
 
@@ -185,18 +276,24 @@ No exceptions for "trusted" sources. Internal services drift, queues replay malf
 
 ## Pre-Commit Security Checklist
 
-- [ ] All routes have authn + authz checks
-- [ ] User ID derived from session, never from body
-- [ ] All inputs validated by schema
-- [ ] No secrets in code (see `secrets-management`)
-- [ ] No raw SQL / Mongo operators from user input
-- [ ] Security headers set on responses
-- [ ] Rate limit on auth + write endpoints
-- [ ] PII not in logs (see `observability`)
-- [ ] Webhook signatures verified before parsing
+- [ ] All routes have authn + authz checks (§A01)
+- [ ] User ID derived from session, never from body (§A01)
+- [ ] All inputs validated by schema (§A03)
+- [ ] No secrets in code (see `secrets-management`) (§A02 + 2025-A03)
+- [ ] No raw SQL / Mongo operators from user input (§A03)
+- [ ] Security headers set on responses (§A05)
+- [ ] Rate limit on auth + write endpoints (§A07)
+- [ ] PII not in logs (see `observability`) (§A09)
+- [ ] Webhook signatures verified before parsing (§A08)
+- [ ] CI pins GitHub Actions by SHA + uses OIDC for cloud auth (2025-A03)
+- [ ] No silent `catch` blocks; authz failures rethrow (2025-A10)
+- [ ] Cloud metadata endpoints blocked in any URL-fetching code (§A10)
 
 ## See Also
 
-- `secrets-management` — env hygiene, gitleaks
-- `observability` — log redaction
+- `secrets-management` — env hygiene, gitleaks, OIDC federation
+- `observability` — log redaction, PII handling
+- `error-handling` — fail-closed patterns (2025-A10)
+- `ci-pipelines` — pinning + provenance (2025-A03)
 - `api-security-node` / `api-security-python` / PHP `api-security` — stack-specific hardening
+- Stack overlays consume the §A01–§A10 anchors above. **Do not renumber.**
