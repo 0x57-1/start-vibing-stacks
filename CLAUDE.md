@@ -7,51 +7,35 @@
 ## Last Change
 
 **Branch:** main
-**Date:** 2026-05-13
-**Summary:** v2.19.0 — Frontend React stack: all 9 React/React-API
-skills bumped to v2.0.0 with verified 2026 facts. **tailwind-patterns**
-(Tailwind v4 stable Jan 22 2025; Oxide engine 3.78× full / 8.8×
-incremental / 100× no-CSS-change; `@theme` CSS-first, no
-`tailwind.config.js`; native container queries; OKLCH; `size-*`
-utility; `color-mix()` + `@property` + cascade layers; `npx
-@tailwindcss/upgrade` codemod). **shadcn-ui** (CLI v4 Mar 2026:
-no `forwardRef` in new components; `data-slot` on every primitive
-for outside styling; HSL → OKLCH; `default` style deprecated →
-`new-york`; `shadcn/skills` AI-agent registry; `--preset`/
-`--dry-run`/`--diff`/`--view`; `--template` for Next.js/Vite/
-Laravel/React-Router/Astro/TanStack-Start; `--base` Radix vs Base
-UI; `shadcn info`/`docs` commands; custom registries via
-`registry-item.json`). **react-patterns** (React 19 stable Dec 5
-2024 + 19.1: `useActionState`, `useFormStatus`, `useOptimistic`,
-`use()` for promises/Context; refs as plain props — `forwardRef`
-no longer needed; document metadata hoisting — drop `next/head`/
-react-helmet; form `action` prop with auto-reset; stylesheet
-ordering; Suspense sibling pre-warming). **zod-validation**
-(Zod 4 stable Aug 2025: 14× string / 7× array / 6.5× object;
-57% smaller bundle; 2× faster TS compile; 100× fewer tsc
-instantiations; **top-level format validators** `z.email()`/
-`z.url()`/`z.uuid()`/`z.iso.datetime()`/`z.jwt()` for tree-shaking;
-**unified `error` parameter** replaces `required_error`/
-`invalid_type_error`/`errorMap`; codemod `npx @zod/codemod
---transform v3-to-v4`; discriminated unions; branded types;
-Valibot/ArkType cross-refs). **react-ui-patterns** (TanStack
-Query v5 `loading` → `pending` semantics — `isPending` vs
-`isFetching` vs `isLoading`; **mandatory signal threading** for
-cancellation; `useSuspenseQuery` + `<Suspense>` boundary;
-React 19 `useOptimistic` as PRIMARY for form-bound flows,
-TanStack `onMutate`+`setQueryData` rollback only for cross-cache
-mutations; never combine both). **react-standards** (R19+TW4
-mandate; LABELS/STYLES const pattern documented as ANTI-rerender
-discipline). **preline-ui** (semantic-token system on TW4; 220+
-tokens; 840+ free blocks; mandatory `HSStaticMethods.autoInit()`
-post-navigation; pick ONE between Preline/shadcn). **react-api/
-axios-laravel-api** (Sanctum SPA cookie flow; 401/403/419/422/5xx
-interceptor matrix; Zod 4 boundary validation; signal threading
-in TanStack queries). **react-api/react-api-standards** (Vite 6 +
-Axios 1.7 + TanStack v5 + Zod 4; react-router-dom 7 data routers;
-React 19 form choreography). Frontend stack: **11/11 v2.0.0**.
-Earlier: v2.18.0 Python stack (9 skills), v2.17.0 PHP stack (8),
-v2.16.0 _shared batch 2, v2.15.0 _shared batch 1.
+**Date:** 2026-05-14
+**Summary:** v2.20.0 — Node.js stack hardening from production
+post-mortem (Next.js slug crash + webhook retry storm).
+**nextjs-app-router v1.1.0** adds two CRITICAL sections.
+*Dynamic Route Slug Consistency*: documents the
+`"different slug names for the same dynamic path"` runtime
+crash that `next build`/`bun run build` does **NOT** catch
+(Next.js validates dynamic segments only at request time);
+ships the `find … -name '[*]'` pre-flight, a `prebuild:
+bun run routes:check` recipe, and the naming convention
+(`[userId]` not `[id]` across nested routes). *Webhook
+Handler — Critical Path*: reference Route Handler with raw-
+body signature verification BEFORE parse, idempotency by
+provider `event.id`, 2xx-fast ack, async hand-off to queue/
+`waitUntil`, separate processor with `opossum` circuit
+breaker; FORBIDDEN table now bans inline business logic and
+5xx-on-downstream-failure (provider retry storm). New
+zero-dep validator `stacks/nodejs/scripts/check-route-slugs.mjs`
+(walks `app/` + `src/app/`, exit 1 on conflict with the
+offending parent and slug names) wired into
+`stacks/nodejs/workflows/ci.yml` between tests and build,
+plus a `RouteSlugs` quality gate in `stacks/nodejs/stack.json`
+(order 4, `appliesTo: ["nextjs"]`). `src/setup.ts` extended
+with step 11e: copies `stacks/<stack>/scripts/` →
+`<project>/scripts/` non-destructively at install time so
+the validator ships out-of-the-box. `quality-gate` skill
+updated with the Node.js sequence note. Earlier:
+v2.19.0 React stack v2.0.0, v2.18.0 Python (9), v2.17.0
+PHP (8), v2.16.0 _shared b2, v2.15.0 b1.
 
 ---
 
@@ -110,10 +94,13 @@ start-vibing-stacks/
 │   │   ├── react/skills/               # 7 React+Tailwind+shadcn skills
 │   │   └── react-inertia/skills/       # 2 Inertia-specific skills
 │   ├── nodejs/
-│   │   ├── stack.json                  # frameworks/databases/skills declaration
+│   │   ├── stack.json                  # frameworks/databases/skills/qualityGates
 │   │   ├── skills/                     # 7 skills: nextjs-app-router, fastify-api,
 │   │   │                                  trpc-api, mongoose-patterns, typescript-strict,
 │   │   │                                  bun-runtime, api-security-node
+│   │   ├── scripts/                    # zero-dep helper scripts (e.g.
+│   │   │                                  check-route-slugs.mjs); installer copies
+│   │   │                                  the dir → <project>/scripts/ at setup
 │   │   └── workflows/                  # ci.yml + security.yml templates
 │   ├── python/
 │   │   ├── stack.json
@@ -143,9 +130,10 @@ start-vibing-stacks/
 7. copy stacks/{stack}/config/*       → .claude/config/      (if exists)
 8. copy stacks/frontend/{fe}/skills/* → .claude/skills/      (frontend-specific)
 9. copy stacks/{stack}/workflows/*    → .github/workflows/   (if dir is empty)
-10. copy stacks/_shared/commands/*    → .claude/commands/
-11. write .claude/settings.json       (hooks, MCP, agents, workflow, rules, quality_gates)
-12. write CLAUDE.md from templates/CLAUDE-{stack}.md (if missing)
+10. copy stacks/{stack}/scripts/*     → <project>/scripts/   (non-destructive merge)
+11. copy stacks/_shared/commands/*    → .claude/commands/
+12. write .claude/settings.json       (hooks, MCP, agents, workflow, rules, quality_gates)
+13. write CLAUDE.md from templates/CLAUDE-{stack}.md (if missing)
 ```
 
 **Rule:** the `frameworks[].skills` and `databases[].skills` arrays in `stack.json` are **declarative metadata** for discovery (UI, agent reasoning) — they do **not** drive `setup.ts` filtering. Setup copies the whole stack folder. Per-skill scoping is enforced at runtime by the `description:` frontmatter in each `SKILL.md` (Claude only auto-loads when the description matches the task).

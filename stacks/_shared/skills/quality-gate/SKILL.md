@@ -24,11 +24,18 @@ vendor/bin/php-cs-fixer fix --dry-run    # Code style
 
 ### Node.js Gates
 ```bash
-bun run typecheck    # TypeScript errors
-bun run lint         # ESLint
-bun run test         # Vitest
-bun run build        # Build verification
+bun run typecheck                          # TypeScript errors
+bun run lint                               # ESLint
+bun run test                               # Vitest
+node scripts/check-route-slugs.mjs         # Next.js — only run if framework=nextjs
+bun run build                              # Build verification (must come AFTER route-slugs)
 ```
+
+> **Next.js note.** `next build` does NOT validate dynamic-segment slug
+> consistency (e.g. `[id]` and `[userId]` under the same parent). The
+> `check-route-slugs.mjs` script must run **before** `build` to catch this
+> statically — see `nextjs-app-router` skill, section "Dynamic Route Slug
+> Consistency".
 
 ## Gate Results
 

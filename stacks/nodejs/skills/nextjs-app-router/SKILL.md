@@ -1,6 +1,6 @@
 ---
 name: nextjs-app-router
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Next.js App Router — Modern Patterns
@@ -26,6 +26,77 @@ app/
 └── api/
     └── route.ts        # API route handler
 ```
+
+---
+
+## Dynamic Route Slug Consistency (CRITICAL — silent build killer)
+
+> **Next.js validates dynamic-segment slug names at REQUEST TIME, not at build time.** `next build` / `bun run build` **does not catch** this class of bug. It blows up the first time anyone hits the route in production with:
+>
+> ```
+> Error: You cannot use different slug names for the same dynamic path ('id' !== 'userId').
+> ```
+
+### The Rule
+
+Inside the **same parent directory**, every `[bracket]` child segment MUST use the **same** inner name. Pick one slug name per resource and reuse it through every nested route under it.
+
+```
+# BROKEN — same parent (app/users/), different slug names
+app/users/[id]/page.tsx
+app/users/[userId]/posts/page.tsx        ← runtime crash
+
+# CORRECT — one canonical slug per resource
+app/users/[userId]/page.tsx
+app/users/[userId]/posts/page.tsx
+app/users/[userId]/posts/[postId]/page.tsx
+```
+
+This also applies to catch-all (`[...slug]`) and optional catch-all (`[[...slug]]`) — you may not mix a `[id]` and `[...rest]` as siblings of the same parent.
+
+### Pre-Flight Check (run BEFORE creating any new dynamic route)
+
+```bash
+# Quick visual scan — list every dynamic segment with its depth
+find src/app app -type d -name '[[]*[]]' 2>/dev/null \
+  | awk -F/ '{print NF":"$0}' | sort
+```
+
+Eyeball the output: any two paths that share a prefix up to depth `N-1` and diverge into different `[name]` at depth `N` are the bug.
+
+### Programmatic Check (CI gate — mandatory)
+
+The stack ships a Bun script at `scripts/check-route-slugs.mjs`. Add it to `package.json` and wire it into the quality gate **before** `build`:
+
+```jsonc
+{
+  "scripts": {
+    "routes:check": "bun scripts/check-route-slugs.mjs",
+    "prebuild": "bun run routes:check",
+    "build": "next build"
+  }
+}
+```
+
+Why `prebuild`: makes the check unskippable for anyone running `bun run build` locally, in Vercel, or in CI. The check completes in milliseconds and exits non-zero on the first conflict, with the offending parent dir and conflicting slugs in the error message.
+
+### When to Run
+
+- ☑ **Before creating** any new `[something]/page.tsx` or `[something]/route.ts`
+- ☑ **Before any commit** touching `app/**/[*]/**`
+- ☑ **In CI** before `bun run build`
+- ☑ **As `prebuild`** in `package.json` so local builds also catch it
+
+### Convention — name your slugs by resource, not by position
+
+| Resource | Slug |
+|---|---|
+| User | `[userId]` |
+| Organization / tenant | `[orgId]` or `[tenantId]` |
+| Post / article | `[postId]` |
+| Instance ID (Evolution API, webhook key) | `[instanceKey]` (or whatever you commit to — pick once) |
+
+Generic `[id]` is acceptable only at the root of a resource (`app/users/[id]/...`) **if and only if** you stay with `[id]` through every nested segment under it. Mixing `[id]` and `[userId]` under the same parent is the bug.
 
 ## Server vs Client Components
 
@@ -105,6 +176,152 @@ export async function POST(request: NextRequest) {
   return NextResponse.json(user, { status: 201 });
 }
 ```
+
+## Webhook Handler — Critical Path (avoid retry storms)
+
+> A webhook receiver is a **critical path you do not control**. The provider (Stripe, GitHub, Evolution, Meta, etc.) will retry — often aggressively, often forever — every non-`2xx`. Any error you let propagate becomes their problem AND yours.
+
+### The Three Rules
+
+1. **Verify signature with the RAW body BEFORE parsing JSON.** Parsing first leaks payload validity into your error path and can let unsigned traffic through.
+2. **Acknowledge fast (return 2xx within ≤ 5 s).** Persist the event, hand it off to a queue / `waitUntil` / background task, then return. The HTTP handler does NOT do business logic.
+3. **Idempotency by provider event ID.** Same event arriving twice (retries, replays) MUST be a no-op. Store the event ID with a unique index.
+
+### Reference Receiver (Next.js Route Handler)
+
+```ts
+// app/api/webhooks/[provider]/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'node:crypto';
+
+export const runtime = 'nodejs'; // crypto.timingSafeEqual + raw body
+export const dynamic = 'force-dynamic';
+
+const SECRET = process.env['WEBHOOK_SECRET']!;
+
+function verify(rawBody: string, signature: string | null): boolean {
+  if (!signature) return false;
+  const expected = crypto.createHmac('sha256', SECRET).update(rawBody).digest('hex');
+  const a = Buffer.from(signature);
+  const b = Buffer.from(expected);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+export async function POST(req: NextRequest) {
+  // 1) RAW body — never req.json() before signature check
+  const rawBody = await req.text();
+  const signature = req.headers.get('x-signature');
+
+  if (!verify(rawBody, signature)) {
+    // Signature failure is the ONLY 4xx we return. Provider will not retry 401.
+    return new NextResponse('invalid signature', { status: 401 });
+  }
+
+  // 2) Parse AFTER signature passes
+  let event: { id: string; type: string; data: unknown };
+  try {
+    event = JSON.parse(rawBody);
+  } catch {
+    // Malformed body from an authenticated source = log + 200.
+    // Returning 400/500 here triggers infinite retries for a payload we cannot process anyway.
+    logger.warn({ rawBody }, 'webhook.parse_failed');
+    return new NextResponse('accepted', { status: 200 });
+  }
+
+  // 3) Idempotency — store-or-skip on event.id (unique index)
+  try {
+    await db.webhookEvent.create({
+      data: { id: event.id, type: event.type, payload: event, status: 'pending' },
+    });
+  } catch (e) {
+    if (isUniqueViolation(e)) {
+      // Duplicate delivery — already accepted. Ack and move on.
+      return new NextResponse('duplicate', { status: 200 });
+    }
+    // DB down: signal the provider to retry (this IS our fault).
+    logger.error({ err: e, eventId: event.id }, 'webhook.persist_failed');
+    return new NextResponse('storage error', { status: 503 });
+  }
+
+  // 4) Hand off async. NEVER await business logic here.
+  //    Options, in order of preference:
+  //      (a) push to a queue (BullMQ, Inngest, QStash, SQS)
+  //      (b) Vercel: `waitUntil(processEvent(event))` — runs after response
+  //      (c) trigger an internal API call with `fetch(..., { keepalive: true })`
+  await queue.publish('webhook.received', { eventId: event.id });
+
+  // 5) Always 2xx if we got this far. Provider stops retrying.
+  return NextResponse.json({ received: true });
+}
+```
+
+### The Async Processor (separate from the receiver)
+
+The processor is where downstream calls happen. **It must absorb its own failures** — never let them bubble back into the HTTP receiver:
+
+```ts
+// jobs/process-webhook.ts
+import CircuitBreaker from 'opossum';
+
+const downstream = new CircuitBreaker(callDownstreamAPI, {
+  timeout: 5_000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 30_000,
+});
+
+export async function processWebhook(eventId: string) {
+  const event = await db.webhookEvent.findUniqueOrThrow({ where: { id: eventId } });
+  if (event.status === 'processed') return; // re-entrancy safety
+
+  try {
+    await downstream.fire(event.payload);
+    await db.webhookEvent.update({
+      where: { id: eventId },
+      data: { status: 'processed', processedAt: new Date() },
+    });
+  } catch (err) {
+    // Mark for retry from OUR side (queue redelivery + backoff),
+    // NOT from the provider's side. Provider already got 2xx.
+    await db.webhookEvent.update({
+      where: { id: eventId },
+      data: {
+        status: 'failed',
+        attempts: { increment: 1 },
+        lastError: serializeError(err),
+      },
+    });
+    logger.error({ err, eventId }, 'webhook.process_failed');
+    throw err; // queue will backoff + retry per OUR policy
+  }
+}
+```
+
+See `error-handling` Pattern 5 for circuit breaker tuning and Pattern 4 for retry+backoff.
+
+### FORBIDDEN — Webhook Handlers
+
+| Anti-pattern | Why it's lethal |
+|---|---|
+| `await req.json()` before signature verification | Signature is computed on the raw body bytes; framework re-serialization breaks it. Also accepts unsigned traffic into your parser. |
+| Doing the business logic inline in the handler | Provider timeout (≤ 5–30 s) → they retry while you're still processing → duplicate writes. |
+| Returning `5xx` on downstream failures | Provider retries forever, queue floods, your downstream gets even more load. Ack 2xx, retry from your side. |
+| Returning `4xx` on parse / business errors | Same retry storm. Only `4xx` justified is `401` for bad signature. |
+| No idempotency key | First retry creates a duplicate user / duplicate charge / duplicate message. |
+| Logging the full payload | PII / secrets in logs. Log the event ID + type; redact `data.*`. |
+| One `/api/webhooks` for all providers | Each provider has its own signature scheme, secrets, retry policy. Isolate per-route (`/api/webhooks/[provider]`). |
+| Trusting `X-Forwarded-For` for provider IP allowlist | Use signature verification, not IP allowlisting. Provider IPs rotate. |
+
+### Pre-Commit Checklist (Webhook Routes)
+
+- [ ] Signature verified on the **raw body** before any parsing
+- [ ] `timingSafeEqual` used for signature comparison (no `===`)
+- [ ] Provider event ID stored with a unique index → idempotency
+- [ ] Handler returns 2xx within ~1 s on the success path
+- [ ] Business logic delegated to queue / `waitUntil` / background task
+- [ ] Downstream calls wrapped in circuit breaker + retry+backoff
+- [ ] Logs include `eventId` + `provider` + `type`; payload `data` redacted
+- [ ] Tested: duplicate delivery → 200 (no duplicate side-effect)
+- [ ] Tested: invalid signature → 401, never reaches the parser
 
 ## Metadata
 
@@ -227,3 +444,7 @@ export async function createCheckout(priceId: string) {
 6. **`NEXT_PUBLIC_` with API keys, secrets, or tokens** — secrets leak to browser bundle
 7. **Calling external APIs from client components** — use Route Handlers as proxy
 8. **`process.env['SECRET']` in `'use client'` files** — only `NEXT_PUBLIC_*` vars work client-side
+9. **Mixing `[id]` / `[userId]` / `[someId]` as siblings of the same parent dir** — runtime crash; `next build` does NOT catch it. Run `bun run routes:check` (see "Dynamic Route Slug Consistency")
+10. **Webhook business logic inline in the Route Handler** — ack 2xx fast, process async (see "Webhook Handler — Critical Path")
+11. **Skipping signature verification or parsing JSON before verifying** — always verify the raw body first
+12. **Returning 5xx from a webhook on a downstream failure** — triggers provider retry storms; ack 2xx and retry from your side

@@ -20,7 +20,8 @@
     { "name": "TypeCheck", "command": "bun run typecheck", "required": true, "order": 1 },
     { "name": "Lint", "command": "bun run lint", "required": true, "order": 2 },
     { "name": "Tests", "command": "bun run test", "required": true, "order": 3 },
-    { "name": "Build", "command": "bun run build", "required": true, "order": 4 }
+    { "name": "RouteSlugs", "command": "node scripts/check-route-slugs.mjs", "required": true, "order": 4, "appliesTo": ["nextjs"], "description": "Static Next.js dynamic-route slug consistency check. `next build` does not catch this class of bug." },
+    { "name": "Build", "command": "bun run build", "required": true, "order": 5 }
   ],
   "frameworks": [
     {

@@ -35,6 +35,17 @@ jobs:
       - name: Unit tests
         run: bun run test
 
+      - name: Next.js route slug consistency
+        # `next build` does NOT catch mismatched dynamic-segment names
+        # (e.g. mixing [id] and [userId] under the same parent). This
+        # script catches it statically before build, in milliseconds.
+        # Skips with exit 2 on non-Next.js repos (treated as success here).
+        run: |
+          if [ -f scripts/check-route-slugs.mjs ]; then
+            node scripts/check-route-slugs.mjs || code=$?
+            if [ "${code:-0}" = "1" ]; then exit 1; fi
+          fi
+
       - name: Build
         run: bun run build
 

@@ -231,6 +231,18 @@ export async function setupProject(
       }
     }
 
+    // 11e. Copy stack-level helper scripts (e.g. nodejs/scripts/check-route-slugs.mjs)
+    // copyDirRecursive is non-destructive by default: existing files in the target
+    // project's scripts/ dir are preserved unless --force is passed.
+    const stackScriptsDir = join(PACKAGE_ROOT, 'stacks', config.stack, 'scripts');
+    if (existsSync(stackScriptsDir)) {
+      const projectScriptsDir = join(projectDir, 'scripts');
+      const copied = copyDirRecursive(stackScriptsDir, projectScriptsDir, options.force);
+      if (copied > 0) {
+        spinner.text = `Installed ${copied} stack helper script(s) to scripts/`;
+      }
+    }
+
     // 12. Copy commands
     const sharedCommandsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'commands');
     if (existsSync(sharedCommandsDir)) {
