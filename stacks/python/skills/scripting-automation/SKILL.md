@@ -1,111 +1,199 @@
 ---
 name: scripting-automation
-version: 1.0.0
+version: 2.0.0
+description: "Local Python scripts and automation tooling for Python 3.13/3.14 with uv as the default package + project manager (uv init / uv add / uv run / uv tool — Astral, acquired by OpenAI Mar 2026, ~75M monthly downloads vs Poetry 66M, 10–100× faster than pip). Covers project layout for ETL/CLI/cron jobs, Pydantic Settings (.env), reusable httpx + tenacity client, WordPress REST integration, MariaDB/Postgres direct access (no ORM), structured CLI with argparse + match/case + rich, structured logging, and uv single-file scripts via PEP 723 inline metadata. Use for WordPress, ad-platform automation, ETL, scrapers, batch jobs."
 ---
 
-# Local Scripts & Automation — Python 3.12+
+# Local Scripts & Automation — Python 3.13/3.14 with uv
 
-**ALWAYS invoke when building local scripts, CLI tools, or automation tasks.**
+**ALWAYS invoke when building local scripts, CLI tools, scrapers, ad-platform automation, ETL, or cron-style jobs.**
 
-## When to Use
+## When to use
 
-- WordPress API automation (create/update posts, manage media)
-- Ad campaign management (Google Ads, Facebook Ads, TikTok Ads API)
-- Data pipelines (CSV/Excel processing, database sync)
-- Web scraping and data extraction
-- File system operations and batch processing
-- Scheduled tasks and cron-like automation
-- API integrations without a web framework
+- WordPress REST automation (posts, media, taxonomies)
+- Ad-platform automation (Google Ads, Meta, TikTok, LinkedIn APIs)
+- ETL / CSV / Excel pipelines
+- Web scraping & data extraction
+- Database sync, batch processing
+- Scheduled tasks (cron, GitHub Actions cron, Vercel cron, systemd timers)
+- "API integrations without a web framework"
 
-## Project Structure
+## Toolchain (2026)
+
+| Tool | Why |
+|---|---|
+| **`uv`** (Astral) | Project + package + Python-version manager. 10–100× faster than pip; surpassed Poetry in monthly downloads in early 2026. Astral was acquired by OpenAI in March 2026 with public commitment to keep `uv` open source. |
+| `ruff` | Lint + format in one Rust binary |
+| `pyright` | Type checking (correctness); `ty` (Astral) when speed matters |
+| `httpx` + `tenacity` | HTTP with retries |
+| `pydantic-settings` | Typed env config |
+| `rich` | Terminal output, tables, progress bars, tracebacks |
+| `tomllib` (3.11+ stdlib) | TOML reading — drop `tomli`/`toml` from deps |
+
+## Project Layout
 
 ```
 project/
-├── pyproject.toml        # Dependencies + project metadata
-├── .env                  # API keys, credentials (NEVER commit)
-├── .env.example          # Template without real values
+├── pyproject.toml         # Project + tool config (uv, ruff, pyright, pytest)
+├── uv.lock                # Universal lockfile — commit this
+├── .env                   # Secrets — NEVER commit
+├── .env.example           # Safe template
+├── README.md
+├── main.py                # CLI entry
 ├── scripts/
 │   ├── __init__.py
-│   ├── wordpress.py      # WordPress automation
-│   ├── ads_manager.py    # Ad campaigns
-│   └── data_sync.py      # Database sync
+│   ├── wordpress.py       # WordPress automation
+│   ├── ads_manager.py     # Ad campaigns
+│   └── data_sync.py       # DB sync
 ├── lib/
 │   ├── __init__.py
-│   ├── http_client.py    # Reusable httpx client
-│   ├── config.py         # Pydantic Settings
-│   ├── logger.py         # Structured logging
-│   └── retry.py          # Retry with backoff
-├── data/                 # Input/output data files
-├── logs/                 # Log files
-├── tests/
-│   └── test_scripts.py
-└── main.py               # Entry point / CLI
+│   ├── http_client.py     # Reusable httpx client
+│   ├── config.py          # Pydantic Settings
+│   ├── logger.py          # rich/structlog
+│   └── retry.py           # Retry helpers
+├── data/                  # I/O files
+├── logs/
+└── tests/
+    └── test_scripts.py
 ```
+
+## uv quickstart
+
+```bash
+# Install once (mac/linux)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Bootstrap a project
+uv init my-script && cd my-script
+uv python pin 3.13                            # writes .python-version
+uv add httpx pydantic-settings tenacity rich
+uv add --dev pytest ruff pyright
+
+# Run anything inside the project venv
+uv run python main.py
+uv run pytest
+
+# Install a global CLI tool, isolated
+uv tool install ruff                          # works like pipx, just faster
+```
+
+`uv` reads/writes `pyproject.toml` and produces a single universal `uv.lock` that resolves consistently across macOS/Linux/Windows. Commit the lockfile.
+
+## `pyproject.toml` (uv-native)
+
+```toml
+[project]
+name = "my-script"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "httpx>=0.27",
+    "pydantic-settings>=2.5",
+    "tenacity>=9.0",
+    "rich>=13.7",
+]
+
+[dependency-groups]
+dev = ["pytest>=9.0", "ruff>=0.5", "pyright>=1.1"]
+ads = ["google-ads>=24.0", "facebook-business>=19.0"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "S", "RUF"]
+```
+
+## Single-file scripts — PEP 723 inline metadata
+
+For one-off scripts you want runnable without `pip install`:
+
+```python
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.13"
+# dependencies = ["httpx>=0.27", "rich>=13.7"]
+# ///
+
+import httpx
+from rich import print
+
+r = httpx.get("https://api.example.com/status", timeout=5)
+print(r.json())
+```
+
+`uv run script.py` reads the inline metadata, builds an isolated venv, runs the script. Killer for cron jobs, GitHub Actions one-liners, throwaway helpers.
 
 ## Configuration (Pydantic Settings)
 
 ```python
-from pydantic_settings import BaseSettings
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
-    WP_URL: str
-    WP_USER: str
-    WP_APP_PASSWORD: str
+    model_config = SettingsConfigDict(env_file=".env", extra="forbid")
+
+    WP_URL:          str
+    WP_USER:         str
+    WP_APP_PASSWORD: str = Field(min_length=10)
 
     GOOGLE_ADS_DEVELOPER_TOKEN: str = ""
-    FACEBOOK_ACCESS_TOKEN: str = ""
-    TIKTOK_ACCESS_TOKEN: str = ""
+    FACEBOOK_ACCESS_TOKEN:      str = ""
+    TIKTOK_ACCESS_TOKEN:        str = ""
 
-    DB_HOST: str = "localhost"
-    DB_PORT: int = 3306
-    DB_NAME: str
-    DB_USER: str
+    DB_HOST:     str = "localhost"
+    DB_PORT:     int = 3306
+    DB_NAME:     str
+    DB_USER:     str
     DB_PASSWORD: str
 
-    LOG_LEVEL: str = "INFO"
-    DRY_RUN: bool = False
+    LOG_LEVEL: str  = "INFO"
+    DRY_RUN:   bool = False
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
-
-settings = Settings()
+settings = Settings()                          # validated at import
 ```
 
-## HTTP Client (reusable)
+## HTTP Client (reusable, retried)
 
 ```python
 import httpx
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 class ApiClient:
     def __init__(self, base_url: str, auth: tuple[str, str] | None = None):
         self.client = httpx.Client(
             base_url=base_url,
             auth=auth,
-            timeout=30.0,
+            timeout=httpx.Timeout(connect=5, read=30, write=30, pool=5),
             headers={"User-Agent": "AutomationScript/1.0"},
         )
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
-    def get(self, path: str, **kwargs) -> dict:
-        r = self.client.get(path, **kwargs)
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(min=1, max=10),
+        retry=retry_if_exception_type((httpx.TransportError, httpx.HTTPStatusError)),
+        reraise=True,
+    )
+    def get(self, path: str, **kw) -> dict:
+        r = self.client.get(path, **kw)
         r.raise_for_status()
         return r.json()
 
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
-    def post(self, path: str, **kwargs) -> dict:
-        r = self.client.post(path, **kwargs)
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10), reraise=True)
+    def post(self, path: str, **kw) -> dict:
+        r = self.client.post(path, **kw)
         r.raise_for_status()
         return r.json()
 
-    def close(self):
+    def close(self) -> None:
         self.client.close()
 ```
 
-## WordPress REST API Pattern
+## WordPress REST API pattern
 
 ```python
 from lib.http_client import ApiClient
-from lib.config import settings
+from lib.config       import settings
 
 wp = ApiClient(
     base_url=f"{settings.WP_URL}/wp-json/wp/v2",
@@ -113,26 +201,13 @@ wp = ApiClient(
 )
 
 def create_post(title: str, content: str, status: str = "draft") -> dict:
-    return wp.post("/posts", json={
-        "title": title,
-        "content": content,
-        "status": status,
-    })
+    return wp.post("/posts", json={"title": title, "content": content, "status": status})
 
 def update_post(post_id: int, **fields) -> dict:
     return wp.post(f"/posts/{post_id}", json=fields)
-
-def bulk_update_posts(posts: list[dict]) -> list[dict]:
-    results = []
-    for post in posts:
-        pid = post.pop("id")
-        result = update_post(pid, **post)
-        results.append(result)
-        logger.info(f"Updated post {pid}: {result['title']['rendered']}")
-    return results
 ```
 
-## Database Access (direct, no ORM)
+## Database access — direct, no ORM
 
 ```python
 import mariadb
@@ -155,47 +230,48 @@ def get_connection():
 
 def fetch_all(query: str, params: tuple = ()) -> list[dict]:
     with get_connection() as conn:
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(query, params)
-        return cursor.fetchall()
+        cur = conn.cursor(dictionary=True)
+        cur.execute(query, params)               # parameterised — never f-string
+        return cur.fetchall()
 
 def execute(query: str, params: tuple = ()) -> int:
     with get_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute(query, params)
+        cur = conn.cursor()
+        cur.execute(query, params)
         conn.commit()
-        return cursor.rowcount
+        return cur.rowcount
 ```
 
-## CLI Entry Point
+For PostgreSQL prefer `psycopg[binary]` (psycopg 3) over psycopg2.
+
+## CLI Entry — argparse + match/case
 
 ```python
 import argparse
 import logging
+from rich.logging import RichHandler
+
 from lib.config import settings
 
 logging.basicConfig(
     level=getattr(logging, settings.LOG_LEVEL),
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler("logs/script.log"),
-    ],
+    format="%(message)s",
+    handlers=[RichHandler(rich_tracebacks=True)],
 )
 logger = logging.getLogger(__name__)
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser(description="Automation Scripts")
-    sub = parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command", required=True)
 
-    sub.add_parser("wp-sync", help="Sync WordPress posts")
+    sub.add_parser("wp-sync",    help="Sync WordPress posts")
     sub.add_parser("ads-report", help="Generate ads performance report")
     sub.add_parser("db-migrate", help="Run data migration")
 
     args = parser.parse_args()
 
     if settings.DRY_RUN:
-        logger.warning("DRY RUN mode — no changes will be saved")
+        logger.warning("DRY RUN — no changes will be persisted")
 
     match args.command:
         case "wp-sync":
@@ -209,52 +285,62 @@ def main():
             run_migration()
         case _:
             parser.print_help()
+            return 2
+    return 0
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
 ```
 
-## Essential Libraries
-
-```toml
-# pyproject.toml
-[project]
-dependencies = [
-    "httpx>=0.27",
-    "pydantic-settings>=2.0",
-    "tenacity>=8.0",
-    "python-dotenv>=1.0",
-    "mariadb>=1.1",
-    "rich>=13.0",
-]
-
-[project.optional-dependencies]
-dev = ["pytest>=8.0", "mypy>=1.8", "ruff>=0.3"]
-ads = ["google-ads>=24.0", "facebook-business>=19.0"]
-```
-
-## Logging (structured)
+## Logging (structured, prod-ready)
 
 ```python
-from rich.console import Console
-from rich.logging import RichHandler
 import logging
+from rich.logging import RichHandler
 
-console = Console()
 logging.basicConfig(
     level="INFO",
-    format="%(message)s",
-    handlers=[RichHandler(console=console, rich_tracebacks=True)],
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    handlers=[
+        RichHandler(rich_tracebacks=True, show_time=False),
+        logging.FileHandler("logs/script.log"),
+    ],
 )
+
+# For real prod observability use structlog + JSON formatter — see _shared/observability
 ```
+
+## Reading TOML/JSON configs
+
+```python
+# 3.11+ — stdlib, no extra dep
+import tomllib
+with open("pyproject.toml", "rb") as f:
+    data = tomllib.load(f)
+```
+
+Drop `tomli` / `toml` from `dependencies` for Python 3.11+ projects.
 
 ## FORBIDDEN
 
-1. **Hardcoded credentials** — use `.env` + Pydantic Settings
-2. **No error handling on API calls** — always try/except + retry
-3. **No logging** — every script must log actions and errors
-4. **`requests` library** — use `httpx` (modern, sync+async)
-5. **Print statements for output** — use `logging` or `rich`
-6. **No `--dry-run` flag** — destructive scripts must support dry run
-7. **SQL without parameterization** — always use `?` placeholders
-8. **No `.env.example`** — always provide template for credentials
+| Anti-pattern | Reason |
+|---|---|
+| Hardcoded credentials | Use `.env` + `BaseSettings(extra="forbid")` |
+| No retry on flaky API | Use `tenacity` with exponential backoff + jitter |
+| `print()` for output | Use `logging` + `rich` (machine-readable + human-readable) |
+| `requests` library | Use `httpx` (sync + async, http/2, modern API) |
+| `pip install` in new projects | Use `uv add` (Astral's `uv` is the 2026 default) |
+| Missing `uv.lock` in repo | Builds become non-reproducible |
+| f-string interpolation in SQL | SQL injection — always parameterise |
+| No `--dry-run` on destructive scripts | Always provide a safe preview mode |
+| No `.env.example` | Onboarding nightmare |
+| Per-tool config files (`.flake8`, `.isort.cfg`, `pyproject` for black + isort + ruff) | Consolidate under `[tool.ruff]` + `[tool.pyright]` in `pyproject.toml` |
+| `tomli` / `toml` deps for 3.11+ | Use stdlib `tomllib` |
+
+## See Also
+
+- `python-patterns` — version policy, framework selection
+- `async-patterns` — when to switch from `httpx.Client` to `AsyncClient`
+- `pydantic-validation` — `BaseSettings(extra="forbid")` pattern
+- `_shared/skills/secrets-management` — `.env` discipline + 3-layer gitleaks
+- `_shared/skills/observability` — structlog + OpenTelemetry for prod scripts

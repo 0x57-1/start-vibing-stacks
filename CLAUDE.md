@@ -8,46 +8,39 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.17.0 — PHP stack skills batch: 8 skills bumped to
-v2.0.0 with confirmed 2026 facts. **php-patterns** (PHP 8.4 Nov 2024:
-property hooks replace getter/setter boilerplate; asymmetric
-visibility `public private(set)`; lazy objects via Reflection;
-new JIT IR; `array_find/any/all`; HTML5 DOM). **laravel-octane**
-(server matrix: FrankenPHP recommended for new projects — single
-binary, automatic HTTPS, HTTP/3, early hints, Brotli, ~5× FPM in
-2025 benchmarks; RoadRunner for raw RPS / gRPC; Swoole for I/O
-bound; FrankenPHP Caddyfile + worker.php example).
-**composer-workflow** (Composer 2.8 Oct 2024: `audit --abandoned`,
-`--ignore-severity`, exit codes 1/2/3; `--patch-only` updates;
-production install with `--no-scripts` 2025-A03 supply-chain;
-Roave Security Advisories pinned in dev). **phpstan-analysis**
-(PHPStan 2.0 Nov 2024: Level 10 strict mixed even from inferred,
-`list<T>` array type, 50-70% memory drop; Larastan 3 mandatory on
-Laravel; baseline workflow; `--error-format=github`).
-**phpunit-testing** (Pest 4 Mar 2026 + PHPUnit 12: browser testing
-via Playwright, visual regression, mutation testing, sharding,
-architecture tests; PHPUnit 12 `#[Test]` attribute deprecates
-`@test`; coverage thresholds). **security-scan-php** (Laravel
-overlay on `_shared/security-baseline` v2.0.0; preserves §A01–§A10
-anchors; adds 2025-A03 supply-chain section with composer audit +
-Roave + gitleaks 3-layer; new 2025-A10 Mishandling Exceptional
-Conditions section with Laravel-specific webhook/transaction/Octane
-fail-closed patterns). **external-api-patterns** (Saloon v3 added
-as recommended for SDK-style integrations: Connectors + Requests +
-Responses + MockClient + HasRateLimits + Laravel plugin; raw `Http::`
-kept for 1-3 endpoints; removed legacy React+Inertia consumption
-block — moved to `axios-laravel-api` skill). **mariadb-octane**
-(MariaDB 11.8 LTS Jun 2025, supported until Jun 2028: native
-`VECTOR(N)` + `VEC_DISTANCE_COSINE` SIMD HNSW for RAG; system-
-versioned temporal tables; JSON Schema CHECK constraints; default
-charset utf8mb4; TIMESTAMP range to 2106; PARSEC auth; parallel
-mariadb-dump; collation utf8mb4_uca1400_ai_ci). Only
-`laravel-api-architecture` kept at v1.0.0 (created in v2.9.0 already
-API-first aligned). PHP stack: 13/14 skills now v2.0.0. Earlier:
-v2.16.0 — _shared batch 2 (10 skills incl. OWASP 2025, PG 18,
-Compose Bake, Playwright 1.60, OTel GenAI). v2.15.0 — _shared batch
-1. v2.14.0 — domain-updater + commit-manager v2.0.0. v2.13.0 —
-documenter v2.0.0. v2.12.0 — security-auditor v2.0.0.
+**Summary:** v2.18.0 — Python stack: all 9 skills bumped to v2.0.0
+with confirmed 2026 facts. **python-patterns** (Python 3.13 min /
+3.14 recommended; free-threaded officially supported in 3.14 via
+PEP 779 — `python3.14t` only when CPU-multi-thread; `uv` default
+after OpenAI/Astral acquisition Mar 2026; ruff + pyright; `TypeIs`;
+`X | None`). **fastapi-patterns** (lifespan replaces deprecated
+`@app.on_event`; SQLAlchemy 2.0 `Mapped[]` + `pool_pre_ping=True`
++ `expire_on_commit=False`; `@lru_cache` Settings; never sync DB
+driver inside `async def`; uvicorn alone production-ready, gunicorn
+not required; uv + distroless Dockerfile). **pydantic-validation**
+(V2 polish: discriminated unions, `TypeAdapter`, `model_json_schema()`
+for LLM tool calls, `extra="forbid"`, `SettingsConfigDict`).
+**pytest-testing** (pytest 9.0 Nov 2025 subtests; pytest-asyncio 1.0
+May 2025 dropped `event_loop` fixture → `asyncio_default_fixture_loop_scope`;
+AnyIO; `httpx.AsyncClient` + `ASGITransport`; xdist sharding;
+`--cov-fail-under` gate). **async-patterns** (`asyncio.timeout()`
+over `wait_for`; `asyncio.Runner`; bounded fan-out Semaphore +
+TaskGroup; AnyIO bridge; free-threading vs GIL trade-offs).
+**django-patterns** (Django 5.2 LTS Apr 2025–Apr 2028; 4.2 LTS ends
+Apr 2026; Composite Primary Keys; ORM still sync — `sync_to_async`
+required in async views). **api-security-python** (overlay on
+`_shared/security-baseline` v2; swapped unmaintained `python-jose`
+for PyJWT with `algorithms=[ALG]` + `aud`/`iss`/`jti` + revocation
+check; SSRF guard for outbound URLs; 2025-A03 supply-chain with
+`uv lock --check` + `pip-audit`; 2025-A10 narrow except + structured
+logging). **python-performance** (py-spy prod-safe; 3.13 JIT PEP 744
+still experimental; free-threading honest trade-offs; `functools.cache`;
+Polars ~10× pandas; bulk DB). **scripting-automation** (uv as default
+project manager; PEP 723 inline metadata via `uv run --script`;
+`tomllib` stdlib drops `tomli`; httpx + tenacity; rich logging;
+psycopg 3 over psycopg2). Earlier: v2.17.0 PHP stack (8 skills),
+v2.16.0 _shared batch 2, v2.15.0 _shared batch 1, v2.14.0
+domain-updater + commit-manager v2.0.0.
 
 ---
 

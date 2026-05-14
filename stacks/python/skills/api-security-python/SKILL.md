@@ -1,14 +1,14 @@
 ---
 name: api-security-python
-version: 1.0.0
-description: Production-grade API hardening for Python (FastAPI, Django, Flask). Rate limit, CORS, JWT, secure cookies, CSRF, OAuth2.
+version: 2.0.0
+description: "Python (FastAPI / Django / Flask) overlay on top of _shared/security-baseline v2 (OWASP Top 10:2025). Production-grade hardening: security headers via Starlette middleware and SECURE_* settings, strict CORS allowlist, rate limiting (slowapi / django-ratelimit), HttpOnly+Secure+SameSite cookies, JWT with algorithms=[ALG] pinning + jti for revocation using PyJWT (python-jose is unmaintained as of 2025), CSRF built-in for Django and double-submit cookie for FastAPI, Pydantic V2 extra='forbid' against mass-assignment, file-upload magic-byte sniffing, Argon2id passwords, parameterised SQL/ORM. Cross-references 2025-A03 (Software Supply Chain Failures) and 2025-A10 (Mishandling Exceptional Conditions)."
 ---
 
-# API Security — Python
+# API Security — Python (FastAPI / Django / Flask)
 
 **ALWAYS invoke when building API endpoints, auth flows, or admin actions.**
 
-> Pair this with `security-baseline` for OWASP Top 10. This skill is stack-specific hardening.
+> Stack-specific overlay on top of `_shared/skills/security-baseline` v2 (OWASP Top 10:2025). The shared skill defines §A01–§A10 anchors; this one wires the Python equivalents.
 
 ## Layered Defense
 
@@ -136,13 +136,16 @@ response.set_cookie(
 
 ## 5. JWT / OAuth2 — FastAPI
 
+> **Library choice (2026):** Use **PyJWT** (`pyjwt[crypto]`) or **authlib** for OAuth2/OIDC flows. `python-jose` has been effectively unmaintained since 2024 and should be removed from dependencies. For the resource-server side that just verifies tokens, PyJWT is enough.
+
 ```python
 from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
 import os, uuid
+import jwt
+from jwt import InvalidTokenError
 
 SECRET = os.environ["JWT_SECRET"]
-ALG = "HS256"
+ALG = "HS256"                    # use RS256/EdDSA when verifying tokens minted elsewhere
 
 def issue_access_token(user_id: str, role: str) -> str:
     now = datetime.now(timezone.utc)
@@ -151,8 +154,11 @@ def issue_access_token(user_id: str, role: str) -> str:
             "sub": user_id,
             "role": role,
             "iat": now,
+            "nbf": now,
             "exp": now + timedelta(minutes=15),
             "jti": str(uuid.uuid4()),
+            "iss": os.environ["JWT_ISSUER"],
+            "aud": os.environ["JWT_AUDIENCE"],
         },
         SECRET,
         algorithm=ALG,
@@ -160,9 +166,18 @@ def issue_access_token(user_id: str, role: str) -> str:
 
 async def current_user(token: str = Depends(oauth2_scheme)) -> User:
     try:
-        payload = jwt.decode(token, SECRET, algorithms=[ALG])  # pin algorithm
-    except JWTError:
+        payload = jwt.decode(
+            token,
+            SECRET,
+            algorithms=[ALG],                # pin — never accept "alg: none"
+            audience=os.environ["JWT_AUDIENCE"],
+            issuer=os.environ["JWT_ISSUER"],
+            options={"require": ["exp", "iat", "sub", "jti"]},
+        )
+    except InvalidTokenError:
         raise HTTPException(401, "Invalid token")
+    if await is_revoked(payload["jti"]):     # check revocation list (Redis set)
+        raise HTTPException(401, "Token revoked")
     user = await User.get_or_none(id=payload["sub"])
     if not user:
         raise HTTPException(401, "User not found")
@@ -170,9 +185,11 @@ async def current_user(token: str = Depends(oauth2_scheme)) -> User:
 ```
 
 Rules:
-- Access tokens: ≤ 15 min. Refresh tokens: rotate on use, store hash in DB, revocable.
-- Pin `algorithms=[ALG]`. Never accept `alg: none`.
-- Include `jti` for revocation lists.
+- Access tokens ≤ 15 min. Refresh tokens: rotate on use, store **hash** in DB, revocable.
+- Pin `algorithms=[ALG]`. Never accept `alg: none` or omit the kwarg (confusion attack).
+- Always validate `aud` and `iss` when present.
+- Include `jti` and check a revocation set for sensitive scopes.
+- Store JWTs in **HttpOnly+Secure+SameSite cookies**, not `localStorage` (XSS exfiltration).
 
 ---
 
@@ -280,6 +297,91 @@ user = await User.get(id=user_id)                   # Tortoise / SQLAlchemy / Dj
 
 ---
 
+## 11. Outbound calls — SSRF guard (OWASP 2025 still relevant)
+
+SSRF was demoted from a top-level OWASP category in the 2025 list but remains in scope. Any time you fetch a URL the user controls (preview cards, webhooks, image proxies), validate the destination:
+
+```python
+import ipaddress
+import socket
+from urllib.parse import urlparse
+import httpx
+
+PRIVATE = ipaddress.collapse_addresses([
+    ipaddress.ip_network("10.0.0.0/8"),
+    ipaddress.ip_network("172.16.0.0/12"),
+    ipaddress.ip_network("192.168.0.0/16"),
+    ipaddress.ip_network("169.254.0.0/16"),     # link-local + AWS metadata
+    ipaddress.ip_network("127.0.0.0/8"),
+    ipaddress.ip_network("::1/128"),
+])
+
+def safe_url(url: str) -> str:
+    p = urlparse(url)
+    if p.scheme not in {"http", "https"}:
+        raise ValueError("scheme")
+    host = p.hostname
+    if not host:
+        raise ValueError("host")
+    for fam, _, _, _, sockaddr in socket.getaddrinfo(host, None):
+        ip = ipaddress.ip_address(sockaddr[0])
+        if any(ip in net for net in PRIVATE):
+            raise ValueError("private")
+    return url
+
+async def fetch_user_url(url: str):
+    safe_url(url)
+    async with httpx.AsyncClient(timeout=10.0, follow_redirects=False) as c:
+        return await c.get(url)
+```
+
+Disable redirect-following or re-validate every hop — otherwise an attacker can redirect from a public IP to `169.254.169.254` (cloud metadata).
+
+## 12. OWASP 2025 deltas — Python specifics
+
+### §A03 — Software Supply Chain Failures (NEW in 2025)
+
+```toml
+# pyproject.toml — pin everything; uv produces a deterministic lockfile
+[project]
+dependencies = ["fastapi>=0.115,<0.116", "pydantic>=2.6,<3"]
+
+[tool.uv]
+dev-dependencies = ["pip-audit>=2.7", "ruff>=0.5"]
+```
+
+```bash
+# Lock + verify in CI
+uv lock --check                              # fails if lockfile drifted
+uv export --format requirements-txt --no-dev | pip-audit -r /dev/stdin --strict
+```
+
+- Use `uv` (or Poetry) to produce a deterministic lockfile; never `pip install` without one in production.
+- Run `pip-audit` (PyPA) **and** subscribe to GHSA advisories for your deps.
+- Pin GitHub Actions by SHA, not tag — see `_shared/skills/secrets-management`.
+
+### §A10 — Mishandling Exceptional Conditions (NEW in 2025)
+
+```python
+# WRONG — silently swallows everything, including programming bugs
+try:
+    user = await get_user(id)
+except Exception:
+    user = None
+
+# CORRECT — narrow except + log + propagate or translate
+try:
+    user = await get_user(id)
+except UserNotFoundError:
+    raise HTTPException(404, "user not found")
+except DatabaseUnavailableError as e:
+    logger.exception("db-down", extra={"user_id": id})
+    raise HTTPException(503, "service unavailable") from e
+# Programming errors (KeyError, TypeError) are NOT caught — let the global handler 500 + log
+```
+
+Bare `except Exception:` (or worse, `except:`) is now an explicit OWASP pattern to flag. Use `logger.exception()` so the stack trace lands in logs, return a **generic** message to the client, never the original exception text.
+
 ## Endpoint Checklist
 
 - [ ] `Depends(current_user)` for protected routes
@@ -306,7 +408,8 @@ user = await User.get(id=user_id)                   # Tortoise / SQLAlchemy / Dj
 
 ## See Also
 
-- `security-baseline` — OWASP Top 10
-- `secrets-management` — env vars, rotation
-- `pydantic-validation` — schema patterns
-- `observability` — structured logs without PII
+- `_shared/skills/security-baseline` v2 — OWASP Top 10:2025 (§A01–§A10 anchors)
+- `_shared/skills/secrets-management` v2 — OIDC federation, gitleaks 3-layer, SOPS+age
+- `_shared/skills/observability` v2 — structured logs without PII, GenAI semconv 1.41+
+- `pydantic-validation` v2 — `extra="forbid"` against mass-assignment
+- `fastapi-patterns` v2 — lifespan, DI, exception handlers
