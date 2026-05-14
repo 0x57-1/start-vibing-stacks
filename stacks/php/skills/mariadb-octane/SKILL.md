@@ -1,11 +1,90 @@
 ---
 name: mariadb-octane
-version: 1.0.0
+version: 2.0.0
+description: "MariaDB patterns for Laravel Octane (long-lived workers) targeting MariaDB 11.8 LTS (released 2025, supported until June 2028). Octane-safe connection config (PERSISTENT + EMULATE_PREPARES off + STRICT_TRANS_TABLES + utf8mb4 default in 11.8), automatic flush on request boundary, Octane::tick health probes, MariaDB 11.8 features (VECTOR data type + VEC_DISTANCE_*, JSON Schema validation, system-versioned temporal tables, TIMESTAMP range to 2106, PARSEC auth plugin, parallel mariadb-dump), strict migrations with explicit lengths, composite/covering indexes, cursor pagination, transaction safety in workers, immutable_datetime casts. Invoke for any query, migration, model, or DB config in Laravel Octane."
 ---
 
-# MariaDB + Octane — Database Patterns for Persistent Workers
+# MariaDB + Octane — Database Patterns (MariaDB 11.8 LTS, 2026)
 
 **ALWAYS invoke when writing queries, migrations, models, or DB config in Laravel Octane.**
+
+## MariaDB 11.8 LTS — what changed (release Jun 2025; LTS until Jun 2028)
+
+MariaDB 11.8 supersedes 11.4 LTS. Adopt for new projects; plan migration for existing.
+
+| Feature | Why it matters |
+|---|---|
+| **Default charset is now `utf8mb4`** (was `latin1` for ~20 years) | New tables don't need explicit charset; old tables stay as-is until ALTERed |
+| **Native `VECTOR` type + `VEC_DISTANCE_COSINE` / `VEC_DISTANCE_EUCLIDEAN`** | Embeddings + similarity search in the same DB — RAG without a separate vector store. SIMD on AVX2/AVX512/ARM/PowerPC |
+| **JSON Schema validation** at column level | Constrain `JSON` columns instead of validating only in PHP |
+| **System-versioned (temporal) tables** | Native row history, point-in-time queries — replaces hand-rolled audit tables |
+| **`TIMESTAMP` range extended to 2106** | The 2038 problem is fixed for new schemas |
+| **PARSEC auth plugin** (Password Auth Response Signed by Elliptic Curves) | Stronger than `mysql_native_password`; safer than `caching_sha2_password` for SSL-less internal hops |
+| **Parallel `mariadb-dump` / `mariadb-import`** | Backup/restore minutes instead of hours on multi-GB DBs |
+
+### Vector search example (RAG-style)
+
+```sql
+-- MariaDB 11.7+
+CREATE TABLE doc_chunks (
+    id     INT AUTO_INCREMENT PRIMARY KEY,
+    text   TEXT NOT NULL,
+    embedding VECTOR(1536) NOT NULL,                -- e.g. text-embedding-3-small
+    VECTOR INDEX (embedding) USING HNSW             -- approximate nearest neighbor
+);
+
+-- Similarity search
+SELECT id, text, VEC_DISTANCE_COSINE(embedding, VEC_FromText(?)) AS distance
+FROM   doc_chunks
+ORDER  BY distance
+LIMIT  5;
+```
+
+```php
+// Eloquent — bind embedding as a JSON-encoded array of floats; MariaDB driver coerces
+$results = DB::select(
+    'SELECT id, text, VEC_DISTANCE_COSINE(embedding, VEC_FromText(?)) AS distance
+       FROM doc_chunks ORDER BY distance LIMIT 5',
+    [json_encode($queryEmbedding)],
+);
+```
+
+### System-versioned tables (audit history without triggers)
+
+```sql
+CREATE TABLE accounts (
+    id      INT PRIMARY KEY,
+    balance DECIMAL(12,2) NOT NULL,
+    PERIOD FOR system_time(start_ts, end_ts),
+    start_ts TIMESTAMP(6) GENERATED ALWAYS AS ROW START,
+    end_ts   TIMESTAMP(6) GENERATED ALWAYS AS ROW END
+) WITH SYSTEM VERSIONING;
+
+-- Query historical state
+SELECT * FROM accounts FOR SYSTEM_TIME AS OF '2026-04-01 12:00:00';
+SELECT * FROM accounts FOR SYSTEM_TIME BETWEEN '2026-04-01' AND '2026-05-01';
+```
+
+Replaces hand-rolled `accounts_history` tables fed by triggers — MariaDB does it natively, including `pg_dump`-style point-in-time queries.
+
+### JSON Schema column constraint
+
+```sql
+ALTER TABLE leads
+    MODIFY metadata JSON
+    CHECK (JSON_SCHEMA_VALID('{
+        "type": "object",
+        "required": ["source", "campaign"],
+        "properties": {
+            "source":   { "type": "string" },
+            "campaign": { "type": "string" }
+        }
+    }', metadata));
+```
+
+Bad payloads now fail at INSERT time, not at the next time PHP tries to read them.
+
+---
 
 ## Why Octane Changes Everything
 
@@ -39,8 +118,9 @@ Problems in Octane:
     'database' => env('DB_DATABASE'),
     'username' => env('DB_USERNAME'),
     'password' => env('DB_PASSWORD'),
-    'charset' => 'utf8mb4',
-    'collation' => 'utf8mb4_unicode_ci',
+    'charset' => 'utf8mb4',                  // default in MariaDB 11.8 — keep explicit for older servers
+    'collation' => 'utf8mb4_uca1400_ai_ci',   // 11.x — Unicode 14, accent-insensitive, case-insensitive
+                                              // (use utf8mb4_unicode_ci on MariaDB ≤ 10.11 / MySQL)
     'prefix' => '',
     'strict' => true,                    // ← MANDATORY
     'engine' => 'InnoDB',
@@ -388,3 +468,15 @@ Route::get('/health', function () {
 | `Lead::count()` on millions of rows | Cached count or approximate count |
 | `'metadata' => 'json'` cast | `'metadata' => 'array'` (auto decode) |
 | `datetime` cast | `immutable_datetime` (Octane-safe, no mutation) |
+| Hand-rolled `*_history` tables fed by triggers | System-versioned (`WITH SYSTEM VERSIONING`) — MariaDB 11.x |
+| Storing embeddings as `LONGTEXT` JSON | Native `VECTOR(N)` + `VEC_DISTANCE_*` (MariaDB 11.7+) |
+| Validating JSON only in PHP | Add `JSON_SCHEMA_VALID` CHECK constraint on the column |
+
+## See Also
+
+- `_shared/skills/postgres-patterns` — analogous skill on the Postgres side (PG 18 features); MariaDB-specific equivalents documented here
+- `_shared/skills/database-migrations` — universal parallel-change / backfill rules
+- `laravel-octane` — worker safety rules this skill plugs into
+- `php-patterns` — `readonly`, enums, immutable_datetime that pair with Eloquent casts
+- `phpstan-analysis` (Larastan) — model PHPDoc generation makes Eloquent type-safe
+- `api-design` — pagination shape that backend cursor pagination feeds

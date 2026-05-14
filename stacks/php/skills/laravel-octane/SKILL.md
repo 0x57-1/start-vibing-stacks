@@ -1,15 +1,26 @@
 ---
 name: laravel-octane
-version: 1.0.0
+version: 2.0.0
+description: "Laravel Octane patterns for production 2026 — covers FrankenPHP (recommended for new projects: single binary, automatic HTTPS, HTTP/3, early hints, Brotli, ~5× FPM throughput), RoadRunner (mature, best raw RPS, gRPC/WebSocket), and Swoole (best for I/O-heavy workloads via coroutines). Long-lived worker rules: no static state, no globals, no superglobals, no config() mutations, no die/exit/dd, scoped bindings instead of singletons, persistent DB connections with Octane flush, instance-scoped memoization. Includes server selection matrix and per-server config. Invoke when adopting Octane, choosing a server, debugging worker leaks, or hardening for persistent processes."
 ---
 
-# Laravel Octane (RoadRunner) Patterns
+# Laravel Octane Patterns (FrankenPHP / RoadRunner / Swoole)
 
 ## How Octane Works
 
 Octane runs your app in a **long-lived worker process**. The application boots ONCE and handles many requests without restarting. This is fundamentally different from traditional PHP where each request boots a fresh process.
 
 **Consequence:** Any state stored in static properties, globals, or singletons persists across requests and can leak between users.
+
+## Server Selection — 2026 matrix
+
+| Server | When to choose | Strengths | Trade-offs |
+|---|---|---|---|
+| **FrankenPHP** | New projects; teams that value simplicity | Single Go binary; automatic HTTPS via Caddy; **HTTP/3**, early hints, Brotli; 5× PHP-FPM in 2025 benchmarks | Smaller community; weaker under heavy I/O latency |
+| **RoadRunner** | Production at scale; need consistent top-tier RPS | Battle-tested; ~111% higher RPS than FPM; gRPC + WebSocket built-in; rich plugin ecosystem | Steeper DevOps curve; YAML config |
+| **Swoole** | Workloads dominated by 200–500 ms I/O waits (DB, upstream APIs) | Coroutine concurrency shines under high I/O latency | Lower RPS in light-I/O workloads; smaller adoption for new apps |
+
+Default recommendation for new Laravel 12 projects in 2026: **FrankenPHP** (developer experience + modern HTTP). Pick **RoadRunner** if you've already standardized on it or need its specific features.
 
 ## Critical Rules
 
@@ -164,6 +175,67 @@ app()->singleton('cart', fn () => new Cart());
 app()->scoped('cart', fn () => new Cart());
 // Fresh instance per request, cleared between requests
 ```
+
+## FrankenPHP Configuration *(2026 default)*
+
+Single binary; Caddy-based HTTPS; no PHP extension required.
+
+```bash
+composer require laravel/octane
+php artisan octane:install --server=frankenphp
+php artisan octane:start --server=frankenphp --workers=4 --max-requests=500
+```
+
+`Caddyfile` (production-grade, with HTTP/3 + early hints):
+
+```caddyfile
+{
+    frankenphp
+    order php_server before file_server
+    servers {
+        protocols h1 h2 h2c h3
+    }
+}
+
+api.example.com {
+    encode br zstd gzip
+    root * public/
+    php_server {
+        worker /path/to/public/frankenphp-worker.php 4
+    }
+    header ?Permissions-Policy "interest-cohort=()"
+    header Early-Hints rel=preload
+}
+```
+
+`public/frankenphp-worker.php` (worker mode — what gives you the 5× speedup):
+
+```php
+<?php
+ignore_user_abort(true);
+require __DIR__.'/../vendor/autoload.php';
+$app = require __DIR__.'/../bootstrap/app.php';
+$kernel = $app->make(Illuminate\Contracts\Http\Kernel::class);
+
+$max = (int)($_SERVER['MAX_REQUESTS'] ?? 500);
+for ($i = 0; $i < $max; $i++) {
+    $keepRunning = \frankenphp_handle_request(function () use ($kernel) {
+        $request = Illuminate\Http\Request::capture();
+        $response = $kernel->handle($request);
+        $response->send();
+        $kernel->terminate($request, $response);
+    });
+    gc_collect_cycles();
+    if (!$keepRunning) break;
+}
+```
+
+| Setting | Where | Notes |
+|---|---|---|
+| `--workers` | CLI | Defaults to CPU cores; tune to CPU/IO ratio |
+| `--max-requests` | CLI | Restart worker after N requests (memory safety, like RoadRunner's `max_jobs`) |
+| `protocols h3` | Caddyfile | Enable HTTP/3 (QUIC) — single biggest mobile-network win |
+| `Early-Hints` header | Response | Browser preloads CSS/JS during PHP think-time |
 
 ## RoadRunner Configuration (rr.yaml)
 

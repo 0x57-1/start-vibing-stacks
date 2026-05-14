@@ -1,23 +1,37 @@
 ---
 name: external-api-patterns
-version: 1.0.0
+version: 2.0.0
+description: "Laravel patterns for consuming external APIs / SDKs / webhooks (2026). Two recommended approaches: (1) Laravel HTTP Client (`Http::`) wrapped in a Service for one-off integrations; (2) Saloon v3 for SDK-style integrations with multiple endpoints (Connectors + Requests + Responses, retry/auth/middleware/pagination first-class, mock client for testing, Laravel plugin). Octane-safe (no static client state), typed DTOs, typed exceptions, structured logging, idempotent webhook reception with signature verification (2025-A10 fail-closed). Invoke when adding any third-party integration or webhook handler."
 ---
 
-# External API Patterns — HTTP Client for Laravel + Octane
+# External API Patterns — Laravel + Octane (2026)
 
 **ALWAYS invoke when consuming external APIs, webhooks, or third-party services.**
+
+## Choose your tool
+
+| Scenario | Tool |
+|---|---|
+| 1–3 endpoints from one vendor, simple req/res | Laravel `Http::` Client wrapped in a Service |
+| SDK-shaped integration: many endpoints, auth flows, pagination, custom responses | **Saloon v3** (Connectors + Requests + Responses) |
+| Vendor publishes its own SDK | Use the SDK; still wrap in a Service for testability |
+
+Either way: **never call `Http::` or a vendor SDK directly from a Controller**. Always go through an injected Service.
 
 ## Architecture
 
 ```
-Controller/Job
-  → ApiService (business logic)
-    → Http::withOptions() (Laravel HTTP Client)
-      → Response handling (DTO)
-        → Error handling (typed exceptions)
-          → Logging + monitoring
-
-NEVER call Http:: directly in controllers. Always through a Service.
+Controller / Job / Listener
+        ↓
+ApiService (business logic, transactions)
+        ↓
+HTTP transport
+  ├── Http::baseUrl(...) → response()->json()        (Laravel Client path)
+  └── new Connector → ->send(new Request())          (Saloon path)
+        ↓
+Typed DTO (readonly class)
+        ↓
+Typed exception on failure / log + return on success
 ```
 
 ## Service Pattern
@@ -308,99 +322,156 @@ class AiModelController extends Controller
 }
 ```
 
-## Frontend Consumption (React + Inertia)
+## Saloon v3 — SDK-style integrations *(2026 recommended)*
 
-```tsx
-// resources/js/services/api.ts
-import axios, { AxiosError } from 'axios';
+Use when the integration has **many endpoints, auth flows, pagination, or warrants its own folder**. Saloon turns "an API" into an OOP shape: a `Connector` (base URL + auth + middleware) plus one `Request` per endpoint plus optional custom `Response` classes.
 
-interface ApiResponse<T> {
-    success: boolean;
-    message: string;
-    data: T;
-    errors?: Record<string, string[]>;
-}
+### Install
 
-interface ApiErrorResponse {
-    success: false;
-    message: string;
-    errors?: Record<string, string[]>;
-    retry_after?: number;
-}
+```bash
+composer require saloonphp/saloon "^3.0"
+composer require saloonphp/laravel-plugin "^4.0"   # Laravel integration
+php artisan vendor:publish --tag=saloon-config
+```
 
-export async function apiCall<T>(
-    method: 'get' | 'post' | 'put' | 'delete',
-    url: string,
-    data?: unknown,
-): Promise<T> {
-    try {
-        const response = await axios({ method, url, data });
-        const body = response.data as ApiResponse<T>;
-        if (!body.success) throw new ApiError(body.message, response.status);
-        return body.data;
-    } catch (error) {
-        if (error instanceof AxiosError) {
-            const body = error.response?.data as ApiErrorResponse;
-            const status = error.response?.status ?? 500;
+### Folder layout
 
-            if (status === 429) {
-                throw new RateLimitError(body?.retry_after ?? 60);
-            }
-            if (status === 422 && body?.errors) {
-                throw new ValidationError(body.message, body.errors);
-            }
-            throw new ApiError(body?.message ?? 'Connection failed', status);
-        }
-        throw error;
+```
+app/Http/Integrations/
+└── OpenAi/
+    ├── OpenAiConnector.php
+    ├── Requests/
+    │   ├── ChatCompletion.php
+    │   └── Embeddings.php
+    └── Responses/
+        └── ChatCompletionResponse.php
+```
+
+### Connector
+
+```php
+// app/Http/Integrations/OpenAi/OpenAiConnector.php
+namespace App\Http\Integrations\OpenAi;
+
+use Saloon\Http\Connector;
+use Saloon\Http\Auth\TokenAuthenticator;
+use Saloon\Traits\Plugins\AcceptsJson;
+use Saloon\RateLimitPlugin\Traits\HasRateLimits;
+
+class OpenAiConnector extends Connector
+{
+    use AcceptsJson;
+    use HasRateLimits;
+
+    public function resolveBaseUrl(): string
+    {
+        return config('services.openai.base_url', 'https://api.openai.com/v1');
+    }
+
+    protected function defaultHeaders(): array
+    {
+        return ['User-Agent' => 'myapp/1.0'];
+    }
+
+    protected function defaultAuth(): TokenAuthenticator
+    {
+        return new TokenAuthenticator(config('services.openai.key'));
+    }
+
+    protected function defaultConfig(): array
+    {
+        return ['timeout' => 30, 'connect_timeout' => 5];
     }
 }
+```
 
-// Typed errors
-export class ApiError extends Error {
-    constructor(message: string, public status: number) { super(message); }
-}
-export class ValidationError extends ApiError {
-    constructor(message: string, public errors: Record<string, string[]>) { super(message, 422); }
-}
-export class RateLimitError extends ApiError {
-    constructor(public retryAfter: number) { super('Too many requests', 429); }
+### Request
+
+```php
+// app/Http/Integrations/OpenAi/Requests/ChatCompletion.php
+namespace App\Http\Integrations\OpenAi\Requests;
+
+use Saloon\Contracts\Body\HasBody;
+use Saloon\Enums\Method;
+use Saloon\Http\Request;
+use Saloon\Traits\Body\HasJsonBody;
+
+class ChatCompletion extends Request implements HasBody
+{
+    use HasJsonBody;
+
+    protected Method $method = Method::POST;
+
+    public function __construct(
+        protected readonly string $model,
+        protected readonly array  $messages,
+        protected readonly float  $temperature = 0.7,
+    ) {}
+
+    public function resolveEndpoint(): string { return '/chat/completions'; }
+
+    protected function defaultBody(): array
+    {
+        return [
+            'model'       => $this->model,
+            'messages'    => $this->messages,
+            'temperature' => $this->temperature,
+        ];
+    }
 }
 ```
 
-### React Component Usage
+### Calling from a Service
 
-```tsx
-const LABELS = {
-    generating: __('messages.ai.generating'),
-    error: __('messages.errors.error'),
-    rateLimited: __('messages.errors.rate_limited'),
-} as const;
+```php
+namespace App\Services\External;
 
-export default function AiChat() {
-    const [loading, setLoading] = useState(false);
+use App\Http\Integrations\OpenAi\OpenAiConnector;
+use App\Http\Integrations\OpenAi\Requests\ChatCompletion;
+use App\DTOs\Api\ChatCompletionResponse;
 
-    const generate = async () => {
-        setLoading(true);
-        try {
-            const result = await apiCall<{ content: string }>('post', route('api.v1.ai.generate'), {
-                model: 'gpt-4',
-                messages: [{ role: 'user', content: prompt }],
-            });
-            setResponse(result.content);
-        } catch (error) {
-            if (error instanceof RateLimitError) {
-                toast.error(`${LABELS.rateLimited} (${error.retryAfter}s)`);
-            } else if (error instanceof ValidationError) {
-                Object.values(error.errors).flat().forEach(msg => toast.error(msg));
-            } else {
-                toast.error(error instanceof ApiError ? error.message : LABELS.error);
-            }
-        } finally {
-            setLoading(false);
-        }
-    };
+class OpenAiService
+{
+    public function __construct(private readonly OpenAiConnector $api) {}
+
+    public function chat(string $model, array $messages): ChatCompletionResponse
+    {
+        $response = $this->api
+            ->send(new ChatCompletion($model, $messages))
+            ->throw();
+        return ChatCompletionResponse::fromArray($response->json());
+    }
 }
 ```
+
+### Test with Saloon's MockClient
+
+```php
+use Saloon\Http\Faking\MockClient;
+use Saloon\Http\Faking\MockResponse;
+use App\Http\Integrations\OpenAi\Requests\ChatCompletion;
+
+it('returns the assistant message', function () {
+    $mock = new MockClient([
+        ChatCompletion::class => MockResponse::make(['choices' => [['message' => ['content' => 'hi']]], 'usage' => ['prompt_tokens' => 1, 'completion_tokens' => 1]], 200),
+    ]);
+    app(OpenAiConnector::class)->withMockClient($mock);
+
+    $resp = app(OpenAiService::class)->chat('gpt-4', [['role' => 'user', 'content' => 'hi']]);
+    expect($resp->content)->toBe('hi');
+});
+```
+
+### When Saloon shines vs raw `Http::`
+
+- **Auth is non-trivial** (OAuth2 device flow, signed requests, paginated tokens)
+- **Pagination** (cursor / page / link-header) — Saloon ships first-class paginators
+- **Many endpoints** sharing the same base config — DRY via the Connector
+- **Test coverage matters** — `MockClient` captures request shape, not just HTTP verb
+- **Ratelimit awareness** — `HasRateLimits` plugin tracks per-connector budgets
+- **Want the API to feel like a vendor SDK** to your call sites
+
+For 1-2 throwaway endpoints, raw `Http::` is fine — don't over-engineer.
 
 ## Octane Safety
 
@@ -513,6 +584,17 @@ Log::error('[ServiceName] API failed', [
 | `static $client` in Octane | Instance `$this->client` per request |
 | No timeout on HTTP calls | `->timeout(30)->connectTimeout(5)` |
 | No retry logic | `->retry(3, backoff, when)` |
-| Webhook without signature check | ALWAYS verify signatures |
+| Webhook without signature check | ALWAYS verify signatures (2025-A10 fail-closed) |
 | Webhook sync processing | Dispatch job for async |
 | `dd()` / `dump()` API responses | Structured `Log::info/error` |
+| Many endpoints inlined as `Http::` calls | Promote to Saloon Connector + Requests |
+| Mocking Saloon by stubbing `Http::` | Use `MockClient` (matches by Request class) |
+
+## See Also
+
+- `axios-laravel-api` (frontend) — the React side that consumes this Laravel API
+- `api-design` / `api-security` — request shape + Sanctum patterns
+- `_shared/skills/security-baseline` (2025-A03 + 2025-A10) — supply chain + fail-closed
+- `_shared/skills/observability` — structured logging + redaction
+- `mariadb-octane` — transaction safety when API call participates in a DB transaction
+- `phpunit-testing` — Pest 4 patterns for Saloon `MockClient` and `Http::fake()`

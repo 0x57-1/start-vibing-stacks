@@ -8,38 +8,46 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.16.0 — `_shared` skills batch 2: 10 skills bumped to
-v2.0.0 with 100% confirmed 2026 facts; 8 kept at v1.0.0 (no concrete
-update path). Bumped: **security-baseline** (OWASP Top 10:2025
-released Nov 2025 — SSRF removed/folded into A01, Software Supply
-Chain Failures NEW at A03, Mishandling of Exceptional Conditions
-NEW at A10; §A01–§A10 anchors KEPT STABLE for security-auditor
-cross-refs). **secrets-management** (OIDC federation 2026 default
-for CI/CD; gitleaks 3-layer pattern: pre-commit + CI +
-GitHub Push Protection; 28.65M secrets leaked on GitHub in 2025).
-**playwright-automation** (Playwright 1.60: Agents 1.56,
-HAR API 1.60, screencast 1.59, UI Mode v2 search/system-theme 1.58).
-**observability** (OTel semconv 1.41 + GenAI semconv for
-Anthropic / OpenAI / Bedrock / Azure AI / MCP — events not deprecated
-attrs). **postgres-patterns** (PG 18 Sept 2025: uuidv7(), virtual
-generated columns default, temporal constraints, AIO 3× perf,
-skip-scan, OAuth 2.0). **docker-patterns** (Compose Bake default
-since Jun 2025, distroless/chiseled non-root, additional_contexts,
-build-time secret mounts). **openapi-design** (OpenAPI 3.2 Sept 2025
-backward-compat: SSE native, JSON Lines, hierarchical tags,
-QUERY method, $self). **hook-development** (Claude Code 9 events:
-Session{Start,End}, PreCompact, SubagentStop added; execFileSync
-example). **git-workflow** (no AI-attribution footers; aligns with
-commit-manager v2.0.0). **ui-ux-audit** (WCAG 2.2 AA — 24×24 target,
-focus-not-obscured, redundant entry / accessible auth). Kept v1.0.0:
-accessibility-wcag22, database-migrations, error-handling,
-ci-pipelines, quality-gate, test-coverage, debugging-patterns,
-performance-patterns. Earlier: v2.15.0 — _shared batch 1
-(codebase-knowledge, docs-tracker, research-cache + 4 commands).
-v2.14.0 — domain-updater + commit-manager v2.0.0. v2.13.0 —
-documenter v2.0.0. v2.12.0 — security-auditor v2.0.0. v2.11.1 — CI
-Node 22. v2.11.0 — research-web v2.0.0 MCP-first. v2.10.0 —
-claude-md-compactor v2.0.0. v2.9.0 — PHP API-first.
+**Summary:** v2.17.0 — PHP stack skills batch: 8 skills bumped to
+v2.0.0 with confirmed 2026 facts. **php-patterns** (PHP 8.4 Nov 2024:
+property hooks replace getter/setter boilerplate; asymmetric
+visibility `public private(set)`; lazy objects via Reflection;
+new JIT IR; `array_find/any/all`; HTML5 DOM). **laravel-octane**
+(server matrix: FrankenPHP recommended for new projects — single
+binary, automatic HTTPS, HTTP/3, early hints, Brotli, ~5× FPM in
+2025 benchmarks; RoadRunner for raw RPS / gRPC; Swoole for I/O
+bound; FrankenPHP Caddyfile + worker.php example).
+**composer-workflow** (Composer 2.8 Oct 2024: `audit --abandoned`,
+`--ignore-severity`, exit codes 1/2/3; `--patch-only` updates;
+production install with `--no-scripts` 2025-A03 supply-chain;
+Roave Security Advisories pinned in dev). **phpstan-analysis**
+(PHPStan 2.0 Nov 2024: Level 10 strict mixed even from inferred,
+`list<T>` array type, 50-70% memory drop; Larastan 3 mandatory on
+Laravel; baseline workflow; `--error-format=github`).
+**phpunit-testing** (Pest 4 Mar 2026 + PHPUnit 12: browser testing
+via Playwright, visual regression, mutation testing, sharding,
+architecture tests; PHPUnit 12 `#[Test]` attribute deprecates
+`@test`; coverage thresholds). **security-scan-php** (Laravel
+overlay on `_shared/security-baseline` v2.0.0; preserves §A01–§A10
+anchors; adds 2025-A03 supply-chain section with composer audit +
+Roave + gitleaks 3-layer; new 2025-A10 Mishandling Exceptional
+Conditions section with Laravel-specific webhook/transaction/Octane
+fail-closed patterns). **external-api-patterns** (Saloon v3 added
+as recommended for SDK-style integrations: Connectors + Requests +
+Responses + MockClient + HasRateLimits + Laravel plugin; raw `Http::`
+kept for 1-3 endpoints; removed legacy React+Inertia consumption
+block — moved to `axios-laravel-api` skill). **mariadb-octane**
+(MariaDB 11.8 LTS Jun 2025, supported until Jun 2028: native
+`VECTOR(N)` + `VEC_DISTANCE_COSINE` SIMD HNSW for RAG; system-
+versioned temporal tables; JSON Schema CHECK constraints; default
+charset utf8mb4; TIMESTAMP range to 2106; PARSEC auth; parallel
+mariadb-dump; collation utf8mb4_uca1400_ai_ci). Only
+`laravel-api-architecture` kept at v1.0.0 (created in v2.9.0 already
+API-first aligned). PHP stack: 13/14 skills now v2.0.0. Earlier:
+v2.16.0 — _shared batch 2 (10 skills incl. OWASP 2025, PG 18,
+Compose Bake, Playwright 1.60, OTel GenAI). v2.15.0 — _shared batch
+1. v2.14.0 — domain-updater + commit-manager v2.0.0. v2.13.0 —
+documenter v2.0.0. v2.12.0 — security-auditor v2.0.0.
 
 ---
 
