@@ -1,6 +1,6 @@
 {
   "name": "start-vibing-stacks",
-  "version": "2.20.0",
+  "version": "2.21.0",
   "description": "AI-powered multi-stack dev workflow for Claude Code. Supports PHP, Node.js, Python and more.",
   "type": "module",
   "bin": {

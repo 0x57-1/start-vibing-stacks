@@ -1,6 +1,6 @@
 ---
 name: nextjs-app-router
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Next.js App Router — Modern Patterns
@@ -323,6 +323,147 @@ See `error-handling` Pattern 5 for circuit breaker tuning and Pattern 4 for retr
 - [ ] Tested: duplicate delivery → 200 (no duplicate side-effect)
 - [ ] Tested: invalid signature → 401, never reaches the parser
 
+---
+
+## Build Script Hygiene (Vercel / CI — silent deploy killer)
+
+> **Vercel sets `NODE_ENV=production` during deploy**, which causes `npm
+> install` to **omit `devDependencies`**. Any binary your `build` /
+> `prebuild` / `postinstall` script invokes must be resolvable from
+> `dependencies` (or `node_modules/.bin` shipped via a prod dep) —
+> otherwise you get `sh: line 1: <tool>: command not found` and
+> `Error: Command "npm run build" exited with 127` at deploy time, even
+> though `bun run build` worked locally.
+
+This is **not** a Next.js bug. Same trap exists on Vercel Functions,
+Netlify, Cloudflare Pages, Railway, Render, Fly.io, AWS Amplify, Docker
+multi-stage builds, and any CI runner that respects `NODE_ENV` or runs
+`npm ci --omit=dev`.
+
+### Common Offenders (devDep tools invoked from `scripts`)
+
+| Tool | Typical wrong usage | Why it breaks |
+|---|---|---|
+| `tsx` | `"build": "tsx scripts/seed.ts && next build"` | `tsx` is dev-only; not installed on Vercel |
+| `ts-node` | `"prebuild": "ts-node ./gen.ts"` | Same — `ts-node` rarely in `dependencies` |
+| `tsc` | `"prebuild": "tsc -p tsconfig.gen.json"` | `typescript` is conventionally a devDep |
+| `vitest` / `jest` | `"prebuild": "vitest run"` | Test runners are dev-only |
+| `eslint` / `prettier` / `biome` | `"build": "eslint . && next build"` | Linters are dev-only |
+| `tailwindcss` (CLI) | `"build": "tailwindcss -i ... && next build"` | Next.js handles Tailwind via its compiler; the standalone CLI is dev-only |
+| `prisma` | `"postinstall": "prisma generate"` | **OK** only if `prisma` is in `dependencies` (it should be) — generation needs the CLI on every install |
+
+### The Rule
+
+Anything referenced in `scripts.build`, `scripts.prebuild`,
+`scripts.postbuild`, `scripts.start`, `scripts.postinstall`,
+`scripts.prepare`, `scripts.prepublishOnly` must be one of:
+
+1. A Node-builtin (`node`, plain shell)
+2. Prefixed with `npx` / `bunx` / `pnpm exec` (downloads on demand — slow, fragile)
+3. The package's own `bin` entry
+4. Present in `dependencies` (not just `devDependencies`)
+5. A plain-Node script: `node scripts/foo.mjs` (zero deps; works everywhere)
+
+### Fix Vectors (in order of preference)
+
+#### 1. Convert TS scripts to zero-dep `.mjs` (BEST for tiny utilities)
+
+```jsonc
+// BEFORE — fails on Vercel
+{ "scripts": { "prebuild": "tsx scripts/check-routes.ts" } }
+
+// AFTER — works everywhere, no devDep needed
+{ "scripts": { "prebuild": "node scripts/check-routes.mjs" } }
+```
+
+Use modern Node features (`node:fs/promises`, top-level `await`,
+`import.meta`). Bun, Node 20+, and every CI runner support `.mjs`
+natively.
+
+#### 2. Move the tool to `dependencies` (when you genuinely need the runtime tool)
+
+```bash
+# Prisma client generation — needs the CLI on every install
+bun remove -D prisma
+bun add prisma
+```
+
+Costs: larger node_modules in prod. Acceptable for runtime-needed CLIs
+(`prisma`, sometimes `tsx` if you have many TS scripts).
+
+#### 3. Configure Vercel to install devDeps (LAST RESORT — global override)
+
+```jsonc
+// vercel.json
+{ "installCommand": "npm install --include=dev" }
+```
+
+This **doubles** the install size for every deploy. Only use when you
+have a real TypeScript build pipeline that can't be migrated to `.mjs`.
+
+#### 4. Compile TS scripts ahead of time (advanced)
+
+Bundle TS utilities to `.js` with `tsup`/`esbuild` during dev, commit
+the output, run the `.js` in build. Useful for big script suites; for
+one-off utilities the `.mjs` approach is simpler.
+
+### Why "It Works on My Machine"
+
+| Environment | Behavior |
+|---|---|
+| Local `bun install` | Installs ALL deps by default (including devDeps) |
+| Local `bun run build` | `node_modules/.bin/tsx` exists → succeeds |
+| Local `npm install` (no flags) | Installs ALL deps (devDeps included unless `NODE_ENV=production`) |
+| Vercel build step | Runs with `NODE_ENV=production` → devDeps **stripped** → `tsx` missing |
+| Docker `FROM node:20` + `npm ci --omit=dev` | Same as Vercel |
+| GitHub Actions default | Installs ALL deps unless workflow explicitly sets `NODE_ENV=production` |
+
+The asymmetry is the trap. Local dev and CI accidentally agree; deploy
+disagrees. Catch it statically.
+
+### Static Check (CI gate — mandatory)
+
+The stack ships `scripts/check-build-scripts.mjs` (zero deps). It parses
+`package.json`, walks every deploy-time script (`build`, `prebuild`,
+`postbuild`, `start`, `postinstall`, `prepare`, `prepublishOnly`),
+tokenises the command, and flags any token that is:
+
+- A known dev-only tool name (`tsx`, `ts-node`, `vitest`, `eslint`, ...)
+- AND not prefixed with `npx`/`bunx`/`pnpm exec`/`node`
+- AND not present in `dependencies`
+
+Wire it as `prebuild` AND in CI:
+
+```jsonc
+{
+  "scripts": {
+    "routes:check": "node scripts/check-route-slugs.mjs",
+    "build:check":  "node scripts/check-build-scripts.mjs",
+    "prebuild":     "bun run routes:check && bun run build:check",
+    "build":        "next build"
+  }
+}
+```
+
+### Stack-shipped Scripts MUST Be `.mjs`
+
+When this stack scaffolds a helper script (`check-route-slugs.mjs`,
+`check-build-scripts.mjs`, anything in `scripts/`), it is **always**
+plain `.mjs` runnable via `node`. **Never** use `.ts` requiring `tsx`
+or `ts-node`. The whole point of these scripts is to run during
+build — they have to work on Vercel.
+
+### Pre-Commit Checklist (Build Scripts)
+
+- [ ] `package.json#scripts.build` has no `tsx` / `ts-node` / dev-only CLI
+- [ ] `package.json#scripts.prebuild` (if any) is also clean
+- [ ] `package.json#scripts.postinstall` (runs on Vercel during install) is also clean
+- [ ] Any helper script in `scripts/` is `.mjs`, runnable via plain `node`
+- [ ] If a runtime tool is genuinely needed (e.g. `prisma generate`), it lives in `dependencies`, not `devDependencies`
+- [ ] Tested with `NODE_ENV=production npm ci && npm run build` locally before deploy
+
+---
+
 ## Metadata
 
 ```tsx
@@ -448,3 +589,5 @@ export async function createCheckout(priceId: string) {
 10. **Webhook business logic inline in the Route Handler** — ack 2xx fast, process async (see "Webhook Handler — Critical Path")
 11. **Skipping signature verification or parsing JSON before verifying** — always verify the raw body first
 12. **Returning 5xx from a webhook on a downstream failure** — triggers provider retry storms; ack 2xx and retry from your side
+13. **Calling `tsx` / `ts-node` / `vitest` / `eslint` directly from `scripts.build` or `scripts.prebuild`** — Vercel strips devDeps; build fails with exit 127. Convert to `.mjs` or move to `dependencies` (see "Build Script Hygiene")
+14. **Shipping helper scripts as `.ts`** — they cannot run on Vercel without `tsx` in `dependencies`. Use `.mjs` and plain `node`

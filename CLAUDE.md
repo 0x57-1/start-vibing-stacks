@@ -8,34 +8,32 @@
 
 **Branch:** main
 **Date:** 2026-05-14
-**Summary:** v2.20.0 — Node.js stack hardening from production
-post-mortem (Next.js slug crash + webhook retry storm).
-**nextjs-app-router v1.1.0** adds two CRITICAL sections.
-*Dynamic Route Slug Consistency*: documents the
-`"different slug names for the same dynamic path"` runtime
-crash that `next build`/`bun run build` does **NOT** catch
-(Next.js validates dynamic segments only at request time);
-ships the `find … -name '[*]'` pre-flight, a `prebuild:
-bun run routes:check` recipe, and the naming convention
-(`[userId]` not `[id]` across nested routes). *Webhook
-Handler — Critical Path*: reference Route Handler with raw-
-body signature verification BEFORE parse, idempotency by
-provider `event.id`, 2xx-fast ack, async hand-off to queue/
-`waitUntil`, separate processor with `opossum` circuit
-breaker; FORBIDDEN table now bans inline business logic and
-5xx-on-downstream-failure (provider retry storm). New
-zero-dep validator `stacks/nodejs/scripts/check-route-slugs.mjs`
-(walks `app/` + `src/app/`, exit 1 on conflict with the
-offending parent and slug names) wired into
-`stacks/nodejs/workflows/ci.yml` between tests and build,
-plus a `RouteSlugs` quality gate in `stacks/nodejs/stack.json`
-(order 4, `appliesTo: ["nextjs"]`). `src/setup.ts` extended
-with step 11e: copies `stacks/<stack>/scripts/` →
-`<project>/scripts/` non-destructively at install time so
-the validator ships out-of-the-box. `quality-gate` skill
-updated with the Node.js sequence note. Earlier:
-v2.19.0 React stack v2.0.0, v2.18.0 Python (9), v2.17.0
-PHP (8), v2.16.0 _shared b2, v2.15.0 b1.
+**Summary:** v2.21.0 — Third Node.js production post-mortem
+captured: deploy-time `tsx: command not found / Error: Command
+"npm run build" exited with 127` on Vercel. Root cause:
+`NODE_ENV=production` on Vercel/Docker/CI strips devDependencies,
+so any binary called from `scripts.build` / `prebuild` /
+`postinstall` that's only in `devDependencies` (tsx, ts-node,
+vitest, eslint, …) is unreachable; works locally because Bun and
+`npm install` (no flags) install everything. **nextjs-app-router
+v1.2.0** adds a "Build Script Hygiene (Vercel / CI)" section
+with the asymmetry table, the rule, 4 fix vectors (`.mjs`
+conversion > move-to-deps > `npx`/`bunx` > Vercel
+`installCommand` override), and a stack-shipped-scripts MUST-be-
+`.mjs` invariant. **bun-runtime v1.1.0** prepends a
+"Deploy-Time Asymmetry (READ FIRST)" note pointing at the same
+rule. New zero-dep validator `stacks/nodejs/scripts/
+check-build-scripts.mjs` parses `package.json#scripts`,
+tokenises commands (handles `&&`/`||`/`;`/`npx`/`bunx`/
+`pnpm exec`/`cross-env`/env-var prefixes), and flags any
+deploy-time script that calls a known dev-only tool without a
+wrapper while it's not in `dependencies`. Wired into
+`stacks/nodejs/workflows/ci.yml` between RouteSlugs and Build,
+and registered as `BuildScripts` quality gate in `stack.json`
+(order 5). `_shared/quality-gate` skill updated with the
+Vercel/Docker deploy note. Earlier: v2.20.0 Node.js slug
+consistency + webhook critical-path; v2.19.0 React stack v2.0.0;
+v2.18.0 Python; v2.17.0 PHP; v2.16.0 _shared b2; v2.15.0 b1.
 
 ---
 
@@ -99,8 +97,9 @@ start-vibing-stacks/
 │   │   │                                  trpc-api, mongoose-patterns, typescript-strict,
 │   │   │                                  bun-runtime, api-security-node
 │   │   ├── scripts/                    # zero-dep helper scripts (e.g.
-│   │   │                                  check-route-slugs.mjs); installer copies
-│   │   │                                  the dir → <project>/scripts/ at setup
+│   │   │                                  check-route-slugs.mjs,
+│   │   │                                  check-build-scripts.mjs); installer
+│   │   │                                  copies the dir → <project>/scripts/
 │   │   └── workflows/                  # ci.yml + security.yml templates
 │   ├── python/
 │   │   ├── stack.json

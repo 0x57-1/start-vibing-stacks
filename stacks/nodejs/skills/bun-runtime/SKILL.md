@@ -1,11 +1,31 @@
 ---
 name: bun-runtime
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Bun Runtime — Fast JavaScript Runtime
 
 **ALWAYS invoke when using Bun for scripts, packages, bundling, or testing.**
+
+## Deploy-Time Asymmetry (READ FIRST)
+
+> Bun's local install is generous (installs ALL deps by default). Vercel /
+> CI builds are strict (`NODE_ENV=production` → devDeps stripped). A
+> `package.json#scripts.build` that calls `tsx`, `ts-node`, `vitest`,
+> `eslint`, or `tsc` directly will work locally and fail at deploy with
+> `sh: line 1: <tool>: command not found / Error: Command "npm run build"
+> exited with 127`.
+
+**Rule.** Anything invoked from `scripts.build` / `prebuild` /
+`postinstall` / `prepare` must be either:
+
+- in `dependencies` (not `devDependencies`)
+- prefixed with `bunx` / `npx` (slower, fragile)
+- a plain Node script: `node scripts/foo.mjs`
+
+For one-off utilities the `.mjs` route is best — see
+`nextjs-app-router` skill, section "Build Script Hygiene". The stack
+ships `scripts/check-build-scripts.mjs` to catch this statically.
 
 ## Package Management
 

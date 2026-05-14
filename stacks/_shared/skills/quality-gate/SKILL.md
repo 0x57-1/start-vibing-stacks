@@ -28,7 +28,8 @@ bun run typecheck                          # TypeScript errors
 bun run lint                               # ESLint
 bun run test                               # Vitest
 node scripts/check-route-slugs.mjs         # Next.js — only run if framework=nextjs
-bun run build                              # Build verification (must come AFTER route-slugs)
+node scripts/check-build-scripts.mjs       # No dev-only tools in deploy scripts
+bun run build                              # Build verification (must come AFTER both checks)
 ```
 
 > **Next.js note.** `next build` does NOT validate dynamic-segment slug
@@ -36,6 +37,14 @@ bun run build                              # Build verification (must come AFTER
 > `check-route-slugs.mjs` script must run **before** `build` to catch this
 > statically — see `nextjs-app-router` skill, section "Dynamic Route Slug
 > Consistency".
+
+> **Vercel/Docker deploy note.** Build environments strip `devDependencies`
+> (`NODE_ENV=production` → `npm install --omit=dev`). Any binary called
+> from `scripts.build` / `prebuild` / `postinstall` that's only in
+> `devDependencies` (e.g. `tsx`, `ts-node`, `vitest`) will crash the
+> deploy with `command not found / exit 127`. `check-build-scripts.mjs`
+> catches this statically — see `nextjs-app-router` skill, section
+> "Build Script Hygiene".
 
 ## Gate Results
 

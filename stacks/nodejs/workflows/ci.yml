@@ -46,6 +46,17 @@ jobs:
             if [ "${code:-0}" = "1" ]; then exit 1; fi
           fi
 
+      - name: Build-script hygiene (no devDeps in deploy scripts)
+        # Vercel/Docker strip devDependencies during install. Any binary
+        # invoked from build/prebuild/postinstall MUST be in dependencies
+        # or be a plain `node script.mjs` call. Catches the
+        # "tsx: command not found / exited 127" class of bug.
+        run: |
+          if [ -f scripts/check-build-scripts.mjs ]; then
+            node scripts/check-build-scripts.mjs || code=$?
+            if [ "${code:-0}" = "1" ]; then exit 1; fi
+          fi
+
       - name: Build
         run: bun run build
 
