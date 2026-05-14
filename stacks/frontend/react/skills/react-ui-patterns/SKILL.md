@@ -1,11 +1,25 @@
 ---
 name: react-ui-patterns
-version: 1.0.0
+version: 2.0.0
+description: "React 19 + TanStack Query v5 UI patterns for production async UI: loading/error/empty state hierarchy, skeleton vs spinner choice, ErrorState/EmptyState/LoadingState reusable components, button states with disabled+loading indicator, RHF + Zod 4 forms, optimistic updates via React 19 `useOptimistic` (built-in, simpler than TanStack `onMutate`/rollback) AND TanStack Query v5 onMutate pattern (when you need cache surgery), Suspense + useSuspenseQuery boundaries, signal threading for cancellation. TanStack Query v5 renamed `loading` → `pending` (note isPending vs isFetching vs isLoading). Invoke when handling any async UI state, form, mutation, or user feedback."
 ---
 
-# React UI Patterns — Loading, Errors, Empty States & Forms
+# React UI Patterns — Loading, Errors, Empty States & Forms (R19 + TanStack v5)
 
 **ALWAYS invoke when handling async UI states, forms, or user feedback.**
+
+## Stack snapshot (2026)
+
+| Concern | Pick |
+|---|---|
+| Server cache + refetch + dedup | **TanStack Query v5** (`useQuery`, `useMutation`, `useSuspenseQuery`) |
+| Form state + validation | **react-hook-form** + **`@hookform/resolvers/zod`** (Zod 4) |
+| Optimistic UI for **submit-then-confirm** flows | React 19 **`useOptimistic`** (no cache surgery needed) |
+| Optimistic UI when you must mutate the cache | TanStack `onMutate` + `setQueryData` rollback |
+| Suspense / streaming data | `useSuspenseQuery` + `<Suspense>` |
+| Toasts | **Sonner** (`toast.success`, `toast.error`) |
+
+> **TanStack Query v5 renamed `loading` → `pending`.** Use `isPending` (no data yet, no error), `isFetching` (any fetch in flight, including refetch), `isLoading` (legacy alias for `isPending && isFetching`). The render-tree decision below is unchanged.
 
 ## Core Principles
 
@@ -33,16 +47,38 @@ Has data?
 ```
 
 ```tsx
-// ✅ CORRECT — only loading when no data
-const { data, isLoading, error, refetch } = useQuery(...);
+// ✅ CORRECT — TanStack v5: isPending = no data yet
+const { data, isPending, error, refetch } = useQuery({
+  queryKey: ['items'],
+  queryFn: ({ signal }) => fetchItems({ signal }),  // thread signal for cancellation
+});
 
-if (error) return <ErrorState error={error} onRetry={refetch} />;
-if (isLoading && !data) return <Skeleton />;
+if (error)               return <ErrorState error={error} onRetry={refetch} />;
+if (isPending)           return <Skeleton />;
 if (!data?.items.length) return <EmptyState />;
 return <ItemList items={data.items} />;
 
-// ❌ WRONG — flashes spinner on refetch when cached data exists
+// ❌ WRONG (v3 idiom) — flashes spinner on refetch when cached data exists
 if (isLoading) return <Spinner />;
+```
+
+### Suspense alternative
+
+```tsx
+// useSuspenseQuery — cleaner when you wrap with <Suspense> + <ErrorBoundary>
+function ItemList() {
+  const { data } = useSuspenseQuery({
+    queryKey: ['items'],
+    queryFn: ({ signal }) => fetchItems({ signal }),
+  });
+  return <ul>{data.items.map(i => <li key={i.id}>{i.title}</li>)}</ul>;
+}
+
+<ErrorBoundary fallback={<ErrorState />}>
+  <Suspense fallback={<Skeleton />}>
+    <ItemList />
+  </Suspense>
+</ErrorBoundary>
 ```
 
 ### Skeleton vs Spinner
@@ -276,48 +312,82 @@ export default function CreateUser() {
 }
 ```
 
-## Optimistic Updates (TanStack Query)
+## Optimistic Updates — pick by use case
+
+### Option A — React 19 `useOptimistic` (simpler, NEW DEFAULT for forms)
+
+When the optimistic update is **local to a component** and tied to a form Action, this is the cleanest option — no manual rollback, no cache surgery.
 
 ```tsx
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+"use client";
+import { useOptimistic } from "react";
+
+function TodoList({ todos, addTodo }: { todos: Todo[]; addTodo: (t: Todo) => Promise<void> }) {
+  const [optimisticTodos, addOptimistic] = useOptimistic(
+    todos,
+    (current, newTodo: Todo) => [...current, newTodo],
+  );
+
+  async function action(formData: FormData) {
+    const todo = { id: crypto.randomUUID(), title: String(formData.get("title")), done: false };
+    addOptimistic(todo);              // instant
+    await addTodo(todo);               // server confirms — on error React reverts on next render
+  }
+
+  return (
+    <>
+      <form action={action}>
+        <input name="title" required />
+        <button>Add</button>
+      </form>
+      <ul>{optimisticTodos.map(t => <li key={t.id}>{t.title}</li>)}</ul>
+    </>
+  );
+}
+```
+
+### Option B — TanStack Query `onMutate` + cache rollback
+
+Reach for this when the mutation has to update a **shared server cache** that other components also read (toggling a favourite that appears in three lists, for instance).
+
+```tsx
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 function ToggleFavorite({ item }: { item: Item }) {
-  const queryClient = useQueryClient();
+  const qc = useQueryClient();
 
   const mutation = useMutation({
     mutationFn: () =>
-      fetch(`/api/items/${item.id}/favorite`, { method: 'POST' }).then((res) => {
-        if (!res.ok) throw new Error('Failed');
-        return res.json();
+      fetch(`/api/items/${item.id}/favorite`, { method: "POST" }).then(r => {
+        if (!r.ok) throw new Error("Failed");
+        return r.json();
       }),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['items'] });
-      const previous = queryClient.getQueryData<Item[]>(['items']);
-
-      queryClient.setQueryData<Item[]>(['items'], (old) =>
-        old?.map((i) =>
-          i.id === item.id ? { ...i, isFavorite: !i.isFavorite } : i
-        )
+      await qc.cancelQueries({ queryKey: ["items"] });
+      const previous = qc.getQueryData<Item[]>(["items"]);
+      qc.setQueryData<Item[]>(["items"], (old) =>
+        old?.map(i => i.id === item.id ? { ...i, isFavorite: !i.isFavorite } : i),
       );
-
       return { previous };
     },
     onError: (_err, _vars, context) => {
-      queryClient.setQueryData(['items'], context?.previous);
-      toast.error('Failed to update');
+      qc.setQueryData(["items"], context?.previous);    // rollback
+      toast.error("Failed to update");
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['items'] });
+      qc.invalidateQueries({ queryKey: ["items"] });    // truth from server
     },
   });
 
   return (
-    <button onClick={() => mutation.mutate()} className="text-xl">
-      {item.isFavorite ? '❤️' : '🤍'}
+    <button onClick={() => mutation.mutate()} className="text-xl" aria-label="Toggle favorite">
+      {item.isFavorite ? "❤️" : "🤍"}
     </button>
   );
 }
 ```
+
+> Don't combine both for the same flow — `useOptimistic` for forms, TanStack `onMutate` for cross-cache updates. Mixing them creates invisible double rollbacks.
 
 ## Checklist — Before Shipping Any UI Component
 
@@ -332,8 +402,13 @@ function ToggleFavorite({ item }: { item: Item }) {
 
 ## FORBIDDEN
 
-1. **`if (loading) return <Spinner />`** — check `loading && !data` instead
-2. **Silent catch** — always toast/display errors to user
-3. **No empty state** — every list needs one
-4. **Clickable button during submit** — always `disabled={isPending}` or `disabled={isSubmitting}`
-5. **Console.log-only errors** — user must see feedback
+| Anti-pattern | Fix |
+|---|---|
+| `if (isLoading) return <Spinner />` (v3 idiom) | TanStack v5: check `isPending` (no data yet), keep cached data visible during refetch |
+| Silent `catch (e) { console.log(e) }` | Always surface via toast / inline error |
+| List without an empty state | Every collection needs `<EmptyState />` |
+| Clickable button while a mutation is pending | `disabled={mutation.isPending}` + spinner |
+| `console.log`-only errors | User must see feedback (toast / banner / inline) |
+| `useOptimistic` AND TanStack `onMutate` for the same flow | Pick one — mixing produces double rollbacks |
+| `mutationFn` that doesn't thread the `signal` | Add `({ signal }) => fetch(url, { signal })` so unmount cancels in-flight |
+| `forwardRef` wrappers around shadcn primitives | React 19 — refs are plain props |

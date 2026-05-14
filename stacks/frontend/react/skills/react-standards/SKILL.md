@@ -1,14 +1,18 @@
 ---
 name: react-standards
-version: 1.0.0
+version: 2.0.0
+description: "Project conventions for React 19 + Tailwind v4 codebases. Mandates the LABELS / STYLES const pattern (defined at file top, before hooks, with `as const` for stable references — prevents re-renders, centralises styles, supports i18n drop-in), controlled debug logging (no raw console.log), semantic Tailwind tokens (no raw colours), separate-file SVG icons, mandatory loading/empty states, modal data-flow contract (`onUpdated` callback), and third-party chart integration (no useRef DOM mutation). Pairs with `tailwind-patterns` v2 for tokens and `react-ui-patterns` v2 for state choreography. Invoke at the start of any new React project or component file."
 ---
 
-# React 19+ Standards
+# React 19 + Tailwind v4 — Project Standards
+
+> Conventions that apply to **every** component in the codebase. Pairs with `react-patterns` (architecture), `tailwind-patterns` (tokens), `react-ui-patterns` (state), and `shadcn-ui` (primitives).
 
 ## Version Requirements
 
-- **ReactJS >= 19** — MANDATORY
-- **TailwindCSS >= 4** — MANDATORY
+- **React ≥ 19.0** (stable Dec 5, 2024) — MANDATORY for new projects
+- **TailwindCSS ≥ 4.0** (stable Jan 22, 2025) — MANDATORY (CSS-first `@theme`, Oxide engine)
+- **TypeScript ≥ 5.6** strict mode
 
 ## Label Constants Pattern
 
@@ -279,3 +283,12 @@ const processedData = useMemo(() => {
 - Conditional rendering: `data && <Component />`
 - `useMemo` for expensive computations
 - Loading states before rendering charts
+
+## See Also
+
+- `react-patterns` v2 — React 19 hooks, `use()`, refs as props
+- `tailwind-patterns` v2 — `@theme`, Oxide engine, container queries, OKLCH
+- `shadcn-ui` v2 — primitives without `forwardRef`, `data-slot` slots
+- `react-ui-patterns` v2 — loading/error/empty + TanStack Query v5
+- `zod-validation` v2 — Zod 4 schemas for forms + env vars
+- `_shared/skills/ui-ux-audit` v2 — WCAG 2.2 AA validation

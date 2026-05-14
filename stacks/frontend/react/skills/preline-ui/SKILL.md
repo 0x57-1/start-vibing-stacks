@@ -1,11 +1,14 @@
 ---
 name: preline-ui
-version: 1.0.0
+version: 2.0.0
+description: "Preline UI — semantic-token component system on top of Tailwind v4 (stable Jan 2025). 220+ design tokens covering background/foreground/primary/secondary/muted/destructive/border/surface/layer + per-component groups (navbar, sidebar, card, dropdown, select, overlay, tooltip, popover, scrollbar). 840+ free copy-paste blocks (hero, testimonials, pricing, dashboards, forms). Mandatory `HSStaticMethods.autoInit()` after client-side navigation in Next.js — without it, dropdowns/modals/accordions break. Theme generator CLI, custom palettes via `@theme inline { … }`, light + dark via `data-theme` + `.dark`. Chart tokens require HEX (no oklch in -hex). Pairs with React 19 (refs as props, document metadata). Invoke when using Preline components, creating themes, or customising tokens."
 ---
 
-# Preline UI — Component & Theme System for TailwindCSS 4
+# Preline UI — Component & Theme System for Tailwind v4 (2026)
 
-**ALWAYS invoke when using Preline components, creating themes, or customizing design tokens.**
+**ALWAYS invoke when using Preline components, creating themes, or customising design tokens.**
+
+> Pairs with `tailwind-patterns` v2 (Tailwind v4 `@theme`, Oxide engine, OKLCH) and `react-standards` v2 (LABELS/STYLES const pattern). For shadcn-style primitives with Radix/Base UI underneath, see `shadcn-ui` v2 — pick **one** component system per project, don't mix Preline and shadcn.
 
 ## What is Preline
 

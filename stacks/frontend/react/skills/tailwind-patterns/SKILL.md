@@ -1,21 +1,37 @@
 ---
 name: tailwind-patterns
-version: 1.0.0
+version: 2.0.0
+description: "Tailwind CSS v4 (stable Jan 22 2025) CSS-first design system with the Rust-based Oxide engine — 3.78× faster full builds, 8.8× faster incremental, 100× faster on no-CSS-change runs. CSS-first config via `@theme` directive (no `tailwind.config.js`), automatic content detection, native container queries (`@container` + `@md:`), OKLCH color space (perceptual uniformity), modern CSS features (cascade layers, `@property`, `color-mix()`), `@import \"tailwindcss\"` single line. Covers the v3 → v4 migration, semantic-token architecture, mobile-first + container-query responsive strategy, dark mode via `@theme dark`, and the 4px spacing scale. Invoke whenever writing Tailwind classes, theming a project, or designing responsive layouts."
 ---
 
-# TailwindCSS 4 — CSS-First Design System
+# Tailwind CSS v4 — CSS-First Design System (2026)
 
 **ALWAYS invoke when writing Tailwind classes, theming, or responsive layouts.**
 
-## What Changed (v3 → v4)
+## v4 Status (2026)
 
-| v3 (Legacy) | v4 (Current) |
+- **Tailwind v4.0 stable**: January 22, 2025
+- **Oxide engine** (Rust) — full builds **3.78× faster** (378ms → 100ms), incremental rebuilds **8.8× faster** (44ms → 5ms), no-CSS-change rebuilds **100× faster** (35ms → 192µs)
+- **No `tailwind.config.js`** — config lives in CSS via `@theme`
+- **Automatic content detection** — no `content: [...]` paths to maintain
+- **Native container queries** — no plugin
+- **OKLCH** color space everywhere (perceptual uniformity, smoother gradients)
+- Built-in support for cascade layers, `@property`, `color-mix()`, modern CSS
+
+## v3 → v4 cheatsheet
+
+| v3 (legacy) | v4 (current) |
 |---|---|
-| `tailwind.config.js` | CSS `@theme` directive |
-| PostCSS plugin | Oxide engine (10x faster) |
-| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
-| Colors in JS config | Colors as CSS variables |
-| `@apply` everywhere | Components > `@apply` |
+| `tailwind.config.js` (JS) | `@theme { … }` block (CSS) |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` (single line) |
+| `content: ["./src/**/*.tsx"]` | Auto-detected (no setup) |
+| Colors in JS object | CSS variables (`--color-primary`) |
+| HSL or hex tokens | **OKLCH** (recommended) |
+| `@tailwindcss/container-queries` plugin | Native (`@container`, `@md:flex-row`) |
+| `dark:` only | `dark:` **and** `@theme dark { … }` for token switching |
+| `@apply` for everything | React components + tokens; reserve `@apply` for legacy CSS |
+
+Migration is non-breaking for existing v3 codebases — both can coexist. Run `npx @tailwindcss/upgrade@latest` to automate the bulk.
 
 ## Setup (v4)
 
@@ -262,17 +278,60 @@ Section gaps: space-y-6 md:space-y-8
 Card padding: p-4 md:p-6
 ```
 
+## Modern CSS — leverage what v4 unlocks
+
+```css
+/* color-mix() — derive variants from semantic tokens */
+.btn-primary-soft {
+  background: color-mix(in oklch, var(--color-primary) 12%, transparent);
+}
+
+/* @property — animatable custom properties */
+@property --gradient-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+/* Cascade layers — predictable specificity (Tailwind already uses these) */
+@layer components {
+  .card-hero { /* your custom layer */ }
+}
+```
+
+## `size-*` utility (use over `w-N h-N`)
+
+```tsx
+{/* OK — single utility, less repetition */}
+<img className="size-10 rounded-full" />
+<button className="size-9 grid place-items-center">
+
+{/* Avoid the duplicate */}
+<img className="w-10 h-10 rounded-full" />
+```
+
 ## FORBIDDEN
 
 | ❌ Don't | ✅ Do |
 |---|---|
 | `tailwind.config.js` in v4 | `@theme` in CSS |
-| `@apply` for everything | React components |
-| `!important` | Fix specificity |
+| `@apply` for everything | React components + token classes |
+| `!important` | Fix specificity (or use cascade layers) |
 | `style={{ color: 'red' }}` | `text-destructive` |
-| Arbitrary values for tokens | Define in `@theme` |
-| `bg-white dark:bg-gray-900` | `bg-background` (semantic) |
-| `@tailwind base` | `@import "tailwindcss"` (v4) |
-| Dynamic class strings | Static complete strings (purge-safe) |
-| `text-[#FF5733]` inline | `--color-accent` in `@theme` |
+| Arbitrary values for design tokens (`text-[#2563eb]`) | Define `--color-*` in `@theme` |
+| `bg-white dark:bg-gray-900` | `bg-background` (semantic + `@theme dark`) |
+| `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| Dynamic class strings (`bg-${color}-500`) | Static complete strings (Oxide can't see derived ones) |
+| HSL tokens for new themes | OKLCH (perceptual uniformity, smoother gradients) |
+| `w-10 h-10` pairs | `size-10` |
+| `forwardRef`-style ref-as-prop indirection | Refs are just props in React 19 |
+| `content: [...]` arrays | Auto-detection in v4 |
 | Inconsistent spacing | Follow 4px scale |
+
+## See Also
+
+- `react-standards` — STYLES const pattern using these tokens
+- `shadcn-ui` — components built on top of Tailwind v4 + OKLCH + `data-slot`
+- `preline-ui` — alternative token system on top of Tailwind v4
+- `react-ui-patterns` — loading/error/empty states using semantic tokens
+- `_shared/skills/ui-ux-audit` — WCAG 2.2 AA contrast checks against semantic tokens

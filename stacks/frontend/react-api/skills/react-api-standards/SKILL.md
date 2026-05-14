@@ -1,25 +1,23 @@
 ---
 name: react-api-standards
-version: 1.0.0
-description: React 19 + Vite + Axios standards for a Laravel-backed JSON API SPA
-  — Page shell + skeleton, async data via `api.get`, form 422 binding, route
-  catch-all, no Inertia. Use for any new React page in a Laravel + Sanctum SPA
-  project. Pairs with `axios-laravel-api` and `laravel-api-architecture`.
+version: 2.0.0
+description: "React 19 + Vite 6 + Axios standards for a Laravel-backed JSON API SPA. Page shell + skeleton-first paint, async data via `api.get`, 422 validation binding to React Hook Form, protected-route + catch-all routing, NO Inertia. Pairs with `axios-laravel-api` (HTTP client) and `laravel-api-architecture` (backend). 2026 polish: TanStack Query v5 (`isPending` semantics + `signal` threading), Zod 4 (`z.email()`/`z.url()` top-level), `useOptimistic` for instant feedback, `useActionState` for form submissions, `useFormStatus` to wire Submit buttons without prop drilling. Tailwind v4 with `@theme` and OKLCH tokens. Invoke for any new page, layout, or component in a Laravel + Sanctum SPA."
 ---
 
-# React 19 API-First Standards (Laravel + Axios)
+# React 19 API-First Standards (Laravel + Axios) — 2026
 
 **ALWAYS invoke when creating React pages, components, or layouts in a project
 that uses a Laravel JSON API as backend (NOT Inertia.js).**
 
 ## Version Requirements
 
-- **React >= 19** — MANDATORY (`useActionState`, `useOptimistic`, `use`)
-- **Vite >= 5** with `@vitejs/plugin-react`
-- **TailwindCSS >= 4**
-- **Axios >= 1.6** (for `withXSRFToken` support)
-- **TanStack Query >= 5** (recommended for cached lists/details)
-- **react-router-dom >= 6** (client-side routing)
+- **React ≥ 19.0** — MANDATORY (`useActionState`, `useOptimistic`, `useFormStatus`, `use()`)
+- **Vite ≥ 6** with `@vitejs/plugin-react`
+- **TailwindCSS ≥ 4** (CSS-first `@theme`, Oxide engine)
+- **Axios ≥ 1.7** (for `withXSRFToken` and modern interceptor types)
+- **TanStack Query ≥ 5** — `isPending` (no data yet) vs `isFetching` (any in-flight); thread `signal` through `queryFn`
+- **Zod ≥ 4** — top-level `z.email()`/`z.url()` for tree-shaking
+- **react-router-dom ≥ 7** (`<RouterProvider>` + data routers)
 
 ## Folder Structure
 

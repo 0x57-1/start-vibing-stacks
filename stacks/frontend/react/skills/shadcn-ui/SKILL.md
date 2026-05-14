@@ -1,97 +1,325 @@
 ---
 name: shadcn-ui
-version: 1.0.0
+version: 2.0.0
+description: "shadcn/ui CLI v4 (March 2026) for React 19 + Tailwind v4. Components updated to remove forwardRef (refs as props in R19), every primitive carries a data-slot attribute for targeted styling, HSL → OKLCH tokens, size-* utility replaces w-h pairs, default style deprecated in favor of new-york. CLI v4 brings shadcn/skills (AI agent context for component registry), --preset (shareable design-system bundle), --dry-run / --diff / --view (inspect changes before applying), --template scaffolds (Next.js, Vite, Laravel, React Router, Astro, TanStack Start), --base flag (Radix vs Base UI primitives), and `shadcn info` / `shadcn docs` commands for agents. Includes components.json schema, registry-item.json, blocks. Invoke when adding, customising, theming, or scaffolding shadcn components."
 ---
 
-# shadcn/ui — Component Library Patterns
+# shadcn/ui — CLI v4 + React 19 + Tailwind v4 (2026)
 
-**ALWAYS invoke when adding or modifying shadcn/ui components.**
+**ALWAYS invoke when adding, customising, theming, or scaffolding shadcn components.**
 
-## Installation
+> shadcn/ui is a copy-paste component system, not an npm dependency — components live **in your repo**, get owned and modified there. The CLI keeps them in sync with the upstream registry without hiding the source.
+
+## What's new in 2026 (CLI v4 — March 2026)
+
+| Change | Impact |
+|---|---|
+| **Tailwind v4 + React 19 first-class** | All components updated; v3+R18 still works (non-breaking) |
+| **`forwardRef` removed** | React 19 treats `ref` as a prop — components are simpler |
+| **`data-slot="…"` on every primitive** | Style any sub-element from outside without overriding source |
+| **HSL → OKLCH** colour tokens | Smoother gradients, perceptual uniformity |
+| **`size-*` utility** | `size-9` instead of `w-9 h-9` |
+| **`default` style deprecated** | Use **`new-york`** (the new default in `components.json`) |
+| **`shadcn/skills`** | AI-agent registry context — agents discover components via the CLI |
+| **`--preset` flag** | Pack colours/theme/fonts/radius into a shareable code string |
+| **`--dry-run` / `--diff` / `--view`** | Inspect registry changes before writing files |
+| **`--template`** | Scaffolds for Next.js, Vite, Laravel, React Router, Astro, TanStack Start |
+| **`--base`** | Choose between **Radix** and **Base UI** primitives |
+| **`shadcn info` / `shadcn docs`** | Context commands for agents and humans |
+
+## Initialisation
 
 ```bash
-npx shadcn@latest init
-npx shadcn@latest add button card dialog input
+# Pick a template (CLI v4 — March 2026)
+npx shadcn@latest init --template next-app
+# Other templates: vite, laravel, react-router, astro, tanstack-start
+
+# Add components — non-interactive, idempotent
+npx shadcn@latest add button card dialog input form
+
+# Inspect before writing (new in v4)
+npx shadcn@latest add button --dry-run --diff
+
+# Use Base UI primitives instead of Radix
+npx shadcn@latest add dialog --base baseui
 ```
 
-## Theming
+## `components.json` (Tailwind v4 shape)
 
-```css
-/* globals.css — CSS variables for theming */
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --border: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
-  }
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-  }
+```json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "",
+    "css": "src/app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
 }
 ```
 
-## Component Customization
+> For Tailwind v4 the `tailwind.config` field stays empty — there's no JS config file in v4.
+
+## Theming with OKLCH
+
+```css
+/* src/app/globals.css */
+@import "tailwindcss";
+
+@theme inline {
+  /* Light theme — OKLCH (replaces v1 HSL tokens) */
+  --color-background:        oklch(1.000 0 0);
+  --color-foreground:        oklch(0.145 0 0);
+
+  --color-primary:           oklch(0.205 0 0);
+  --color-primary-foreground: oklch(0.985 0 0);
+
+  --color-secondary:         oklch(0.970 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+
+  --color-muted:             oklch(0.970 0 0);
+  --color-muted-foreground:  oklch(0.556 0 0);
+
+  --color-destructive:       oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.985 0 0);
+
+  --color-border:            oklch(0.922 0 0);
+  --color-ring:              oklch(0.708 0 0);
+
+  --radius:                  0.625rem;  /* slightly larger than v1's 0.5rem */
+}
+
+@theme dark inline {
+  --color-background:        oklch(0.145 0 0);
+  --color-foreground:        oklch(0.985 0 0);
+  --color-primary:           oklch(0.985 0 0);
+  --color-primary-foreground: oklch(0.205 0 0);
+  /* … rest of dark overrides */
+}
+```
+
+OKLCH ranges (rough guide): lightness 0–1, chroma 0–~0.4, hue 0–360°. Pick lightness on the same axis for siblings — gradients stay perceptually smooth.
+
+## Components without `forwardRef`
+
+```tsx
+// React 19 — refs are props, no forwardRef needed
+import * as React from "react";
+import { cn } from "@/lib/utils";
+
+function Button({
+  ref,                                   // ← just a normal prop
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  ref?: React.Ref<HTMLButtonElement>;
+  variant?: "default" | "outline" | "ghost" | "destructive";
+  size?: "default" | "sm" | "lg" | "icon";
+}) {
+  return (
+    <button
+      ref={ref}
+      data-slot="button"                 // ← every primitive carries data-slot
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
+  );
+}
+
+export { Button };
+```
+
+`forwardRef` still works — but the new components ship without it.
+
+## `data-slot` — style sub-parts from outside
+
+```tsx
+// Style the icon inside a Button without touching the Button source
+<Button className="[&_[data-slot=icon]]:size-4 [&_[data-slot=icon]]:text-primary">
+  <CheckIcon data-slot="icon" />
+  Confirm
+</Button>
+
+// Style the trigger of a Dialog from a parent
+<Dialog>
+  <DialogTrigger className="[&[data-slot=trigger]]:rounded-full" asChild>
+    <Button>Open</Button>
+  </DialogTrigger>
+</Dialog>
+```
+
+This replaces the old "expose every internal class through props" pattern — the contract is the slot name, not the className.
+
+## Customisation — extend, don't fork
 
 ```tsx
 // CORRECT — extend via className + variants
-import { Button } from '@/components/ui/button';
-<Button variant="outline" size="lg" className="rounded-full">Custom</Button>
+<Button variant="outline" size="lg" className="rounded-full">
+  Custom
+</Button>
 
-// WRONG — modify component source for one-off styles
+// CORRECT — wrap a shadcn primitive when you need a project-specific variant
+function PageHeading({ children, className, ...rest }: ComponentProps<"h1">) {
+  return (
+    <h1 data-slot="page-heading" className={cn("text-2xl font-semibold tracking-tight", className)} {...rest}>
+      {children}
+    </h1>
+  );
+}
+
+// WRONG — modifying the shadcn source for one-off styles
+// → upgrade path breaks; intent gets lost
 ```
 
-## Composition Pattern
+## Composition
 
 ```tsx
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
-// Compose primitives, don't create monolithic components
 <Dialog>
   <DialogTrigger asChild>
     <Button variant="outline">Open</Button>
   </DialogTrigger>
   <DialogContent>
     <DialogHeader>
-      <DialogTitle>Title</DialogTitle>
+      <DialogTitle>Edit profile</DialogTitle>
     </DialogHeader>
-    <Card><CardContent>...</CardContent></Card>
+    <Card>
+      <CardHeader>
+        <CardTitle>Account</CardTitle>
+        <CardDescription>Update your information.</CardDescription>
+      </CardHeader>
+      <CardContent>{/* form fields */}</CardContent>
+    </Card>
   </DialogContent>
 </Dialog>
 ```
 
-## Form Pattern (with Zod)
+## Forms — shadcn Form + React Hook Form + Zod 4
 
 ```tsx
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+"use client";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-const form = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
+const Schema = z.object({
+  email: z.email("Enter a valid email"),                  // Zod 4 top-level
+  password: z.string().min(8, "At least 8 characters"),
+});
 
-<Form {...form}>
-  <FormField control={form.control} name="email" render={({ field }) => (
-    <FormItem>
-      <FormLabel>Email</FormLabel>
-      <FormControl><Input {...field} /></FormControl>
-      <FormMessage />
-    </FormItem>
-  )} />
-</Form>
+type FormValues = z.infer<typeof Schema>;
+
+export function LoginForm() {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(Schema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  function onSubmit(values: FormValues) { /* call your API */ }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField control={form.control} name="email" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Email</FormLabel>
+            <FormControl><Input type="email" autoComplete="email" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )}/>
+        <FormField control={form.control} name="password" render={({ field }) => (
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl><Input type="password" autoComplete="current-password" {...field} /></FormControl>
+            <FormMessage />
+          </FormItem>
+        )}/>
+        <Button type="submit" className="w-full">Sign in</Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+## Blocks — copy-paste full UI sections
+
+```bash
+# List blocks (auth, dashboards, charts, sidebars, calendars, …)
+npx shadcn@latest add --list-blocks
+
+# Add a specific block
+npx shadcn@latest add login-04
+```
+
+Blocks are full sections (login pages, dashboard shells, billing screens) registered as `registry:block` in the catalog. They land in `components/` and you own them after that.
+
+## Custom registries
+
+```json
+// registry-item.json — share components across your team / org
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "data-table",
+  "type": "registry:component",
+  "dependencies": ["@tanstack/react-table"],
+  "registryDependencies": ["button", "input"],
+  "files": [{ "path": "components/data-table.tsx", "type": "registry:component" }]
+}
+```
+
+Host the JSON anywhere (GitHub Pages, Vercel) and consume:
+
+```bash
+npx shadcn@latest add https://your-registry.com/r/data-table.json
+```
+
+## CLI v4 — workflow commands
+
+```bash
+shadcn info                        # show project + dependency context (great for AI agents)
+shadcn docs <component>            # open docs for a specific component
+shadcn add button --dry-run --view # show what would change, don't write
+shadcn add button --diff           # show diff against current files
+shadcn add --preset <hash>         # bootstrap an entire design-system from a preset hash
 ```
 
 ## FORBIDDEN
 
-1. **Modifying component source for one-off needs** — use className/variants
-2. **Installing without init** — always `npx shadcn@latest init` first
-3. **Ignoring dark mode** — all components must work in both themes
-4. **Skipping accessibility** — shadcn components have built-in a11y, don't break it
+| ❌ Don't | Why |
+|---|---|
+| Modify component source for one-off styles | Use `className` + `variant` + slots |
+| Skip `init` | The CLI needs `components.json` for paths/aliases |
+| Stay on the deprecated `default` style | Use `new-york` (new CLI default) |
+| Use `forwardRef` in new R19 components | Refs are plain props now |
+| Add `w-10 h-10` instead of `size-10` | Tailwind v4 `size-*` is the recommended utility |
+| HSL tokens for new themes | OKLCH gives smoother gradients & a11y-friendly mixing |
+| Add a component then `npm install` it as a package | shadcn lives **in your repo**, never as a runtime dependency |
+| Break built-in a11y (aria, focus, escape handlers) | Radix/Base UI primitives wire it correctly out of the box |
+
+## See Also
+
+- `tailwind-patterns` v2 — `@theme`, container queries, OKLCH
+- `react-patterns` v2 — refs as props in R19, `useActionState`, `useOptimistic`
+- `react-standards` v2 — STYLES/LABELS const pattern that pairs with shadcn slots
+- `zod-validation` v2 — Zod 4 + `@hookform/resolvers/zod`
+- `react-ui-patterns` v2 — loading/error/empty states using shadcn primitives
+- `_shared/skills/ui-ux-audit` v2 — WCAG 2.2 AA on shadcn components

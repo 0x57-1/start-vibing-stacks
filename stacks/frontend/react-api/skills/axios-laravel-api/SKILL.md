@@ -1,11 +1,7 @@
 ---
 name: axios-laravel-api
-version: 1.0.0
-description: Axios HTTP client for Laravel 12 + Sanctum SPA — `withCredentials`,
-  `withXSRFToken`, `/sanctum/csrf-cookie` flow, and `401/403/419/422/5xx`
-  interceptors. Use when wiring a React (or any SPA) frontend to a Laravel
-  cookie-authenticated JSON API. Pairs with `laravel-api-architecture` and
-  `react-api-standards`.
+version: 2.0.0
+description: "Axios HTTP client for Laravel 12 + Sanctum SPA in React 19 (Tailwind v4) projects. `withCredentials: true` + `withXSRFToken: true` + `/sanctum/csrf-cookie` priming flow, plus a single response interceptor that handles 401 (logout), 403 (forbidden toast), 419 (CSRF stale → re-prime + retry once), 422 (validation errors surfaced to RHF), 5xx (toast + log). Pairs with `laravel-api-architecture` (backend) and `react-api-standards` (frontend conventions). 2026 polish: Zod 4 response validation at the boundary, TanStack Query v5 `signal` threading for cancellation, React 19 forms via `useActionState` for client-side mutations. Invoke when wiring or auditing the API client, login flow, or CSRF/cookie configuration."
 ---
 
 # Axios + Laravel Sanctum SPA Client

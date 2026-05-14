@@ -8,39 +8,50 @@
 
 **Branch:** main
 **Date:** 2026-05-13
-**Summary:** v2.18.0 — Python stack: all 9 skills bumped to v2.0.0
-with confirmed 2026 facts. **python-patterns** (Python 3.13 min /
-3.14 recommended; free-threaded officially supported in 3.14 via
-PEP 779 — `python3.14t` only when CPU-multi-thread; `uv` default
-after OpenAI/Astral acquisition Mar 2026; ruff + pyright; `TypeIs`;
-`X | None`). **fastapi-patterns** (lifespan replaces deprecated
-`@app.on_event`; SQLAlchemy 2.0 `Mapped[]` + `pool_pre_ping=True`
-+ `expire_on_commit=False`; `@lru_cache` Settings; never sync DB
-driver inside `async def`; uvicorn alone production-ready, gunicorn
-not required; uv + distroless Dockerfile). **pydantic-validation**
-(V2 polish: discriminated unions, `TypeAdapter`, `model_json_schema()`
-for LLM tool calls, `extra="forbid"`, `SettingsConfigDict`).
-**pytest-testing** (pytest 9.0 Nov 2025 subtests; pytest-asyncio 1.0
-May 2025 dropped `event_loop` fixture → `asyncio_default_fixture_loop_scope`;
-AnyIO; `httpx.AsyncClient` + `ASGITransport`; xdist sharding;
-`--cov-fail-under` gate). **async-patterns** (`asyncio.timeout()`
-over `wait_for`; `asyncio.Runner`; bounded fan-out Semaphore +
-TaskGroup; AnyIO bridge; free-threading vs GIL trade-offs).
-**django-patterns** (Django 5.2 LTS Apr 2025–Apr 2028; 4.2 LTS ends
-Apr 2026; Composite Primary Keys; ORM still sync — `sync_to_async`
-required in async views). **api-security-python** (overlay on
-`_shared/security-baseline` v2; swapped unmaintained `python-jose`
-for PyJWT with `algorithms=[ALG]` + `aud`/`iss`/`jti` + revocation
-check; SSRF guard for outbound URLs; 2025-A03 supply-chain with
-`uv lock --check` + `pip-audit`; 2025-A10 narrow except + structured
-logging). **python-performance** (py-spy prod-safe; 3.13 JIT PEP 744
-still experimental; free-threading honest trade-offs; `functools.cache`;
-Polars ~10× pandas; bulk DB). **scripting-automation** (uv as default
-project manager; PEP 723 inline metadata via `uv run --script`;
-`tomllib` stdlib drops `tomli`; httpx + tenacity; rich logging;
-psycopg 3 over psycopg2). Earlier: v2.17.0 PHP stack (8 skills),
-v2.16.0 _shared batch 2, v2.15.0 _shared batch 1, v2.14.0
-domain-updater + commit-manager v2.0.0.
+**Summary:** v2.19.0 — Frontend React stack: all 9 React/React-API
+skills bumped to v2.0.0 with verified 2026 facts. **tailwind-patterns**
+(Tailwind v4 stable Jan 22 2025; Oxide engine 3.78× full / 8.8×
+incremental / 100× no-CSS-change; `@theme` CSS-first, no
+`tailwind.config.js`; native container queries; OKLCH; `size-*`
+utility; `color-mix()` + `@property` + cascade layers; `npx
+@tailwindcss/upgrade` codemod). **shadcn-ui** (CLI v4 Mar 2026:
+no `forwardRef` in new components; `data-slot` on every primitive
+for outside styling; HSL → OKLCH; `default` style deprecated →
+`new-york`; `shadcn/skills` AI-agent registry; `--preset`/
+`--dry-run`/`--diff`/`--view`; `--template` for Next.js/Vite/
+Laravel/React-Router/Astro/TanStack-Start; `--base` Radix vs Base
+UI; `shadcn info`/`docs` commands; custom registries via
+`registry-item.json`). **react-patterns** (React 19 stable Dec 5
+2024 + 19.1: `useActionState`, `useFormStatus`, `useOptimistic`,
+`use()` for promises/Context; refs as plain props — `forwardRef`
+no longer needed; document metadata hoisting — drop `next/head`/
+react-helmet; form `action` prop with auto-reset; stylesheet
+ordering; Suspense sibling pre-warming). **zod-validation**
+(Zod 4 stable Aug 2025: 14× string / 7× array / 6.5× object;
+57% smaller bundle; 2× faster TS compile; 100× fewer tsc
+instantiations; **top-level format validators** `z.email()`/
+`z.url()`/`z.uuid()`/`z.iso.datetime()`/`z.jwt()` for tree-shaking;
+**unified `error` parameter** replaces `required_error`/
+`invalid_type_error`/`errorMap`; codemod `npx @zod/codemod
+--transform v3-to-v4`; discriminated unions; branded types;
+Valibot/ArkType cross-refs). **react-ui-patterns** (TanStack
+Query v5 `loading` → `pending` semantics — `isPending` vs
+`isFetching` vs `isLoading`; **mandatory signal threading** for
+cancellation; `useSuspenseQuery` + `<Suspense>` boundary;
+React 19 `useOptimistic` as PRIMARY for form-bound flows,
+TanStack `onMutate`+`setQueryData` rollback only for cross-cache
+mutations; never combine both). **react-standards** (R19+TW4
+mandate; LABELS/STYLES const pattern documented as ANTI-rerender
+discipline). **preline-ui** (semantic-token system on TW4; 220+
+tokens; 840+ free blocks; mandatory `HSStaticMethods.autoInit()`
+post-navigation; pick ONE between Preline/shadcn). **react-api/
+axios-laravel-api** (Sanctum SPA cookie flow; 401/403/419/422/5xx
+interceptor matrix; Zod 4 boundary validation; signal threading
+in TanStack queries). **react-api/react-api-standards** (Vite 6 +
+Axios 1.7 + TanStack v5 + Zod 4; react-router-dom 7 data routers;
+React 19 form choreography). Frontend stack: **11/11 v2.0.0**.
+Earlier: v2.18.0 Python stack (9 skills), v2.17.0 PHP stack (8),
+v2.16.0 _shared batch 2, v2.15.0 _shared batch 1.
 
 ---
 
