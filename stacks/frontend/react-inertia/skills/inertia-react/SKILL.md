@@ -1,10 +1,13 @@
 ---
 name: inertia-react
-version: 2.0.0
+version: 2.1.0
 description: LEGACY skill — Inertia.js + React frontend integration with
   Laravel-rendered pages. Use ONLY in pre-existing Inertia projects. For NEW
   projects use the `react-api` frontend stack (`axios-laravel-api` +
-  `react-api-standards`) which decouples render from data fetching.
+  `react-api-standards`) which decouples render from data fetching. v2.1.0 adds
+  the "Vite Build Gotchas" section covering the `manualChunks` × entry-chunk
+  × `resolvePageComponent` glob interaction that produces silent
+  wrong-component renders (production post-mortem 2026-05).
 ---
 
 # Inertia.js + React Integration (LEGACY)
@@ -343,6 +346,138 @@ router.reload({ only: ['stats'] }); // Partial reload
 - Access shared props via `usePage().props`
 - `processing` boolean from `useForm` for button loading states
 
+## Vite Build Gotchas (Inertia-specific)
+
+> **Production post-mortem 2026-05.** Reverting/rebuilding `vite.config.js`
+> chunking in an Inertia + Laravel project can produce a **silent wrong-component
+> render** (Login renders HttpErrorPage with HTTP 200, no console errors, empty
+> Laravel logs). The bug lives in the bundle graph, not the server.
+
+### The three-way collision
+
+```
+laravel-vite-plugin       ┐
+  laravel({ input: [      │  Anything here becomes an ENTRY chunk.
+    '.../HttpErrorPage'   │  Rollup/Rolldown ALWAYS prioritizes entries.
+  ]})                     ┘
+
+@inertiajs/react          ┐
+  resolvePageComponent(   │  Builds a STATIC resolve-map at build time
+    `./Pages/${name}.jsx`,│  via import.meta.glob. The map points each
+    import.meta.glob(     │  Page path to whatever chunk hash Rollup
+      './Pages/**/*.jsx') │  ended up putting that module in.
+  )                       ┘
+
+build.rollupOptions       ┐
+  .manualChunks(id) {     │  This is ADVISORY. Returning 'pages-auth' for
+    if (/Auth\//.test(id))│  a module that is ALSO an entry has NO EFFECT.
+      return 'pages-auth' │  The grouping is silently dropped — no warning.
+  }                       ┘
+```
+
+When the same module (e.g. `HttpErrorPage.jsx`) is:
+
+1. listed in `laravel.input[]` (because `app.blade.php` has a direct
+   `@vite('resources/js/Pages/.../HttpErrorPage.jsx')` for the error layout), AND
+2. caught by `manualChunks` returning `'pages-auth'`,
+
+…Rollup/Rolldown creates a **standalone entry chunk** containing ONLY
+`HttpErrorPage`. The `pages-auth` group is reduced to that one module, and the
+`import.meta.glob` resolve-map points **every sibling** (`Login`, `Register`,
+`ForgotPassword`, …) at that same chunk hash. The siblings' code is discarded.
+
+Symptom: `Inertia::render('Auth/Login', …)` returns 200 OK with a valid Inertia
+payload. The browser fetches the chunk listed in the resolve-map. That chunk's
+`default` export is `HttpErrorPage`. The error page is rendered. Backend is
+perfect; frontend lies.
+
+### Rule 1 — Never duplicate a module between `laravel.input` and the glob
+
+If a page MUST be referenced directly by `@vite()` in a blade file (typical
+cases: error pages, mail templates rendered server-side, OG/share-image
+renderers), it becomes an entry chunk. You have two options:
+
+- **A. Exclude it from the glob** — change `resolvePageComponent`'s glob to
+  ignore that path, OR
+- **B. Short-circuit `manualChunks` BEFORE any grouping rule** so the entry
+  chunk's identity is preserved without polluting a group.
+
+Pattern B (preferred — works without touching the Inertia bootstrap):
+
+```js
+// vite.config.js
+build: {
+    rollupOptions: {
+        output: {
+            manualChunks(id) {
+                if (!id.includes('/resources/js/Pages/')) return;
+
+                // Entry chunks referenced directly by @vite() in blade MUST
+                // return undefined here — BEFORE any grouping rule.
+                // Otherwise the group is collapsed into the entry and the
+                // import.meta.glob resolve-map points siblings at the wrong
+                // chunk hash. See "Vite Build Gotchas" in inertia-react skill.
+                if (id.includes('/Pages/OtherPages/HttpErrorPage')) return;
+
+                if (id.includes('/Pages/Auth/') || id.includes('/Pages/OtherPages/')) {
+                    return 'pages-auth';
+                }
+                if (id.includes('/Pages/Dashboard/')) {
+                    return 'pages-dashboard';
+                }
+            },
+        },
+    },
+},
+```
+
+### Rule 2 — `manualChunks` is advisory; entries always win
+
+There is no warning when Rollup/Rolldown ignores a `manualChunks` return value
+for an entry module. The validation MUST be done out-of-band on `manifest.json`
+after every build (see `scripts/check-vite-manifest.mjs` shipped by
+`start-vibing-stacks`).
+
+### Rule 3 — Validate `public/build/manifest.json` after every `vite build`
+
+```bash
+# 1. Quick eyeball
+cat public/build/manifest.json | jq 'keys'
+
+# 2. Automated (shipped script)
+node scripts/check-vite-manifest.mjs public/build/manifest.json vite.config.js
+```
+
+The script cross-references `laravel.input[]` against the `Pages/**` glob and
+fails (non-zero exit) on any collision.
+
+### Rule 4 — Smoke-test after any `vite.config.js` change touching `build`
+
+Three-step browser check for one critical route per page group:
+
+1. DevTools → Network → click the Inertia XHR → read the `component:` field
+   in the JSON response.
+2. Click the JS asset request that followed → open the resolved chunk URL.
+3. Search for `default:` / `export{ ... as default}` in that chunk. The
+   component name MUST match the server's `component:`.
+
+If they don't match, the bug is in the chunk graph. Revert the last
+`vite.config.js` change before debugging anything else.
+
+### Why Sonnet (and humans) get stuck on this class of bug
+
+| Layer | What it looks like | Why it misleads |
+|---|---|---|
+| Laravel logs | Empty | Backend is genuinely correct |
+| `manifest.json` | Valid, every input has an entry | Manifest doesn't enforce uniqueness across groups |
+| Browser network tab | 200 OK on every request | The wrong JS arrives successfully |
+| Console | Clean | The rendered component is valid React |
+
+Triage rule of thumb: **when wrong-component render happens with HTTP 200 and
+empty server logs, the bug is in the bundle. Start from the chunk graph, not
+from Laravel.** This is captured as the "Bundle, not Backend" pattern in
+`debugging-patterns`.
+
 ## Forbidden Patterns
 
 | Pattern | Reason | Use Instead |
@@ -354,3 +489,6 @@ router.reload({ only: ['stats'] }); // Partial reload
 | `window.location` for navigation | Full page reload | `router.visit()` |
 | `Inertia::render()` after POST | Breaks Inertia protocol | `redirect()->route()` |
 | Loading all translations globally | Performance waste | On-demand per page route |
+| Same module in `laravel.input[]` AND `Pages/**` glob | Rollup collapses the manual chunk group into the entry; resolve-map points siblings at the wrong chunk (silent wrong-component render) | Short-circuit `manualChunks` with early `return undefined` for entry pages |
+| `manualChunks` grouping pages without running `check-vite-manifest.mjs` | Grouping is advisory and silently ignored for entry chunks | Always run the validator after touching `build.rollupOptions` |
+| Trusting empty Laravel logs as "no bug" | Server can be 100% correct while the bundle ships the wrong default export | Use the "Bundle, not Backend" triage in `debugging-patterns` |

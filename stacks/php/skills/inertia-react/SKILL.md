@@ -1,10 +1,13 @@
 ---
 name: inertia-react
-version: 2.0.0
+version: 2.1.0
 description: LEGACY skill — Inertia.js + React with Laravel-rendered pages. Use
   ONLY in pre-existing projects already built on Inertia. For NEW projects use
   `laravel-api-architecture` + `axios-laravel-api` + `react-api-standards`
-  (API-first React SPA, no controller-rendered pages).
+  (API-first React SPA, no controller-rendered pages). v2.1.0 adds the "Vite
+  Build Gotchas" section covering the manualChunks × entry-chunk ×
+  resolvePageComponent glob collision (silent wrong-component render
+  post-mortem 2026-05).
 ---
 
 # Inertia.js + React — Laravel Frontend (LEGACY)
@@ -207,6 +210,124 @@ export interface PaginatedData<T> {
 }
 ```
 
+## Vite Build Gotchas (Inertia-specific)
+
+> **Production post-mortem 2026-05.** A `vite.config.js` "perf" change adding
+> `manualChunks` to group `Pages/Auth/*` produced a silent wrong-component
+> render: `Inertia::render('Auth/Login', ...)` returned HTTP 200 OK but the
+> browser rendered the error page. Laravel logs were empty. Bug lived
+> entirely in the bundle graph.
+
+### The three-way collision
+
+```
+laravel-vite-plugin      ┐  laravel({ input: [...HttpErrorPage] })
+                         │  → module becomes an ENTRY chunk
+                         │    Rollup/Rolldown ALWAYS prioritizes entries.
+
+@inertiajs/react         ┐  resolvePageComponent(..., import.meta.glob(
+                         │    './Pages/**/*.jsx'))
+                         │  → builds a STATIC resolve-map at build time
+                         │    pointing each Page path to its chunk hash.
+
+build.rollupOptions      ┐  manualChunks(id) { if (Auth) return 'pages-auth' }
+                         │  → ADVISORY ONLY. Returning a group for a module
+                         │    that's already an entry has NO EFFECT and
+                         │    emits NO WARNING.
+```
+
+When the same module (e.g. `HttpErrorPage.jsx`) is BOTH:
+
+1. listed in `laravel.input[]` (typical: error pages referenced directly via
+   `@vite()` in `resources/views/app.blade.php` or a layout), AND
+2. caught by a `manualChunks` rule (e.g. `pages-auth`),
+
+…Rollup/Rolldown creates a **standalone entry chunk** with only that one
+module. The `pages-auth` group collapses into that entry. The
+`import.meta.glob` resolve-map points **every sibling page**
+(`Login`, `Register`, `ForgotPassword`, …) at the same chunk hash. The
+siblings' source is discarded.
+
+Symptom: server sends `component: 'Auth/Login'`, browser loads the chunk,
+chunk's `default` export is `HttpErrorPage`, error page renders. Server 100%
+correct; bundle ships the wrong default export.
+
+### Rule 1 — Never duplicate a module between `laravel.input` and the `Pages/**` glob
+
+Either exclude the entry page from the Inertia glob, OR short-circuit
+`manualChunks` BEFORE any grouping rule to preserve the entry's identity.
+Preferred pattern (no change to Inertia bootstrap):
+
+```js
+// vite.config.js
+build: {
+    rollupOptions: {
+        output: {
+            manualChunks(id) {
+                if (!id.includes('/resources/js/Pages/')) return;
+
+                // Entry chunks referenced directly by @vite() in blade MUST
+                // return undefined here — BEFORE any grouping rule. Otherwise
+                // the manualChunks group is collapsed into the entry and the
+                // import.meta.glob resolve-map points siblings at the wrong
+                // chunk hash. Production post-mortem 2026-05.
+                if (id.includes('/Pages/OtherPages/HttpErrorPage')) return;
+
+                if (id.includes('/Pages/Auth/') || id.includes('/Pages/OtherPages/')) {
+                    return 'pages-auth';
+                }
+                if (id.includes('/Pages/Dashboard/')) {
+                    return 'pages-dashboard';
+                }
+            },
+        },
+    },
+},
+```
+
+### Rule 2 — `manualChunks` is advisory; entries always win
+
+There is no warning when Rollup/Rolldown ignores a `manualChunks` return value
+for an entry module. Validation MUST be done out-of-band on `manifest.json`
+after every build.
+
+### Rule 3 — Validate `public/build/manifest.json` after every `vite build`
+
+`start-vibing-stacks` ships `scripts/check-vite-manifest.mjs` (wired as the
+`ViteManifest` quality gate at order 5):
+
+```bash
+node scripts/check-vite-manifest.mjs public/build/manifest.json vite.config.js
+```
+
+The script cross-references `laravel.input[]` against `Pages/**` glob patterns
+and fails (non-zero exit) on any collision.
+
+### Rule 4 — Smoke-test after any `vite.config.js` change touching `build`
+
+For one critical route per page group:
+
+1. DevTools → Network → click the Inertia XHR → read `component:` in the JSON.
+2. Click the JS asset request that follows → open the resolved chunk URL.
+3. Search for `default:` / `export{ ... as default}` in that chunk. The
+   exported component name MUST match the server's `component:`.
+
+If they don't match, revert the last `vite.config.js` change before debugging
+anything else.
+
+### Why this class of bug is so misleading
+
+| Layer | What it looks like | Why it misleads |
+|---|---|---|
+| Laravel logs | Empty | Backend is genuinely correct |
+| `manifest.json` | Valid, every input has an entry | Manifest doesn't enforce uniqueness across groups |
+| Browser network | 200 OK on every request | The wrong JS arrives successfully |
+| Console | Clean | The rendered component is valid React |
+
+Triage rule: **wrong-component render with HTTP 200 and empty server logs =
+bug is in the bundle, not the server.** See `debugging-patterns §Bundle, not
+Backend`.
+
 ## FORBIDDEN
 
 1. **API routes for Inertia pages** — use `Inertia::render()` in controllers
@@ -214,3 +335,6 @@ export interface PaginatedData<T> {
 3. **Fetching data in useEffect** — pass as props from controller
 4. **Duplicating validation** — validate in FormRequest, show errors from `useForm`
 5. **`any` types for page props** — always type with `interface Props extends PageProps`
+6. **Same module in `laravel.input[]` and `Pages/**` glob** — Rollup collapses the manual chunk group into the entry; resolve-map silently points siblings at the wrong chunk hash (wrong-component render with HTTP 200)
+7. **`manualChunks` grouping pages without running `check-vite-manifest.mjs`** — grouping is advisory and silently ignored for entry chunks
+8. **Trusting empty Laravel logs as "no bug"** — server can be 100% correct while the bundle ships the wrong `default` export

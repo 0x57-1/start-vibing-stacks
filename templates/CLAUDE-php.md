@@ -310,6 +310,22 @@ const stripePublishable = import.meta.env.VITE_STRIPE_KEY;   // pk_...
 | `useEffect` to derive state | Anti-pattern — use `useMemo` |
 | Skipping skeleton/empty/error states | Bad UX — all three are mandatory per page |
 
+### Vite Build (CRITICAL — silent bug class)
+
+> **Production post-mortem 2026-05.** A bad `manualChunks` rule can produce
+> silent wrong-component renders (HTTP 200, empty Laravel logs, browser
+> shows the error page when server asked for `Auth/Login`). Bug lives in the
+> bundle graph, not the server. See `inertia-react §Vite Build Gotchas` and
+> `debugging-patterns §Bundle, not Backend`.
+
+| Action | Reason |
+|--------|--------|
+| Same module in `laravel.input[]` and `Pages/**` glob | Rollup/Rolldown silently collapses the manualChunks group into the entry chunk; `import.meta.glob` resolve-map points siblings at the wrong hash |
+| `manualChunks` grouping pages without short-circuit for entry pages | `manualChunks` is advisory — entries always win, with no warning. Add early `return undefined` for any page also listed in `laravel.input[]` |
+| Skipping `node scripts/check-vite-manifest.mjs` after `vite build` | Bundler emits no warning on collision; manual validation is the only signal |
+| Debugging Laravel/server when HTTP 200 + empty logs + wrong content | Triage as "Bundle, not Backend" — start from the JS chunk's `default` export, not the controller |
+| Adding new `@vite('resources/js/Pages/...')` direct reference in blade without auditing `vite.config.js` | Promoting a page to entry chunk while it's still in the Inertia glob is the exact collision shape |
+
 ## UI/UX Design Intelligence
 
 > When the project has a frontend, the **UI/UX Pro Max** skill is auto-installed. It provides 67 UI styles, 161 color palettes, 57 font pairings, and 161 industry-specific reasoning rules. It activates automatically for any UI/UX task.

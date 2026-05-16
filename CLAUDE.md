@@ -7,33 +7,44 @@
 ## Last Change
 
 **Branch:** main
-**Date:** 2026-05-14
-**Summary:** v2.21.0 — Third Node.js production post-mortem
-captured: deploy-time `tsx: command not found / Error: Command
-"npm run build" exited with 127` on Vercel. Root cause:
-`NODE_ENV=production` on Vercel/Docker/CI strips devDependencies,
-so any binary called from `scripts.build` / `prebuild` /
-`postinstall` that's only in `devDependencies` (tsx, ts-node,
-vitest, eslint, …) is unreachable; works locally because Bun and
-`npm install` (no flags) install everything. **nextjs-app-router
-v1.2.0** adds a "Build Script Hygiene (Vercel / CI)" section
-with the asymmetry table, the rule, 4 fix vectors (`.mjs`
-conversion > move-to-deps > `npx`/`bunx` > Vercel
-`installCommand` override), and a stack-shipped-scripts MUST-be-
-`.mjs` invariant. **bun-runtime v1.1.0** prepends a
-"Deploy-Time Asymmetry (READ FIRST)" note pointing at the same
-rule. New zero-dep validator `stacks/nodejs/scripts/
-check-build-scripts.mjs` parses `package.json#scripts`,
-tokenises commands (handles `&&`/`||`/`;`/`npx`/`bunx`/
-`pnpm exec`/`cross-env`/env-var prefixes), and flags any
-deploy-time script that calls a known dev-only tool without a
-wrapper while it's not in `dependencies`. Wired into
-`stacks/nodejs/workflows/ci.yml` between RouteSlugs and Build,
-and registered as `BuildScripts` quality gate in `stack.json`
-(order 5). `_shared/quality-gate` skill updated with the
-Vercel/Docker deploy note. Earlier: v2.20.0 Node.js slug
-consistency + webhook critical-path; v2.19.0 React stack v2.0.0;
-v2.18.0 Python; v2.17.0 PHP; v2.16.0 _shared b2; v2.15.0 b1.
+**Date:** 2026-05-15
+**Summary:** v2.22.0 — Laravel + Inertia + Vite production
+post-mortem captured: silent wrong-component render under
+HTTP 200 with empty Laravel logs. Root cause: a `manualChunks`
+"perf" rule grouped `Pages/Auth/*` while `laravel.input[]`
+already listed `Pages/.../HttpErrorPage.jsx` (referenced direct
+via `@vite()` in `app.blade.php` for the error layout). Rollup/
+Rolldown ALWAYS prioritises entry chunks and SILENTLY drops the
+`manualChunks` return value for entry modules — no warning. The
+`pages-auth` group collapsed into the standalone `HttpErrorPage`
+entry, and the `import.meta.glob` resolve-map inside
+`resolvePageComponent` pointed every sibling (Login, Register,
+ForgotPassword) at that same hash. Server sent `component:
+Auth/Login`, browser rendered the error page. Sonnet spent 90+
+min chasing `InertiaShare` / exception handler / Cloudflare /
+browser cache because Laravel logs were genuinely empty.
+**inertia-react v2.1.0** (both `frontend/react-inertia/` and
+`php/skills/`) adds a "Vite Build Gotchas" section with the
+three-way collision diagram, 4 rules (no duplicate input×glob;
+`manualChunks` is advisory; validate manifest after build;
+3-step browser smoke-test), the exact `return undefined`
+short-circuit pattern that fixed it, and a FORBIDDEN table
+extension. **debugging-patterns v1.1.0** adds "Bundle, not
+Backend" triage: 5-step protocol for HTTP 200 + empty logs +
+wrong-content symptom, multi-stack table (Inertia, Next.js,
+Module Federation, Webpack splitChunks, esbuild). New zero-dep
+validator `stacks/php/scripts/check-vite-manifest.mjs` parses
+`vite.config.js` regex-style (laravel input + import.meta.glob),
+cross-references against `public/build/manifest.json`, and fails
+non-zero on any module appearing as BOTH `laravel.input[]` entry
+AND glob match (also warns on Pages/ files promoted to entry
+indirectly). Wired as `ViteManifest` quality gate in
+`stacks/php/stack.json` (order 5, optional). `templates/CLAUDE-
+php.md` gets a "Vite Build (CRITICAL — silent bug class)"
+FORBIDDEN sub-table. Earlier: v2.21.0 Node.js deploy-time
+asymmetry (tsx/devDeps); v2.20.0 Node.js slug consistency +
+webhook critical-path; v2.19.0 React stack v2.0.0; v2.18.0
+Python; v2.17.0 PHP; v2.16.0 _shared b2; v2.15.0 b1.
 
 ---
 
@@ -257,6 +268,7 @@ When tests are added, this section gets the standard typecheck/lint/test/build m
 - **Manually creating GitHub Releases** — `auto-release.yml` handles it from a `package.json` bump.
 - **Forgetting to bump `version:` in modified skills** — `migrate` won't surface the change to users.
 - **Adding hooks to generated `settings.json` without testing from a subfolder CWD** — see v2.7.4 fix; smoke-test by running the hook from a temp subdir.
+- **Trusting `manualChunks` / `splitChunks` / bundler grouping silently** — fixed in v2.22.0. Bundlers SILENTLY ignore your grouping for entry chunks. Every PHP stack ships `scripts/check-vite-manifest.mjs`; new stacks adding bundler grouping MUST ship an equivalent manifest cross-check validator.
 
 ---
 
