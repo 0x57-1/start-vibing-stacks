@@ -8,19 +8,25 @@
 
 **Branch:** main
 **Date:** 2026-05-19
-**Summary:** v2.25.0 — `--force-hooks` now also covers legacy
-commands (`.claude/commands/*.md` without `version:` frontmatter,
-which is the case for any install older than v2.23.0). Renamed to
-`--force-legacy` (semantically accurate); `--force-hooks` kept as
-silent alias for back-compat with v2.24.0. Same `.bak` machinery.
-Smoke test: install with mixed-state commands (legacy without
-frontmatter, versioned at 0.9.0 outdated, missing) — single
-`migrate --apply --force-legacy` reconciles all paths and the now-
-overwritten installs ship `version: 1.0.0` so future bumps are
-detected as `outdated` by the normal flow. Earlier (same day):
-v2.24.0 smart migrate (versioned hooks via `// @sv-version`,
-versioned commands, idempotent `settings.json` patcher, runtime
-dirs auto-creation, `.gitignore` update); v2.23.0 multi-instance
+**Summary:** v2.25.1 — `/validate` slash command rewritten to be
+unambiguously stack-aware. Previously it shipped a generic
+"Typical commands" table mixing Python/Node.js/PHP examples,
+which a model could pick from instead of reading the canonical
+source (`active-project.json#qualityGates`). Now: explicit
+"How it works (canonical)" section forces reading the JSON
+first, followed by a structured **per-stack JSON reference**
+(suggested commands organized by stack + framework, with
+`_runOrder` and `_extra` for stack-specific gates like Next.js
+RouteSlugs/BuildScripts and PHP ViteManifest). Reference is
+explicitly marked "fallback only — never override
+active-project.json"; if the JSON is missing, the model must
+warn loudly and recommend re-running setup/migrate. Frontmatter
+bumped `version: 1.0.0 → 1.1.0` so existing installs detect it
+as `outdated` via normal `migrate --apply` (no --force-*
+needed). Earlier (same day): v2.25.0 `--force-hooks` extended
+to cover legacy commands (alias `--force-legacy`); v2.24.0 smart
+migrate (versioned hooks/commands, idempotent `settings.json`,
+runtime dirs, `.gitignore`); v2.23.0 multi-instance
 coordination layer (`.claude/state/`, peer detection, hybrid
 block); v2.22.0 Vite manualChunks silent-bug post-mortem; v2.21.0
 Node.js tsx/devDeps; v2.20.0 Node.js slug consistency; v2.19.0
