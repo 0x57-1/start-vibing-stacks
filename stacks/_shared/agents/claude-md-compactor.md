@@ -1,7 +1,7 @@
 ---
 name: claude-md-compactor
-version: 2.0.0
-description: "AUTOMATICALLY invoke when project CLAUDE.md > 20 KB OR any nested CLAUDE.md > 16 KB OR MEMORY.md > 25 KB / 200 lines OR any SKILL.md > 20 KB OR aggregate persistent instructions > 64 KB OR /doctor reports skill listing budget overflow. Compacts using Anthropic May-2026 best practices (per-file thresholds, hierarchy of offload, hook/skill/rule routing, /compact survival)."
+version: 2.1.0
+description: "AUTOMATICALLY invoke when project CLAUDE.md > 20 KB OR any nested CLAUDE.md > 16 KB OR MEMORY.md > 25 KB / 200 lines OR any SKILL.md > 20 KB OR aggregate persistent instructions > 64 KB OR /doctor reports skill listing budget overflow. Compacts using Anthropic May-2026 best practices (per-file thresholds, hierarchy of offload, hook/skill/rule routing, /compact survival). Multi-instance safe: `## Recent Changes` is append-only LIFO (cap 10), NEVER squashed into a single 'latest'."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
@@ -197,7 +197,7 @@ grep -rh '^- ' .claude/rules/ ~/.claude/rules/ 2>/dev/null | sort | uniq -d
 | Section | Budget | Overflow target |
 |---|---|---|
 | Title + 1-paragraph overview | 500 chars | — |
-| Last Change (latest only) | 250 chars | git history |
+| Recent Changes (LIFO, ≤ 10 entries) | 2.500 chars | git log; drop OLDEST when count > 10 |
 | Stack table | 600 chars | — |
 | Architecture tree | 1.000 chars | — |
 | Critical Rules (bullets) | 4.000 chars | `.claude/rules/<topic>.md` (with `paths:` when scoped) |
@@ -213,7 +213,8 @@ grep -rh '^- ' .claude/rules/ ~/.claude/rules/ 2>/dev/null | sort | uniq -d
 |---|---|
 | Delete rules entirely | Move to `.claude/rules/` or skill instead |
 | Remove FORBIDDEN table | Security visibility is the point |
-| Delete Last Change | Keep latest, drop older |
+| Collapse `## Recent Changes` into a single "latest" | Multi-instance overwrites = lost work. Keep as append-only LIFO; drop only the OLDEST `###` block when count > 10 |
+| Edit or remove a `###` entry you did not author | Each instance owns its own entry. Compaction is cap-based pruning, not editing |
 | Remove architecture tree | Essential for navigation |
 | Truncate code examples mid-block | Reference the file instead |
 | Edit auto memory of other projects | Stay in current `~/.claude/projects/<proj>/` |
@@ -221,6 +222,39 @@ grep -rh '^- ' .claude/rules/ ~/.claude/rules/ 2>/dev/null | sort | uniq -d
 | Touch a `CLAUDE.md` referenced by `claudeMdExcludes` | User intentionally hid it |
 | Trust `@import` to save context | It does NOT — imports load full at launch |
 | Keep nested CLAUDE.md content critical | Lost after `/compact` — promote to rule with `paths:` |
+
+## 6.1 Multi-Instance Safety (CRITICAL — read before touching `## Recent Changes`)
+
+CLAUDE.md is read by EVERY parallel Claude session in the project. The `## Recent Changes` section
+is the single piece of content that every session WRITES TO. Without a contract, two instances editing
+within the same minute will overwrite each other (last `Write` wins; the loser's entry vanishes silently
+and is unrecoverable unless committed).
+
+**Contract enforced by this agent:**
+
+1. **Append-only LIFO.** New entries PREPEND directly under the `<!-- APPEND-ONLY LIFO ... -->` HTML
+   comment. Use the heading format `### YYYY-MM-DD · <branch> · <vX.Y.Z | tag>`, followed by 1–4 lines.
+2. **Cap is 10.** When count > 10, drop ONLY the bottom (oldest) `###` block. Never reorder.
+3. **No squashing.** Two entries on the same day are TWO entries. Squashing them into a single "May-19
+   summary" destroys multi-instance attribution.
+4. **No editing peer entries.** If an entry is malformed, leave it. Diagnose with `git blame CLAUDE.md`
+   and let the author fix it.
+5. **Atomic write contract.** The `Write` tool used by Claude is atomic at the FS level (tmp + rename),
+   but it overwrites the ENTIRE file. Before any `Write CLAUDE.md`, the agent MUST `Read CLAUDE.md`
+   immediately prior and operate on the just-read content; any older copy in context is stale.
+6. **Compaction trigger.** Cap pruning runs only when `wc -c CLAUDE.md` > 20 KB AND
+   `grep -c '^### ' CLAUDE.md` between the `## Recent Changes` and next `## ` headers exceeds 10.
+   Pruning is `tail -n` style on `###` blocks, not paragraph editing.
+
+**Verification one-liner (run before compacting `## Recent Changes`):**
+
+```bash
+awk '/^## Recent Changes/{f=1;next} /^## /{f=0} f && /^### /{n++} END{print n " entries"}' CLAUDE.md
+```
+
+Companion: per-instance commit scoping lives in `.claude/hooks/scope.ts` + `/commit-mine` command.
+Together they ensure each instance prepends its OWN entry AND commits only its OWN files. See the
+"Instance N's commit bundling instance M's uncommitted files" NRY in CLAUDE.md.
 
 ## 7. Verification (mandatory after compaction)
 

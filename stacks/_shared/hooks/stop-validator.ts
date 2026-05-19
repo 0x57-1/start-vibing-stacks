@@ -1,16 +1,22 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
  * Reads active-project.json to determine stack-specific validations.
  * Blocks task completion if:
  * 1. Branch != main (work must be merged)
- * 2. Git tree not clean
+ * 2. Git tree not clean — SCOPED TO THIS SESSION'S filesTouched when available
+ *    (multi-instance safe: peer N's dirty files do not block instance M's Stop)
  * 3. CLAUDE.md not updated
- * 4. CLAUDE.md missing required sections
+ * 4. CLAUDE.md missing required sections — accepts `## Last Change` OR `## Recent Changes`
  * 5. CLAUDE.md exceeds 40k chars
  * 6. Secret pattern detected in committed/staged files (uses gitleaks if present, fallback to regex)
+ *
+ * v1.2.0: per-instance scoping for the dirty-tree check + accept `## Recent Changes`
+ * (append-only LIFO) as a valid changelog section. Source of truth for "what did
+ * THIS session edit?" is `.claude/state/sessions/<id>.json#filesTouched`, maintained
+ * by `post-tool-use.ts`.
  */
 
 import { execSync } from 'child_process';
@@ -25,6 +31,7 @@ import {
   formatPeer,
   getStateDir,
   listPeerSessions,
+  readSession,
 } from './_state.js';
 
 const PROJECT_DIR = process.env['CLAUDE_PROJECT_DIR'] || process.cwd();
@@ -75,6 +82,31 @@ function getModifiedFiles(): string[] {
   const unstaged = cmd('git diff --name-only').split('\n').filter(Boolean);
   const untracked = cmd('git ls-files --others --exclude-standard').split('\n').filter(Boolean);
   return [...new Set([...staged, ...unstaged, ...untracked])];
+}
+
+/**
+ * Per-instance scoping: if a session id is provided AND state has filesTouched,
+ * return only the dirty files THIS session edited. Otherwise return the full
+ * dirty list (backward compatible). Falls back gracefully on any error.
+ */
+function getScopedDirtyFiles(sessionId: string | undefined): {
+  scoped: string[];
+  perInstance: boolean;
+  totalDirty: number;
+} {
+  const allDirty = getModifiedFiles();
+  if (!sessionId) return { scoped: allDirty, perInstance: false, totalDirty: allDirty.length };
+  try {
+    const stateDir = getStateDir(PROJECT_DIR);
+    const sess = readSession(stateDir, sessionId);
+    if (!sess || !Array.isArray(sess.filesTouched)) {
+      return { scoped: allDirty, perInstance: false, totalDirty: allDirty.length };
+    }
+    const set = new Set(sess.filesTouched);
+    return { scoped: allDirty.filter(f => set.has(f)), perInstance: true, totalDirty: allDirty.length };
+  } catch {
+    return { scoped: allDirty, perInstance: false, totalDirty: allDirty.length };
+  }
 }
 
 /**
@@ -142,18 +174,27 @@ function scanSecrets(): string[] {
   return findings;
 }
 
-function validate(): HookResult {
+function validate(sessionId: string | undefined): HookResult {
   const branch = getBranch();
   const isMain = branch === 'main' || branch === 'master';
-  const modified = getModifiedFiles();
+  const { scoped: modified, perInstance, totalDirty } = getScopedDirtyFiles(sessionId);
   const isClean = modified.length === 0;
+  const scopeNote = perInstance
+    ? ` (this-session-scoped: ${modified.length}/${totalDirty} dirty; peer files ignored)`
+    : '';
 
-  // 1. Must be on main with clean tree
+  // 1. Must be on main with clean tree (scoped to THIS session when possible).
+  //    Recommendation uses `/commit-mine` rather than `git add -A`, which would
+  //    pull in peer-session changes (see CLAUDE.md NRY "Instance N's commit bundling...").
+  const commitGuide = perInstance
+    ? `\n\nRecommended workflow (multi-instance safe):\n1. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status\n2. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" stage\n3. git commit -m "type: description"\n4. git checkout main && git merge ${branch} && git push origin main && git branch -d ${branch}`
+    : `\n\nComplete git workflow:\n1. git add -A\n2. git commit -m "type: description"\n3. git checkout main\n4. git merge ${branch}\n5. git push origin main\n6. git branch -d ${branch}`;
+
   if (!isMain && modified.length > 0) {
     return {
       continue: true,
       decision: 'block',
-      reason: `BLOCKED: On branch '${branch}' with ${modified.length} modified files.\n\nComplete git workflow:\n1. git add -A\n2. git commit -m "type: description"\n3. git checkout main\n4. git merge ${branch}\n5. git push origin main\n6. git branch -d ${branch}`,
+      reason: `BLOCKED: On branch '${branch}' with ${modified.length} modified files${scopeNote}.${commitGuide}`,
     };
   }
 
@@ -166,10 +207,13 @@ function validate(): HookResult {
   }
 
   if (!isClean) {
+    const stageHint = perInstance
+      ? `\n\nThese files were edited by THIS session. Commit only your scope:\n  npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>"`
+      : `\n\nCommit or stash before completing.`;
     return {
       continue: true,
       decision: 'block',
-      reason: `BLOCKED: ${modified.length} uncommitted files:\n${modified.slice(0, 10).map(f => `  - ${f}`).join('\n')}\n\nCommit or stash before completing.`,
+      reason: `BLOCKED: ${modified.length} uncommitted files${scopeNote}:\n${modified.slice(0, 10).map(f => `  - ${f}`).join('\n')}${stageHint}`,
     };
   }
 
@@ -193,10 +237,11 @@ function validate(): HookResult {
     };
   }
 
-  // 4. Required sections
+  // 4. Required sections — `## Last Change` (single, overwritten) OR `## Recent Changes`
+  //    (append-only LIFO, multi-instance safe) both satisfy the changelog slot.
   const required = [
     { pattern: /^# .+/m, name: 'Project Title (H1)' },
-    { pattern: /^## Last Change/m, name: 'Last Change' },
+    { pattern: /^## (Last Change|Recent Changes)/m, name: 'Last Change OR Recent Changes' },
     { pattern: /^## Stack/m, name: 'Stack' },
   ];
 
@@ -247,10 +292,10 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const result = validate();
-
   // Multi-instance coordination side effects.
   const sessionId: string | undefined = hookInput.session_id || hookInput.sessionId;
+
+  const result = validate(sessionId);
   const eventName: string = hookInput.hook_event_name || hookInput.hookEventName || '';
   const isSessionEnd = /SessionEnd/i.test(eventName);
 

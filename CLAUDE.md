@@ -4,25 +4,57 @@
 
 ---
 
-## Last Change
+## Recent Changes
 
-**Branch:** main
-**Date:** 2026-05-19
-**Summary:** v2.25.2 — republish of v2.25.1 (npm registry returned
-404 on PUT for v2.25.1 publish despite v2.25.0 succeeding 10 min
-earlier — same workflow, same token, same code; classic transient
-registry hiccup, not a code regression). Bumped to a fresh version
-to retry a clean publish path. Same payload as v2.25.1:
-`/validate` unambiguously stack-aware (per-stack JSON reference,
-`active-project.json#qualityGates` is canonical, fallback policy
-explicit). Earlier (same day): v2.25.0 `--force-hooks` extended
-to cover legacy commands (alias `--force-legacy`); v2.24.0 smart
-migrate (versioned hooks/commands, idempotent `settings.json`,
-runtime dirs, `.gitignore`); v2.23.0 multi-instance
-coordination layer (`.claude/state/`, peer detection, hybrid
-block); v2.22.0 Vite manualChunks silent-bug post-mortem; v2.21.0
-Node.js tsx/devDeps; v2.20.0 Node.js slug consistency; v2.19.0
-React stack v2.0.0.
+<!-- APPEND-ONLY LIFO. Each Claude instance PREPENDS a new `### YYYY-MM-DD · branch · vX.Y.Z` heading
+     + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
+     Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
+
+### 2026-05-19 · main · validator-alignment
+Per-instance scoping extended into `stop-validator.ts` (local v1.1.0 → **v1.2.0** and global
+`~/.claude/hooks/stop-validator.ts`). Both validators now (1) accept `## Last Change` OR
+`## Recent Changes` for the changelog slot and (2) intersect `git status` with
+`.claude/state/sessions/<id>.json#filesTouched` when a session id is resolvable — peer
+N's dirty files no longer block instance M's Stop. Block messages now recommend
+`scope.ts stage` instead of `git add -A` when in scoped mode. Global `searchInDocs()` now
+also looks in project-root `CLAUDE.md` and `README.md` so documenting a file in the
+architecture tree satisfies `SOURCE_FILES_NOT_DOCUMENTED`. Architecture tree above now
+lists `scope.ts`, `_state.ts`, `peers.ts`, `post-tool-use.ts`, `commit-mine.md` explicitly.
+
+### 2026-05-19 · main · docs+coordination
+`Recent Changes` section now append-only LIFO (replaces overwriting `Last Change`) so parallel Claude
+instances stop stomping each other's entries. New `/commit-mine` slash command + `scope.ts` hook stage
+and commit ONLY files this session edited, using `.claude/state/sessions/<id>.json#filesTouched`
+(maintained by `post-tool-use.ts`). Refuses files a peer touched in the last 5 min unless
+`--include-conflicted`. Closes the "instance 2 commit bundles instance 1's files" pattern.
+`claude-md-compactor.md` §5 budget + §6 forbidden list + new §6.1 multi-instance safety updated.
+
+### 2026-05-19 · main · v2.25.2
+Republish of v2.25.1: npm registry returned 404 on PUT despite v2.25.0 succeeding 10 min earlier
+(same workflow, same token — transient registry hiccup, not a code regression). Bumped to a fresh
+version to retry a clean publish path. Payload identical to v2.25.1.
+
+### 2026-05-19 · main · v2.25.1
+`/validate` unambiguously stack-aware: per-stack JSON reference, `active-project.json#qualityGates`
+is canonical, fallback policy explicit.
+
+### 2026-05-19 · main · v2.25.0
+`--force-hooks` extended to cover legacy commands (alias `--force-legacy`).
+
+### 2026-05-19 · main · v2.24.0
+Smart migrate — versioned hooks/commands, idempotent `settings.json`, runtime dirs, `.gitignore`.
+
+### 2026-05-19 · main · v2.23.0
+Multi-instance coordination layer (`.claude/state/`, peer detection, hybrid block).
+
+### 2026-05-19 · main · v2.22.0
+Vite manualChunks silent-bug post-mortem.
+
+### 2026-05-19 · main · v2.21.0
+Node.js tsx/devDeps.
+
+### 2026-05-19 · main · v2.20.0
+Node.js slug consistency.
 
 ---
 
@@ -69,11 +101,14 @@ start-vibing-stacks/
 ├── dist/                               # tsc output, gitignored, shipped to npm
 ├── stacks/
 │   ├── _shared/                        # universal — copied to every project
-│   │   ├── agents/                     # 7 agents (research-web, documenter, ...)
-│   │   ├── commands/                   # /feature, /fix, /research, /validate
+│   │   ├── agents/                     # 7 agents (research-web, documenter, claude-md-compactor, ...)
+│   │   ├── commands/                   # /feature, /fix, /research, /validate, /peers, /commit-mine
 │   │   ├── config/                     # mcp-servers.json + base configs
-│   │   ├── hooks/                      # run-hook.sh, stop-validator.ts, final-check.ts,
-│   │   │                                  user-prompt-submit.ts (THE generated hooks)
+│   │   ├── hooks/                      # run-hook.sh, stop-validator.ts (per-instance scoped),
+│   │   │                                  session-start.ts, pre-tool-use.ts, post-tool-use.ts,
+│   │   │                                  user-prompt-submit.ts, peers.ts (CLI),
+│   │   │                                  scope.ts (per-instance commit scoping CLI),
+│   │   │                                  _state.ts (multi-instance state lib)
 │   │   └── skills/                     # 20 universal skills (security-baseline,
 │   │                                      database-migrations, openapi-design,
 │   │                                      postgres-patterns, etc.)
@@ -248,6 +283,8 @@ When tests are added, this section gets the standard typecheck/lint/test/build m
 - **Adding hooks to generated `settings.json` without testing from a subfolder CWD** — see v2.7.4 fix; smoke-test by running the hook from a temp subdir.
 - **Trusting `manualChunks` / `splitChunks` / bundler grouping silently** — fixed in v2.22.0. Bundlers SILENTLY ignore your grouping for entry chunks. Every PHP stack ships `scripts/check-vite-manifest.mjs`; new stacks adding bundler grouping MUST ship an equivalent manifest cross-check validator.
 - **Two Claude instances stomping the same uncommitted file** — fixed in v2.23.0. Coordination layer at `.claude/state/`. Hooks BLOCK Edit/Write only when a peer's heartbeat is active (<60s) AND touched the same file in the last 5 min; otherwise warn. New skills/hooks/files MUST keep the contract: writes atomic (`.tmp` + `rename`), reads tolerant of corruption, never block Claude on a coordination-layer bug. State dir is per-host runtime — never commit it. See `multi-instance-coordination` skill.
+- **Instance N's commit bundling instance M's uncommitted files** — fixed in docs+coordination (2026-05-19). NEVER run `git add .` / `git add -A` / `git add -u` in a multi-instance project. ALWAYS commit via `/commit-mine` (or directly: `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" stage && git commit -m "<msg>"`). Source of truth for "what did THIS session edit?" is `.claude/state/sessions/<id>.json#filesTouched`, maintained by `post-tool-use.ts`. `scope.ts` runs `git reset` first (destructive to the index), then stages only this session's dirty files; refuses files a peer touched in the last 5 min unless `--include-conflicted`.
+- **Stomping the `## Recent Changes` log** — same fix. The section is APPEND-ONLY LIFO with a cap of 10 (compactor enforces the cap, not the prepend). PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` block; NEVER edit or delete a peer's entry. If you must compact, drop only the OLDEST entry. See `claude-md-compactor.md` §5 + §6 + §6.1.
 - **`migrate` half-applying a release** — fixed in v2.24.0 / v2.25.0. Any new feature that ships hooks, commands, settings.json entries, runtime dirs, or `.gitignore` changes MUST be reachable through `migrate --apply` (not only via fresh `setup --force`). Hooks ship `// @sv-version: x.y.z`; commands ship frontmatter `version:`; `patchSettings()` and `ensureRuntimeArtefacts()` are the canonical place to wire everything else. Re-running `migrate --apply` MUST be idempotent. Legacy un-versioned files (hooks without `@sv-version`, commands without `version:` — i.e. anything installed before the versioning landed) are recovered via `--force-legacy` (alias `--force-hooks`) which overwrites with a timestamped `.bak`. Skills and agents stay manual-review (`modified-no-version`) because users customize them.
 
 ---
