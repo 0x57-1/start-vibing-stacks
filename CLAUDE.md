@@ -8,31 +8,23 @@
 
 **Branch:** main
 **Date:** 2026-05-19
-**Summary:** v2.24.0 — `migrate` is now smart and complete. Closes
-the gap from v2.23.0 where `migrate --apply` would copy new hook
-files but leave the install half-broken: modified hooks not
-updated, `commands/*.md` ignored, `settings.json` not patched,
-`.claude/state/` not created, `.gitignore` not updated. Now: every
-bundled hook ships a `// @sv-version: x.y.z` header. `migrate`
-parses it (legacy installs without the tag are reported as
-`needs-update-legacy` and skipped by default; `--force-hooks`
-overwrites them with a timestamped `.bak`). `_shared/commands/*.md`
-are versioned via existing `version:` frontmatter and migrate end
-to end like skills/agents. New `patchSettings()` does idempotent
-deep-merge of `settings.json#hooks` — adds SessionStart /
-PreToolUse / PostToolUse / SessionEnd if missing, never removes
-existing entries (matches by `commandSubstring()` regex on the
-script filename). `ensureRuntimeArtefacts()` creates
-`.claude/state/{sessions,inbox,file-touches}/_archive`, copies
-`_state.README.md` → `.claude/state/README.md`, and appends
-`.claude/state/` to `.gitignore` if not already covered. Atomic
-write everywhere (`.tmp` + `rename`). Smoke test: simulated v2.23.0
-broken install (legacy hooks, partial settings, missing state)
-fully reconciled by `migrate --apply` (idempotent: re-runs are
-no-ops). Earlier: v2.23.0 multi-instance coordination layer
-(`.claude/state/`, peer detection, hybrid block); v2.22.0 Vite
-manualChunks silent-bug post-mortem; v2.21.0 Node.js tsx/devDeps;
-v2.20.0 Node.js slug consistency; v2.19.0 React stack v2.0.0.
+**Summary:** v2.25.0 — `--force-hooks` now also covers legacy
+commands (`.claude/commands/*.md` without `version:` frontmatter,
+which is the case for any install older than v2.23.0). Renamed to
+`--force-legacy` (semantically accurate); `--force-hooks` kept as
+silent alias for back-compat with v2.24.0. Same `.bak` machinery.
+Smoke test: install with mixed-state commands (legacy without
+frontmatter, versioned at 0.9.0 outdated, missing) — single
+`migrate --apply --force-legacy` reconciles all paths and the now-
+overwritten installs ship `version: 1.0.0` so future bumps are
+detected as `outdated` by the normal flow. Earlier (same day):
+v2.24.0 smart migrate (versioned hooks via `// @sv-version`,
+versioned commands, idempotent `settings.json` patcher, runtime
+dirs auto-creation, `.gitignore` update); v2.23.0 multi-instance
+coordination layer (`.claude/state/`, peer detection, hybrid
+block); v2.22.0 Vite manualChunks silent-bug post-mortem; v2.21.0
+Node.js tsx/devDeps; v2.20.0 Node.js slug consistency; v2.19.0
+React stack v2.0.0.
 
 ---
 
@@ -258,7 +250,7 @@ When tests are added, this section gets the standard typecheck/lint/test/build m
 - **Adding hooks to generated `settings.json` without testing from a subfolder CWD** — see v2.7.4 fix; smoke-test by running the hook from a temp subdir.
 - **Trusting `manualChunks` / `splitChunks` / bundler grouping silently** — fixed in v2.22.0. Bundlers SILENTLY ignore your grouping for entry chunks. Every PHP stack ships `scripts/check-vite-manifest.mjs`; new stacks adding bundler grouping MUST ship an equivalent manifest cross-check validator.
 - **Two Claude instances stomping the same uncommitted file** — fixed in v2.23.0. Coordination layer at `.claude/state/`. Hooks BLOCK Edit/Write only when a peer's heartbeat is active (<60s) AND touched the same file in the last 5 min; otherwise warn. New skills/hooks/files MUST keep the contract: writes atomic (`.tmp` + `rename`), reads tolerant of corruption, never block Claude on a coordination-layer bug. State dir is per-host runtime — never commit it. See `multi-instance-coordination` skill.
-- **`migrate` half-applying a release** — fixed in v2.24.0. Any new feature that ships hooks, commands, settings.json entries, runtime dirs, or `.gitignore` changes MUST be reachable through `migrate --apply` (not only via fresh `setup --force`). Hooks ship `// @sv-version: x.y.z`; commands ship frontmatter `version:`; `patchSettings()` and `ensureRuntimeArtefacts()` are the canonical place to wire everything else. Re-running `migrate --apply` MUST be idempotent.
+- **`migrate` half-applying a release** — fixed in v2.24.0 / v2.25.0. Any new feature that ships hooks, commands, settings.json entries, runtime dirs, or `.gitignore` changes MUST be reachable through `migrate --apply` (not only via fresh `setup --force`). Hooks ship `// @sv-version: x.y.z`; commands ship frontmatter `version:`; `patchSettings()` and `ensureRuntimeArtefacts()` are the canonical place to wire everything else. Re-running `migrate --apply` MUST be idempotent. Legacy un-versioned files (hooks without `@sv-version`, commands without `version:` — i.e. anything installed before the versioning landed) are recovered via `--force-legacy` (alias `--force-hooks`) which overwrites with a timestamped `.bak`. Skills and agents stay manual-review (`modified-no-version`) because users customize them.
 
 ---
 

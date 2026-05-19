@@ -227,7 +227,18 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
       const bundledVersion = parseFrontmatterVersion(source);
       if (!bundledVersion) continue;
       const installedVersion = parseFrontmatterVersion(target);
-      const status: Status = !existsSync(target) ? 'missing' : statusFromSemver(bundledVersion, installedVersion);
+      let status: Status;
+      if (!existsSync(target)) {
+        status = 'missing';
+      } else if (installedVersion === null) {
+        // Commands are canonical infra files (slash-command routes). When the
+        // installed copy lacks `version:` frontmatter it predates versioned
+        // commands — treat as legacy so `--force-hooks` can heal it (same
+        // .bak machinery as legacy hooks). Skills/agents stay manual-review.
+        status = 'needs-update-legacy';
+      } else {
+        status = statusFromSemver(bundledVersion, installedVersion);
+      }
       items.push({ kind: 'command', name, source, target, bundledVersion, installedVersion, status });
     }
   }
@@ -457,7 +468,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
 
   summary('MISSING', grouped.missing);
   summary('OUTDATED', grouped.outdated);
-  summary('NEEDS UPDATE — legacy hooks (no @sv-version tag)', grouped['needs-update-legacy']);
+  summary('NEEDS UPDATE — legacy (hooks without @sv-version, commands without version: frontmatter)', grouped['needs-update-legacy']);
   summary('AHEAD (installed newer than bundled — kept)', grouped.ahead);
   summary('UNVERSIONED (manual review)', grouped['modified-no-version']);
   summary('CURRENT', grouped.current);
@@ -510,8 +521,9 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
-        `${grouped['needs-update-legacy'].length} legacy hook(s) without @sv-version detected. ` +
-          `Use --force-hooks to update them with a .bak backup.`
+        `${grouped['needs-update-legacy'].length} legacy file(s) detected (hooks without @sv-version, ` +
+          `commands without \`version:\` frontmatter). Use --force-legacy (alias --force-hooks) to ` +
+          `update them with a .bak backup.`
       );
     }
     return;
@@ -546,7 +558,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   console.log('');
   ui.success(
     `Migration complete: ${updated} file(s), ${settingsApply.added.length} settings entry(ies)` +
-      (legacyUpdated > 0 ? `, ${legacyUpdated} legacy hook(s) overwritten with backup` : '')
+      (legacyUpdated > 0 ? `, ${legacyUpdated} legacy file(s) overwritten with backup` : '')
   );
 
   if (grouped['modified-no-version'].length > 0) {
@@ -560,8 +572,9 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
     console.log('');
     ui.warn(
-      `${grouped['needs-update-legacy'].length} legacy hook(s) without @sv-version were skipped. ` +
-        `Re-run with --force-hooks to update them (each gets a .bak backup).`
+      `${grouped['needs-update-legacy'].length} legacy file(s) skipped (hooks without @sv-version, ` +
+        `commands without \`version:\` frontmatter). Re-run with --force-legacy ` +
+        `(alias --force-hooks) to update them (each gets a .bak backup).`
     );
     for (const it of grouped['needs-update-legacy'].slice(0, 10)) {
       console.log(`    ${relative(projectDir, it.target)}`);

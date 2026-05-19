@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.24.0** — `migrate` is now smart and complete. Versioned hooks (`// @sv-version`), versioned commands, idempotent `settings.json` patcher, runtime dirs auto-creation, `.gitignore` update — all reachable via `npx start-vibing-stacks migrate --apply`. New `--force-hooks` flag overwrites legacy hooks (no `@sv-version`) with timestamped `.bak` backup. v2.23.0 → multi-instance coordination layer.
+> Latest: **v2.25.0** — `--force-hooks` (alias `--force-legacy`) now also covers legacy commands (`commands/*.md` without `version:` frontmatter), not just hooks. Single command rebuilds installs older than v2.23.0. v2.24.0 → smart migrate (versioned hooks/commands, idempotent `settings.json`, runtime dirs, `.gitignore`). v2.23.0 → multi-instance coordination layer.
 
 ---
 
@@ -133,7 +133,8 @@ Single-host coordination only. It does **not** replace `git` for cross-machine c
 npx start-vibing-stacks                                # setup or resume current project
 npx start-vibing-stacks migrate                        # dry run: skills + agents + hooks + commands + settings.json + runtime dirs
 npx start-vibing-stacks migrate --apply                # apply (idempotent; preserves customizations)
-npx start-vibing-stacks migrate --apply --force-hooks  # also overwrite legacy hooks (no @sv-version) — creates .bak
+npx start-vibing-stacks migrate --apply --force-legacy # also overwrite legacy hooks AND commands (no version) — creates .bak
+npx start-vibing-stacks migrate --apply --force-hooks  # alias for --force-legacy (back-compat)
 
 # flags: --force --no-claude --no-mcp --no-install --help --version
 ```
@@ -145,7 +146,7 @@ npx start-vibing-stacks migrate --apply --force-hooks  # also overwrite legacy h
 - **Runtime artefacts** — `.claude/state/{sessions,inbox,file-touches}/_archive` auto-created; `_state.README.md` staged.
 - **`.gitignore`** — `.claude/state/` appended if not already covered.
 
-Legacy hooks without `@sv-version` (anything older than v2.24.0) are reported as `needs-update-legacy` and skipped by default. Pass `--force-hooks` to overwrite them — each gets a timestamped `.bak`.
+Legacy files without versioning — hooks without `// @sv-version` AND commands without `version:` frontmatter (anything installed before the versioning landed) — are reported as `needs-update-legacy` and skipped by default. Pass `--force-legacy` (or its alias `--force-hooks`) to overwrite them — each gets a timestamped `.bak`. Skills and agents are intentionally **not** covered because users customize them; they stay in `modified-no-version` (advisory only).
 
 Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
 

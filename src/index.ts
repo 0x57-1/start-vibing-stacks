@@ -38,7 +38,7 @@ const FLAGS = {
   help: args.includes('--help') || args.includes('-h'),
   version: args.includes('--version') || args.includes('-v'),
   apply: args.includes('--apply'),
-  forceHooks: args.includes('--force-hooks'),
+  forceHooks: args.includes('--force-hooks') || args.includes('--force-legacy'),
 };
 
 if (FLAGS.version) {
@@ -60,7 +60,9 @@ if (FLAGS.help) {
   ${chalk.bold('Options:')}
     --force           Overwrite existing configuration (default command)
     --apply           Apply updates (migrate command)
-    --force-hooks     Overwrite legacy hooks without @sv-version (migrate; creates .bak)
+    --force-legacy    Overwrite legacy hooks (no @sv-version) AND legacy commands
+                      (no version: frontmatter) — each gets a timestamped .bak
+    --force-hooks     Alias for --force-legacy (kept for back-compat)
     --no-claude       Skip Claude Code installation
     --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
