@@ -221,7 +221,11 @@ const issues: string[] = [];
 
 if (dirty)                                                    issues.push(`GIT_TREE_NOT_CLEAN: ${dirty.split('\n').length} file(s)`);
 if (existsSync('CLAUDE.md') &&
-    !readFileSync('CLAUDE.md', 'utf8').includes('Last Change')) issues.push('CLAUDE_MD_NOT_UPDATED');
+    !/^## (Last Change|Recent Changes)/m.test(readFileSync('CLAUDE.md', 'utf8'))) {
+  // Accepts the legacy `## Last Change` (single, overwritten) OR `## Recent Changes`
+  // (append-only LIFO, multi-instance safe — see claude-md-compactor §6.1).
+  issues.push('CLAUDE_MD_NOT_UPDATED');
+}
 
 const result = issues.length === 0
   ? { continue: false, decision: 'approve', reason: 'All checks passed' }

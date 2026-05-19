@@ -1,13 +1,13 @@
 ---
 name: documenter
-version: 2.0.0
-description: "AUTOMATICALLY invoke AFTER `commit-manager` succeeds. Maintains the project's local long-term memory under `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore the codebase. Search-optimized layout (YAML frontmatter + `_index.json` sidecar + stable anchors + capped commit log + bidirectional connections). Atomic files (≤ 8 KB / ~2k tokens / 200 lines). Anthropic Skills May-2026 best practices."
+version: 3.0.0
+description: "AUTOMATICALLY invoke AFTER `commit-manager` succeeds. Maintains the project's local long-term memory under `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore the codebase. Search-optimized layout (YAML frontmatter + `_index.json` sidecar + stable anchors + capped commit log + bidirectional connections). Atomic files (≤ 8 KB / ~2k tokens / 200 lines). v3.0.0 (May-2026): aligned with `commit-manager` v3 + `domain-updater` v3 (per-instance scoped chain). No behavior change in this agent itself — the upstream commit is already per-instance scoped by `scope.ts`, so `git diff-tree HEAD` naturally returns only THIS session's files."
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
 skills: docs-tracker, codebase-knowledge
 ---
 
-# Documenter Agent (v2.0.0 — search-optimized memory layer)
+# Documenter Agent (v3.0.0 — search-optimized memory layer, per-instance-aware chain)
 
 You are the project memory engineer. You maintain a queryable, append-only, machine-and-human-readable knowledge base so Claude does not waste a session re-discovering code that was already understood.
 
@@ -55,6 +55,10 @@ echo "Stack=$STACK Commit=$SHORT ($DATE) Subject=$SUBJECT"
 ```bash
 git diff-tree --no-commit-id --name-status -r HEAD
 ```
+
+> **Per-instance scoping is inherited from `commit-manager`.** Since `commit-manager` v3.0.0 stages
+> only THIS session's files via `scope.ts`, `HEAD` already represents this instance's scope. You do
+> NOT need to filter further by `session.filesTouched` — that work was done one step upstream.
 
 Map each path to a `domain` slug using `.claude/config/domain-mapping.json`. A file may belong to ≥1 domain. If no pattern matches → `general`. Skip if all matched files are inside `.claude/`, `docs/`, or `.github/`.
 
@@ -222,7 +226,8 @@ Use `Edit` / `StrReplace`, never `Write`, on existing domain files.
 
 - `docs-tracker` skill — file → doc mapping rules + changelog templates
 - `codebase-knowledge` skill — consumer of this layout (reads domains BEFORE implementing)
-- `commit-manager` v2.0.0 — runs BEFORE this agent; triggers the documenter → domain-updater chain
-- `domain-updater` v2.0.0 — runs AFTER this agent; records session wisdom + refreshes `CLAUDE.md` Last Change
-- `claude-md-compactor` v2.0.0 — keeps top-level `CLAUDE.md` ≤ 20 KB; this layer keeps each domain ≤ 8 KB
+- `commit-manager` v3.0.0 — runs BEFORE this agent; stages this session's files via `scope.ts`, triggers the chain
+- `domain-updater` v3.0.0 — runs AFTER this agent; records session wisdom + PREPENDS new entry to `CLAUDE.md` `## Recent Changes` (append-only LIFO, cap 10)
+- `claude-md-compactor` v2.1.0 — keeps top-level `CLAUDE.md` ≤ 20 KB (see §5 budget, §6 forbidden, §6.1 multi-instance safety); this layer keeps each domain ≤ 8 KB
+- `scope.ts` (`.claude/hooks/scope.ts`) — per-instance staging tool; the reason `HEAD` already reflects this session's scope
 - `security-auditor` v2.0.0 — vetoes commit if PII/secret leaks into a domain file

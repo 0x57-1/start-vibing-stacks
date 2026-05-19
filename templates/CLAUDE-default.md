@@ -1,10 +1,14 @@
 # {{PROJECT_NAME}}
 
-## Last Change
+## Recent Changes
 
-**Branch:** main
-**Date:** {{DATE}}
-**Summary:** Initial project setup with start-vibing-stacks
+<!-- APPEND-ONLY LIFO. Each Claude instance PREPENDS a new `### YYYY-MM-DD · branch · vX.Y.Z` heading
+     + 1-4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
+     `domain-updater` v3.0.0+ does this automatically post-commit.
+     Compactor (`claude-md-compactor.md §5-§6`) enforces the cap, not the prepend. -->
+
+### {{DATE}} · main · v0.1.0
+Initial project setup with start-vibing-stacks.
 
 ## 30 Seconds Overview
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -9,6 +9,10 @@
  *     from the first prompt (matches `claude --resume`), drain the inbox so
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
+ *
+ * v1.2.0: workflow guidance now points at `## Recent Changes` (append-only LIFO)
+ * instead of `## Last Change` (overwritten). Aligned with `commit-manager` v3.0.0
+ * and `domain-updater` v3.0.0 — multi-instance safe.
  */
 
 import { existsSync, readFileSync } from 'fs';
@@ -159,11 +163,15 @@ async function main(): Promise<void> {
 
 3. Run quality gates: ${qualityCmd}
 
-4. COMMIT using conventional commits via commit-manager agent.
+4. COMMIT using conventional commits via commit-manager agent (v3.0.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled).
 
 5. UPDATE CLAUDE.md:
-   a. "## Last Change" (date: ${today}, branch, summary)
-   b. Update ALL affected rule/flow sections
+   a. PREPEND a new entry under "## Recent Changes" — heading exactly:
+      "### ${today} · <branch> · <version-or-tag>" followed by 1-4 plain-text lines.
+      Append-only LIFO; cap 10 (drop ONLY the oldest if exceeded). Multi-instance safe.
+      Triggered automatically by domain-updater v3.0.0; do it manually only if running outside the chain.
+   b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
+      modifies how the project works.
 
 6. Run stop-validator before finishing.${standardsContext}${peersBlock}`;
 

@@ -10,6 +10,16 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-05-19 · main · v2.26.0
+Chain realignment: `commit-manager` v2→v3.0.0 stages via `scope.ts` when `.claude/state/` exists
+(fallback `git add -A` solo) and surfaces active peers in Step 1.5. `domain-updater` v2→v3.0.0
+PREPENDS a `### YYYY-MM-DD · branch · vX.Y.Z` entry to `## Recent Changes` (append-only LIFO,
+cap 10) instead of overwriting `## Last Change`. `documenter` v2→v3.0.0 aligned (no behavior
+change; chain version sync). Commands `feature.md` (→v1.1.0) and `fix.md` (→v1.1.0) now reference
+Recent Changes + `/commit-mine`. `user-prompt-submit.ts` (v1.1→v1.2.0) injects new workflow §5
+guidance. `git-workflow` + `hook-development` skills, `templates/CLAUDE-{default,nodejs,php,python}`,
+README all migrated. NRY below extended.
+
 ### 2026-05-19 · main · validator-alignment
 Per-instance scoping extended into `stop-validator.ts` (local v1.1.0 → **v1.2.0** and global
 `~/.claude/hooks/stop-validator.ts`). Both validators now (1) accept `## Last Change` OR
@@ -52,9 +62,6 @@ Vite manualChunks silent-bug post-mortem.
 
 ### 2026-05-19 · main · v2.21.0
 Node.js tsx/devDeps.
-
-### 2026-05-19 · main · v2.20.0
-Node.js slug consistency.
 
 ---
 
@@ -285,6 +292,7 @@ When tests are added, this section gets the standard typecheck/lint/test/build m
 - **Two Claude instances stomping the same uncommitted file** — fixed in v2.23.0. Coordination layer at `.claude/state/`. Hooks BLOCK Edit/Write only when a peer's heartbeat is active (<60s) AND touched the same file in the last 5 min; otherwise warn. New skills/hooks/files MUST keep the contract: writes atomic (`.tmp` + `rename`), reads tolerant of corruption, never block Claude on a coordination-layer bug. State dir is per-host runtime — never commit it. See `multi-instance-coordination` skill.
 - **Instance N's commit bundling instance M's uncommitted files** — fixed in docs+coordination (2026-05-19). NEVER run `git add .` / `git add -A` / `git add -u` in a multi-instance project. ALWAYS commit via `/commit-mine` (or directly: `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" stage && git commit -m "<msg>"`). Source of truth for "what did THIS session edit?" is `.claude/state/sessions/<id>.json#filesTouched`, maintained by `post-tool-use.ts`. `scope.ts` runs `git reset` first (destructive to the index), then stages only this session's dirty files; refuses files a peer touched in the last 5 min unless `--include-conflicted`.
 - **Stomping the `## Recent Changes` log** — same fix. The section is APPEND-ONLY LIFO with a cap of 10 (compactor enforces the cap, not the prepend). PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` block; NEVER edit or delete a peer's entry. If you must compact, drop only the OLDEST entry. See `claude-md-compactor.md` §5 + §6 + §6.1.
+- **Renaming a CLAUDE.md section without auditing the entire agent chain** — fixed in v2.26.0. The Recent Changes rename (v2.25.x → v2.26.0) was incomplete for 1 release: `commit-manager` v2 still ran `git add -A` and `domain-updater` v2 still tried to overwrite `## Last Change` (which no longer existed). Rule: **any rename of a CLAUDE.md section, file, or hook the chain depends on REQUIRES** (1) `rg "<old name>"` across `stacks/_shared/agents/**`, `commands/**`, `hooks/**`, `skills/**`, `templates/**`, `README.md`, AND (2) version-bump every agent in the affected chain (so `migrate` reaches existing installs). The chain `commit-manager → documenter → domain-updater` is one unit; bump all three when any of them change behavior.
 - **`migrate` half-applying a release** — fixed in v2.24.0 / v2.25.0. Any new feature that ships hooks, commands, settings.json entries, runtime dirs, or `.gitignore` changes MUST be reachable through `migrate --apply` (not only via fresh `setup --force`). Hooks ship `// @sv-version: x.y.z`; commands ship frontmatter `version:`; `patchSettings()` and `ensureRuntimeArtefacts()` are the canonical place to wire everything else. Re-running `migrate --apply` MUST be idempotent. Legacy un-versioned files (hooks without `@sv-version`, commands without `version:` — i.e. anything installed before the versioning landed) are recovered via `--force-legacy` (alias `--force-hooks`) which overwrites with a timestamped `.bak`. Skills and agents stay manual-review (`modified-no-version`) because users customize them.
 
 ---

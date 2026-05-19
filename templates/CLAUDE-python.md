@@ -2,11 +2,15 @@
 
 > **CHARACTER LIMIT**: Max 40,000 chars. Validate with `wc -m CLAUDE.md` before commit.
 
-## Last Change
+## Recent Changes
 
-**Branch:** main
-**Date:** {{DATE}}
-**Summary:** Initial project setup with start-vibing-stacks (Python)
+<!-- APPEND-ONLY LIFO. Each Claude instance PREPENDS a new `### YYYY-MM-DD · branch · vX.Y.Z` heading
+     + 1-4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
+     `domain-updater` v3.0.0+ does this automatically post-commit.
+     Compactor (`claude-md-compactor.md §5-§6`) enforces the cap, not the prepend. -->
+
+### {{DATE}} · main · v0.1.0
+Initial project setup with start-vibing-stacks (Python).
 
 ## 30 Seconds Overview
 
@@ -213,21 +217,30 @@ pytest --tb=short         # Tests (MUST pass)
 
 | Change Type | What to Update |
 |-------------|----------------|
-| Any file change | Last Change section |
+| Any file change | PREPEND new entry to `## Recent Changes` (LIFO, cap 10) |
 | New feature | 30s Overview, Architecture if needed |
 | New pattern | Add to relevant section |
 | Gotcha discovered | Add to FORBIDDEN or NRY |
 | New dependency | Update Stack table |
 
-### Last Change Format (MANDATORY)
+### Recent Changes Format (MANDATORY)
+
+Each new entry is a `###` block PREPENDED below the HTML comment anchor. Multi-instance safe by construction (append-only LIFO, cap 10).
 
 ```markdown
-## Last Change
+## Recent Changes
 
-**Branch:** feature/example
-**Date:** YYYY-MM-DD
-**Summary:** 1-2 sentences describing WHAT and WHY.
+<!-- APPEND-ONLY LIFO ... (HTML comment, do NOT edit) -->
+
+### YYYY-MM-DD · feature/example · v0.2.0
+1-4 plain-text lines describing WHAT and WHY. Inline `code` allowed for agent/skill/file names.
+No bullets, no nested headers, no horizontal rules.
+
+### YYYY-MM-DD · main · v0.1.0
+(previous entry below — never edit a peer's entry)
 ```
+
+`domain-updater` v3.0.0+ does the prepend automatically post-commit. Drop only the OLDEST `### ` block when count exceeds 10. NEVER reorder middle entries; NEVER collapse two entries into one.
 
 ## Agent System
 

@@ -173,7 +173,7 @@ Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
 6. QUALITY        quality-gate: typecheck → lint → test → build
 7. COMMIT         commit-manager — verifies gates, diff-driven message, push
 8. DOCUMENT       documenter — maps files/commits to domains, regenerates _index.json
-9. WISDOM         domain-updater — records session learnings, refreshes CLAUDE.md Last Change
+9. WISDOM         domain-updater — records session learnings, PREPENDS new entry to CLAUDE.md ## Recent Changes (append-only LIFO, cap 10, multi-instance safe)
 10. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
 ```
 
@@ -195,7 +195,7 @@ Steps 5–6 cannot be skipped — `security-auditor` and `quality-gate` veto `co
 | Edit policy | `Edit` known anchors; never `Write` over an existing domain | Diff stability for code review |
 | `summary_sha` | sha256 of the TL;DR block | Drift detector for CI hooks |
 
-This layer is **separate** from `CLAUDE.md`: that file holds project-wide rules and "Last Change"; the memory layer holds domain knowledge.
+This layer is **separate** from `CLAUDE.md`: that file holds project-wide rules and `## Recent Changes` (append-only LIFO, cap 10 entries, multi-instance safe — see `claude-md-compactor.md §6.1`); the memory layer holds domain knowledge.
 
 ---
 

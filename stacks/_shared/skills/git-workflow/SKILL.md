@@ -123,7 +123,7 @@ End state in **both flows**: clean tree, on `main`, in sync with `origin/main`. 
 - [ ] Quality gate passed (typecheck / lint / tests / build)
 - [ ] Security gate passed (`security-auditor` clean)
 - [ ] No secrets in diff (gitleaks)
-- [ ] CLAUDE.md `Last Change` updated when scope warrants it
+- [ ] CLAUDE.md `## Recent Changes` updated (PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` block — append-only LIFO, cap 10; `domain-updater` v3.0.0+ does this automatically post-commit)
 - [ ] Conventional commit message drafted
 - [ ] Push target confirmed (`origin main` vs `origin feature/*`)
 

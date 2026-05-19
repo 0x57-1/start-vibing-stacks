@@ -2,11 +2,15 @@
 
 > **CHARACTER LIMIT**: Max 40,000 chars. Validate with `wc -m CLAUDE.md` before commit.
 
-## Last Change
+## Recent Changes
 
-**Branch:** main
-**Date:** {{DATE}}
-**Summary:** Initial project setup with start-vibing-stacks (PHP — API-first React SPA)
+<!-- APPEND-ONLY LIFO. Each Claude instance PREPENDS a new `### YYYY-MM-DD · branch · vX.Y.Z` heading
+     + 1-4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
+     `domain-updater` v3.0.0+ does this automatically post-commit.
+     Compactor (`claude-md-compactor.md §5-§6`) enforces the cap, not the prepend. -->
+
+### {{DATE}} · main · v0.1.0
+Initial project setup with start-vibing-stacks (PHP — API-first React SPA).
 
 ## 30 Seconds Overview
 
@@ -141,17 +145,17 @@ project/
 
 | Change Type | Sections to Update |
 |-------------|-------------------|
-| Any file change | Last Change (branch, date, summary) |
+| Any file change | PREPEND new entry to `## Recent Changes` (heading: `### YYYY-MM-DD · branch · vX.Y.Z` + 1-4 lines) |
 | API/routes | Critical Rules, Architecture |
 | New feature | 30s Overview, Architecture |
 | New gotcha | FORBIDDEN or NRY |
 | New dependency | Stack |
 | Workflow change | Workflow section |
 
-1. **Last Change** documents WHAT was done
-2. **Other sections** document HOW things work NOW
-3. **Both must be current** — updating only Last Change is insufficient
-4. Keep only the LATEST Last Change entry (no stacking)
+1. **`## Recent Changes`** documents WHAT was done across recent sessions (append-only LIFO, cap 10).
+2. **Other sections** document HOW things work NOW.
+3. **Both must be current** — prepending to Recent Changes is insufficient if rule sections went stale.
+4. **APPEND-ONLY** — PREPEND your entry below the HTML comment anchor; drop only the OLDEST entry when count > 10. NEVER edit a peer's entry, NEVER collapse two entries into one. Multi-instance safe by construction.
 
 ## Critical Rules
 
@@ -372,7 +376,7 @@ $results = DB::select('SELECT * FROM users WHERE id = ?', [$id]);
 3. IMPLEMENT      → Bottom-up: FormRequest+Policy → Service → Resource → Controller → Route → React page
 4. TEST           → PHPUnit feature tests (happy + 401 + 403 + 422); React: api.test.ts
 5. DOCUMENT       → documenter agent for modified files; update domain docs
-6. UPDATE         → Update THIS FILE (CLAUDE.md) — Last Change + relevant sections
+6. UPDATE         → Update THIS FILE (CLAUDE.md) — PREPEND entry to ## Recent Changes (LIFO) + refresh relevant rule sections
 7. QUALITY        → PHPStan + PHPUnit + PHP-CS-Fixer + tsc + eslint
 8. COMMIT         → Conventional commits; merge to main
 ```
