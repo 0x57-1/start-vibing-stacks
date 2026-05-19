@@ -8,22 +8,14 @@
 
 **Branch:** main
 **Date:** 2026-05-19
-**Summary:** v2.25.1 — `/validate` slash command rewritten to be
-unambiguously stack-aware. Previously it shipped a generic
-"Typical commands" table mixing Python/Node.js/PHP examples,
-which a model could pick from instead of reading the canonical
-source (`active-project.json#qualityGates`). Now: explicit
-"How it works (canonical)" section forces reading the JSON
-first, followed by a structured **per-stack JSON reference**
-(suggested commands organized by stack + framework, with
-`_runOrder` and `_extra` for stack-specific gates like Next.js
-RouteSlugs/BuildScripts and PHP ViteManifest). Reference is
-explicitly marked "fallback only — never override
-active-project.json"; if the JSON is missing, the model must
-warn loudly and recommend re-running setup/migrate. Frontmatter
-bumped `version: 1.0.0 → 1.1.0` so existing installs detect it
-as `outdated` via normal `migrate --apply` (no --force-*
-needed). Earlier (same day): v2.25.0 `--force-hooks` extended
+**Summary:** v2.25.2 — republish of v2.25.1 (npm registry returned
+404 on PUT for v2.25.1 publish despite v2.25.0 succeeding 10 min
+earlier — same workflow, same token, same code; classic transient
+registry hiccup, not a code regression). Bumped to a fresh version
+to retry a clean publish path. Same payload as v2.25.1:
+`/validate` unambiguously stack-aware (per-stack JSON reference,
+`active-project.json#qualityGates` is canonical, fallback policy
+explicit). Earlier (same day): v2.25.0 `--force-hooks` extended
 to cover legacy commands (alias `--force-legacy`); v2.24.0 smart
 migrate (versioned hooks/commands, idempotent `settings.json`,
 runtime dirs, `.gitignore`); v2.23.0 multi-instance
