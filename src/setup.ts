@@ -80,6 +80,10 @@ export async function setupProject(
     mkdirSync(join(claudeDir, 'commands'), { recursive: true });
     mkdirSync(join(claudeDir, 'rules'), { recursive: true });
     mkdirSync(join(claudeDir, 'skills', 'codebase-knowledge', 'domains'), { recursive: true });
+    // Multi-instance coordination state (gitignored, runtime-managed)
+    mkdirSync(join(claudeDir, 'state', 'sessions', '_archive'), { recursive: true });
+    mkdirSync(join(claudeDir, 'state', 'inbox'), { recursive: true });
+    mkdirSync(join(claudeDir, 'state', 'file-touches', '_archive'), { recursive: true });
     spinner.text = 'Directory structure created';
 
     // 2. Copy shared agents (universal)
@@ -94,6 +98,13 @@ export async function setupProject(
     // 4. Copy shared hooks
     const sharedHooksDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'hooks');
     const hookCount = copyDirRecursive(sharedHooksDir, join(claudeDir, 'hooks'), options.force);
+
+    // 4b. Multi-instance coordination README in state dir
+    const stateReadmeSrc = join(PACKAGE_ROOT, 'stacks', '_shared', 'hooks', '_state.README.md');
+    const stateReadmeDest = join(claudeDir, 'state', 'README.md');
+    if (existsSync(stateReadmeSrc) && (!existsSync(stateReadmeDest) || options.force)) {
+      writeFileSync(stateReadmeDest, readFileSync(stateReadmeSrc, 'utf8'));
+    }
 
     // 5. Copy shared config
     const sharedConfigDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'config');
@@ -177,13 +188,20 @@ export async function setupProject(
       }
     }
 
-    // 11b. Ensure CLAUDE.local.md is gitignored
+    // 11b. Ensure CLAUDE.local.md and .claude/state/ are gitignored
     const gitignorePath = join(projectDir, '.gitignore');
     if (existsSync(gitignorePath)) {
-      const gitignore = readFileSync(gitignorePath, 'utf8');
+      let gitignore = readFileSync(gitignorePath, 'utf8');
+      let changed = false;
       if (!gitignore.includes('CLAUDE.local.md')) {
-        writeFileSync(gitignorePath, gitignore.trimEnd() + '\n\n# Claude Code local preferences\nCLAUDE.local.md\n');
+        gitignore = gitignore.trimEnd() + '\n\n# Claude Code local preferences\nCLAUDE.local.md\n';
+        changed = true;
       }
+      if (!gitignore.match(/^\.claude\/state\/?$/m) && !gitignore.match(/^\.claude\/?$/m)) {
+        gitignore = gitignore.trimEnd() + '\n\n# Claude Code multi-instance coordination state (runtime, per-host)\n.claude/state/\n';
+        changed = true;
+      }
+      if (changed) writeFileSync(gitignorePath, gitignore);
     }
 
     // 11c. Save standards review results
@@ -281,6 +299,17 @@ export async function setupProject(
       },
 
       hooks: {
+        SessionStart: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.ts"',
+                timeout: 10,
+              },
+            ],
+          },
+        ],
         UserPromptSubmit: [
           {
             matcher: '',
@@ -293,6 +322,30 @@ export async function setupProject(
             ],
           },
         ],
+        PreToolUse: [
+          {
+            matcher: 'Edit|Write|MultiEdit|NotebookEdit',
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.ts"',
+                timeout: 5,
+              },
+            ],
+          },
+        ],
+        PostToolUse: [
+          {
+            matcher: 'Edit|Write|MultiEdit|NotebookEdit',
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.ts"',
+                timeout: 5,
+              },
+            ],
+          },
+        ],
         Stop: [
           {
             hooks: [
@@ -300,6 +353,17 @@ export async function setupProject(
                 type: 'command',
                 command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-validator.ts"',
                 timeout: 30,
+              },
+            ],
+          },
+        ],
+        SessionEnd: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-validator.ts"',
+                timeout: 10,
               },
             ],
           },

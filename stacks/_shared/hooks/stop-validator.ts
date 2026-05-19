@@ -15,6 +15,16 @@
 import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import {
+  ACTIVE_MS,
+  ageMs,
+  archiveSession,
+  clearInbox,
+  ensureStateDirs,
+  formatPeer,
+  getStateDir,
+  listPeerSessions,
+} from './_state.js';
 
 const PROJECT_DIR = process.env['CLAUDE_PROJECT_DIR'] || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
@@ -237,6 +247,33 @@ async function main(): Promise<void> {
   }
 
   const result = validate();
+
+  // Multi-instance coordination side effects.
+  const sessionId: string | undefined = hookInput.session_id || hookInput.sessionId;
+  const eventName: string = hookInput.hook_event_name || hookInput.hookEventName || '';
+  const isSessionEnd = /SessionEnd/i.test(eventName);
+
+  try {
+    const stateDir = getStateDir(PROJECT_DIR);
+    ensureStateDirs(stateDir);
+
+    if (result.decision === 'approve' && sessionId) {
+      const peers = listPeerSessions(stateDir, sessionId);
+      const activePeers = peers.filter(p => ageMs(p.lastSeenAt) < ACTIVE_MS);
+      if (activePeers.length > 0) {
+        const lines = activePeers.map(p => `  - ${formatPeer(p)}`).join('\n');
+        result.reason +=
+          `\n\nNOTE: ${activePeers.length} peer instance(s) still active in this project:\n${lines}\n` +
+          `If you committed and pushed, your work is now visible to them.`;
+      }
+    }
+
+    if (isSessionEnd && sessionId) {
+      archiveSession(stateDir, sessionId);
+      clearInbox(stateDir, sessionId);
+    }
+  } catch {}
+
   console.log(JSON.stringify(result));
   process.exit(0);
 }

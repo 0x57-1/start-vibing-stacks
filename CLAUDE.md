@@ -7,43 +7,35 @@
 ## Last Change
 
 **Branch:** main
-**Date:** 2026-05-15
-**Summary:** v2.22.0 — Laravel + Inertia + Vite production
-post-mortem captured: silent wrong-component render under
-HTTP 200 with empty Laravel logs. Root cause: a `manualChunks`
-"perf" rule grouped `Pages/Auth/*` while `laravel.input[]`
-already listed `Pages/.../HttpErrorPage.jsx` (referenced direct
-via `@vite()` in `app.blade.php` for the error layout). Rollup/
-Rolldown ALWAYS prioritises entry chunks and SILENTLY drops the
-`manualChunks` return value for entry modules — no warning. The
-`pages-auth` group collapsed into the standalone `HttpErrorPage`
-entry, and the `import.meta.glob` resolve-map inside
-`resolvePageComponent` pointed every sibling (Login, Register,
-ForgotPassword) at that same hash. Server sent `component:
-Auth/Login`, browser rendered the error page. Sonnet spent 90+
-min chasing `InertiaShare` / exception handler / Cloudflare /
-browser cache because Laravel logs were genuinely empty.
-**inertia-react v2.1.0** (both `frontend/react-inertia/` and
-`php/skills/`) adds a "Vite Build Gotchas" section with the
-three-way collision diagram, 4 rules (no duplicate input×glob;
-`manualChunks` is advisory; validate manifest after build;
-3-step browser smoke-test), the exact `return undefined`
-short-circuit pattern that fixed it, and a FORBIDDEN table
-extension. **debugging-patterns v1.1.0** adds "Bundle, not
-Backend" triage: 5-step protocol for HTTP 200 + empty logs +
-wrong-content symptom, multi-stack table (Inertia, Next.js,
-Module Federation, Webpack splitChunks, esbuild). New zero-dep
-validator `stacks/php/scripts/check-vite-manifest.mjs` parses
-`vite.config.js` regex-style (laravel input + import.meta.glob),
-cross-references against `public/build/manifest.json`, and fails
-non-zero on any module appearing as BOTH `laravel.input[]` entry
-AND glob match (also warns on Pages/ files promoted to entry
-indirectly). Wired as `ViteManifest` quality gate in
-`stacks/php/stack.json` (order 5, optional). `templates/CLAUDE-
-php.md` gets a "Vite Build (CRITICAL — silent bug class)"
-FORBIDDEN sub-table. Earlier: v2.21.0 Node.js deploy-time
-asymmetry (tsx/devDeps); v2.20.0 Node.js slug consistency +
-webhook critical-path; v2.19.0 React stack v2.0.0; v2.18.0
+**Date:** 2026-05-19
+**Summary:** v2.23.0 — multi-instance coordination layer.
+Two or more Claude Code sessions in the same project folder now
+auto-discover each other through `.claude/state/` (gitignored,
+project-local). New shared library `stacks/_shared/hooks/_state.ts`
+(atomic writes, heartbeat, file-touches log, inbox), new hooks
+`session-start.ts`, `pre-tool-use.ts` (matcher
+`Edit|Write|MultiEdit|NotebookEdit`, hybrid block: BLOCKS only
+when a peer's heartbeat is <60s AND it touched the same file in
+the last 5 minutes; otherwise warns via systemMessage),
+`post-tool-use.ts` (append file-touches.jsonl + cap filesTouched
+at 50). Existing `user-prompt-submit.ts` now also heartbeats,
+captures the `/resume` title from the transcript, drains the
+inbox and surfaces peer warnings. `stop-validator.ts` archives
+the session record on SessionEnd and notes still-active peers
+(non-blocking). New CLI `peers.ts` with subcommands
+`list/notify/locks/cleanup` and slash command `/peers`. Skill
+`multi-instance-coordination` (v1.0.0) documents the protocol —
+narrow description so it auto-loads only when peers are
+mentioned. `src/setup.ts` creates `.claude/state/{sessions,inbox,
+file-touches}/_archive`, copies `_state.README.md` into
+`.claude/state/README.md`, adds `.claude/state/` to the project's
+`.gitignore`, and wires `SessionStart`, `PreToolUse`,
+`PostToolUse`, `SessionEnd` into the generated `settings.json`.
+End-to-end smoke test verifies: two sessions, A writes
+`src/auth.ts`, B is BLOCKED on the same file with a recovery
+hint. Earlier: v2.22.0 Laravel + Inertia + Vite manualChunks
+silent-bug post-mortem; v2.21.0 Node.js tsx/devDeps; v2.20.0
+Node.js slug consistency; v2.19.0 React stack v2.0.0; v2.18.0
 Python; v2.17.0 PHP; v2.16.0 _shared b2; v2.15.0 b1.
 
 ---
@@ -269,6 +261,7 @@ When tests are added, this section gets the standard typecheck/lint/test/build m
 - **Forgetting to bump `version:` in modified skills** — `migrate` won't surface the change to users.
 - **Adding hooks to generated `settings.json` without testing from a subfolder CWD** — see v2.7.4 fix; smoke-test by running the hook from a temp subdir.
 - **Trusting `manualChunks` / `splitChunks` / bundler grouping silently** — fixed in v2.22.0. Bundlers SILENTLY ignore your grouping for entry chunks. Every PHP stack ships `scripts/check-vite-manifest.mjs`; new stacks adding bundler grouping MUST ship an equivalent manifest cross-check validator.
+- **Two Claude instances stomping the same uncommitted file** — fixed in v2.23.0. Coordination layer at `.claude/state/`. Hooks BLOCK Edit/Write only when a peer's heartbeat is active (<60s) AND touched the same file in the last 5 min; otherwise warn. New skills/hooks/files MUST keep the contract: writes atomic (`.tmp` + `rename`), reads tolerant of corruption, never block Claude on a coordination-layer bug. State dir is per-host runtime — never commit it. See `multi-instance-coordination` skill.
 
 ---
 
