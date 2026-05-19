@@ -1,3 +1,4 @@
+// @sv-version: 1.0.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *

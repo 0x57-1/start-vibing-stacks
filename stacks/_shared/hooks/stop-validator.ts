@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @sv-version: 1.1.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *

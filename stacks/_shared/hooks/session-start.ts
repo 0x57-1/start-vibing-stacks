@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @sv-version: 1.0.0
 /**
  * SessionStart Hook — Multi-Instance Coordination
  *

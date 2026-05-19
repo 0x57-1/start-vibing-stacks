@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.23.0** — multi-instance coordination layer. Two or more Claude Code sessions in the same folder auto-discover each other through `.claude/state/`, share file-edit awareness, and refuse to overwrite each other's uncommitted work. New `/peers` slash command + `peers list/notify/locks/cleanup` CLI.
+> Latest: **v2.24.0** — `migrate` is now smart and complete. Versioned hooks (`// @sv-version`), versioned commands, idempotent `settings.json` patcher, runtime dirs auto-creation, `.gitignore` update — all reachable via `npx start-vibing-stacks migrate --apply`. New `--force-hooks` flag overwrites legacy hooks (no `@sv-version`) with timestamped `.bak` backup. v2.23.0 → multi-instance coordination layer.
 
 ---
 
@@ -130,12 +130,22 @@ Single-host coordination only. It does **not** replace `git` for cross-machine c
 ## CLI
 
 ```bash
-npx start-vibing-stacks                  # setup or resume current project
-npx start-vibing-stacks migrate          # show outdated/missing skills
-npx start-vibing-stacks migrate --apply  # update outdated skills/agents
+npx start-vibing-stacks                                # setup or resume current project
+npx start-vibing-stacks migrate                        # dry run: skills + agents + hooks + commands + settings.json + runtime dirs
+npx start-vibing-stacks migrate --apply                # apply (idempotent; preserves customizations)
+npx start-vibing-stacks migrate --apply --force-hooks  # also overwrite legacy hooks (no @sv-version) — creates .bak
 
 # flags: --force --no-claude --no-mcp --no-install --help --version
 ```
+
+`migrate` is the safe upgrade path between releases. Each release gets:
+- **Hooks** versioned via `// @sv-version: x.y.z` header — semver-compared against installed.
+- **Commands** versioned via frontmatter `version:` — same as skills/agents.
+- **`settings.json#hooks`** — idempotent deep-merge: missing event blocks (`SessionStart`, `PreToolUse`, `PostToolUse`, `SessionEnd`) are appended; existing entries (including yours) are preserved.
+- **Runtime artefacts** — `.claude/state/{sessions,inbox,file-touches}/_archive` auto-created; `_state.README.md` staged.
+- **`.gitignore`** — `.claude/state/` appended if not already covered.
+
+Legacy hooks without `@sv-version` (anything older than v2.24.0) are reported as `needs-update-legacy` and skipped by default. Pass `--force-hooks` to overwrite them — each gets a timestamped `.bak`.
 
 Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
 

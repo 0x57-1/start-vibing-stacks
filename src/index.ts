@@ -38,6 +38,7 @@ const FLAGS = {
   help: args.includes('--help') || args.includes('-h'),
   version: args.includes('--version') || args.includes('-v'),
   apply: args.includes('--apply'),
+  forceHooks: args.includes('--force-hooks'),
 };
 
 if (FLAGS.version) {
@@ -59,6 +60,7 @@ if (FLAGS.help) {
   ${chalk.bold('Options:')}
     --force           Overwrite existing configuration (default command)
     --apply           Apply updates (migrate command)
+    --force-hooks     Overwrite legacy hooks without @sv-version (migrate; creates .bak)
     --no-claude       Skip Claude Code installation
     --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
@@ -76,7 +78,7 @@ if (FLAGS.help) {
 // Subcommand: migrate
 if (SUBCOMMAND === 'migrate') {
   const { runMigrate } = await import('./migrate.js');
-  await runMigrate(process.cwd(), { apply: FLAGS.apply });
+  await runMigrate(process.cwd(), { apply: FLAGS.apply, forceHooks: FLAGS.forceHooks });
   process.exit(0);
 }
 
