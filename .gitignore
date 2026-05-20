@@ -54,3 +54,7 @@ playwright/.cache/
 .tmp/
 tmp/
 .cache/
+
+CLAUDE.md
+data/
+.gitignore

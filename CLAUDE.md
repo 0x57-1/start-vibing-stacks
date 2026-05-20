@@ -10,6 +10,13 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-05-19 · main · chore-gitignore
+`.gitignore` gains `CLAUDE.md`, `data/`, `.gitignore` at the tail. The `data/` line keeps
+local SQLite state (`data/memory.db` from MCP/hook runtime) out of git and the npm
+payload. The `CLAUDE.md` line signals "do not auto-stage incidental edits via `git add .`
+patterns" — already-tracked files stay tracked (git's once-tracked rule), so intentional
+`git add CLAUDE.md` still works. No code change, no version bump.
+
 ### 2026-05-19 · main · v2.26.0
 Chain realignment: `commit-manager` v2→v3.0.0 stages via `scope.ts` when `.claude/state/` exists
 (fallback `git add -A` solo) and surfaces active peers in Step 1.5. `domain-updater` v2→v3.0.0
