@@ -1,7 +1,7 @@
 ---
 name: commit-manager
-version: 3.0.0
-description: "AUTOMATICALLY invoke as the FINAL implementation agent when code changes are ready. Verifies security-auditor and quality-gate passed (HARD GATE — will NOT commit if vetoed), analyzes the diff for a precise conventional commit message, stages ONLY this session's files via `scope.ts` when state is available (falls back to `git add -A` for solo projects), commits, pushes, and triggers the post-commit chain (documenter → domain-updater). Multi-instance safe: never bundles peer sessions' uncommitted files into your commit. Supports branch-merge and direct-to-main flows. v3.0.0 (May-2026): per-instance scoped staging + Recent Changes (LIFO) chain alignment."
+version: 3.1.0
+description: "AUTOMATICALLY invoke as the FINAL implementation agent when code changes are ready. Verifies security-auditor and quality-gate passed (HARD GATE — will NOT commit if vetoed), analyzes the diff for a precise conventional commit message, commits ONLY this session's files via `scope.ts commit` (atomic `git commit -o`, never bundles a peer's staged work; `git add -A` only in solo projects), pushes, and triggers the post-commit chain (documenter → domain-updater). Multi-instance safe: never bundles peer sessions' uncommitted files into your commit, and STOPS rather than falling back to `git add -A` when the session cannot be resolved. Supports branch-merge and direct-to-main flows. v3.1.0 (May-2026): atomic pathspec commit + safe (no -A) fallback + CLAUDE_SESSION_ID requirement."
 model: sonnet
 tools: Read, Bash, Grep, Glob
 skills: git-workflow
@@ -130,58 +130,13 @@ Read at most 3 files in full diff. For the rest, rely on the stat + file names.
 
 ## Step 4 — Stage and commit (per-instance scoped)
 
-### 4a. Stage — `scope.ts` first, `git add -A` as fallback
-
-The truth of "what did THIS session edit?" lives in `.claude/state/sessions/<id>.json#filesTouched`,
-maintained by `post-tool-use.ts`. Stage from that, NOT from the worktree at large — otherwise
-you risk bundling a peer session's uncommitted files into your commit.
+### 4a. Compose the message (HEREDOC, shell-safe multi-line)
 
 ```bash
-SCOPE_TS="$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts"
-STATE_DIR="$CLAUDE_PROJECT_DIR/.claude/state"
-
-if [ -f "$SCOPE_TS" ] && [ -d "$STATE_DIR" ]; then
-  # Multi-instance project: stage this session's files only.
-  npx tsx "$SCOPE_TS" stage
-  STAGE_CODE=$?
-  case "$STAGE_CODE" in
-    0)
-      # All safe files staged. Continue.
-      ;;
-    2)
-      # Some safe files staged; conflicted ones skipped intentionally.
-      # scope.ts already printed the warning. Continue — committing the safe scope is correct.
-      echo "ℹ️  Conflicted files skipped (peer also touched in last 5 min). Proceeding with safe scope."
-      ;;
-    *)
-      # scope.ts couldn't resolve session or found no dirty files in scope.
-      # Fall back to legacy behavior — should NOT happen in a healthy multi-instance project.
-      echo "⚠️  scope.ts returned $STAGE_CODE; falling back to legacy `git add -A` (multi-instance risk!)"
-      git add -A
-      ;;
-  esac
-else
-  # Solo project (no .claude/state/) — legacy flow is correct.
-  git add -A
-fi
-
-git status --short
-```
-
-Verify no unexpected files (`.DS_Store`, `.env`, `*.log`). If found:
-
-```bash
-git reset HEAD -- .DS_Store .env *.log 2>/dev/null || true
-```
-
-### 4b. Commit with HEREDOC (shell-safe multi-line)
-
-```bash
-git commit -m "$(cat <<'EOF'
+MSG="$(cat <<'EOF'
 <type>(<scope>): <subject>
 
 <body — 2-5 bullets if ≥ 3 files>
-
 EOF
 )"
 ```
@@ -189,9 +144,59 @@ EOF
 Rules:
 - **No** `Co-Authored-By` header unless the user explicitly asked for it.
 - **No** `Generated with Claude Code` footer — it adds noise to git log.
-- Subject line ≤ 72 chars.
-- Body wraps at 80 chars.
-- Empty body is fine for single-file changes.
+- Subject line ≤ 72 chars. Body wraps at 80 chars. Empty body is fine for single-file changes.
+
+### 4b. Commit — `scope.ts commit` (multi-instance) or `git add -A` (solo only)
+
+The truth of "what did THIS session edit?" lives in `.claude/state/sessions/<id>.json#filesTouched`,
+maintained by `post-tool-use.ts`. In a multi-instance project, commit ONLY those files. `scope.ts
+commit` does this atomically via `git commit -o -- <files>` (commits exactly your paths regardless
+of what a peer has staged) — there is NO `git add -A`, because that is precisely what bundles a
+peer's uncommitted work into your commit.
+
+```bash
+SCOPE_TS="$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts"
+STATE_DIR="$CLAUDE_PROJECT_DIR/.claude/state"
+
+if [ -f "$SCOPE_TS" ] && [ -d "$STATE_DIR" ]; then
+  # Multi-instance project: commit this session's files only (never -A).
+  # scope.ts resolves the session via $CLAUDE_SESSION_ID, else the single active
+  # session. With ≥2 active sessions and no $CLAUDE_SESSION_ID it returns 1.
+  npx tsx "$SCOPE_TS" commit "$MSG"
+  COMMIT_CODE=$?
+  case "$COMMIT_CODE" in
+    0) ;;  # committed your scope cleanly
+    2)
+      # A peer touched one of your files in the last 5 min. Do NOT override blindly.
+      echo "⛔ Conflict: a peer is editing one of your files. Coordinate via:"
+      echo "   npx tsx \"$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts\" notify <id> \"...\""
+      echo "   Then re-run, or (only if you own the change) add --include-conflicted."
+      exit 1
+      ;;
+    *)
+      # Session could not be resolved (≥2 active, no $CLAUDE_SESSION_ID) or no dirty
+      # files in scope. STOP — do NOT fall back to `git add -A` (it bundles peers).
+      echo "⛔ scope.ts could not commit this session's scope (code $COMMIT_CODE)."
+      echo "   Set CLAUDE_SESSION_ID or pass --session <id>, then re-run."
+      echo "   Inspect with: npx tsx \"$SCOPE_TS\" status"
+      exit 1
+      ;;
+  esac
+else
+  # Solo project (no .claude/state/) — only here is `git add -A` safe.
+  git add -A
+  # Guard against incidental junk (multi-instance path is immune: scope commits
+  # only filesTouched, so these never get staged in the first place).
+  git reset HEAD -- .DS_Store .env *.log 2>/dev/null || true
+  git commit -m "$MSG"
+fi
+
+git status --short
+```
+
+> Operational requirement: `scope.ts` needs to know which session is committing.
+> Ensure `CLAUDE_SESSION_ID` is exported to the shell, OR run with `--session <id>`
+> when more than one instance is active. The fallback is to STOP, never `git add -A`.
 
 ---
 
@@ -279,7 +284,7 @@ Action:     <what the user should do>
 ## Critical rules
 
 1. **GATE CHECK FIRST** — NEVER commit if `security-auditor` has open CRITICAL/HIGH/MEDIUM findings or `quality-gate` failed. This is non-negotiable.
-2. **PER-INSTANCE STAGING** — when `.claude/state/` exists, ALWAYS stage via `scope.ts` (Step 4a). NEVER `git add -A` blindly in a multi-instance project; it bundles peers' uncommitted files into your commit. See CLAUDE.md NRY "Instance N's commit bundling instance M's uncommitted files".
+2. **PER-INSTANCE COMMIT** — when `.claude/state/` exists, ALWAYS commit via `scope.ts commit` (Step 4b), which uses `git commit -o -- <files>` to commit EXACTLY your files. NEVER `git add -A` in a multi-instance project; it bundles peers' uncommitted files. If `scope.ts` cannot resolve the session, STOP — do NOT fall back to `git add -A`. See CLAUDE.md NRY "Instance N's commit bundling instance M's uncommitted files".
 3. **DIFF-DRIVEN MESSAGES** — read the actual diff (stat first, full only when needed). Never generate generic messages.
 4. **HEREDOC** — always use `cat <<'EOF'` for commit messages. Never inline multi-line strings.
 5. **NO FORCE PUSH** — never `git push --force` or `--force-with-lease` to main/master unless the user explicitly requests it.

@@ -1,4 +1,4 @@
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -16,7 +16,13 @@
  * Design rules:
  * - All writes are atomic (.tmp + rename) where the file is read by peers.
  * - Every read tolerates corruption (try/catch) — hooks must NEVER block Claude.
- * - Heartbeat thresholds: <60s active, 60s-30min idle, >30min stale, >24h removed.
+ * - Heartbeat thresholds: <180s active, 180s-30min idle, >30min stale, >24h removed.
+ *
+ * v1.1.0: ACTIVE window 60s→180s (agent think/generate time between tool calls
+ * routinely exceeds 60s — a 60s window mis-classifies busy peers as IDLE);
+ * FILES_TOUCHED_CAP 50→200 (large sessions were dropping early edits, which then
+ * showed up as orphaned dirty files a peer could not attribute); path
+ * normalization in extractTargetFiles is now repo-root-stable.
  */
 
 import {
@@ -33,18 +39,18 @@ import {
   readSync,
   closeSync,
 } from 'fs';
-import { join, basename } from 'path';
+import { join, basename, resolve, relative, isAbsolute } from 'path';
 import { randomBytes } from 'crypto';
 import { spawnSync } from 'child_process';
 
-export const ACTIVE_MS = 60 * 1000;
+export const ACTIVE_MS = 180 * 1000;
 export const IDLE_MS = 30 * 60 * 1000;
 export const STALE_MS = 24 * 60 * 60 * 1000;
 export const COLLISION_WINDOW_MS = 5 * 60 * 1000;
 
 export const TOUCHES_ROTATE_THRESHOLD = 1000;
 export const TOUCHES_TAIL_LINES = 200;
-export const FILES_TOUCHED_CAP = 50;
+export const FILES_TOUCHED_CAP = 200;
 
 export interface SessionRecord {
   sessionId: string;
@@ -238,7 +244,9 @@ export function tailFileTouches(stateDir: string, lines = TOUCHES_TAIL_LINES): F
   if (!existsSync(path)) return [];
   try {
     const size = statSync(path).size;
-    const readBytes = Math.min(size, 64 * 1024);
+    // 512KB tail comfortably holds ≳1000 touch records; collision decisions read
+    // up to 1000 lines (see callers), so the byte window must not truncate them.
+    const readBytes = Math.min(size, 512 * 1024);
     const fd = openSync(path, 'r');
     const buf = Buffer.alloc(readBytes);
     readSync(fd, buf, 0, readBytes, size - readBytes);
@@ -361,11 +369,19 @@ export function classifyAge(ageMsec: number): 'active' | 'idle' | 'stale' {
 export function extractTargetFiles(toolName: string, toolInput: any, projectDir: string): string[] {
   if (!toolInput || typeof toolInput !== 'object') return [];
   const out: string[] = [];
+  // Normalize every path to the SAME shape `git status --porcelain` emits:
+  // forward-slash, relative to the project (≈ repo) root. Tools may hand us an
+  // absolute path, a path relative to a subdirectory cwd, or already-relative.
+  // A mismatch here is the #1 cause of "I edited this file but scope.ts says it
+  // is NOT MINE" — the string simply fails to equal the git porcelain path.
   const push = (p: any) => {
     if (typeof p !== 'string' || !p) return;
-    let rel = p;
-    if (p.startsWith(projectDir + '/')) rel = p.slice(projectDir.length + 1);
-    out.push(rel);
+    const abs = isAbsolute(p) ? p : resolve(projectDir, p);
+    let rel = relative(projectDir, abs);
+    // Outside the project tree (rare): keep the original so we never crash; it
+    // simply will not match a git path, which is the correct, safe outcome.
+    if (!rel || rel.startsWith('..')) rel = p;
+    out.push(rel.split('\\').join('/'));
   };
   if (toolName === 'Edit' || toolName === 'Write') {
     push(toolInput.file_path || toolInput.path);

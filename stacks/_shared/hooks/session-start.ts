@@ -17,6 +17,7 @@
  */
 
 import {
+  ACTIVE_MS,
   ageMs,
   appendInbox,
   drainInbox,
@@ -81,7 +82,7 @@ async function main(): Promise<void> {
     messageParts.push('');
     messageParts.push(`PEERS DETECTED in this project (${peers.length}):`);
     for (const p of peers) messageParts.push(`  - ${formatPeer(p)}`);
-    const anyActive = peers.some(p => ageMs(p.lastSeenAt) < 60 * 1000);
+    const anyActive = peers.some(p => ageMs(p.lastSeenAt) < ACTIVE_MS);
     if (anyActive) {
       messageParts.push('');
       messageParts.push(
@@ -93,7 +94,7 @@ async function main(): Promise<void> {
     } else {
       messageParts.push('');
       messageParts.push(
-        'Peers are idle (>60s). Edits will be allowed but you will see a notice if ' +
+        'Peers are idle (>3min). Edits will be allowed but you will see a notice if ' +
           'you touch files they recently modified.'
       );
     }

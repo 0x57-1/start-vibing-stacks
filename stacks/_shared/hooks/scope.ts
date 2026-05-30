@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * `scope` — Per-Instance Commit Scoping CLI
  *
@@ -9,17 +9,29 @@
  *
  * Source of truth for "what did THIS session edit?":
  *   `.claude/state/sessions/<id>.json#filesTouched`
- * which is maintained by `post-tool-use.ts` (capped at 50, dedup-keep-last).
+ * which is maintained by `post-tool-use.ts` (capped at 200, dedup-keep-last).
+ *
+ * Concurrency model (v1.1.0): two instances in the SAME working directory share
+ * ONE `.git/index`. A `git reset` + `git add` + `git commit` sequence is therefore
+ * NOT atomic across peers — peer B's `git add` between our reset and commit would
+ * be folded into our commit. To be genuinely safe we commit by pathspec:
+ *   `git add -- <ours>` (additive, never disturbs a peer's staged entries) then
+ *   `git commit -o -- <ours>` (--only: commits EXACTLY these paths regardless of
+ *   what else is staged). No global `git reset`.
+ * For true isolation across concurrent commits, prefer one git worktree per
+ * instance (`git worktree add`); this CLI is the best-effort same-worktree path.
  *
  * Usage:
  *   scope status                        Show this session's files vs peers' files vs untracked.
- *   scope stage [--include-conflicted]  `git reset`, then `git add` only this session's dirty files.
- *                                       Refuses files a peer touched in the last 5 min unless
- *                                       --include-conflicted.
+ *   scope stage [--include-conflicted]  `git add` only this session's dirty files (additive;
+ *                                       resets the index only when no peer is active). Prefer
+ *                                       `scope commit` for the safe atomic path.
  *   scope diff                          `git diff` for files this session touched.
- *   scope commit "<msg>" [--push]       stage + commit + optional push.
+ *   scope commit "<msg>" [--push]       commit ONLY this session's files via `git commit -o`.
  *
  * Session discovery: --session <id>, else $CLAUDE_SESSION_ID, else single active session.
+ * NOTE: with ≥2 active sessions and CLAUDE_SESSION_ID unset, discovery fails by
+ * design (we will not guess) — pass --session <id> or export CLAUDE_SESSION_ID.
  *
  * Exit codes:
  *   0  ok
@@ -127,7 +139,7 @@ function classify(stateDir: string, sessionId: string, projectDir: string): Scop
   const status = gitDirty(projectDir);
   const dirty = new Set<string>([...status.modified, ...status.untracked]);
 
-  const touches = tailFileTouches(stateDir);
+  const touches = tailFileTouches(stateDir, 1000);
   const peerById = new Map(loadAllSessions(stateDir).map(p => [p.sessionId, p]));
   const peerTouches = new Map<string, FileTouch>();
   for (const t of touches) {
@@ -180,7 +192,7 @@ function cmdStatus(stateDir: string, projectDir: string, args: string[]): number
   console.log(
     `Session ${shortId(sessionId)} "${session.title}" (branch ${session.gitBranch || '?'})`
   );
-  console.log(`Files in session.filesTouched: ${session.filesTouched.length} (cap 50, dedup)`);
+  console.log(`Files in session.filesTouched: ${session.filesTouched.length} (cap 200, dedup)`);
   console.log();
   console.log(`SAFE TO STAGE (${mine.length}):`);
   if (mine.length === 0) {
@@ -254,13 +266,23 @@ function cmdStage(stateDir: string, projectDir: string, args: string[]): number 
     return 1;
   }
 
-  // The `git reset` here is intentional: scope semantics own the index.
-  // Anything a peer staged previously will be unstaged; they will re-stage
-  // their own files via `scope stage` when they commit.
-  const resetR = git(['reset'], projectDir);
-  if (resetR.code !== 0) {
-    console.error(`git reset failed: ${resetR.stderr.trim()}`);
-    return 1;
+  // Index hygiene: a shared `.git/index` means a global `git reset` would wipe a
+  // peer's staged work. Only reset when NO peer is active (solo / safe). When a
+  // peer is active we stage ADDITIVELY and rely on `scope commit` (git commit -o)
+  // to commit exactly our paths regardless of what else is staged.
+  const activePeers = loadAllSessions(stateDir).filter(
+    s => s.sessionId !== sessionId && ageMs(s.lastSeenAt) < ACTIVE_MS
+  );
+  if (activePeers.length === 0) {
+    const resetR = git(['reset'], projectDir);
+    if (resetR.code !== 0) {
+      console.error(`git reset failed: ${resetR.stderr.trim()}`);
+      return 1;
+    }
+  } else {
+    console.log(
+      `${activePeers.length} active peer(s) — staging additively (no \`git reset\`) to protect their index.`
+    );
   }
   const addR = git(['add', '--', ...toStage], projectDir);
   if (addR.code !== 0) {
@@ -270,6 +292,8 @@ function cmdStage(stateDir: string, projectDir: string, args: string[]): number 
 
   console.log(`Staged ${toStage.length} file(s) from session ${shortId(sessionId)}:`);
   for (const f of toStage) console.log(`  + ${f}`);
+  console.log();
+  console.log('SAFEST commit path (never bundles peers): scope commit "<message>"');
 
   if (conflicted.length > 0 && !includeConflicted) {
     console.log();
@@ -285,7 +309,6 @@ function cmdStage(stateDir: string, projectDir: string, args: string[]): number 
     return 2;
   }
 
-  console.log();
   console.log('Review with: git diff --cached --stat');
   return 0;
 }
@@ -335,21 +358,65 @@ function cmdCommit(stateDir: string, projectDir: string, args: string[]): number
     return 1;
   }
 
-  const stageCode = cmdStage(stateDir, projectDir, args);
-  if (stageCode === 1) return 1;
-  if (stageCode === 2 && !hasFlag(args, '--include-conflicted')) {
-    console.error();
+  const sessionId = resolveSessionId(stateDir, parseFlag(args, '--session'));
+  if (!sessionId) {
+    console.error('Cannot resolve session ID. Set CLAUDE_SESSION_ID or pass --session <id>.');
+    console.error('Tip: run `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" list`.');
+    return 1;
+  }
+  const session = readSession(stateDir, sessionId);
+  if (!session) {
+    console.error(`Session ${shortId(sessionId)} not registered.`);
+    return 1;
+  }
+
+  const { mine, conflicted } = classify(stateDir, sessionId, projectDir);
+  const includeConflicted = hasFlag(args, '--include-conflicted');
+  const conflictedFiles = conflicted.map(c => c.file);
+  const toCommit = includeConflicted ? [...mine, ...conflictedFiles] : mine;
+
+  if (toCommit.length === 0) {
+    if (conflicted.length > 0) {
+      console.error(
+        `No safe files to commit. ${conflicted.length} conflicted file(s) — pass --include-conflicted to override.`
+      );
+      for (const c of conflicted) {
+        const who = c.peer ? `${shortId(c.peer.sessionId)} "${c.peer.title}"` : '(unknown)';
+        console.error(`  ! ${c.file}  ←  ${who}, ${c.ageSec}s ago`);
+      }
+      return 2;
+    }
+    console.error('No files to commit (this session has no dirty files in filesTouched).');
+    return 1;
+  }
+
+  if (conflicted.length > 0 && !includeConflicted) {
     console.error(
-      'Refusing to commit while conflicted files were skipped. ' +
-        'Resolve, OR re-run with --include-conflicted.'
+      `Refusing to commit: ${conflicted.length} of your files were also touched by an active peer in the last 5 min.`
     );
+    for (const c of conflicted) {
+      const who = c.peer ? `${shortId(c.peer.sessionId)} "${c.peer.title}"` : '(unknown)';
+      console.error(`  ! ${c.file}  ←  ${who}, ${c.ageSec}s ago`);
+    }
+    console.error('Coordinate via `peers.ts notify <id> "..."`, OR re-run with --include-conflicted.');
     return 2;
   }
 
-  const commitR = git(['commit', '-m', message], projectDir);
+  // Atomic, shared-index-safe commit. `git add` is additive (never touches a
+  // peer's staged entries); `git commit -o -- <paths>` commits EXACTLY those
+  // paths regardless of what else is staged, so a peer's concurrently-staged
+  // files can never be folded into this commit. No global `git reset`.
+  const addR = git(['add', '--', ...toCommit], projectDir);
+  if (addR.code !== 0) {
+    console.error(`git add failed: ${addR.stderr.trim()}`);
+    return 1;
+  }
+  const commitR = git(['commit', '-o', '-m', message, '--', ...toCommit], projectDir);
   process.stdout.write(commitR.stdout);
   process.stderr.write(commitR.stderr);
   if (commitR.code !== 0) return 1;
+
+  console.log(`Committed ${toCommit.length} file(s) from session ${shortId(sessionId)}.`);
 
   if (hasFlag(args, '--push')) {
     const pushR = spawnSync('git', ['push'], { cwd: projectDir, stdio: 'inherit' });
@@ -367,9 +434,10 @@ Commands:
   scope diff     [--session <id>]
   scope commit   "<message>" [--session <id>] [--include-conflicted] [--push]
 
-Stages and commits ONLY the files this Claude session edited (per
-\`.claude/state/sessions/<id>.json#filesTouched\`). Refuses to stage
-files a peer session touched in the last 5 min unless --include-conflicted.
+Commits ONLY the files this Claude session edited (per
+\`.claude/state/sessions/<id>.json#filesTouched\`), via \`git commit -o\` so a
+peer's concurrently-staged files are never bundled in. Refuses files a peer
+session touched in the last 5 min unless --include-conflicted.
 
 Exit codes: 0=ok, 1=arg/state error, 2=conflict refusal.
 `);

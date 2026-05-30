@@ -23,8 +23,8 @@ Every hook updates `lastSeenAt` (heartbeat). Thresholds:
 
 | Age of last activity | State    | Effect                                                                 |
 | -------------------- | -------- | ---------------------------------------------------------------------- |
-| < 60s                | active   | Counts for collision detection; PreToolUse may BLOCK Edit/Write.       |
-| 60s – 30min          | idle     | Surfaced as a warning; edits NOT blocked.                              |
+| < 180s               | active   | Counts for collision detection; PreToolUse may BLOCK Edit/Write.       |
+| 180s – 30min         | idle     | Surfaced as a warning; edits NOT blocked.                              |
 | > 30min              | stale    | Auto-archived on the next sweep.                                       |
 | > 24h                | removed  | Deleted entirely.                                                      |
 
@@ -40,12 +40,12 @@ Every hook updates `lastSeenAt` (heartbeat). Thresholds:
 
 | Peer who touched the same file last | Peer's heartbeat | Touch age | Decision |
 | ----------------------------------- | ---------------- | --------- | --------------------------------------------- |
-| any                                 | active (<60s)    | < 5min    | **BLOCK** with a recovery hint                |
-| any                                 | idle (60s–30min) | < 5min    | APPROVE + warning in `systemMessage`          |
+| any                                 | active (<180s)   | < 5min    | **BLOCK** with a recovery hint                |
+| any                                 | idle (180s–30min)| < 5min    | APPROVE + warning in `systemMessage`          |
 | any                                 | stale or gone    | any       | APPROVE silently                              |
 | no peer touched the file            | n/a              | n/a       | APPROVE silently                              |
 
-Override path: wait until the active peer's heartbeat goes idle (60s of no activity), then retry — the hook will downgrade to a warning. If the user explicitly tells you to override, ask them to run `peers notify <id> "I'm taking over <file>"` first so the other instance gets the heads-up.
+Override path: wait until the active peer's heartbeat goes idle (180s of no activity), then retry — the hook will downgrade to a warning. If the user explicitly tells you to override, ask them to run `peers notify <id> "I'm taking over <file>"` first so the other instance gets the heads-up.
 
 ## Talking to a peer
 

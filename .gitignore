@@ -54,3 +54,6 @@ playwright/.cache/
 .tmp/
 tmp/
 .cache/
+
+# Local runtime state (MCP/hook SQLite, etc.) — never commit
+data/

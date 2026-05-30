@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -17,6 +17,13 @@
  * (append-only LIFO) as a valid changelog section. Source of truth for "what did
  * THIS session edit?" is `.claude/state/sessions/<id>.json#filesTouched`, maintained
  * by `post-tool-use.ts`.
+ *
+ * v1.3.0: on APPROVE, surface "orphan" dirty files — files dirty in the worktree
+ * that are NOT in this session's filesTouched (e.g. changed via Bash, codegen, or
+ * formatters, which post-tool-use cannot capture). These are scoped OUT of the
+ * blocking check (so a peer's work never blocks you), but silently leaving them
+ * behind is exactly what makes the NEXT instance "see files and hesitate to
+ * deploy". We never block on them; we WARN so the agent can verify/own them.
  */
 
 import { execSync } from 'child_process';
@@ -264,11 +271,24 @@ function validate(sessionId: string | undefined): HookResult {
     };
   }
 
-  // All good
+  // All good. If per-instance scoping hid orphan dirty files (dirty, but not in
+  // THIS session's filesTouched), surface them — they may be your own Bash/codegen
+  // changes that post-tool-use could not attribute. We do NOT block on them.
+  let orphanNote = '';
+  if (perInstance && totalDirty > modified.length) {
+    const orphans = getModifiedFiles().filter(f => !modified.includes(f));
+    orphanNote =
+      `\n\nNOTE: ${orphans.length} dirty file(s) are NOT attributed to this session ` +
+      `(e.g. changed via Bash, a formatter, or codegen):\n` +
+      orphans.slice(0, 10).map(f => `  ? ${f}`).join('\n') +
+      `\nIf any are yours, commit them with \`scope.ts commit\` (only your files). ` +
+      `If they belong to a peer, leave them. Do not \`git add -A\`.`;
+  }
+
   return {
     continue: false,
     decision: 'approve',
-    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean\nSecrets: clean`,
+    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean (this-session scope)\nSecrets: clean${orphanNote}`,
   };
 }
 

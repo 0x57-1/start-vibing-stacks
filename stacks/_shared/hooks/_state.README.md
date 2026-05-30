@@ -26,8 +26,8 @@ When two or more Claude Code instances run in the same project folder, the hooks
 
 | Last activity | State    | Effect                                                                      |
 | ------------- | -------- | --------------------------------------------------------------------------- |
-| < 60s         | active   | Counts for collision detection. PreToolUse may **block** Edit/Write.        |
-| 60s – 30min   | idle     | Surfaced as a warning in `systemMessage`. Edits are **not** blocked.        |
+| < 180s        | active   | Counts for collision detection. PreToolUse may **block** Edit/Write.        |
+| 180s – 30min  | idle     | Surfaced as a warning in `systemMessage`. Edits are **not** blocked.        |
 | > 30min       | stale    | Auto-archived on the next sweep.                                            |
 | > 24h         | removed  | Deleted entirely.                                                           |
 

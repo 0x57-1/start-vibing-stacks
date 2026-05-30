@@ -1,7 +1,7 @@
 ---
 name: commit-mine
 description: Commit ONLY this Claude session's edited files (multi-instance safe). Replaces raw `git add . && git commit` to prevent your commit from bundling a peer session's uncommitted changes.
-version: 1.0.0
+version: 1.1.0
 ---
 
 # /commit-mine — Per-Instance Commit
@@ -14,25 +14,30 @@ cleanly. This command stages and commits ONLY the files your session actually ed
 **Source of truth:** `.claude/state/sessions/<your-id>.json#filesTouched`, maintained by
 `post-tool-use.ts` (one entry per successful Edit / Write / MultiEdit / NotebookEdit).
 
-| # | Step | Tool |
-|---|---|---|
-| 1 | **Inspect scope** — list SAFE / CONFLICTED / NOT-YOURS / STAGED | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status` |
-| 2 | **Resolve conflicts** if any (peer touched same file in last 5 min) | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" notify <id> "msg"` |
-| 3 | **Stage** — `git reset` then `git add` only this session's dirty files | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" stage` |
-| 4 | **Review** — confirm the staged diff is what you expect | `git diff --cached --stat` and (optionally) `git diff --cached` |
-| 5 | **Commit** — conventional message (`feat`, `fix`, `docs`, etc.) + diff-driven body | `git commit -m "<message>"` OR delegate to `commit-manager` agent |
-| 6 | **Push** (optional) | `git push` |
-
-## Shortcut (single command)
-
-If steps 1–5 are routine and you already know what you edited:
+**Recommended (single atomic command):**
 
 ```bash
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>" [--push]
 ```
 
-This runs stage + commit (+ optional push) atomically. It will REFUSE to proceed if a
-peer touched any of your files in the last 5 min unless you pass `--include-conflicted`.
+This commits ONLY your session's files via `git commit -o -- <files>` — it commits
+exactly your paths regardless of what a peer has staged, so it can never bundle their
+work, and it never runs a global `git reset`. It REFUSES if a peer touched any of your
+files in the last 5 min unless you pass `--include-conflicted`.
+
+**Step-by-step (when you want to review first):**
+
+| # | Step | Tool |
+|---|---|---|
+| 1 | **Inspect scope** — list SAFE / CONFLICTED / NOT-YOURS / STAGED | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status` |
+| 2 | **Resolve conflicts** if any (peer touched same file in last 5 min) | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" notify <id> "msg"` |
+| 3 | **Review** the diff of your files | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" diff` |
+| 4 | **Commit** — atomic, only your files | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>"` |
+| 5 | **Push** (optional) | add `--push` to step 4, or `git push` |
+
+> `scope stage` still exists for manual index inspection, but it is best-effort in a
+> shared worktree (a peer's staged files can linger). Prefer `scope commit` — it is the
+> only path that is atomic against a concurrent peer.
 
 ## Forbidden patterns (NEVER do these in a multi-instance project)
 
@@ -68,6 +73,6 @@ manual edits not via Claude tools) are skipped — they appear in `status` under
 
 - `/fix` step 7 ("Commit") and `/feature` workflows that previously implied `git add .`
   should now route through `/commit-mine` whenever `peers.ts list` shows ≥ 1 peer.
-- The `commit-manager` agent (if used) MUST call `scope stage` before any `git commit`
+- The `commit-manager` agent (if used) MUST commit via `scope commit` (never `git add -A`)
   in a multi-instance project.
 - See `CLAUDE.md` NRY: "Instance N's commit bundling instance M's uncommitted files".

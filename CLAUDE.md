@@ -10,6 +10,13 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-05-30 · main · v2.27.0
+Multi-instance hardening (Opus 4.8 review). `scope.ts` v1.1.0 commits via `git commit -o -- <files>`
+(atomic pathspec — never bundles a peer's staged work; proven in a 2-session test) with no global
+`git reset`. `commit-manager` v3.1.0 uses `scope commit` and STOPS rather than `git add -A` when the
+session is unresolved (needs `CLAUDE_SESSION_ID`). `_state.ts` v1.1.0: repo-root path normalization,
+`FILES_TOUCHED_CAP` 50→200, `ACTIVE_MS` 60→180s. `stop-validator.ts` v1.3.0 warns on orphan dirty files.
+
 ### 2026-05-19 · main · v2.26.0
 Chain realignment: `commit-manager` v2→v3.0.0 stages via `scope.ts` when `.claude/state/` exists
 (fallback `git add -A` solo) and surfaces active peers in Step 1.5. `domain-updater` v2→v3.0.0
@@ -59,9 +66,6 @@ Multi-instance coordination layer (`.claude/state/`, peer detection, hybrid bloc
 
 ### 2026-05-19 · main · v2.22.0
 Vite manualChunks silent-bug post-mortem.
-
-### 2026-05-19 · main · v2.21.0
-Node.js tsx/devDeps.
 
 ---
 

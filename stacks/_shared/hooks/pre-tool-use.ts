@@ -1,15 +1,15 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * PreToolUse Hook — Multi-Instance Coordination
  *
  * Wired with matcher `Edit|Write|MultiEdit|NotebookEdit`. Reads the file-touches
  * log + active peer sessions and decides:
  *
- *  - BLOCK if a peer is currently ACTIVE (heartbeat < 60s) AND touched the same
+ *  - BLOCK if a peer is currently ACTIVE (heartbeat < 180s) AND touched the same
  *    file within the last 5 minutes. The reason explains how to recover.
  *  - WARN (approve + systemMessage) if a peer touched the file recently but is
- *    only IDLE (60s — 5min).
+ *    only IDLE (180s — 5min).
  *  - APPROVE silently otherwise.
  *
  * Hook input:
@@ -100,7 +100,7 @@ function evaluate(
       `  1. Run \`npx tsx .claude/hooks/peers.ts list\` to see who is active.\n` +
       `  2. Notify them: \`npx tsx .claude/hooks/peers.ts notify <id-prefix> "I need to edit <file>, can you commit/stash?"\`\n` +
       `  3. Wait for them to commit, then retry — or have them call \`peers.ts cleanup\` if you confirm they are no longer editing.\n` +
-      `  4. If you must override: re-run the same Edit after 60s of peer inactivity (their heartbeat will go IDLE and the hook will downgrade to a warning).`;
+      `  4. If you must override: re-run the same Edit after 180s of peer inactivity (their heartbeat will go IDLE and the hook will downgrade to a warning).`;
     return { block: true, reason };
   }
 
@@ -141,7 +141,8 @@ async function main(): Promise<void> {
   }
 
   const peers = listPeerSessions(stateDir, sessionId || null);
-  const touches = tailFileTouches(stateDir);
+  // Read a wide tail so a peer's collision touch is not missed under heavy load.
+  const touches = tailFileTouches(stateDir, 1000);
 
   const verdict = evaluate(targetFiles, peers, touches, sessionId || '');
 
