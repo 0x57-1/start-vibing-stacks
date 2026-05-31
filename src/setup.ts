@@ -339,6 +339,11 @@ export async function setupProject(
                 command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.ts"',
                 timeout: 5,
               },
+              {
+                type: 'command',
+                command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/plan-gate.ts"',
+                timeout: 5,
+              },
             ],
           },
         ],

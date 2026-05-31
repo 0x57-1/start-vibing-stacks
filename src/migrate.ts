@@ -289,40 +289,56 @@ interface HookBlock {
   hooks: HookEntry[];
 }
 
-const REQUIRED_HOOK_BLOCKS: Record<string, HookBlock> = {
-  SessionStart: {
-    hooks: [
-      { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.ts"', timeout: 10 },
-    ],
-  },
-  UserPromptSubmit: {
-    matcher: '',
-    hooks: [
-      { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.ts"', timeout: 10 },
-    ],
-  },
-  PreToolUse: {
-    matcher: 'Edit|Write|MultiEdit|NotebookEdit',
-    hooks: [
-      { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.ts"', timeout: 5 },
-    ],
-  },
-  PostToolUse: {
-    matcher: 'Edit|Write|MultiEdit|NotebookEdit',
-    hooks: [
-      { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.ts"', timeout: 5 },
-    ],
-  },
-  Stop: {
-    hooks: [
-      { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-validator.ts"', timeout: 30 },
-    ],
-  },
-  SessionEnd: {
-    hooks: [
-      { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-validator.ts"', timeout: 10 },
-    ],
-  },
+// Keyed by event; each event carries one or more independent blocks. PreToolUse
+// runs two: the multi-instance collision guard AND the plan-gate nudge. Each
+// block is checked/appended individually so backfill is precise per-script.
+const REQUIRED_HOOK_BLOCKS: Record<string, HookBlock[]> = {
+  SessionStart: [
+    {
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.ts"', timeout: 10 },
+      ],
+    },
+  ],
+  UserPromptSubmit: [
+    {
+      matcher: '',
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/user-prompt-submit.ts"', timeout: 10 },
+      ],
+    },
+  ],
+  PreToolUse: [
+    {
+      matcher: 'Edit|Write|MultiEdit|NotebookEdit',
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-tool-use.ts"', timeout: 5 },
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/plan-gate.ts"', timeout: 5 },
+      ],
+    },
+  ],
+  PostToolUse: [
+    {
+      matcher: 'Edit|Write|MultiEdit|NotebookEdit',
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/post-tool-use.ts"', timeout: 5 },
+      ],
+    },
+  ],
+  Stop: [
+    {
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-validator.ts"', timeout: 30 },
+      ],
+    },
+  ],
+  SessionEnd: [
+    {
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/stop-validator.ts"', timeout: 10 },
+      ],
+    },
+  ],
 };
 
 function commandSubstring(cmd: string): string {
@@ -359,20 +375,45 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
 
   settings.hooks = settings.hooks || {};
 
-  for (const [event, requiredBlock] of Object.entries(REQUIRED_HOOK_BLOCKS)) {
-    const existingBlocks: HookBlock[] = Array.isArray(settings.hooks[event]) ? settings.hooks[event] : [];
-    const requiredScript = commandSubstring(requiredBlock.hooks[0]!.command);
-    const alreadyHas = existingBlocks.some(b =>
-      (b.hooks || []).some(h => commandSubstring(h.command).includes(requiredScript))
-    );
-    if (alreadyHas) {
-      report.alreadyPresent.push(event);
-      continue;
+  for (const [event, requiredBlocks] of Object.entries(REQUIRED_HOOK_BLOCKS)) {
+    let existingBlocks: HookBlock[] = Array.isArray(settings.hooks[event]) ? settings.hooks[event] : [];
+    let mutated = false;
+
+    // Check at the SCRIPT (hook) level, not the block level: an install may
+    // already have pre-tool-use.ts but be missing the newer plan-gate.ts in the
+    // same PreToolUse matcher — a block-level check would wrongly skip it.
+    for (const requiredBlock of requiredBlocks) {
+      for (const requiredHook of requiredBlock.hooks) {
+        const requiredScript = commandSubstring(requiredHook.command);
+        const alreadyHas = existingBlocks.some(b =>
+          (b.hooks || []).some(h => commandSubstring(h.command).includes(requiredScript))
+        );
+        const label = `${event}:${requiredScript}`;
+        if (alreadyHas) {
+          report.alreadyPresent.push(label);
+          continue;
+        }
+        if (!dryRun) {
+          const sameMatcher = existingBlocks.find(
+            b => (b.matcher ?? '') === (requiredBlock.matcher ?? '')
+          );
+          if (sameMatcher) {
+            sameMatcher.hooks = [...(sameMatcher.hooks || []), requiredHook];
+          } else {
+            existingBlocks = [
+              ...existingBlocks,
+              { matcher: requiredBlock.matcher, hooks: [requiredHook] },
+            ];
+          }
+          mutated = true;
+        }
+        report.added.push(label);
+      }
     }
-    if (!dryRun) {
-      settings.hooks[event] = [...existingBlocks, requiredBlock];
+
+    if (!dryRun && mutated) {
+      settings.hooks[event] = existingBlocks;
     }
-    report.added.push(event);
   }
 
   // High-reasoning defaults (v2.28.0). Only set when MISSING so we never clobber

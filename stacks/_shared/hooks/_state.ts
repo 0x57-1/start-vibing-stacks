@@ -1,9 +1,9 @@
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
  * Used by session-start.ts, user-prompt-submit.ts, pre-tool-use.ts,
- * post-tool-use.ts, stop-validator.ts and peers.ts.
+ * post-tool-use.ts, stop-validator.ts, plan-gate.ts and peers.ts.
  *
  * Layout (project-local, gitignored):
  *   .claude/state/
@@ -23,6 +23,10 @@
  * FILES_TOUCHED_CAP 50→200 (large sessions were dropping early edits, which then
  * showed up as orphaned dirty files a peer could not attribute); path
  * normalization in extractTargetFiles is now repo-root-stable.
+ *
+ * v1.2.0: added optional `planGateNotifiedAt` to SessionRecord — a one-shot
+ * marker so plan-gate.ts nudges the user toward `/effort ultracode` only once
+ * per session when a change crosses the distinct-file threshold.
  */
 
 import {
@@ -63,6 +67,8 @@ export interface SessionRecord {
   lastSeenAt: string;
   lastActivity: string;
   filesTouched: string[];
+  /** ISO timestamp set once when plan-gate fired its high-reasoning nudge. */
+  planGateNotifiedAt?: string;
 }
 
 export interface FileTouch {

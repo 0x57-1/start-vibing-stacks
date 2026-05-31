@@ -10,6 +10,15 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-05-31 · main · v2.29.0
+New `plan-gate.ts` PreToolUse hook (`@sv-version 1.0.0`): when one session is about to touch
+> 4 DISTINCT files it fires ONCE (`permissionDecision: "ask"`) recommending the user run
+`/effort` → `ultracode` and confirm a plan first. Hooks CANNOT run `/effort` or change effort
+(read-only metadata) — this is a nudge, not an auto-switch. One-shot marker `SessionRecord
+.planGateNotifiedAt` (`_state.ts` v1.2.0). Threshold via `PLAN_GATE_THRESHOLD`, off via
+`PLAN_GATE_DISABLED=1`. `migrate` `REQUIRED_HOOK_BLOCKS` is now per-event arrays checked at
+SCRIPT granularity so existing installs gain plan-gate without losing pre-tool-use.
+
 ### 2026-05-31 · main · v2.28.0
 Generated `settings.json` now persists high-reasoning defaults: top-level `effortLevel: "xhigh"`
 and `permissions.defaultMode: "plan"` (sessions start read-only; agent must plan before editing).
@@ -68,9 +77,6 @@ is canonical, fallback policy explicit.
 
 ### 2026-05-19 · main · v2.24.0
 Smart migrate — versioned hooks/commands, idempotent `settings.json`, runtime dirs, `.gitignore`.
-
-### 2026-05-19 · main · v2.23.0
-Multi-instance coordination layer (`.claude/state/`, peer detection, hybrid block).
 
 ---
 
