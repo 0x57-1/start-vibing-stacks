@@ -273,6 +273,11 @@ export async function setupProject(
       max_tokens: 8192,
       max_turns: 100,
 
+      // Persistent high-reasoning effort. Note: 'ultracode' is session-only
+      // (set via /effort) and cannot be persisted here; 'xhigh' is the highest
+      // persistable level. On 'sonnet' it falls back to 'high'.
+      effortLevel: 'xhigh',
+
       enableAllProjectMcpServers: true,
 
       autoMemoryEnabled: true,
@@ -285,6 +290,9 @@ export async function setupProject(
       },
 
       permissions: {
+        // Always start sessions in plan mode (read-only): the agent must
+        // present a plan before editing. Shift+Tab still cycles modes per turn.
+        defaultMode: 'plan',
         allow: [
           'Bash(*)',
           'Read(*)',

@@ -10,7 +10,9 @@
  *  - commands: same `version:` frontmatter contract as skills/agents.
  *  - .claude/settings.json — patched idempotently to ensure the bundled hook
  *    chain (SessionStart / UserPromptSubmit / PreToolUse / PostToolUse / Stop /
- *    SessionEnd) is wired. Existing entries are preserved; only missing entries
+ *    SessionEnd) is wired, plus high-reasoning defaults `effortLevel: "xhigh"`
+ *    and `permissions.defaultMode: "plan"` (only when MISSING — user choices are
+ *    never clobbered). Existing entries are preserved; only missing entries
  *    are appended. Atomic write (.tmp + rename).
  *  - .claude/state/ — runtime layout for multi-instance coordination is
  *    auto-created and the `_state.README.md` is staged as `.claude/state/README.md`.
@@ -371,6 +373,24 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
       settings.hooks[event] = [...existingBlocks, requiredBlock];
     }
     report.added.push(event);
+  }
+
+  // High-reasoning defaults (v2.28.0). Only set when MISSING so we never clobber
+  // a user's explicit choice. `ultracode` is intentionally never written here:
+  // it is session-only (/effort) and cannot be persisted in settings.json.
+  if (settings.effortLevel === undefined) {
+    if (!dryRun) settings.effortLevel = 'xhigh';
+    report.added.push('effortLevel:xhigh');
+  } else {
+    report.alreadyPresent.push('effortLevel');
+  }
+
+  settings.permissions = settings.permissions || {};
+  if (settings.permissions.defaultMode === undefined) {
+    if (!dryRun) settings.permissions.defaultMode = 'plan';
+    report.added.push('permissions.defaultMode:plan');
+  } else {
+    report.alreadyPresent.push('permissions.defaultMode');
   }
 
   if (!dryRun && report.added.length > 0 && !report.error) {

@@ -10,6 +10,14 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-05-31 · main · v2.28.0
+Generated `settings.json` now persists high-reasoning defaults: top-level `effortLevel: "xhigh"`
+and `permissions.defaultMode: "plan"` (sessions start read-only; agent must plan before editing).
+`ultracode` is intentionally NOT set — it is session-only (`/effort`) and not persistable; hooks
+also receive `effort` as read-only metadata. Permission mode is hook-settable only via a
+`PermissionRequest` `setMode` entry (not `plan`), so a true auto-switch to plan+ultracode on
+">4 edits" is not possible — the feasible path is a PreToolUse gate (see NRY).
+
 ### 2026-05-30 · main · v2.27.0
 Multi-instance hardening (Opus 4.8 review). `scope.ts` v1.1.0 commits via `git commit -o -- <files>`
 (atomic pathspec — never bundles a peer's staged work; proven in a 2-session test) with no global
@@ -63,9 +71,6 @@ Smart migrate — versioned hooks/commands, idempotent `settings.json`, runtime 
 
 ### 2026-05-19 · main · v2.23.0
 Multi-instance coordination layer (`.claude/state/`, peer detection, hybrid block).
-
-### 2026-05-19 · main · v2.22.0
-Vite manualChunks silent-bug post-mortem.
 
 ---
 
