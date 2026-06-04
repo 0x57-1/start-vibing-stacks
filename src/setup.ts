@@ -95,6 +95,12 @@ export async function setupProject(
     const sharedSkillsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'skills');
     const sharedSkillCount = copyDirRecursive(sharedSkillsDir, join(claudeDir, 'skills'), options.force);
 
+    // 3b. Copy ads-agents (paid advertising intelligence system)
+    const adsAgentsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'ads-agents');
+    if (existsSync(adsAgentsDir)) {
+      copyDirRecursive(adsAgentsDir, join(claudeDir, 'ads-agents'), options.force);
+    }
+
     // 4. Copy shared hooks
     const sharedHooksDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'hooks');
     const hookCount = copyDirRecursive(sharedHooksDir, join(claudeDir, 'hooks'), options.force);
