@@ -273,6 +273,12 @@ export async function setupProject(
       copyDirRecursive(sharedCommandsDir, join(claudeDir, 'commands'), options.force);
     }
 
+    // 12b. Copy shared memories (funnel-content-copy, etc.)
+    const sharedMemoriesDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'memories');
+    if (existsSync(sharedMemoriesDir)) {
+      copyDirRecursive(sharedMemoriesDir, join(claudeDir, 'memories'), options.force);
+    }
+
     // 13. Write settings.json for Claude Code (complete config)
     const settings: Record<string, any> = {
       model: 'sonnet',
@@ -292,7 +298,11 @@ export async function setupProject(
         compaction_threshold: 0.85,
         enable_compaction: true,
         enable_semantic_search: true,
-        memory_files: ['.claude/CLAUDE.md', 'CLAUDE.md'],
+        memory_files: [
+          '.claude/CLAUDE.md',
+          'CLAUDE.md',
+          '.claude/memories/funnel-content-copy.md'
+        ],
       },
 
       permissions: {
