@@ -1,6 +1,6 @@
 ---
 name: docker-patterns
-version: 2.0.0
+version: 2.1.0
 description: "Docker patterns for 2026: BuildKit + Buildx Bake (default builder for Docker Compose since June 2025), multi-stage builds, distroless / chiseled bases (90% size reduction, no shell), non-root users, .dockerignore, healthchecks, additional_contexts for service deps, secrets via build mounts (not COPY), reproducible builds. Stack examples: Node 22, Python 3.13 (uv), PHP 8.4 (FPM + Nginx)."
 ---
 
@@ -86,7 +86,16 @@ RUN apk add --no-cache libzip-dev oniguruma-dev icu-dev \
  && rm -rf /var/cache/apk/*
 WORKDIR /var/www/html
 COPY --from=vendor /app/vendor ./vendor
-COPY --chown=www-data:www-data . .
+# Only copy what the runtime actually needs (never .env, tests, .git, node_modules, etc.)
+COPY --chown=www-data:www-data artisan composer.json composer.lock ./
+COPY --chown=www-data:www-data app/ ./app/
+COPY --chown=www-data:www-data bootstrap/ ./bootstrap/
+COPY --chown=www-data:www-data config/ ./config/
+COPY --chown=www-data:www-data database/ ./database/
+COPY --chown=www-data:www-data public/ ./public/
+COPY --chown=www-data:www-data resources/ ./resources/
+COPY --chown=www-data:www-data routes/ ./routes/
+COPY --chown=www-data:www-data storage/ ./storage/
 USER www-data
 EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=3s CMD php-fpm-healthcheck || exit 1
@@ -203,3 +212,4 @@ For Kubernetes the Dockerfile HEALTHCHECK is informational only — the cluster 
 - `security-baseline` (2025-A03) — supply chain: pin actions by SHA, sign images (Sigstore/cosign)
 - `observability` — `/healthz` + `/readyz` semantics
 - `ci-pipelines` — building & pushing in CI
+- `podman-patterns` — rootless execution, Quadlet, `podman play kube`, and daemonless alternative (same Dockerfiles work)

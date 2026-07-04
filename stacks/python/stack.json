@@ -70,7 +70,9 @@
     "pydantic-validation",
     "pytest-testing",
     "python-performance",
-    "api-security-python"
+    "api-security-python",
+    "docker-patterns",
+    "podman-patterns"
   ],
   "requirements": [
     {

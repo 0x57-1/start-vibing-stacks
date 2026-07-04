@@ -81,7 +81,8 @@
       "icon": "⚛️",
       "skillsDir": "react",
       "default": true,
-      "frameworks": ["nextjs", "express", "fastify", "vanilla"]
+      "frameworks": ["nextjs", "express", "fastify", "vanilla"],
+      "skills": ["react-server-components"]
     },
     {
       "id": "vue",
@@ -109,7 +110,9 @@
     "bun-runtime",
     "zod-validation",
     "api-security-node",
-    "openapi-design"
+    "openapi-design",
+    "docker-patterns",
+    "podman-patterns"
   ],
   "requirements": [
     {
