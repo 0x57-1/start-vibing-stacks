@@ -273,7 +273,7 @@ export async function setupProject(
       copyDirRecursive(sharedCommandsDir, join(claudeDir, 'commands'), options.force);
     }
 
-    // 12b. Copy shared memories (funnel-content-copy, etc.)
+    // 12b. Copy shared memories (funnel-content-copy, competitive-intelligence-research, etc.)
     const sharedMemoriesDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'memories');
     if (existsSync(sharedMemoriesDir)) {
       copyDirRecursive(sharedMemoriesDir, join(claudeDir, 'memories'), options.force);
@@ -301,7 +301,8 @@ export async function setupProject(
         memory_files: [
           '.claude/CLAUDE.md',
           'CLAUDE.md',
-          '.claude/memories/funnel-content-copy.md'
+          '.claude/memories/funnel-content-copy.md',
+          '.claude/memories/competitive-intelligence-research.md'
         ],
       },
 

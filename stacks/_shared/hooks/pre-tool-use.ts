@@ -33,6 +33,7 @@ import {
   getStateDir,
   heartbeat,
   listPeerSessions,
+  readSession,
   readStdinJson,
   shortId,
   tailFileTouches,
@@ -50,18 +51,23 @@ function evaluate(
   targetFiles: string[],
   peers: SessionRecord[],
   touches: FileTouch[],
-  selfSessionId: string
+  selfSessionId: string,
+  selfSession: SessionRecord | null
 ): Verdict {
   if (targetFiles.length === 0) return { block: false };
 
   const peerById = new Map<string, SessionRecord>();
   for (const p of peers) peerById.set(p.sessionId, p);
 
-  // Most-recent peer touch per (file).
+  // Files this session has already claimed (from its own record)
+  const selfClaimed = new Set(selfSession?.filesTouched || []);
+
+  // Most-recent peer touch per (file) — but only if we have NOT already claimed it.
   const recent = new Map<string, FileTouch>();
   for (const t of touches) {
     if (t.sessionId === selfSessionId) continue;
     if (!targetFiles.includes(t.file)) continue;
+    if (selfClaimed.has(t.file)) continue; // We already own this file — ignore peer touch
     if (ageMs(t.ts) > COLLISION_WINDOW_MS) continue;
     const prev = recent.get(t.file);
     if (!prev || Date.parse(t.ts) > Date.parse(prev.ts)) recent.set(t.file, t);
@@ -144,7 +150,8 @@ async function main(): Promise<void> {
   // Read a wide tail so a peer's collision touch is not missed under heavy load.
   const touches = tailFileTouches(stateDir, 1000);
 
-  const verdict = evaluate(targetFiles, peers, touches, sessionId || '');
+  const selfSession = sessionId ? readSession(stateDir, sessionId) : null;
+  const verdict = evaluate(targetFiles, peers, touches, sessionId || '', selfSession);
 
   if (verdict.block) {
     console.log(

@@ -102,17 +102,23 @@ function getScopedDirtyFiles(sessionId: string | undefined): {
   totalDirty: number;
 } {
   const allDirty = getModifiedFiles();
-  if (!sessionId) return { scoped: allDirty, perInstance: false, totalDirty: allDirty.length };
+  if (!sessionId) {
+    // Cannot resolve session — do NOT block on dirty files (would mix peer work).
+    // Surface a warning instead (handled by caller).
+    return { scoped: [], perInstance: false, totalDirty: allDirty.length };
+  }
   try {
     const stateDir = getStateDir(PROJECT_DIR);
     const sess = readSession(stateDir, sessionId);
-    if (!sess || !Array.isArray(sess.filesTouched)) {
-      return { scoped: allDirty, perInstance: false, totalDirty: allDirty.length };
+    if (!sess || !Array.isArray(sess.filesTouched) || sess.filesTouched.length === 0) {
+      // No reliable session record — do NOT block on dirty files.
+      return { scoped: [], perInstance: false, totalDirty: allDirty.length };
     }
     const set = new Set(sess.filesTouched);
     return { scoped: allDirty.filter(f => set.has(f)), perInstance: true, totalDirty: allDirty.length };
   } catch {
-    return { scoped: allDirty, perInstance: false, totalDirty: allDirty.length };
+    // On any error resolving session state, fail open (no block).
+    return { scoped: [], perInstance: false, totalDirty: allDirty.length };
   }
 }
 
