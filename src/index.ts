@@ -39,6 +39,7 @@ const FLAGS = {
   version: args.includes('--version') || args.includes('-v'),
   apply: args.includes('--apply'),
   forceHooks: args.includes('--force-hooks') || args.includes('--force-legacy'),
+  withMemoryOptimization: args.includes('--with-memory-optimization'),
 };
 
 if (FLAGS.version) {
@@ -66,6 +67,8 @@ if (FLAGS.help) {
     --no-claude       Skip Claude Code installation
     --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
+    --with-memory-optimization
+                      Install the Memory Optimization Pipeline (MOP) for static memory maintenance
     --help, -h        Show this help
     --version, -v     Show version
 
@@ -416,6 +419,7 @@ async function main(): Promise<void> {
   const setupOk = await setupProject(projectDir, config, {
     force: FLAGS.force,
     noClaude: FLAGS.noClaude,
+    withMemoryOptimization: FLAGS.withMemoryOptimization,
   });
 
   if (!setupOk) {

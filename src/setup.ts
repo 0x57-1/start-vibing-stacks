@@ -66,7 +66,7 @@ function copyDirRecursive(src: string, dest: string, overwrite = false): number 
 export async function setupProject(
   projectDir: string,
   config: ProjectConfig,
-  options: { force?: boolean; noClaude?: boolean } = {}
+  options: { force?: boolean; noClaude?: boolean; withMemoryOptimization?: boolean } = {}
 ): Promise<boolean> {
   const spinner = ora('Setting up project...').start();
   const claudeDir = join(projectDir, '.claude');
@@ -277,6 +277,14 @@ export async function setupProject(
     const sharedMemoriesDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'memories');
     if (existsSync(sharedMemoriesDir)) {
       copyDirRecursive(sharedMemoriesDir, join(claudeDir, 'memories'), options.force);
+    }
+
+    // 12c. Copy Memory Optimization Pipeline (MOP) if flag is present
+    if (options.withMemoryOptimization) {
+      const sharedMopDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'memory-optimization');
+      if (existsSync(sharedMopDir)) {
+        copyDirRecursive(sharedMopDir, join(claudeDir, 'memory-optimization'), options.force);
+      }
     }
 
     // 13. Write settings.json for Claude Code (complete config)

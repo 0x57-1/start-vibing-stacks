@@ -1,6 +1,6 @@
 ---
 name: secrets-management
-version: 2.0.0
+version: 2.1.0
 description: "Environment variable hygiene, OIDC federation for CI/CD (2026 default — replaces long-lived static secrets), secret detection (gitleaks 3-layer: pre-commit + CI + GitHub push protection), rotation, and secret-store patterns. Invoke whenever .env, secrets, API keys, env-var-reading code, or CI cloud-deploy credentials are touched."
 ---
 
@@ -56,6 +56,81 @@ SESSION_SECRET=<generate: openssl rand -base64 32>
 STRIPE_SECRET_KEY=sk_test_...
 OPENAI_API_KEY=sk-...
 ```
+
+---
+
+## `.env.d/` Directory Pattern (Multi-Work / Multi-Session)
+
+For projects with multiple worktrees, parallel Claude sessions, or complex environment matrices, use the `.env.d/` directory pattern instead of a single `.env` file.
+
+### Recommended Layout
+```
+.env.d/
+  local/
+    01-app.env
+    10-db.env
+    20-auth.env
+    30-third-party.env
+  staging/
+    01-app.env
+    ...
+  production/
+    01-app.env
+    ...
+  shared/
+    99-common.env
+```
+
+### Rules
+- **Load order:** Files are sourced alphabetically (`01-` before `10-` before `99-`).
+- **Session isolation:** Each Claude session should only touch files inside its own worktree's `.env.d/local/`.
+- **Never commit real secrets:** Only commit `.env.d/*/ *.example` or `.env.d/*/.gitkeep`.
+- **JSON / PEM / SSH keys:** Place in `.env.d/local/secrets/` (gitignored) and reference via absolute path in the `.env` files.
+
+```bash
+# .env.d/local/30-secrets.env
+PRIVATE_KEY_PATH=/absolute/path/to/.env.d/local/secrets/service-account.json
+SSH_KEY_PATH=/absolute/path/to/.env.d/local/secrets/id_ed25519
+```
+
+### `.gitignore` for `.env.d/`
+```gitignore
+.env.d/
+!**/.gitkeep
+!**/*.example
+```
+
+---
+
+## Secret Files (JSON, PEM, SSH Keys) — Multi-Session Safe Handling
+
+When a secret must live in a file (service account JSON, SSH private key, certificate bundle, etc.):
+
+1. **Store in `.env.d/<env>/secrets/`** (never in repo root or `src/`).
+2. **Reference by absolute path** in the corresponding `.env.d/<env>/*.env` file.
+3. **Never read the file content into a variable** unless you immediately redact it from logs/memory.
+4. **Claude sessions must never cross worktree boundaries** — the `pre-tool-use.ts` hook already enforces this via `filesTouched` tracking.
+
+### Example (Node.js)
+```ts
+import { readFileSync } from 'fs';
+
+const serviceAccount = JSON.parse(
+  readFileSync(process.env['GOOGLE_APPLICATION_CREDENTIALS']!, 'utf8')
+);
+```
+
+### Example (Python)
+```python
+from pathlib import Path
+import json
+
+key_path = Path(os.environ["PRIVATE_KEY_PATH"])
+service_account = json.loads(key_path.read_text())
+```
+
+### Multi-Session Coordination Note
+The coordination layer (`_state.ts`, `pre-tool-use.ts`, `stop-validator.ts`) treats `.env.d/` files the same as any other file. If two sessions attempt to edit the same secret file within 5 minutes, the second session is blocked. This is intentional — secrets must be edited serially.
 
 ---
 
@@ -329,3 +404,16 @@ Lockfile rules:
 - `observability` — log redaction details
 - `ci-pipelines` — OIDC patterns + workflow permissions
 - Stack `api-security-*` — usage patterns
+- `memory-optimization` — when this skill grows beyond ~200 lines, run MOP to keep it actionable
+
+## Memory Optimization Trigger
+
+If this skill accumulates:
+- 3+ duplicate rotation playbooks across stacks
+- 5+ generic "rotate after leak" paragraphs
+- Repeated OIDC examples that differ only by cloud provider
+
+→ Suggest running:
+```bash
+npx start-vibing-stacks memory optimize --dry-run
+```

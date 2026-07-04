@@ -1,0 +1,29 @@
+{
+  "model": "sonnet",
+  "temperature": 0.3,
+  "maxTokensPerCall": 4000,
+  "criteria": {
+    "relevance": 0.30,
+    "specificity": 0.25,
+    "actionability": 0.20,
+    "uniqueness": 0.15,
+    "freshness": 0.10
+  },
+  "thresholds": {
+    "minScore": 0.60,
+    "mergeThreshold": 0.85,
+    "archiveThreshold": 0.40
+  },
+  "evolutionary": {
+    "enabled": false,
+    "generations": 5,
+    "populationSize": 20,
+    "elitismRate": 0.20,
+    "crossoverRate": 0.60,
+    "mutationRate": 0.20
+  },
+  "limits": {
+    "maxChunksPerMemory": 200,
+    "maxReportLength": 3000
+  }
+}
