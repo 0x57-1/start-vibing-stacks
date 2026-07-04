@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.25.0** — `--force-hooks` (alias `--force-legacy`) now also covers legacy commands (`commands/*.md` without `version:` frontmatter), not just hooks. Single command rebuilds installs older than v2.23.0. v2.24.0 → smart migrate (versioned hooks/commands, idempotent `settings.json`, runtime dirs, `.gitignore`). v2.23.0 → multi-instance coordination layer.
+> Latest: **v2.33.0** — Memory Optimization Pipeline (MOP) with LLM-as-Judge, `--with-memory-optimization` flag, new skills (`kubernetes-patterns`, `react-server-components`, `laravel-octane-inertia`, `podman-patterns`), and security hardening in container examples.
 
 ---
 
@@ -15,7 +15,7 @@ npx start-vibing-stacks
 | Layer | Count | Purpose |
 |---|---|---|
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **22** shared + **7–14** stack-specific + **2–7** frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Skills | **26** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack | Copied to `.github/workflows/` when target is empty |
@@ -44,7 +44,7 @@ npx start-vibing-stacks
 | **Reliability** | `error-handling` · `database-migrations` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `hook-development` |
+| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` |
 | **Testing** | `playwright-automation` · `test-coverage` |
 | **Performance** | `performance-patterns` |
 | **API design** | `openapi-design` · `postgres-patterns` |
@@ -136,7 +136,12 @@ npx start-vibing-stacks migrate --apply                # apply (idempotent; pres
 npx start-vibing-stacks migrate --apply --force-legacy # also overwrite legacy hooks AND commands (no version) — creates .bak
 npx start-vibing-stacks migrate --apply --force-hooks  # alias for --force-legacy (back-compat)
 
-# flags: --force --no-claude --no-mcp --no-install --help --version
+# Memory Optimization Pipeline (MOP)
+npx start-vibing-stacks --with-memory-optimization          # install MOP
+npx start-vibing-stacks memory optimize --dry-run           # analyze memories
+npx start-vibing-stacks memory optimize --apply             # apply optimizations
+
+# flags: --force --no-claude --no-mcp --no-install --with-memory-optimization --help --version
 ```
 
 `migrate` is the safe upgrade path between releases. Each release gets:
@@ -149,6 +154,22 @@ npx start-vibing-stacks migrate --apply --force-hooks  # alias for --force-legac
 Legacy files without versioning — hooks without `// @sv-version` AND commands without `version:` frontmatter (anything installed before the versioning landed) — are reported as `needs-update-legacy` and skipped by default. Pass `--force-legacy` (or its alias `--force-hooks`) to overwrite them — each gets a timestamped `.bak`. Skills and agents are intentionally **not** covered because users customize them; they stay in `modified-no-version` (advisory only).
 
 Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
+
+---
+
+## Memory Optimization Pipeline (MOP)
+
+Static memories (`CLAUDE.md`, skill files, agent memories) degrade over time through redundancy, generic chunks, and obsolescence.
+
+The **Memory Optimization Pipeline** uses an LLM-as-Judge to evaluate chunks and produce optimized `.optimized.md` versions **without modifying originals**.
+
+```bash
+npx start-vibing-stacks --with-memory-optimization   # one-time install
+npx start-vibing-stacks memory optimize --dry-run    # review plan
+npx start-vibing-stacks memory optimize --apply      # apply changes
+```
+
+The agent automatically suggests running MOP when it detects objective signals (excessive generic chunks, `CLAUDE.md` > 35 KB, repeated forgetting, etc.).
 
 ---
 
