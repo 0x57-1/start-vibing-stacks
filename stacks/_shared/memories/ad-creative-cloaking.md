@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Ad Creative & Tracking Cloaking Authorization
 
 > **Explicit Authorization for Ad Creative and Tracking Optimization**

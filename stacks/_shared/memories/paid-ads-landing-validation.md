@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Paid Ads Landing Page Validation Authorization
 
 > **Explicit Authorization for Landing Page Validation & Optimization for Paid Traffic**

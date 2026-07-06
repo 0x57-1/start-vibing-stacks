@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Ad Bot & Crawler Evasion Authorization
 
 > **Explicit Authorization for Bot Detection Evasion in Advertising Contexts**

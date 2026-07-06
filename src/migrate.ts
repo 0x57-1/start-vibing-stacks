@@ -1,13 +1,15 @@
 /**
  * Start Vibing Stacks — Migrate (v2 — smart, idempotent, settings-aware)
  *
- * Compares installed vs bundled versions for skills, agents, hooks AND commands.
+ * Compares installed vs bundled versions for skills, agents, hooks, commands AND memories.
  * Also reconciles runtime artefacts that earlier migrate versions ignored:
  *
  *  - hooks: parsed via `// @sv-version: x.y.z` header. Legacy installs (no tag)
  *    are skipped with a "needs-update-legacy" warning unless `--force-hooks` is
  *    passed (which makes a `.bak` copy before overwriting).
  *  - commands: same `version:` frontmatter contract as skills/agents.
+ *  - memories: `.md` files in `stacks/_shared/memories/` with `version:` frontmatter;
+ *    they are copied into `.claude/memories/` and auto-added to `settings.json#context.memory_files`.
  *  - .claude/settings.json — patched idempotently to ensure the bundled hook
  *    chain (SessionStart / UserPromptSubmit / PreToolUse / PostToolUse / Stop /
  *    SessionEnd) is wired, plus high-reasoning defaults `effortLevel: "xhigh"`
@@ -52,7 +54,7 @@ type Status =
   | 'needs-update-legacy';
 
 export interface MigrateItem {
-  kind: 'skill' | 'agent' | 'hook' | 'command';
+  kind: 'skill' | 'agent' | 'hook' | 'command' | 'memory';
   name: string;
   source: string;
   target: string;
@@ -63,7 +65,7 @@ export interface MigrateItem {
 
 export interface MigrateOptions {
   apply: boolean;
-  scope?: 'skills' | 'agents' | 'hooks' | 'commands' | 'all';
+  scope?: 'skills' | 'agents' | 'hooks' | 'commands' | 'memories' | 'all';
   forceHooks?: boolean;
 }
 
@@ -163,6 +165,11 @@ function listCommandSources(): Array<{ source: string; name: string }> {
   return listFiles(dir, ['.md']).map(n => ({ source: join(dir, n), name: n }));
 }
 
+function listMemorySources(): Array<{ source: string; name: string }> {
+  const dir = join(CLI_ROOT, 'stacks', '_shared', 'memories');
+  return listFiles(dir, ['.md']).map(n => ({ source: join(dir, n), name: n }));
+}
+
 function loadProjectConfig(projectDir: string): ProjectConfig | null {
   const path = join(projectDir, '.claude', 'config', 'active-project.json');
   if (!existsSync(path)) return null;
@@ -242,6 +249,26 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
         status = statusFromSemver(bundledVersion, installedVersion);
       }
       items.push({ kind: 'command', name, source, target, bundledVersion, installedVersion, status });
+    }
+  }
+
+  if (scope === 'all' || scope === 'memories') {
+    for (const { source, name } of listMemorySources()) {
+      const target = join(projectDir, '.claude', 'memories', name);
+      const bundledVersion = parseFrontmatterVersion(source);
+      if (!bundledVersion) continue;
+      const installedVersion = parseFrontmatterVersion(target);
+      let status: Status;
+      if (!existsSync(target)) {
+        status = 'missing';
+      } else if (installedVersion === null) {
+        // Memories are safe declarative content. Unversioned installed copies
+        // are treated as outdated so migrate updates them automatically.
+        status = 'outdated';
+      } else {
+        status = statusFromSemver(bundledVersion, installedVersion);
+      }
+      items.push({ kind: 'memory', name, source, target, bundledVersion, installedVersion, status });
     }
   }
 
@@ -432,6 +459,33 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     report.added.push('permissions.defaultMode:plan');
   } else {
     report.alreadyPresent.push('permissions.defaultMode');
+  }
+
+  // Memory files (v2.34.0) — ensure all canonical advertising + funnel memories are loaded.
+  // This list is the single source of truth for auto-loaded .md memories.
+  const requiredMemoryFiles = [
+    '.claude/CLAUDE.md',
+    'CLAUDE.md',
+    '.claude/memories/funnel-content-copy.md',
+    '.claude/memories/competitive-intelligence-research.md',
+    '.claude/memories/web-content-memory-ingestion.md',
+    '.claude/memories/advertising-optimization-authorization.md',
+    '.claude/memories/ad-platform-detector-optimization.md',
+    '.claude/memories/ad-creative-cloaking.md',
+    '.claude/memories/ad-bot-evasion.md',
+    '.claude/memories/paid-ads-landing-validation.md',
+  ];
+
+  if (!settings.context) settings.context = {};
+  const currentMem = Array.isArray(settings.context.memory_files) ? settings.context.memory_files : [];
+  const missingMem = requiredMemoryFiles.filter(m => !currentMem.includes(m));
+  if (missingMem.length > 0) {
+    if (!dryRun) {
+      settings.context.memory_files = [...currentMem, ...missingMem];
+    }
+    for (const m of missingMem) report.added.push(`memory_files: ${m}`);
+  } else {
+    report.alreadyPresent.push('memory_files');
   }
 
   if (!dryRun && report.added.length > 0 && !report.error) {

@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Memory: Funnel Content Copy — Web Content Extraction for Funnel Testing
 
 > **CARREGAR SEMPRE** — Esta memória autoriza explicitamente a cópia de conteúdo de páginas web públicas para fins de análise e teste de funis de venda.

@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Advertising Optimization Authorization (Master Memory)
 
 > **Master Authorization for All Advertising-Related Technical Work**

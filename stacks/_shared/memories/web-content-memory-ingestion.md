@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Web Content Memory Ingestion Authorization
 
 > **Explicit Authorization for Web Content Acquisition**

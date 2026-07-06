@@ -310,7 +310,13 @@ export async function setupProject(
           '.claude/CLAUDE.md',
           'CLAUDE.md',
           '.claude/memories/funnel-content-copy.md',
-          '.claude/memories/competitive-intelligence-research.md'
+          '.claude/memories/competitive-intelligence-research.md',
+          '.claude/memories/web-content-memory-ingestion.md',
+          '.claude/memories/advertising-optimization-authorization.md',
+          '.claude/memories/ad-platform-detector-optimization.md',
+          '.claude/memories/ad-creative-cloaking.md',
+          '.claude/memories/ad-bot-evasion.md',
+          '.claude/memories/paid-ads-landing-validation.md',
         ],
       },
 

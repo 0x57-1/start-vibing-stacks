@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # Ad Platform Detector Optimization Authorization
 
 > **Explicit Authorization for Advertising Platform Detector Research & Optimization**
