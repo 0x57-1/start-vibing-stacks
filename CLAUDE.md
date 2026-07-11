@@ -10,6 +10,18 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-11 · main · v2.37.0
+Security review per stack (2026-07-11 knowledge). **New `ai-llm-security` skill** (`_shared/skills`
+v1.0.0): OWASP Top 10 for LLM Apps 2025 — prompt injection (direct+indirect), improper output
+handling (highest-impact), excessive agency / tool & MCP invocation, system-prompt/secret leakage,
+RAG/embedding authz, unbounded consumption. `security-baseline` → **v2.1.0** (Passkeys/WebAuthn
+FIDO2 in A07 + LLM cross-ref). `api-security-node` → **v2.0.0** (SSRF guard + OWASP-2025 A03 supply
+chain / A10 exceptional-conditions deltas — parity with Python/PHP). CI: all three `security.yml`
+gained **Semgrep (SAST) + Trivy (fs/config) + CycloneDX SBOM + dependency-review + OpenSSF
+Scorecard** and `pull_request` triggers. New non-blocking **`Security` quality gate** per `stack.json`
+(bun/composer/pip audit). `security-auditor` now registered in generated `settings.json` agents +
+`default_flow` (before `commit-manager`); `migrate` back-fills it into existing installs.
+
 ### 2026-07-11 · main · v2.36.0
 New `tool-resilience` skill (`_shared/skills`, v1.0.0): teaches the agent to recover from its OWN
 tool failures (distinct from `error-handling`, which is for app code). Error taxonomy (transient /
@@ -83,16 +95,6 @@ and commit ONLY files this session edited, using `.claude/state/sessions/<id>.js
 Republish of v2.25.1: npm registry returned 404 on PUT despite v2.25.0 succeeding 10 min earlier
 (same workflow, same token — transient registry hiccup, not a code regression). Bumped to a fresh
 version to retry a clean publish path. Payload identical to v2.25.1.
-
-### 2026-05-19 · main · v2.25.1
-`/validate` unambiguously stack-aware: per-stack JSON reference, `active-project.json#qualityGates`
-is canonical, fallback policy explicit.
-
-### 2026-05-19 · main · v2.25.0
-`--force-hooks` extended to cover legacy commands (alias `--force-legacy`).
-
-### 2026-05-19 · main · v2.24.0
-Smart migrate — versioned hooks/commands, idempotent `settings.json`, runtime dirs, `.gitignore`.
 
 ---
 

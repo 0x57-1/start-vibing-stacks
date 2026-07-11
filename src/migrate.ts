@@ -488,6 +488,32 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     report.alreadyPresent.push('memory_files');
   }
 
+  // security-auditor agent registration (v2.37.0) — ensure the VETO auditor is in
+  // both the agents metadata block and the default workflow (before commit-manager).
+  if (!settings.agents || typeof settings.agents !== 'object') settings.agents = {};
+  if (!settings.agents['security-auditor']) {
+    if (!dryRun) {
+      settings.agents['security-auditor'] = {
+        description: 'Stack-aware OWASP audit with VETO power; runs before commit-manager',
+      };
+    }
+    report.added.push('agents: security-auditor');
+  } else {
+    report.alreadyPresent.push('agents: security-auditor');
+  }
+
+  if (settings.workflow && Array.isArray(settings.workflow.default_flow)) {
+    const flow: string[] = settings.workflow.default_flow;
+    if (!flow.includes('security-auditor')) {
+      if (!dryRun) {
+        const idx = flow.indexOf('commit-manager');
+        if (idx >= 0) flow.splice(idx, 0, 'security-auditor');
+        else flow.push('security-auditor');
+      }
+      report.added.push('workflow.default_flow: security-auditor');
+    }
+  }
+
   if (!dryRun && report.added.length > 0 && !report.error) {
     mkdirSync(dirname(path), { recursive: true });
     writeFileAtomic(path, JSON.stringify(settings, null, '\t'));

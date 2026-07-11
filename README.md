@@ -18,7 +18,7 @@ npx start-vibing-stacks
 | Skills | **26** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
-| Workflows | `ci.yml` + `security.yml` per stack | Copied to `.github/workflows/` when target is empty |
+| Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
 | Configs | `active-project.json` · `domain-mapping.json` · `security-rules.json` · `standards-review.json` | Drives every agent's stack detection |
 
 ---
@@ -35,16 +35,17 @@ npx start-vibing-stacks
 
 ## Skill matrix
 
-### Universal (22 — shared across stacks)
+### Universal (29 — shared across stacks)
 
 | Group | Skills |
 |---|---|
-| **Security** | `security-baseline` · `secrets-management` |
+| **Security** | `security-baseline` · `secrets-management` · `ai-llm-security` |
 | **Observability** | `observability` |
-| **Reliability** | `error-handling` · `database-migrations` |
+| **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` |
+| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` |
+| **Framework** | `react-server-components` · `laravel-octane-inertia` |
 | **Testing** | `playwright-automation` · `test-coverage` |
 | **Performance** | `performance-patterns` |
 | **API design** | `openapi-design` · `postgres-patterns` |
@@ -240,7 +241,9 @@ This layer is **separate** from `CLAUDE.md`: that file holds project-wide rules 
 ## Security features
 
 - **`security-auditor` v2.0.0** — stack-aware (forks on PHP / Node / Python), CWE-mapped findings, severity matrix (CRITICAL · HIGH · MEDIUM block; LOW warns), VETO power against `commit-manager` and `domain-updater`. Adversarial probes: `npm audit` · `composer audit` · `pip-audit` · `gitleaks` · PHPStan.
-- **OWASP Top 10** — `security-baseline` (universal A01–A10) + `security-scan-php` (Laravel-specific) + `api-security-node` + `api-security-python`.
+- **OWASP Top 10** — `security-baseline` (universal A01–A10, 2021 numbering + 2025 deltas; Passkeys/WebAuthn FIDO2 in A07) + `security-scan-php` (Laravel-specific) + `api-security-node` (v2.0.0: SSRF guard + supply-chain/exception deltas) + `api-security-python`.
+- **OWASP Top 10 for LLM Apps (2025)** — `ai-llm-security`: prompt injection (direct + indirect), improper output handling, excessive agency / tool & MCP invocation, RAG/embedding authz, unbounded consumption. Invoked for any chat/RAG/agent/tool-calling feature.
+- **CI security suite** — every `security.yml` runs SAST (Semgrep + CodeQL), secret scan (gitleaks), filesystem/config scan (Trivy), CycloneDX SBOM, `dependency-review` on PRs, and OpenSSF Scorecard. Plus a non-blocking `Security` quality gate (`bun`/`composer`/`pip` audit) per stack.
 - **Environment isolation** — scanner blocks `NEXT_PUBLIC_*SECRET|*TOKEN|*PRIVATE` and `VITE_*SECRET|*TOKEN|*PRIVATE` patterns; teaches Route Handler / Server Action proxy patterns.
 - **Secret scanning** in `stop-validator` — gitleaks if installed, regex fallback otherwise.
 - **CI templates** — gitleaks · `npm audit` / `pip-audit` / `composer audit` · CodeQL/Bandit · weekly cron.

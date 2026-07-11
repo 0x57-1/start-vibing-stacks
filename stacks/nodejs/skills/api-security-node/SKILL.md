@@ -1,7 +1,7 @@
 ---
 name: api-security-node
-version: 1.0.0
-description: Production-grade API hardening for Node.js (Express, Fastify, Next.js Route Handlers, Server Actions). Rate limit, CORS, JWT, secure cookies, CSRF, headers.
+version: 2.0.0
+description: "Node.js (Express / Fastify / Next.js Route Handlers / Server Actions) overlay on _shared/security-baseline v2 (OWASP Top 10:2025). Production hardening: helmet/CSP headers, strict CORS allowlist, rate limiting (express-rate-limit / @upstash/ratelimit), HttpOnly+Secure+SameSite cookies, JWT with pinned algorithms + jti via jose, CSRF double-submit, Zod .strict() against mass-assignment, magic-byte upload sniffing, Argon2id, SSRF guard for outbound fetches, and 2025-A03 (Software Supply Chain) + 2025-A10 (Exceptional Conditions) deltas."
 ---
 
 # API Security — Node.js
@@ -245,7 +245,84 @@ Never use `bcryptjs` (pure JS, slow); prefer native `bcrypt` or `argon2`. Argon2
 
 ---
 
-## 10. Server Action / Route Handler Checklist
+## 11. Outbound Calls — SSRF Guard
+
+Any time you fetch a URL the user (or an LLM) controls — preview cards, webhooks, image proxies, agent tools — validate the destination. SSRF was folded into A01 in the 2025 list but is still a top real-world exploit (cloud metadata theft).
+
+```ts
+import { lookup } from 'node:dns/promises';
+import ipaddr from 'ipaddr.js';
+
+const BLOCKED_RANGES = ['private', 'loopback', 'linkLocal', 'uniqueLocal', 'reserved'];
+
+async function assertSafeUrl(raw: string): Promise<URL> {
+  const url = new URL(raw);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('SSRF: scheme');
+  if (process.env['NODE_ENV'] === 'production' && url.protocol !== 'https:') {
+    throw new Error('SSRF: https required');
+  }
+  // Resolve and reject private / link-local (169.254.169.254 = cloud metadata) targets
+  const { address } = await lookup(url.hostname);
+  const range = ipaddr.parse(address).range();
+  if (BLOCKED_RANGES.includes(range)) throw new Error(`SSRF: blocked (${range})`);
+  return url;
+}
+
+// Use it, and disable redirects (a 30x can redirect to a private host post-check)
+const safe = await assertSafeUrl(userUrl);
+const res = await fetch(safe, { redirect: 'error', signal: AbortSignal.timeout(5000) });
+```
+
+- **Allowlist hosts** when you can (`ALLOWED_HOSTS.has(url.hostname)`) — stronger than a denylist.
+- **Disable/pin redirects** — a 30x can bounce to a private host *after* your check (TOCTOU).
+- On Next.js `next/image`, restrict `remotePatterns` to known hosts.
+
+---
+
+## 12. OWASP 2025 Deltas — Node.js Specifics
+
+### §A03 — Software Supply Chain Failures (NEW in 2025)
+
+```jsonc
+// package.json — pin ranges tight; commit the lockfile; ignore install scripts by default
+{
+  "dependencies": { "hono": "4.6.x", "zod": "3.23.x" }
+}
+```
+
+```bash
+# CI: verify lockfile integrity + audit + published provenance
+npm ci                              # fails if package-lock drifted (or: bun install --frozen-lockfile)
+npm audit --audit-level=high        # or: bun audit --audit-level=high
+npm audit signatures                # verifies registry provenance/signatures (npm 9.5+)
+npm config set ignore-scripts true  # blocks malicious postinstall (xz-style supply-chain)
+```
+
+- Publish first-party packages with **`npm publish --provenance`** (SLSA attestation via OIDC — see `ci-pipelines`).
+- Pin GitHub Actions by **commit SHA**, not tag — see `secrets-management`.
+
+### §A10 — Mishandling Exceptional Conditions (NEW in 2025)
+
+```ts
+// WRONG — swallows programmer bugs and fails open
+try { return await getUser(id); } catch { return null; }
+
+// CORRECT — catch the expected class, let the rest surface (fail closed)
+try {
+  return await getUser(id);
+} catch (e) {
+  if (e instanceof NotFoundError) return null;
+  logger.error({ err: e }, 'getUser failed');
+  throw e;                          // don't mask; the error mapper returns a safe 500
+}
+```
+
+- Never `catch {}` around authz/crypto/payment paths — a swallowed error can fail *open*.
+- Return generic messages to clients; full detail to logs only (A09). See `error-handling`.
+
+---
+
+## Server Action / Route Handler Checklist
 
 - [ ] `auth()` called first; reject if no session for protected routes
 - [ ] User ID from session, **never** from body
@@ -269,7 +346,8 @@ Never use `bcryptjs` (pure JS, slow); prefer native `bcrypt` or `argon2`. Argon2
 
 ## See Also
 
-- `security-baseline` — OWASP Top 10
-- `secrets-management` — env vars, rotation
+- `security-baseline` — OWASP Top 10 (2021 + 2025 deltas)
+- `ai-llm-security` — if the API calls an LLM/agent (prompt injection, output handling, SSRF via tools)
+- `secrets-management` — env vars, rotation, supply-chain audit
 - `zod-validation` — schema patterns
 - `observability` — structured logs without PII

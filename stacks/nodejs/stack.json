@@ -22,7 +22,8 @@
     { "name": "Tests", "command": "bun run test", "required": true, "order": 3 },
     { "name": "RouteSlugs", "command": "node scripts/check-route-slugs.mjs", "required": true, "order": 4, "appliesTo": ["nextjs"], "description": "Static Next.js dynamic-route slug consistency check. `next build` does not catch this class of bug." },
     { "name": "BuildScripts", "command": "node scripts/check-build-scripts.mjs", "required": true, "order": 5, "description": "Static check that scripts.build/prebuild/postinstall do not call dev-only binaries (tsx, ts-node, vitest, eslint, ...) — Vercel/Docker strip devDeps and the build crashes with exit 127." },
-    { "name": "Build", "command": "bun run build", "required": true, "order": 6 }
+    { "name": "Build", "command": "bun run build", "required": true, "order": 6 },
+    { "name": "Security", "command": "bun audit --audit-level=high", "required": false, "order": 7, "description": "Local dependency vulnerability audit (OWASP 2025-A03 supply chain). Non-blocking: needs network. CI security.yml runs the full SAST/secret/SBOM suite." }
   ],
   "frameworks": [
     {

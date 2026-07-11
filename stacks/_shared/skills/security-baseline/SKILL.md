@@ -1,7 +1,7 @@
 ---
 name: security-baseline
-version: 2.0.0
-description: "Universal OWASP Top 10 baseline with stack-aware examples. Covers BOTH OWASP 2021 (numbering kept stable for security-auditor §A01–§A10 cross-references) AND OWASP 2025 deltas (Software Supply Chain Failures new at A03, Mishandling Exceptional Conditions new at A10, SSRF demoted into Broken Access Control). Invoke before designing or reviewing any feature that touches user data, auth, persistence, supply chain, or external IO."
+version: 2.1.0
+description: "Universal OWASP Top 10 baseline with stack-aware examples. Covers BOTH OWASP 2021 (numbering kept stable for security-auditor §A01–§A10 cross-references) AND OWASP 2025 deltas (Software Supply Chain Failures new at A03, Mishandling Exceptional Conditions new at A10, SSRF demoted into Broken Access Control). A07 includes phishing-resistant Passkeys/WebAuthn (FIDO2). Invoke before designing or reviewing any feature that touches user data, auth, persistence, supply chain, or external IO."
 ---
 
 # Security Baseline — OWASP Top 10 (2021 + 2025 deltas)
@@ -182,6 +182,34 @@ See `secrets-management` (OIDC federation), `ci-pipelines` (pinning + provenance
 - Rotate session token on login, logout, password change, privilege change.
 - Password reset tokens: single-use, expire ≤ 1h, sent to email of record.
 
+### Passkeys / WebAuthn (FIDO2) — preferred in 2026
+
+Passkeys are **phishing-resistant** (bound to the origin, no shared secret to steal or replay) and are now the recommended primary/step-up factor. Prefer them over TOTP/SMS where the client supports them.
+
+- Use a maintained library — don't hand-roll CBOR/attestation parsing:
+  - **Node**: `@simplewebauthn/server` (+ `@simplewebauthn/browser`)
+  - **Python**: `py_webauthn`
+  - **PHP**: `web-auth/webauthn-lib`
+- **Verify server-side on every ceremony**: the `challenge` (single-use, from your session), `origin`, and `rpId`. Reject mismatches.
+- Store the credential's **public key + signCount**; reject or flag if `signCount` goes backwards (cloned authenticator).
+- Support **discoverable credentials (resident keys)** for usernameless login; allow multiple passkeys per user + a recovery path.
+- Treat passkeys as MFA-equivalent for step-up (user verification = biometric/PIN).
+
+```ts
+// Node — @simplewebauthn/server (verification step, abridged)
+import { verifyAuthenticationResponse } from '@simplewebauthn/server';
+const verification = await verifyAuthenticationResponse({
+  response,                                  // from client
+  expectedChallenge: session.challenge,      // single-use, server-issued
+  expectedOrigin: process.env['ORIGIN']!,    // e.g. https://app.example.com
+  expectedRPID: process.env['RP_ID']!,       // e.g. app.example.com
+  credential: { id: cred.id, publicKey: cred.publicKey, counter: cred.signCount },
+  requireUserVerification: true,
+});
+if (!verification.verified) throw new Error('auth failed');
+await saveSignCount(cred.id, verification.authenticationInfo.newCounter); // detect clones
+```
+
 ---
 
 ## A08 — Software & Data Integrity
@@ -295,5 +323,6 @@ No exceptions for "trusted" sources. Internal services drift, queues replay malf
 - `observability` — log redaction, PII handling
 - `error-handling` — fail-closed patterns (2025-A10)
 - `ci-pipelines` — pinning + provenance (2025-A03)
+- `ai-llm-security` — OWASP Top 10 for LLM Apps (prompt injection, tool/agent authority) if the app calls an LLM
 - `api-security-node` / `api-security-python` / PHP `api-security` — stack-specific hardening
 - Stack overlays consume the §A01–§A10 anchors above. **Do not renumber.**

@@ -20,7 +20,8 @@
     { "name": "PHPUnit", "command": "vendor/bin/phpunit", "required": true, "order": 2 },
     { "name": "TypeCheck", "command": "npx tsc --noEmit", "required": true, "order": 3 },
     { "name": "Lint", "command": "npx eslint resources/js/", "required": false, "order": 4 },
-    { "name": "ViteManifest", "command": "node scripts/check-vite-manifest.mjs", "required": false, "order": 5 }
+    { "name": "ViteManifest", "command": "node scripts/check-vite-manifest.mjs", "required": false, "order": 5 },
+    { "name": "Security", "command": "composer audit", "required": false, "order": 6, "description": "Local dependency vulnerability audit (OWASP 2025-A03 supply chain). Non-blocking: needs network. CI security.yml runs the full SAST/secret/SBOM suite." }
   ],
   "frameworks": [
     {

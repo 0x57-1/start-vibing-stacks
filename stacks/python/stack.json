@@ -18,7 +18,8 @@
   "qualityGates": [
     { "name": "mypy", "command": "mypy .", "required": true, "order": 1 },
     { "name": "ruff", "command": "ruff check .", "required": true, "order": 2 },
-    { "name": "pytest", "command": "pytest --tb=short", "required": true, "order": 3 }
+    { "name": "pytest", "command": "pytest --tb=short", "required": true, "order": 3 },
+    { "name": "security", "command": "pip-audit --strict", "required": false, "order": 4, "description": "Local dependency vulnerability audit (OWASP 2025-A03 supply chain). Non-blocking: needs network + pip-audit installed. CI security.yml runs the full SAST/secret/SBOM suite." }
   ],
   "frameworks": [
     {

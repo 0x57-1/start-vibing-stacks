@@ -418,6 +418,9 @@ export async function setupProject(
         'research-web': {
           description: 'Researches best practices before implementation',
         },
+        'security-auditor': {
+          description: 'Stack-aware OWASP audit with VETO power; runs before commit-manager',
+        },
         'documenter': {
           description: 'Creates and maintains domain documentation',
         },
@@ -439,6 +442,7 @@ export async function setupProject(
         default_flow: [
           'research-web',
           'tester',
+          'security-auditor',
           'documenter',
           'domain-updater',
           'commit-manager',
