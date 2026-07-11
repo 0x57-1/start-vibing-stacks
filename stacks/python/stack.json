@@ -72,7 +72,8 @@
     "python-performance",
     "api-security-python",
     "docker-patterns",
-    "podman-patterns"
+    "podman-patterns",
+    "tool-resilience"
   ],
   "requirements": [
     {

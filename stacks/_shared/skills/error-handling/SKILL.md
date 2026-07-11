@@ -1,6 +1,6 @@
 ---
 name: error-handling
-version: 1.0.0
+version: 1.1.0
 description: Universal error-handling patterns. Error taxonomy, Result types, error boundaries, structured exceptions, never-swallow rules. Invoke when designing service layers, API responses, or any try/catch.
 ---
 
@@ -330,6 +330,7 @@ Stable contract: client code can switch on `code`. Always include `requestId` so
 
 ## See Also
 
+- `tool-resilience` — recovering from the AGENT's own tool failures (fetch bot-blocks, stale edits, timeouts); includes the Cloudflare 520 / HTTP 444 User-Agent recovery
 - `observability` — what to log on errors
 - `security-baseline` — A09 logging, A05 config (don't leak stack traces)
 - Stack `api-security-*` — error mapping in framework handlers

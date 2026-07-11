@@ -10,6 +10,15 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-11 · main · v2.36.0
+New `tool-resilience` skill (`_shared/skills`, v1.0.0): teaches the agent to recover from its OWN
+tool failures (distinct from `error-handling`, which is for app code). Error taxonomy (transient /
+bot-block / permission / stale-conflict / etc.), max-2-retry discipline, read-before-edit recovery
+for `StrReplace`, and the **Cloudflare 520 / HTTP 444 bot-block** case: a `curl/1.1` (default) UA
+hits the user's bot-block → origin 444 → Cloudflare 520; recovery is to **retry with a realistic
+browser User-Agent + coherent headers** before concluding the site is down. Registered in all three
+`stack.json` skill lists. `error-handling` → v1.1.0 (cross-reference + See Also to `tool-resilience`).
+
 ### 2026-07-05 · main · v2.33.0
 Added comprehensive advertising optimization memory system:
 - `web-content-memory-ingestion.md` — broad authorization to copy any public web content into memory without source ownership requirement

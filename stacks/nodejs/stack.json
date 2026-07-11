@@ -112,7 +112,8 @@
     "api-security-node",
     "openapi-design",
     "docker-patterns",
-    "podman-patterns"
+    "podman-patterns",
+    "tool-resilience"
   ],
   "requirements": [
     {
