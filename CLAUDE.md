@@ -10,6 +10,13 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-16 · main · v2.38.0
+New `dead-code-hygiene` skill (`_shared/skills`, v1.0.0): after replacements/refactors, delete
+unused legacy/inert code in the same change so leftover paths do not confuse later agent context.
+Evidence via grep + typecheck/tests; `/fix` scoped to fix-induced dead code only. Workflow nudge
+in `user-prompt-submit` → **v1.3.0**; `/feature` + `/fix` → **v1.2.0**. Cross-refs in `final-check`
+v2.0.1 + `quality-gate` v1.0.1. Registered in all three `stack.json` skill lists. Universal skills: 30.
+
 ### 2026-07-11 · main · v2.37.0
 Security review per stack (2026-07-11 knowledge). **New `ai-llm-security` skill** (`_shared/skills`
 v1.0.0): OWASP Top 10 for LLM Apps 2025 — prompt injection (direct+indirect), improper output
@@ -91,11 +98,6 @@ and commit ONLY files this session edited, using `.claude/state/sessions/<id>.js
 `--include-conflicted`. Closes the "instance 2 commit bundles instance 1's files" pattern.
 `claude-md-compactor.md` §5 budget + §6 forbidden list + new §6.1 multi-instance safety updated.
 
-### 2026-05-19 · main · v2.25.2
-Republish of v2.25.1: npm registry returned 404 on PUT despite v2.25.0 succeeding 10 min earlier
-(same workflow, same token — transient registry hiccup, not a code regression). Bumped to a fresh
-version to retry a clean publish path. Payload identical to v2.25.1.
-
 ---
 
 ## 30 Seconds Overview
@@ -149,9 +151,9 @@ start-vibing-stacks/
 │   │   │                                  user-prompt-submit.ts, peers.ts (CLI),
 │   │   │                                  scope.ts (per-instance commit scoping CLI),
 │   │   │                                  _state.ts (multi-instance state lib)
-│   │   └── skills/                     # 20 universal skills (security-baseline,
-│   │                                      database-migrations, openapi-design,
-│   │                                      postgres-patterns, etc.)
+│   │   └── skills/                     # 30 universal skills (security-baseline,
+│   │                                      dead-code-hygiene, ai-llm-security,
+│   │                                      tool-resilience, postgres-patterns, etc.)
 │   ├── frontend/
 │   │   ├── react/skills/               # 7 React+Tailwind+shadcn skills
 │   │   └── react-inertia/skills/       # 2 Inertia-specific skills

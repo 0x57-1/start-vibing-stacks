@@ -1,6 +1,6 @@
 ---
 name: final-check
-version: 2.0.0
+version: 2.0.1
 description: Final validator with VETO power. Now executable — runs `npx tsx .claude/hooks/final-check.ts` to scan for debug statements, secrets, .skip, any, RCE risks, SQL concat. Blocks completion on CRITICAL/HIGH findings.
 ---
 
@@ -88,6 +88,7 @@ The default Stop is `stop-validator.ts` (git/branch/CLAUDE.md/secret scan). `fin
 
 ## See Also
 
+- `dead-code-hygiene` — remove unused legacy/inert paths after replacements (run before this scan)
 - `quality-gate` — typecheck/lint/test/build (different scope)
 - `security-baseline` — what the secret/RCE rules enforce
 - `stop-validator.ts` — git/branch/docs gate (sibling, complementary)

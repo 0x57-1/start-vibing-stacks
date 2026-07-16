@@ -114,7 +114,8 @@
     "openapi-design",
     "docker-patterns",
     "podman-patterns",
-    "tool-resilience"
+    "tool-resilience",
+    "dead-code-hygiene"
   ],
   "requirements": [
     {

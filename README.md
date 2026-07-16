@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.34.0** — Advertising optimization memory system (detector bypass, creative cloaking, bot evasion, landing page validation) + Memory Optimization Pipeline (MOP) with LLM-as-Judge, `--with-memory-optimization` flag, new skills (`kubernetes-patterns`, `react-server-components`, `laravel-octane-inertia`, `podman-patterns`), and security hardening in container examples.
+> Latest: **v2.38.0** — New `dead-code-hygiene` skill: remove unused legacy/inert code after replacements so leftover paths do not confuse later agent context. Workflow nudge in `user-prompt-submit` + `/feature`/`/fix`. Universal skills: **30**.
 
 ---
 
@@ -15,7 +15,7 @@ npx start-vibing-stacks
 | Layer | Count | Purpose |
 |---|---|---|
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **26** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Skills | **30** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
@@ -35,13 +35,13 @@ npx start-vibing-stacks
 
 ## Skill matrix
 
-### Universal (29 — shared across stacks)
+### Universal (30 — shared across stacks)
 
 | Group | Skills |
 |---|---|
 | **Security** | `security-baseline` · `secrets-management` · `ai-llm-security` |
 | **Observability** | `observability` |
-| **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` |
+| **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
 | **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` |
@@ -207,16 +207,17 @@ This release includes a comprehensive set of permissive memories for legitimate 
 1. BRANCH         feature/ | fix/ | refactor/ | test/
 2. RESEARCH       research-web (MCP-first; new features only)
 3. IMPLEMENT      stack rules + strict types + security
-4. TEST           tester (Vitest / pytest / PHPUnit / Playwright)
-5. SECURITY       security-auditor — VETO on CRITICAL/HIGH/MEDIUM findings
-6. QUALITY        quality-gate: typecheck → lint → test → build
-7. COMMIT         commit-manager — verifies gates, diff-driven message, push
-8. DOCUMENT       documenter — maps files/commits to domains, regenerates _index.json
-9. WISDOM         domain-updater — records session learnings, PREPENDS new entry to CLAUDE.md ## Recent Changes (append-only LIFO, cap 10, multi-instance safe)
-10. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
+4. HYGIENE        dead-code-hygiene — delete unused legacy/inert paths from this change
+5. TEST           tester (Vitest / pytest / PHPUnit / Playwright)
+6. SECURITY       security-auditor — VETO on CRITICAL/HIGH/MEDIUM findings
+7. QUALITY        quality-gate: typecheck → lint → test → build
+8. COMMIT         commit-manager — verifies gates, diff-driven message, push
+9. DOCUMENT       documenter — maps files/commits to domains, regenerates _index.json
+10. WISDOM        domain-updater — records session learnings, PREPENDS new entry to CLAUDE.md ## Recent Changes (append-only LIFO, cap 10, multi-instance safe)
+11. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
 ```
 
-Steps 5–6 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings.
+Steps 6–7 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings.
 
 ---
 

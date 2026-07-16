@@ -1,6 +1,7 @@
 ---
 name: quality-gate
-version: 1.0.0
+version: 1.0.1
+description: Run stack quality checks (typecheck → lint → test → build) before commit. Invoke after dead-code hygiene and before commit-manager. Blocks on required gate failures.
 ---
 
 # Quality Gate — Verification System
@@ -60,3 +61,9 @@ bun run build                              # Build verification (must come AFTER
 2. **FIX ERRORS, DON'T SKIP** — never use `--no-verify`
 3. **ORDER MATTERS** — run in defined order (cheapest first)
 4. **REPORT RESULTS** — show pass/fail for each gate
+
+## See Also
+
+- `dead-code-hygiene` — delete unused legacy/inert code after replacements (before this gate)
+- `final-check` — mechanical leftovers / secrets / RCE scan (complementary)
+- `git-workflow` — commit only after required gates pass

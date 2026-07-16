@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.3.0: workflow adds dead-code hygiene step (skill `dead-code-hygiene`) between
+ * WORK and quality gates — remove inert legacy paths before commit.
  * v1.2.0: workflow guidance now points at `## Recent Changes` (append-only LIFO)
  * instead of `## Last Change` (overwritten). Aligned with `commit-manager` v3.0.0
  * and `domain-updater` v3.0.0 — multi-instance safe.
@@ -161,11 +163,15 @@ async function main(): Promise<void> {
 
 2. WORK through each item sequentially.
 
-3. Run quality gates: ${qualityCmd}
+3. DEAD-CODE HYGIENE — after replacements/refactors, delete unused legacy/inert paths
+   in the same change (skill: dead-code-hygiene). Evidence via grep + typecheck/tests;
+   do not leave // LEGACY stubs. On /fix: only code made unreachable by this fix.
 
-4. COMMIT using conventional commits via commit-manager agent (v3.0.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled).
+4. Run quality gates: ${qualityCmd}
 
-5. UPDATE CLAUDE.md:
+5. COMMIT using conventional commits via commit-manager agent (v3.0.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled).
+
+6. UPDATE CLAUDE.md:
    a. PREPEND a new entry under "## Recent Changes" — heading exactly:
       "### ${today} · <branch> · <version-or-tag>" followed by 1-4 plain-text lines.
       Append-only LIFO; cap 10 (drop ONLY the oldest if exceeded). Multi-instance safe.
@@ -173,7 +179,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-6. Run stop-validator before finishing.${standardsContext}${peersBlock}`;
+7. Run stop-validator before finishing.${standardsContext}${peersBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);
