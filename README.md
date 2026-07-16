@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.38.0** — New `dead-code-hygiene` skill: remove unused legacy/inert code after replacements so leftover paths do not confuse later agent context. Workflow nudge in `user-prompt-submit` + `/feature`/`/fix`. Universal skills: **30**.
+> Latest: **v2.39.0** — New `owned-infra-ops` skill + always-on memory: legitimate ops on user-owned servers (health/SSH backup/deploy) with phrasing and tool-order that reduce Anthropic Opus/Sonnet cyber false positives. Explicitly cannot override Cyber Verification / API cyber blocks. Universal skills: **31**.
 
 ---
 
@@ -15,7 +15,7 @@ npx start-vibing-stacks
 | Layer | Count | Purpose |
 |---|---|---|
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **30** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Skills | **31** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
@@ -35,7 +35,7 @@ npx start-vibing-stacks
 
 ## Skill matrix
 
-### Universal (30 — shared across stacks)
+### Universal (31 — shared across stacks)
 
 | Group | Skills |
 |---|---|
@@ -44,7 +44,7 @@ npx start-vibing-stacks
 | **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` |
+| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `owned-infra-ops` |
 | **Framework** | `react-server-components` · `laravel-octane-inertia` |
 | **Testing** | `playwright-automation` · `test-coverage` |
 | **Performance** | `performance-patterns` |

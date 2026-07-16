@@ -317,6 +317,7 @@ export async function setupProject(
           '.claude/memories/ad-creative-cloaking.md',
           '.claude/memories/ad-bot-evasion.md',
           '.claude/memories/paid-ads-landing-validation.md',
+          '.claude/memories/owned-infra-ops.md',
         ],
       },
 

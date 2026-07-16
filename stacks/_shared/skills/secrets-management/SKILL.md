@@ -1,6 +1,6 @@
 ---
 name: secrets-management
-version: 2.1.0
+version: 2.1.1
 description: "Environment variable hygiene, OIDC federation for CI/CD (2026 default — replaces long-lived static secrets), secret detection (gitleaks 3-layer: pre-commit + CI + GitHub push protection), rotation, and secret-store patterns. Invoke whenever .env, secrets, API keys, env-var-reading code, or CI cloud-deploy credentials are touched."
 ---
 
@@ -403,6 +403,7 @@ Lockfile rules:
 - `security-baseline` — broader OWASP scope (2025-A03 Software Supply Chain Failures)
 - `observability` — log redaction details
 - `ci-pipelines` — OIDC patterns + workflow permissions
+- `owned-infra-ops` — SSH/backup/deploy on user-owned hosts (keys, not passwords; cyber false-positive hygiene)
 - Stack `api-security-*` — usage patterns
 - `memory-optimization` — when this skill grows beyond ~200 lines, run MOP to keep it actionable
 

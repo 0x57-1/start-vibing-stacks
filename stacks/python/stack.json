@@ -75,7 +75,8 @@
     "docker-patterns",
     "podman-patterns",
     "tool-resilience",
-    "dead-code-hygiene"
+    "dead-code-hygiene",
+    "owned-infra-ops"
   ],
   "requirements": [
     {

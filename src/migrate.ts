@@ -461,7 +461,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     report.alreadyPresent.push('permissions.defaultMode');
   }
 
-  // Memory files (v2.34.0) — ensure all canonical advertising + funnel memories are loaded.
+  // Memory files — canonical always-on memories (ads/funnel + owned-infra-ops).
   // This list is the single source of truth for auto-loaded .md memories.
   const requiredMemoryFiles = [
     '.claude/CLAUDE.md',
@@ -474,6 +474,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/ad-creative-cloaking.md',
     '.claude/memories/ad-bot-evasion.md',
     '.claude/memories/paid-ads-landing-validation.md',
+    '.claude/memories/owned-infra-ops.md',
   ];
 
   if (!settings.context) settings.context = {};

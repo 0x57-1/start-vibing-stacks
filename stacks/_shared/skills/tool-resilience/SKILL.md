@@ -1,6 +1,6 @@
 ---
 name: tool-resilience
-version: 1.0.0
+version: 1.0.1
 description: How the agent should recover from TOOL failures (not application errors) — Read/Edit/StrReplace/Bash/WebFetch/WebSearch/Grep/Glob. Error taxonomy, retry/backoff, read-before-edit, and the Cloudflare 520 / HTTP 444 bot-block recovery (switch User-Agent). Invoke when a tool call fails, times out, returns non-2xx, or a fetch is blocked.
 ---
 
@@ -222,5 +222,6 @@ Tool <name> failed after N attempts.
 
 - `error-handling` — application-level error taxonomy, Result types, retry/backoff, circuit breaker
 - `debugging-patterns` — "Bundle, not Backend" triage; general debug flow
+- `owned-infra-ops` — SSH/curl on user-owned hosts; recover when Anthropic cyber-blocks (do not evade)
 - `competitive-intelligence-research` / `funnel-content-copy` memories — permissive web-copy context
 - MCP web-scraper — sends browser-like headers by default; prefer it for reliable page copies

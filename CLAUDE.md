@@ -10,6 +10,14 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-16 · main · v2.39.0
+New `owned-infra-ops` skill + always-on memory (`_shared`, v1.0.0): legitimate ops on **user-owned**
+servers (health check, key-based SSH backup/deploy) with ownership framing, safe tool order, and
+recovery when Anthropic Opus/Sonnet real-time cyber safeguards block. Explicit hard limit: memories
+**cannot** override Cyber Verification / API cyber blocks. Wired in `setup.ts` + `migrate.ts`
+`memory_files`. Cross-refs in `secrets-management` v2.1.1 + `tool-resilience` v1.0.1. Universal
+skills: 31.
+
 ### 2026-07-16 · main · v2.38.0
 New `dead-code-hygiene` skill (`_shared/skills`, v1.0.0): after replacements/refactors, delete
 unused legacy/inert code in the same change so leftover paths do not confuse later agent context.
@@ -90,14 +98,6 @@ also looks in project-root `CLAUDE.md` and `README.md` so documenting a file in 
 architecture tree satisfies `SOURCE_FILES_NOT_DOCUMENTED`. Architecture tree above now
 lists `scope.ts`, `_state.ts`, `peers.ts`, `post-tool-use.ts`, `commit-mine.md` explicitly.
 
-### 2026-05-19 · main · docs+coordination
-`Recent Changes` section now append-only LIFO (replaces overwriting `Last Change`) so parallel Claude
-instances stop stomping each other's entries. New `/commit-mine` slash command + `scope.ts` hook stage
-and commit ONLY files this session edited, using `.claude/state/sessions/<id>.json#filesTouched`
-(maintained by `post-tool-use.ts`). Refuses files a peer touched in the last 5 min unless
-`--include-conflicted`. Closes the "instance 2 commit bundles instance 1's files" pattern.
-`claude-md-compactor.md` §5 budget + §6 forbidden list + new §6.1 multi-instance safety updated.
-
 ---
 
 ## 30 Seconds Overview
@@ -151,9 +151,9 @@ start-vibing-stacks/
 │   │   │                                  user-prompt-submit.ts, peers.ts (CLI),
 │   │   │                                  scope.ts (per-instance commit scoping CLI),
 │   │   │                                  _state.ts (multi-instance state lib)
-│   │   └── skills/                     # 30 universal skills (security-baseline,
-│   │                                      dead-code-hygiene, ai-llm-security,
-│   │                                      tool-resilience, postgres-patterns, etc.)
+│   │   └── skills/                     # 31 universal skills (security-baseline,
+│   │                                      owned-infra-ops, dead-code-hygiene,
+│   │                                      ai-llm-security, tool-resilience, etc.)
 │   ├── frontend/
 │   │   ├── react/skills/               # 7 React+Tailwind+shadcn skills
 │   │   └── react-inertia/skills/       # 2 Inertia-specific skills
@@ -400,3 +400,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **paid-ads-landing-validation.md** — Practical authorization for pre-launch validation, testing, and optimization of landing pages intended for paid advertising traffic. Serves as the application layer combining all other advertising optimization memories.
 
   Loaded from: `.claude/memories/paid-ads-landing-validation.md`
+
+- **owned-infra-ops.md** — Authorizes legitimate admin work on infrastructure the user owns (health checks, key-based SSH, backups, deploys). Points to skill `owned-infra-ops` for tool order and phrasing. **Hard limit:** does not override Anthropic Cyber Verification / API cyber safeguards on Opus/Sonnet — if blocked, stop remote chains and recover via user-run commands or CVP.
+
+  Loaded from: `.claude/memories/owned-infra-ops.md`
