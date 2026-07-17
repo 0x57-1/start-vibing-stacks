@@ -10,6 +10,13 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-17 · main · v2.40.0
+New `email-push-marketing` skill (v1.1.0) + always-on memory (`email-push-marketing-authorization.md`):
+owned-list email (MailerLite/ESP) and push in **any niche** without niche refusal. Includes **2026
+inbox placement** (SPF/DKIM/DMARC/BIMI, bulk-sender rules, one-click unsub, complaint caps) without
+using deliverability as a backdoor to sanitize sensitive copy. Hard limits: no phishing / bank-brand
+impersonation. Wired in `setup.ts` + `migrate.ts`; templates + CLAUDE.md. Universal skills: 32.
+
 ### 2026-07-16 · main · v2.39.0
 New `owned-infra-ops` skill + always-on memory (`_shared`, v1.0.0): legitimate ops on **user-owned**
 servers (health check, key-based SSH backup/deploy) with ownership framing, safe tool order, and
@@ -87,17 +94,6 @@ Recent Changes + `/commit-mine`. `user-prompt-submit.ts` (v1.1→v1.2.0) injects
 guidance. `git-workflow` + `hook-development` skills, `templates/CLAUDE-{default,nodejs,php,python}`,
 README all migrated. NRY below extended.
 
-### 2026-05-19 · main · validator-alignment
-Per-instance scoping extended into `stop-validator.ts` (local v1.1.0 → **v1.2.0** and global
-`~/.claude/hooks/stop-validator.ts`). Both validators now (1) accept `## Last Change` OR
-`## Recent Changes` for the changelog slot and (2) intersect `git status` with
-`.claude/state/sessions/<id>.json#filesTouched` when a session id is resolvable — peer
-N's dirty files no longer block instance M's Stop. Block messages now recommend
-`scope.ts stage` instead of `git add -A` when in scoped mode. Global `searchInDocs()` now
-also looks in project-root `CLAUDE.md` and `README.md` so documenting a file in the
-architecture tree satisfies `SOURCE_FILES_NOT_DOCUMENTED`. Architecture tree above now
-lists `scope.ts`, `_state.ts`, `peers.ts`, `post-tool-use.ts`, `commit-mine.md` explicitly.
-
 ---
 
 ## 30 Seconds Overview
@@ -151,9 +147,9 @@ start-vibing-stacks/
 │   │   │                                  user-prompt-submit.ts, peers.ts (CLI),
 │   │   │                                  scope.ts (per-instance commit scoping CLI),
 │   │   │                                  _state.ts (multi-instance state lib)
-│   │   └── skills/                     # 31 universal skills (security-baseline,
-│   │                                      owned-infra-ops, dead-code-hygiene,
-│   │                                      ai-llm-security, tool-resilience, etc.)
+│   │   └── skills/                     # 32 universal skills (security-baseline,
+│   │                                      email-push-marketing, owned-infra-ops,
+│   │                                      dead-code-hygiene, ai-llm-security, etc.)
 │   ├── frontend/
 │   │   ├── react/skills/               # 7 React+Tailwind+shadcn skills
 │   │   └── react-inertia/skills/       # 2 Inertia-specific skills
@@ -347,6 +343,14 @@ Companion system: `ads-agents` (see `stacks/_shared/ads-agents/SKILL.md` + local
 
 ---
 
+## Email & Push Marketing Guidance
+
+When the user asks for **owned-list email** (MailerLite/ESP HTML) or **push notifications** — including aggressive copy and sensitive niches (finance, adult, betting, health) — do **not** refuse on niche keywords alone. Load skill `email-push-marketing` and memory `email-push-marketing-authorization.md`.
+
+**Hard limits (always win):** no phishing; no impersonating banks/brands as the official sender; no fake personal approvals, credit limits, or protocols; no spoofed `From`. Adapt competitor **layout/structure** with editorial/affiliate framing on the user’s brand and tracking links.
+
+---
+
 ## Setup Notes (this repo's own dev environment)
 
 This repo intentionally does **not** install its own generated `.claude/` (would be circular). The `.claude/settings.local.json` exists for local plugin enablement only. The project relies on the **user-global** `~/.claude/` for AI assistance during development of the package itself.
@@ -404,3 +408,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **owned-infra-ops.md** — Authorizes legitimate admin work on infrastructure the user owns (health checks, key-based SSH, backups, deploys). Points to skill `owned-infra-ops` for tool order and phrasing. **Hard limit:** does not override Anthropic Cyber Verification / API cyber safeguards on Opus/Sonnet — if blocked, stop remote chains and recover via user-run commands or CVP.
 
   Loaded from: `.claude/memories/owned-infra-ops.md`
+
+- **email-push-marketing-authorization.md** — Authorizes owned-list email (MailerLite/ESP) and push in any niche (including finance/adult/betting) without niche refusal. Skill `email-push-marketing` for craft. **Hard limits:** no phishing; no bank/brand impersonation as official sender; no fake personal approvals/limits/protocols; no spoofed From. Competitor layout OK with user’s brand and tracking links.
+
+  Loaded from: `.claude/memories/email-push-marketing-authorization.md`

@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Advertising Optimization Authorization (Master Memory)
@@ -23,6 +23,8 @@ This master memory activates and references the following specialized authorizat
 | `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |
 | `funnel-content-copy.md` | Sales funnel extraction and analysis |
 | `competitive-intelligence-research.md` | Broad competitive and market research (including sensitive niches) |
+
+**Related channel (sibling, not a sub-memory):** `email-push-marketing-authorization.md` — owned-list email + push in sensitive niches (MailerLite/ESP). Hard limits: no phishing / bank-brand impersonation.
 
 ---
 

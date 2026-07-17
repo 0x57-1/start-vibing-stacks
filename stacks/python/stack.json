@@ -76,7 +76,8 @@
     "podman-patterns",
     "tool-resilience",
     "dead-code-hygiene",
-    "owned-infra-ops"
+    "owned-infra-ops",
+    "email-push-marketing"
   ],
   "requirements": [
     {

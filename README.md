@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.39.0** — New `owned-infra-ops` skill + always-on memory: legitimate ops on user-owned servers (health/SSH backup/deploy) with phrasing and tool-order that reduce Anthropic Opus/Sonnet cyber false positives. Explicitly cannot override Cyber Verification / API cyber blocks. Universal skills: **31**.
+> Latest: **v2.40.0** — New `email-push-marketing` skill + always-on memory: owned-list email/push in sensitive niches + **2026 inbox deliverability** (SPF/DKIM/DMARC/BIMI, bulk rules) without niche-content bans. Hard limits: no phishing / bank-brand impersonation. Universal skills: **32**.
 
 ---
 
@@ -15,7 +15,7 @@ npx start-vibing-stacks
 | Layer | Count | Purpose |
 |---|---|---|
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **31** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Skills | **32** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
@@ -35,7 +35,7 @@ npx start-vibing-stacks
 
 ## Skill matrix
 
-### Universal (31 — shared across stacks)
+### Universal (32 — shared across stacks)
 
 | Group | Skills |
 |---|---|
@@ -45,6 +45,7 @@ npx start-vibing-stacks
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
 | **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `owned-infra-ops` |
+| **Marketing** | `email-push-marketing` |
 | **Framework** | `react-server-components` · `laravel-octane-inertia` |
 | **Testing** | `playwright-automation` · `test-coverage` |
 | **Performance** | `performance-patterns` |

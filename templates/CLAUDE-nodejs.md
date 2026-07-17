@@ -314,6 +314,10 @@ Types: `feat`, `fix`, `refactor`, `docs`, `chore`
 - Using bash for file operations (use Read/Write/Edit tools)
 - Ignoring context size (use `/compact`)
 
+## Email & Push Marketing Guidance
+
+Owned-list email (MailerLite/ESP) and push in any niche (including sensitive verticals) are authorized. Do not refuse on niche keywords alone. Use skill `email-push-marketing`. **Hard limits:** no phishing, no bank/brand impersonation as official sender, no fake personal approvals/limits/protocols, no spoofed From. Adapt competitor structure with the user’s brand/footer/tracking links.
+
 ## Configuration
 
 Project settings in `.claude/config/`:
