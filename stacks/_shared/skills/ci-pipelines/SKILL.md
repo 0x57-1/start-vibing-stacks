@@ -1,7 +1,7 @@
 ---
 name: ci-pipelines
-version: 1.0.0
-description: GitHub Actions pipelines for typecheck, lint, test, security scan, build, and release. Stack-aware templates live in stacks/<stack>/workflows/.
+version: 1.1.0
+description: GitHub Actions pipelines for typecheck, lint, test, security scan, build, and release. Also covers verifying runs after git push (gh run list/watch). Stack-aware templates live in stacks/<stack>/workflows/.
 ---
 
 # CI Pipelines
@@ -159,8 +159,22 @@ jobs:
 | Workflow with `permissions: write-all` | Overly broad, supply chain risk |
 | Long-lived cloud creds in repo secrets | Use OIDC instead |
 
+## Verify runs after push
+
+Authoring workflows is not enough — after `git push`, confirm the run for that SHA. Full recipe: `git-workflow` § Post-push CI and `commit-manager` Step 5.5.
+
+```bash
+gh run list --commit "$(git rev-parse HEAD)" --limit 10
+gh run watch <id> --exit-status          # when still in_progress
+gh run view <id> --log-failed            # when conclusion=failure
+```
+
+Map deploy/release success only when the job that publishes/deploys is green (not merely “CI started”).
+
 ## See Also
 
 - `secrets-management` — repo secrets & OIDC patterns
 - `quality-gate` — local quality gates that mirror CI
-- `git-workflow` — branch + commit conventions CI relies on
+- `git-workflow` — branch + commit conventions + post-push verification
+- Memory `post-push-ci-verification.md` — always-on checklist after push
+- `commit-manager` — enforces Step 5.5 after every push

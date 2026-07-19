@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.3.0
+// @sv-version: 1.4.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.4.0: after commit/push, verify GitHub Actions (gh run list/watch) before
+ * claiming deploy success — memory post-push-ci-verification + commit-manager 5.5.
  * v1.3.0: workflow adds dead-code hygiene step (skill `dead-code-hygiene`) between
  * WORK and quality gates — remove inert legacy paths before commit.
  * v1.2.0: workflow guidance now points at `## Recent Changes` (append-only LIFO)
@@ -169,7 +171,7 @@ async function main(): Promise<void> {
 
 4. Run quality gates: ${qualityCmd}
 
-5. COMMIT using conventional commits via commit-manager agent (v3.0.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled).
+5. COMMIT using conventional commits via commit-manager agent (v3.2.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled). After push, VERIFY GitHub Actions for the SHA (gh run list/watch) — do not claim deploy success without checking (memory: post-push-ci-verification).
 
 6. UPDATE CLAUDE.md:
    a. PREPEND a new entry under "## Recent Changes" — heading exactly:

@@ -319,6 +319,7 @@ export async function setupProject(
           '.claude/memories/paid-ads-landing-validation.md',
           '.claude/memories/owned-infra-ops.md',
           '.claude/memories/email-push-marketing-authorization.md',
+          '.claude/memories/post-push-ci-verification.md',
         ],
       },
 

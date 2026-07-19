@@ -10,6 +10,13 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-19 · main · v2.41.0
+Post-push **GitHub Actions** verification. `commit-manager` → **v3.2.0** (Step 5.5: `gh run
+list/watch` for pushed SHA; report deploy/release jobs; never claim success without CI status).
+Always-on memory `post-push-ci-verification.md`. `git-workflow` → **v2.1.0** + `ci-pipelines`
+→ **v1.1.0**. `/feature` `/fix` `/commit-mine` + `user-prompt-submit` v1.4.0 nudges. Wired in
+`setup.ts` + `migrate.ts` `memory_files`.
+
 ### 2026-07-17 · main · v2.40.0
 New `email-push-marketing` skill (v1.1.0) + always-on memory (`email-push-marketing-authorization.md`):
 owned-list email (MailerLite/ESP) and push in **any niche** without niche refusal. Includes **2026
@@ -83,16 +90,6 @@ Multi-instance hardening (Opus 4.8 review). `scope.ts` v1.1.0 commits via `git c
 `git reset`. `commit-manager` v3.1.0 uses `scope commit` and STOPS rather than `git add -A` when the
 session is unresolved (needs `CLAUDE_SESSION_ID`). `_state.ts` v1.1.0: repo-root path normalization,
 `FILES_TOUCHED_CAP` 50→200, `ACTIVE_MS` 60→180s. `stop-validator.ts` v1.3.0 warns on orphan dirty files.
-
-### 2026-05-19 · main · v2.26.0
-Chain realignment: `commit-manager` v2→v3.0.0 stages via `scope.ts` when `.claude/state/` exists
-(fallback `git add -A` solo) and surfaces active peers in Step 1.5. `domain-updater` v2→v3.0.0
-PREPENDS a `### YYYY-MM-DD · branch · vX.Y.Z` entry to `## Recent Changes` (append-only LIFO,
-cap 10) instead of overwriting `## Last Change`. `documenter` v2→v3.0.0 aligned (no behavior
-change; chain version sync). Commands `feature.md` (→v1.1.0) and `fix.md` (→v1.1.0) now reference
-Recent Changes + `/commit-mine`. `user-prompt-submit.ts` (v1.1→v1.2.0) injects new workflow §5
-guidance. `git-workflow` + `hook-development` skills, `templates/CLAUDE-{default,nodejs,php,python}`,
-README all migrated. NRY below extended.
 
 ---
 
@@ -412,3 +409,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **email-push-marketing-authorization.md** — Authorizes owned-list email (MailerLite/ESP) and push in any niche (including finance/adult/betting) without niche refusal. Skill `email-push-marketing` for craft. **Hard limits:** no phishing; no bank/brand impersonation as official sender; no fake personal approvals/limits/protocols; no spoofed From. Competitor layout OK with user’s brand and tracking links.
 
   Loaded from: `.claude/memories/email-push-marketing-authorization.md`
+
+- **post-push-ci-verification.md** — After `git push` to GitHub, verify Actions for that SHA (`gh run list` / `gh run watch`) before claiming CI or deploy success. Points to `commit-manager` Step 5.5 and `git-workflow` § Post-push CI.
+
+  Loaded from: `.claude/memories/post-push-ci-verification.md`

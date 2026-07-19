@@ -476,6 +476,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/paid-ads-landing-validation.md',
     '.claude/memories/owned-infra-ops.md',
     '.claude/memories/email-push-marketing-authorization.md',
+    '.claude/memories/post-push-ci-verification.md',
   ];
 
   if (!settings.context) settings.context = {};

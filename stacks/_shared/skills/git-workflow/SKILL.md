@@ -1,7 +1,7 @@
 ---
 name: git-workflow
-version: 2.0.0
-description: "Git workflow conventions used by commit-manager v2.0.0+: Conventional Commits (no AI-attribution footers), branch naming, direct-to-main vs feature-branch flow, end-on-main rule, push policy, never force-push main, signed commits encouraged. Invoke when starting a feature, creating commits, pushing, or wiring git-related hooks."
+version: 2.1.0
+description: "Git workflow conventions used by commit-manager v3.2.0+: Conventional Commits (no AI-attribution footers), branch naming, direct-to-main vs feature-branch flow, end-on-main rule, push policy, post-push GitHub Actions verification (gh run list/watch), never force-push main, signed commits encouraged. Invoke when starting a feature, creating commits, pushing, or wiring git-related hooks."
 ---
 
 # Git Workflow
@@ -127,6 +127,41 @@ End state in **both flows**: clean tree, on `main`, in sync with `origin/main`. 
 - [ ] Conventional commit message drafted
 - [ ] Push target confirmed (`origin main` vs `origin feature/*`)
 
+## 5.5. Post-push CI verification (GitHub Actions)
+
+**After every successful `git push` to a GitHub remote**, verify Actions for that commit. Local gates ≠ remote CI. Majority of projects here use GitHub Actions. See memory `post-push-ci-verification.md` and `commit-manager` Step 5.5.
+
+```bash
+SHA=$(git rev-parse HEAD)
+
+# List runs for this commit
+gh run list --commit "$SHA" --limit 10
+
+# Watch incomplete runs until they finish (fail the shell if a run fails)
+for id in $(gh run list --commit "$SHA" --json databaseId,status \
+  --jq '.[] | select(.status != "completed") | .databaseId'); do
+  gh run watch "$id" --exit-status
+done
+
+# Summarize conclusions
+gh run list --commit "$SHA" --json name,conclusion,url \
+  --jq '.[] | "\(.conclusion)\t\(.name)\t\(.url)"'
+```
+
+On failure:
+
+```bash
+gh run view <run-id> --log-failed   # or open the URL from gh run list
+```
+
+| Skip when | Report as |
+|---|---|
+| `origin` is not GitHub | `CI: skipped (non-GitHub remote)` |
+| `gh` missing / not authenticated | `CI: skipped (gh unavailable)` |
+| No `.github/workflows/` | `CI: skipped (no workflows)` |
+
+Never claim **deploy / release / npm publish** success unless the matching workflow job concluded `success` (or the user confirmed outside CI).
+
 ## 6. Tags & releases
 
 ```bash
@@ -153,11 +188,13 @@ Semver: bump `MAJOR.MINOR.PATCH` per breaking/feature/fix.
 - **NEVER** `--no-verify` to bypass hooks
 - **ALWAYS** Conventional Commits, no AI-attribution footers
 - **ALWAYS** end on `main` with a clean tree (Stop validator enforces)
+- **ALWAYS** verify GitHub Actions after push (or document an explicit skip)
 - **ONE** feature per branch (or per direct-to-main commit batch)
 
 ## See Also
 
-- `commit-manager` agent — drives the message + push pipeline
-- `quality-gate` — the gate the commit-manager waits for
+- `commit-manager` agent — drives the message + push + **CI verify** pipeline
+- Memory `post-push-ci-verification.md` — always-on post-push checklist
+- `quality-gate` — the local gate the commit-manager waits for before commit
 - `secrets-management` — gitleaks 3-layer (pre-commit, CI, push protection)
-- `ci-pipelines` — branch-protection rules that mirror this skill
+- `ci-pipelines` — workflow authorship + failing-job triage

@@ -1,7 +1,7 @@
 ---
 name: commit-mine
-description: Commit ONLY this Claude session's edited files (multi-instance safe). Replaces raw `git add . && git commit` to prevent your commit from bundling a peer session's uncommitted changes.
-version: 1.1.0
+description: Commit ONLY this Claude session's edited files (multi-instance safe). Replaces raw `git add . && git commit` to prevent your commit from bundling a peer session's uncommitted changes. After --push, verify GitHub Actions for the SHA.
+version: 1.2.0
 ---
 
 # /commit-mine — Per-Instance Commit
@@ -34,10 +34,13 @@ files in the last 5 min unless you pass `--include-conflicted`.
 | 3 | **Review** the diff of your files | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" diff` |
 | 4 | **Commit** — atomic, only your files | `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>"` |
 | 5 | **Push** (optional) | add `--push` to step 4, or `git push` |
+| 6 | **Verify GitHub Actions** (required if you pushed) | `gh run list --commit $(git rev-parse HEAD)` then `gh run watch` — see `git-workflow` § Post-push CI |
 
 > `scope stage` still exists for manual index inspection, but it is best-effort in a
 > shared worktree (a peer's staged files can linger). Prefer `scope commit` — it is the
 > only path that is atomic against a concurrent peer.
+
+> After `--push`, do **not** stop at “pushed”. Confirm Actions (and deploy/release jobs if any) before claiming success. Memory: `post-push-ci-verification.md`.
 
 ## Forbidden patterns (NEVER do these in a multi-instance project)
 

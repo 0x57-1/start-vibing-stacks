@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.40.0** — New `email-push-marketing` skill + always-on memory: owned-list email/push in sensitive niches + **2026 inbox deliverability** (SPF/DKIM/DMARC/BIMI, bulk rules) without niche-content bans. Hard limits: no phishing / bank-brand impersonation. Universal skills: **32**.
+> Latest: **v2.41.0** — Post-push **GitHub Actions** verification: `commit-manager` v3.2.0 Step 5.5 + always-on memory `post-push-ci-verification` + `git-workflow` §5.5. After push, `gh run list/watch` before claiming CI/deploy success.
 
 ---
 
@@ -213,12 +213,13 @@ This release includes a comprehensive set of permissive memories for legitimate 
 6. SECURITY       security-auditor — VETO on CRITICAL/HIGH/MEDIUM findings
 7. QUALITY        quality-gate: typecheck → lint → test → build
 8. COMMIT         commit-manager — verifies gates, diff-driven message, push
-9. DOCUMENT       documenter — maps files/commits to domains, regenerates _index.json
-10. WISDOM        domain-updater — records session learnings, PREPENDS new entry to CLAUDE.md ## Recent Changes (append-only LIFO, cap 10, multi-instance safe)
-11. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
+9. CI VERIFY      gh run list/watch for pushed SHA — report deploy/release if present
+10. DOCUMENT      documenter — maps files/commits to domains, regenerates _index.json
+11. WISDOM        domain-updater — records session learnings, PREPENDS new entry to CLAUDE.md ## Recent Changes (append-only LIFO, cap 10, multi-instance safe)
+12. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
 ```
 
-Steps 6–7 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings.
+Steps 6–7 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings. Step 9 is required after push on GitHub remotes (memory `post-push-ci-verification`).
 
 ---
 
