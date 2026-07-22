@@ -1,4 +1,5 @@
 {
+  "$sv-version": "1.0.0",
   "$comment": "MCP Server Registry — available servers for all stacks",
   "servers": {
     "context7": {

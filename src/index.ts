@@ -142,6 +142,8 @@ async function main(): Promise<void> {
           console.log(chalk.dim('\n  Launching Claude Code...\n'));
           const { execSync: run } = await import('child_process');
           try {
+            // Launch convenience only — project settings.json stays defaultMode: plan.
+            // Persistent opt-in: cp .claude/settings.local.example.json .claude/settings.local.json
             run('claude --dangerously-skip-permissions', {
               cwd: projectDir,
               stdio: 'inherit',

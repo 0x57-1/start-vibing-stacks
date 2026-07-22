@@ -1,4 +1,5 @@
 {
+  "$sv-version": "1.0.0",
   "$comment": "Universal security rules. Agents read active-project.json for stack-specific additions.",
   "validation": {
     "requireOnAllRoutes": true

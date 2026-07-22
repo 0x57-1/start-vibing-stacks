@@ -1,4 +1,5 @@
 #!/bin/bash
+# @sv-version: 1.0.0
 # Universal Hook Runner — Start Vibing Stacks
 # Tries: bun → npx tsx
 

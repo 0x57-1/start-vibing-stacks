@@ -1,3 +1,7 @@
+---
+version: 1.0.0
+---
+
 # `.claude/state/` — Multi-Instance Coordination
 
 > This directory is **gitignored** and managed automatically by hooks. Safe to delete; it will be recreated by the next Claude session.

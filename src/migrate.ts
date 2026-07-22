@@ -43,7 +43,9 @@ const CLI_ROOT = resolve(__m_dirname, '..');
 
 const FRONTMATTER_RE = /^---\s*\n([\s\S]*?)\n---/;
 const VERSION_RE = /^version:\s*["']?([0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?)["']?\s*$/m;
-const SV_VERSION_RE = /\/\/\s*@sv-version:\s*([0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?)/;
+// Hooks: // @sv-version (TS) or # @sv-version (shell)
+const SV_VERSION_RE =
+  /(?:\/\/|#)\s*@sv-version:\s*([0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?)/;
 
 type Status =
   | 'missing'
@@ -477,6 +479,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/owned-infra-ops.md',
     '.claude/memories/email-push-marketing-authorization.md',
     '.claude/memories/post-push-ci-verification.md',
+    '.claude/memories/cursor-ide-edit-sync.md',
   ];
 
   if (!settings.context) settings.context = {};
@@ -553,25 +556,52 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
 
   const readmeSrc = join(CLI_ROOT, 'stacks', '_shared', 'hooks', '_state.README.md');
   const readmeDest = join(stateRoot, 'README.md');
-  if (existsSync(readmeSrc) && !existsSync(readmeDest)) {
-    if (!dryRun) {
-      mkdirSync(dirname(readmeDest), { recursive: true });
-      copyFileSync(readmeSrc, readmeDest);
+  if (existsSync(readmeSrc)) {
+    const bundledVer = parseFrontmatterVersion(readmeSrc) ?? '0.0.0';
+    const installedVer = existsSync(readmeDest) ? parseFrontmatterVersion(readmeDest) : null;
+    const shouldCopy =
+      !existsSync(readmeDest) ||
+      (installedVer !== null && semver.valid(installedVer) !== null && semver.lt(installedVer, bundledVer)) ||
+      (existsSync(readmeDest) && installedVer === null); // legacy unversioned → upgrade once
+    if (shouldCopy) {
+      if (!dryRun) {
+        mkdirSync(dirname(readmeDest), { recursive: true });
+        copyFileSync(readmeSrc, readmeDest);
+      }
+      report.copied.push(relative(projectDir, readmeDest));
     }
-    report.copied.push(relative(projectDir, readmeDest));
+  }
+
+  // Optional local permission overrides template (never overwrite user's settings.local.json)
+  const localExampleSrc = join(CLI_ROOT, 'stacks', '_shared', 'config', 'settings.local.example.json');
+  const localExampleDest = join(projectDir, '.claude', 'settings.local.example.json');
+  if (existsSync(localExampleSrc) && !existsSync(localExampleDest)) {
+    if (!dryRun) {
+      mkdirSync(dirname(localExampleDest), { recursive: true });
+      copyFileSync(localExampleSrc, localExampleDest);
+    }
+    report.copied.push(relative(projectDir, localExampleDest));
   }
 
   const giPath = join(projectDir, '.gitignore');
   if (existsSync(giPath)) {
-    const gi = readFileSync(giPath, 'utf8');
-    const covered = /^\.claude\/state\/?$/m.test(gi) || /^\.claude\/?$/m.test(gi);
-    if (!covered) {
-      if (!dryRun) {
-        const next =
-          gi.trimEnd() +
-          '\n\n# Claude Code multi-instance coordination state (runtime, per-host)\n.claude/state/\n';
-        writeFileSync(giPath, next);
-      }
+    let gi = readFileSync(giPath, 'utf8');
+    let changed = false;
+    const stateCovered = /^\.claude\/state\/?$/m.test(gi) || /^\.claude\/?$/m.test(gi);
+    if (!stateCovered) {
+      gi =
+        gi.trimEnd() +
+        '\n\n# Claude Code multi-instance coordination state (runtime, per-host)\n.claude/state/\n';
+      changed = true;
+    }
+    if (!gi.includes('.claude/settings.local.json')) {
+      gi =
+        gi.trimEnd() +
+        '\n\n# Claude Code local permission overrides (copy from settings.local.example.json)\n.claude/settings.local.json\n';
+      changed = true;
+    }
+    if (changed) {
+      if (!dryRun) writeFileSync(giPath, gi);
       report.gitignoreUpdated = true;
     }
   }
@@ -697,7 +727,14 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (settingsApply.error) ui.warn(settingsApply.error);
   for (const d of runtimeApply.created) ui.success(`runtime: created ${d}`);
   for (const f of runtimeApply.copied) ui.success(`runtime: copied ${f}`);
-  if (runtimeApply.gitignoreUpdated) ui.success('gitignore: appended .claude/state/');
+  if (runtimeApply.gitignoreUpdated) {
+    ui.success('gitignore: ensured .claude/state/ + .claude/settings.local.json');
+  }
+  if (runtimeApply.copied.some(f => f.includes('settings.local.example.json'))) {
+    ui.info(
+      'Optional: cp .claude/settings.local.example.json .claude/settings.local.json  # acceptEdits or bypassPermissions'
+    );
+  }
 
   console.log('');
   ui.success(

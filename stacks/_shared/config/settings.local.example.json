@@ -1,0 +1,13 @@
+{
+  "$sv-version": "1.0.0",
+  "$comment": "OPTIONAL local overrides. Copy to .claude/settings.local.json (gitignored). Never commit settings.local.json. Project settings.json keeps defaultMode: plan for safety — pick ONE mode below by uncommenting via a real JSON editor (remove unused keys).",
+  "$howTo": [
+    "cp .claude/settings.local.example.json .claude/settings.local.json",
+    "Set permissions.defaultMode to acceptEdits (auto file edits) or bypassPermissions (minimal prompts).",
+    "Cursor IDE: also set files.autoSave afterDelay to reduce Opened changes / Save file to continue prompts.",
+    "Cursor + Claude Code extension may need: claudeCode.allowDangerouslySkipPermissions=true AND claudeCode.initialPermissionMode=bypassPermissions."
+  ],
+  "permissions": {
+    "defaultMode": "acceptEdits"
+  }
+}

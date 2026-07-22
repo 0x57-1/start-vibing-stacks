@@ -1,4 +1,5 @@
 {
+  "$sv-version": "1.0.0",
   "$schema": "Domain mapping - maps file patterns to documentation domains",
   "domains": {
     "authentication": {

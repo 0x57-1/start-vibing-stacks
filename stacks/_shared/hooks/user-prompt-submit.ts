@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.4.0
+// @sv-version: 1.5.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.5.0: Cursor Opened-changes / Save-file prompts = IDE buffer sync (memory
+ * cursor-ide-edit-sync); optional settings.local.example for acceptEdits/bypass.
  * v1.4.0: after commit/push, verify GitHub Actions (gh run list/watch) before
  * claiming deploy success — memory post-push-ci-verification + commit-manager 5.5.
  * v1.3.0: workflow adds dead-code hygiene step (skill `dead-code-hygiene`) between
@@ -172,6 +174,8 @@ async function main(): Promise<void> {
 4. Run quality gates: ${qualityCmd}
 
 5. COMMIT using conventional commits via commit-manager agent (v3.2.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled). After push, VERIFY GitHub Actions for the SHA (gh run list/watch) — do not claim deploy success without checking (memory: post-push-ci-verification).
+
+5b. IDE SYNC — if Cursor shows "Opened changes / Save file to continue" during edits, that is buffer sync (not Bypass failure). Ask user to save or allow-all once; re-Read; see memory cursor-ide-edit-sync + .claude/settings.local.example.json.
 
 6. UPDATE CLAUDE.md:
    a. PREPEND a new entry under "## Recent Changes" — heading exactly:

@@ -10,6 +10,14 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-22 · main · v2.42.0
+Cursor/IDE edit sync + versioning hygiene. Always-on memory `cursor-ide-edit-sync.md` +
+`tool-resilience` → **v1.1.0** (IDE-buffer-conflict). Optional `.claude/settings.local.example.json`
+(`acceptEdits` / `bypassPermissions`) without changing project `defaultMode: plan`. Versioned
+`run-hook.sh` (`# @sv-version`), `_state.README.md`, config `"$sv-version"`. migrate: shell
+`@sv-version` parse, gitignore `settings.local.json`, stage example + upgrade state README.
+`user-prompt-submit` → **v1.5.0**.
+
 ### 2026-07-19 · main · v2.41.0
 Post-push **GitHub Actions** verification. `commit-manager` → **v3.2.0** (Step 5.5: `gh run
 list/watch` for pushed SHA; report deploy/release jobs; never claim success without CI status).
@@ -83,13 +91,6 @@ and `permissions.defaultMode: "plan"` (sessions start read-only; agent must plan
 also receive `effort` as read-only metadata. Permission mode is hook-settable only via a
 `PermissionRequest` `setMode` entry (not `plan`), so a true auto-switch to plan+ultracode on
 ">4 edits" is not possible — the feasible path is a PreToolUse gate (see NRY).
-
-### 2026-05-30 · main · v2.27.0
-Multi-instance hardening (Opus 4.8 review). `scope.ts` v1.1.0 commits via `git commit -o -- <files>`
-(atomic pathspec — never bundles a peer's staged work; proven in a 2-session test) with no global
-`git reset`. `commit-manager` v3.1.0 uses `scope commit` and STOPS rather than `git add -A` when the
-session is unresolved (needs `CLAUDE_SESSION_ID`). `_state.ts` v1.1.0: repo-root path normalization,
-`FILES_TOUCHED_CAP` 50→200, `ACTIVE_MS` 60→180s. `stop-validator.ts` v1.3.0 warns on orphan dirty files.
 
 ---
 
@@ -413,3 +414,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **post-push-ci-verification.md** — After `git push` to GitHub, verify Actions for that SHA (`gh run list` / `gh run watch`) before claiming CI or deploy success. Points to `commit-manager` Step 5.5 and `git-workflow` § Post-push CI.
 
   Loaded from: `.claude/memories/post-push-ci-verification.md`
+
+- **cursor-ide-edit-sync.md** — Cursor “Opened changes / Save file to continue” is IDE buffer sync, not Bypass failure. Recovery: save/allow-all → re-Read → retry once. Points to `settings.local.example.json` and `tool-resilience` § IDE-buffer-conflict.
+
+  Loaded from: `.claude/memories/cursor-ide-edit-sync.md`

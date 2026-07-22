@@ -194,13 +194,19 @@ export async function setupProject(
       }
     }
 
-    // 11b. Ensure CLAUDE.local.md and .claude/state/ are gitignored
+    // 11b. Ensure local-only Claude/Cursor prefs + state are gitignored
     const gitignorePath = join(projectDir, '.gitignore');
     if (existsSync(gitignorePath)) {
       let gitignore = readFileSync(gitignorePath, 'utf8');
       let changed = false;
       if (!gitignore.includes('CLAUDE.local.md')) {
         gitignore = gitignore.trimEnd() + '\n\n# Claude Code local preferences\nCLAUDE.local.md\n';
+        changed = true;
+      }
+      if (!gitignore.includes('.claude/settings.local.json')) {
+        gitignore =
+          gitignore.trimEnd() +
+          '\n\n# Claude Code local permission overrides (copy from settings.local.example.json)\n.claude/settings.local.json\n';
         changed = true;
       }
       if (!gitignore.match(/^\.claude\/state\/?$/m) && !gitignore.match(/^\.claude\/?$/m)) {
@@ -320,12 +326,15 @@ export async function setupProject(
           '.claude/memories/owned-infra-ops.md',
           '.claude/memories/email-push-marketing-authorization.md',
           '.claude/memories/post-push-ci-verification.md',
+          '.claude/memories/cursor-ide-edit-sync.md',
         ],
       },
 
       permissions: {
         // Always start sessions in plan mode (read-only): the agent must
         // present a plan before editing. Shift+Tab still cycles modes per turn.
+        // Opt into acceptEdits/bypassPermissions via .claude/settings.local.json
+        // (copy from settings.local.example.json) — never change this default here.
         defaultMode: 'plan',
         allow: [
           'Bash(*)',

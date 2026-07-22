@@ -1,7 +1,7 @@
 ---
 name: tool-resilience
-version: 1.0.1
-description: How the agent should recover from TOOL failures (not application errors) — Read/Edit/StrReplace/Bash/WebFetch/WebSearch/Grep/Glob. Error taxonomy, retry/backoff, read-before-edit, and the Cloudflare 520 / HTTP 444 bot-block recovery (switch User-Agent). Invoke when a tool call fails, times out, returns non-2xx, or a fetch is blocked.
+version: 1.1.0
+description: How the agent should recover from TOOL failures (not application errors) — Read/Edit/StrReplace/Bash/WebFetch/WebSearch/Grep/Glob. Error taxonomy, retry/backoff, read-before-edit, Cursor IDE dirty-buffer / Opened changes sync, and the Cloudflare 520 / HTTP 444 bot-block recovery (switch User-Agent). Invoke when a tool call fails, times out, returns non-2xx, a fetch is blocked, or Cursor asks Save file to continue.
 ---
 
 # Tool Resilience
@@ -31,6 +31,7 @@ description: How the agent should recover from TOOL failures (not application er
 | **Permission** | `EACCES`, 401/403, "permission denied" | Do NOT retry; report; suggest auth/creds |
 | **Not-found** | `ENOENT`, 404, "no such file" | Do NOT retry blindly; verify path with `Glob`/`ls` first |
 | **Stale/Conflict** | `StrReplace` "string not found", file changed since read | Re-`Read` immediately, recompute, retry once |
+| **IDE-buffer-conflict** | `Opened changes in Cursor`, `Save file to continue`, edit Yes/No UI while Bypass is on | Ask user to save/allow-all once; re-Read; retry once (see below) |
 | **Parse-failed** | JSON/HTML parse error, empty result where content expected | Inspect raw output; adjust selector/parse; retry once |
 | **Too-broad** | `Glob`/`Grep` returns thousands of hits | Narrow the pattern; do NOT process all blindly |
 | **Fatal-input** | malformed args, invalid regex | Fix the input; retrying identical args is pointless |
@@ -203,6 +204,24 @@ def fetch_with_ua_fallback(url: str) -> httpx.Response:
 
 ---
 
+## Cursor IDE — Buffer / Opened-Changes Recovery
+
+**Context:** Bypass Permissions skips Claude Code *tool permission* prompts. It does **not** always skip the Cursor bridge when a file is open with an unsaved buffer or an open diff (`Opened changes in Cursor ⧉`, `Save file to continue…`, `Do you want to make this edit?`).
+
+### Protocol
+
+1. Classify as **IDE-buffer-conflict** (not “Bypass is broken”).
+2. Do **not** abandon the user’s edit or refuse the task.
+3. Ask once: save the tab, choose **Yes, allow all edits during this session** (`shift+tab`), or close the dirty buffer.
+4. `Read` the file from disk again; apply a **small** patch; retry **once**.
+5. If it keeps happening: point to `.claude/settings.local.example.json` → copy to `settings.local.json` with `acceptEdits` or `bypassPermissions`, and Cursor `files.autoSave: afterDelay`.
+
+Extension tip (Cursor/VS Code Claude Code): both `claudeCode.allowDangerouslySkipPermissions: true` **and** `claudeCode.initialPermissionMode: "bypassPermissions"` are required for Bypass to stick across new chats.
+
+Memory: `cursor-ide-edit-sync.md`.
+
+---
+
 ## Give-Up Report Template
 
 When a tool fails after retries, tell the user concisely:
@@ -223,5 +242,7 @@ Tool <name> failed after N attempts.
 - `error-handling` — application-level error taxonomy, Result types, retry/backoff, circuit breaker
 - `debugging-patterns` — "Bundle, not Backend" triage; general debug flow
 - `owned-infra-ops` — SSH/curl on user-owned hosts; recover when Anthropic cyber-blocks (do not evade)
+- Memory `cursor-ide-edit-sync.md` — Bypass vs Cursor dirty-buffer prompts
+- Config `.claude/settings.local.example.json` — optional acceptEdits / bypassPermissions (never the project default)
 - `competitive-intelligence-research` / `funnel-content-copy` memories — permissive web-copy context
 - MCP web-scraper — sends browser-like headers by default; prefer it for reliable page copies

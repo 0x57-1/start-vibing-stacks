@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.41.0** — Post-push **GitHub Actions** verification: `commit-manager` v3.2.0 Step 5.5 + always-on memory `post-push-ci-verification` + `git-workflow` §5.5. After push, `gh run list/watch` before claiming CI/deploy success.
+> Latest: **v2.42.0** — Cursor/IDE edit sync + optional local permissions: memory `cursor-ide-edit-sync`, `settings.local.example.json` (`acceptEdits` / `bypassPermissions` without changing project `plan` default), `tool-resilience` v1.1.0, versioned `run-hook.sh` + config `$sv-version`.
 
 ---
 
@@ -147,11 +147,23 @@ npx start-vibing-stacks memory optimize --apply             # apply optimization
 ```
 
 `migrate` is the safe upgrade path between releases. Each release gets:
-- **Hooks** versioned via `// @sv-version: x.y.z` header — semver-compared against installed.
-- **Commands** versioned via frontmatter `version:` — same as skills/agents.
+- **Hooks** versioned via `// @sv-version` (TS) or `# @sv-version` (shell) — semver-compared against installed.
+- **Commands / skills / agents / memories** versioned via frontmatter `version:`.
+- **Config JSON** stamped with `"$sv-version"` (advisory; migrate does not auto-overwrite customized configs).
 - **`settings.json#hooks`** — idempotent deep-merge: missing event blocks (`SessionStart`, `PreToolUse`, `PostToolUse`, `SessionEnd`) are appended; existing entries (including yours) are preserved.
-- **Runtime artefacts** — `.claude/state/{sessions,inbox,file-touches}/_archive` auto-created; `_state.README.md` staged.
-- **`.gitignore`** — `.claude/state/` appended if not already covered.
+- **Runtime artefacts** — `.claude/state/{sessions,inbox,file-touches}/_archive` auto-created; `_state.README.md` staged/upgraded; `settings.local.example.json` staged if missing.
+- **`.gitignore`** — `.claude/state/` + `.claude/settings.local.json` appended if not already covered.
+
+### Permission modes (plan vs Bypass vs Cursor)
+
+Generated projects keep `permissions.defaultMode: "plan"` in `.claude/settings.json` (safe default). The setup CLI may still launch with `--dangerously-skip-permissions` as a **session convenience** — that is not the same as changing the project default.
+
+| Goal | What to do |
+|---|---|
+| Auto-accept file edits | `cp .claude/settings.local.example.json .claude/settings.local.json` → `"defaultMode": "acceptEdits"` |
+| Minimal permission prompts | Same file → `"bypassPermissions"` (trusted env only) |
+| Cursor still says *Save file to continue* | Enable `files.autoSave`; choose **allow all edits** once; see memory `cursor-ide-edit-sync` |
+| Claude Code extension Bypass stuck | Set both `claudeCode.allowDangerouslySkipPermissions` and `claudeCode.initialPermissionMode: "bypassPermissions"` |
 
 Legacy files without versioning — hooks without `// @sv-version` AND commands without `version:` frontmatter (anything installed before the versioning landed) — are reported as `needs-update-legacy` and skipped by default. Pass `--force-legacy` (or its alias `--force-hooks`) to overwrite them — each gets a timestamped `.bak`. Skills and agents are intentionally **not** covered because users customize them; they stay in `modified-no-version` (advisory only).
 
