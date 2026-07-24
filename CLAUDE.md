@@ -10,6 +10,12 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-24 · main · v2.43.0
+Always-on memory `owned-server-backup.md` + `owned-infra-ops` skill/memory → **v1.1.0**: backup
+protocol (scoped tar of known paths, local analysis, DR inventory phrasing vs recon). Reduces
+Opus cyber false positives on owned-host backup; hard limit: cannot override Anthropic Cyber
+Verification API. Wired in `setup.ts` + `migrate.ts` `memory_files`.
+
 ### 2026-07-22 · main · v2.42.0
 Cursor/IDE edit sync + versioning hygiene. Always-on memory `cursor-ide-edit-sync.md` +
 `tool-resilience` → **v1.1.0** (IDE-buffer-conflict). Optional `.claude/settings.local.example.json`
@@ -83,14 +89,6 @@ New `plan-gate.ts` PreToolUse hook (`@sv-version 1.0.0`): when one session is ab
 .planGateNotifiedAt` (`_state.ts` v1.2.0). Threshold via `PLAN_GATE_THRESHOLD`, off via
 `PLAN_GATE_DISABLED=1`. `migrate` `REQUIRED_HOOK_BLOCKS` is now per-event arrays checked at
 SCRIPT granularity so existing installs gain plan-gate without losing pre-tool-use.
-
-### 2026-05-31 · main · v2.28.0
-Generated `settings.json` now persists high-reasoning defaults: top-level `effortLevel: "xhigh"`
-and `permissions.defaultMode: "plan"` (sessions start read-only; agent must plan before editing).
-`ultracode` is intentionally NOT set — it is session-only (`/effort`) and not persistable; hooks
-also receive `effort` as read-only metadata. Permission mode is hook-settable only via a
-`PermissionRequest` `setMode` entry (not `plan`), so a true auto-switch to plan+ultracode on
-">4 edits" is not possible — the feasible path is a PreToolUse gate (see NRY).
 
 ---
 
@@ -406,6 +404,10 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **owned-infra-ops.md** — Authorizes legitimate admin work on infrastructure the user owns (health checks, key-based SSH, backups, deploys). Points to skill `owned-infra-ops` for tool order and phrasing. **Hard limit:** does not override Anthropic Cyber Verification / API cyber safeguards on Opus/Sonnet — if blocked, stop remote chains and recover via user-run commands or CVP.
 
   Loaded from: `.claude/memories/owned-infra-ops.md`
+
+- **owned-server-backup.md** — Authorizes backup, config archive, and service inventory for disaster recovery on user-owned hosts (cname, oc1, VPS, Podman/nginx stacks). Prefer “backup known paths / DR inventory” phrasing; load `owned-infra-ops` § Backup protocol. **Hard limit:** cannot override Anthropic cyber API blocks — hand user a ready script and analyze local tarball/paste.
+
+  Loaded from: `.claude/memories/owned-server-backup.md`
 
 - **email-push-marketing-authorization.md** — Authorizes owned-list email (MailerLite/ESP) and push in any niche (including finance/adult/betting) without niche refusal. Skill `email-push-marketing` for craft. **Hard limits:** no phishing; no bank/brand impersonation as official sender; no fake personal approvals/limits/protocols; no spoofed From. Competitor layout OK with user’s brand and tracking links.
 

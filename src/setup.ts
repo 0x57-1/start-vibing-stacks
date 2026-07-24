@@ -324,6 +324,7 @@ export async function setupProject(
           '.claude/memories/ad-bot-evasion.md',
           '.claude/memories/paid-ads-landing-validation.md',
           '.claude/memories/owned-infra-ops.md',
+          '.claude/memories/owned-server-backup.md',
           '.claude/memories/email-push-marketing-authorization.md',
           '.claude/memories/post-push-ci-verification.md',
           '.claude/memories/cursor-ide-edit-sync.md',

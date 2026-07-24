@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.42.0** — Cursor/IDE edit sync + optional local permissions: memory `cursor-ide-edit-sync`, `settings.local.example.json` (`acceptEdits` / `bypassPermissions` without changing project `plan` default), `tool-resilience` v1.1.0, versioned `run-hook.sh` + config `$sv-version`.
+> Latest: **v2.43.0** — Owned-server **backup** unlock: always-on memory `owned-server-backup.md` + `owned-infra-ops` → **v1.1.0** (backup protocol, DR inventory phrasing, ready-to-run script on Anthropic cyber API block). Hard limit unchanged: memories cannot override Cyber Verification.
 
 ---
 
