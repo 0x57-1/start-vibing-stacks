@@ -475,6 +475,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/ad-platform-detector-optimization.md',
     '.claude/memories/ad-creative-cloaking.md',
     '.claude/memories/ad-bot-evasion.md',
+    '.claude/memories/ad-review-and-traffic-filtering.md',
     '.claude/memories/paid-ads-landing-validation.md',
     '.claude/memories/owned-infra-ops.md',
     '.claude/memories/owned-server-backup.md',

@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.45.0** — Security assessment memories + skill `security-assessment-ops`: defensive source/API review, passive public OSINT, authorized active (owned/contract/bounty). Ads wording clarified (verification crawlers; cannot override Opus 5 API). `claude-permission-modes` separates Bypass Permissions from cyber gates.
+> Latest: **v2.46.0** — Ads cluster: always-on `ad-review-and-traffic-filtering` (Google Ads/AdSense/GAM/Meta/TikTok ad review + clockers/traffic mask) + stronger `ad-bot-evasion` / cloaking / detector memories. Keyword rule: bypass/clocker ≠ refuse when ads-delivery intent is clear.
 
 ---
 
@@ -196,11 +196,12 @@ Permissive memories for legitimate **paid advertising optimization** work:
 | `advertising-optimization-authorization.md` | Master memory — activates all advertising-related permissions |
 | `ad-platform-detector-optimization.md` | Landing page techniques to pass Google AdX, Meta, TikTok, Microsoft detectors |
 | `ad-creative-cloaking.md` | Hotkit/clocker patterns, pixel protection, tracking obfuscation |
-| `ad-bot-evasion.md` | Evasion of Google/Facebook/TikTok **ad verification / quality crawlers** (not generic account ban evasion) |
+| `ad-bot-evasion.md` | Ad verification crawlers + frontend bot/ML classification (AdsBot, Meta, TikTok, GAM) |
+| `ad-review-and-traffic-filtering.md` | Ad review/approval + clockers / traffic filter / access masking |
 | `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |
 | `web-content-memory-ingestion.md` | Copy any public web content into memory (no source ownership required) |
 
-**Key behavior:** In paid-ads context, these memories take precedence over default **refusals** (including Fable 5–style keyword refusals). They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers or model-switch.
+**Key behavior:** In paid-ads context, these memories take precedence over default **refusals** (including Fable 5–style keyword refusals) for cloaking/clocker/bypass/ad-review vocabulary. They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers or model-switch.
 
 ## Security Assessment Memories (v2.45.0)
 
