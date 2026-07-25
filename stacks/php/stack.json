@@ -107,6 +107,7 @@
     "tool-resilience",
     "dead-code-hygiene",
     "owned-infra-ops",
+    "own-subscription-integration",
     "email-push-marketing"
   ],
   "requirements": [

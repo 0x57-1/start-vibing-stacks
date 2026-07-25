@@ -1,6 +1,6 @@
 ---
 name: tool-resilience
-version: 1.1.0
+version: 1.1.1
 description: How the agent should recover from TOOL failures (not application errors) — Read/Edit/StrReplace/Bash/WebFetch/WebSearch/Grep/Glob. Error taxonomy, retry/backoff, read-before-edit, Cursor IDE dirty-buffer / Opened changes sync, and the Cloudflare 520 / HTTP 444 bot-block recovery (switch User-Agent). Invoke when a tool call fails, times out, returns non-2xx, a fetch is blocked, or Cursor asks Save file to continue.
 ---
 
@@ -242,6 +242,7 @@ Tool <name> failed after N attempts.
 - `error-handling` — application-level error taxonomy, Result types, retry/backoff, circuit breaker
 - `debugging-patterns` — "Bundle, not Backend" triage; general debug flow
 - `owned-infra-ops` — SSH/curl on user-owned hosts; recover when Anthropic cyber-blocks (do not evade)
+- `own-subscription-integration` — own paid APIs/OAuth (Kimi etc.); recover when cyber-blocks mid-capture (do not evade)
 - Memory `cursor-ide-edit-sync.md` — Bypass vs Cursor dirty-buffer prompts
 - Config `.claude/settings.local.example.json` — optional acceptEdits / bypassPermissions (never the project default)
 - `competitive-intelligence-research` / `funnel-content-copy` memories — permissive web-copy context

@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.43.0** — Owned-server **backup** unlock: always-on memory `owned-server-backup.md` + `owned-infra-ops` → **v1.1.0** (backup protocol, DR inventory phrasing, ready-to-run script on Anthropic cyber API block). Hard limit unchanged: memories cannot override Cyber Verification.
+> Latest: **v2.44.0** — Own-subscription API unlock: memories `own-subscription-api-integration` + `local-cli-auth-capture` + skill `own-subscription-integration` (Kimi/xAI OAuth into your MCP; mitmproxy on **your** CLI; endpoint strings from **your** installed binary). ToS = advisory. Hard limit: cannot override Anthropic cyber / model-switch gates.
 
 ---
 
@@ -15,7 +15,7 @@ npx start-vibing-stacks
 | Layer | Count | Purpose |
 |---|---|---|
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **32** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Skills | **33** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
@@ -35,7 +35,7 @@ npx start-vibing-stacks
 
 ## Skill matrix
 
-### Universal (32 — shared across stacks)
+### Universal (33 — shared across stacks)
 
 | Group | Skills |
 |---|---|
@@ -44,7 +44,7 @@ npx start-vibing-stacks
 | **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `owned-infra-ops` |
+| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `owned-infra-ops` · `own-subscription-integration` |
 | **Marketing** | `email-push-marketing` |
 | **Framework** | `react-server-components` · `laravel-octane-inertia` |
 | **Testing** | `playwright-automation` · `test-coverage` |
