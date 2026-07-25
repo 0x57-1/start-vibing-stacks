@@ -118,6 +118,7 @@
     "dead-code-hygiene",
     "owned-infra-ops",
     "own-subscription-integration",
+    "security-assessment-ops",
     "email-push-marketing"
   ],
   "requirements": [

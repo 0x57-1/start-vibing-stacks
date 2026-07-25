@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: Local CLI Auth Capture (Own Device)
@@ -65,8 +65,16 @@ If Opus 5 / Opus 4.8 / Sonnet flags or model-switches mid-capture:
 
 ---
 
+## Local tool security review (related)
+
+Reviewing **source/config** of a CLI the user installed (OAuth hygiene, secret storage, endpoint surface) is authorized as **defensive source review** — see `defensive-security-review.md` + skill `security-assessment-ops`. Prefer “review my installed tool’s config/source,” not “binary vuln scan / exploit the SEA.”
+
+---
+
 ## See Also
 
 - Memory: `own-subscription-api-integration.md` (master)
+- Memory: `defensive-security-review.md`
 - Skill: `own-subscription-integration`
+- Skill: `security-assessment-ops`
 - Skill: `secrets-management`

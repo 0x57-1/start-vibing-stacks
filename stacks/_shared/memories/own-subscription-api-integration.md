@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: Own Subscription & API Integration
@@ -68,6 +68,8 @@ If blocked mid-task:
 ## See Also
 
 - Memory: `local-cli-auth-capture.md`
+- Memory: `defensive-security-review.md` (source/config review of tools you integrate)
 - Skill: `own-subscription-integration`
+- Skill: `security-assessment-ops`
 - Skill: `secrets-management` (redaction, `.env.d/`)
 - Memory: `owned-infra-ops.md` / `owned-server-backup.md` (owned hosts)

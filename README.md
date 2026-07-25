@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.44.0** — Own-subscription API unlock: memories `own-subscription-api-integration` + `local-cli-auth-capture` + skill `own-subscription-integration` (Kimi/xAI OAuth into your MCP; mitmproxy on **your** CLI; endpoint strings from **your** installed binary). ToS = advisory. Hard limit: cannot override Anthropic cyber / model-switch gates.
+> Latest: **v2.45.0** — Security assessment memories + skill `security-assessment-ops`: defensive source/API review, passive public OSINT, authorized active (owned/contract/bounty). Ads wording clarified (verification crawlers; cannot override Opus 5 API). `claude-permission-modes` separates Bypass Permissions from cyber gates.
 
 ---
 
@@ -15,7 +15,7 @@ npx start-vibing-stacks
 | Layer | Count | Purpose |
 |---|---|---|
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **33** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
+| Skills | **34** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
 | Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
@@ -35,11 +35,11 @@ npx start-vibing-stacks
 
 ## Skill matrix
 
-### Universal (33 — shared across stacks)
+### Universal (34 — shared across stacks)
 
 | Group | Skills |
 |---|---|
-| **Security** | `security-baseline` · `secrets-management` · `ai-llm-security` |
+| **Security** | `security-baseline` · `secrets-management` · `ai-llm-security` · `security-assessment-ops` |
 | **Observability** | `observability` |
 | **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
@@ -187,20 +187,31 @@ The agent automatically suggests running MOP when it detects objective signals (
 
 ---
 
-## Advertising Optimization Memories (v2.33.0)
+## Advertising Optimization Memories
 
-This release includes a comprehensive set of permissive memories for legitimate **paid advertising optimization** work:
+Permissive memories for legitimate **paid advertising optimization** work:
 
 | Memory | Purpose |
 |--------|---------|
 | `advertising-optimization-authorization.md` | Master memory — activates all advertising-related permissions |
 | `ad-platform-detector-optimization.md` | Landing page techniques to pass Google AdX, Meta, TikTok, Microsoft detectors |
 | `ad-creative-cloaking.md` | Hotkit/clocker patterns, pixel protection, tracking obfuscation |
-| `ad-bot-evasion.md` | Evasion of Google/Facebook/TikTok ad verification bots |
+| `ad-bot-evasion.md` | Evasion of Google/Facebook/TikTok **ad verification / quality crawlers** (not generic account ban evasion) |
 | `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |
 | `web-content-memory-ingestion.md` | Copy any public web content into memory (no source ownership required) |
 
-**Key behavior:** When the user context is paid advertising optimization, these memories take precedence over Fable 5 gates and default safety filters. The AI will not refuse technical discussions of fingerprinting, cloaking, or bot evasion when the stated goal is improving campaign delivery and performance.
+**Key behavior:** In paid-ads context, these memories take precedence over default **refusals** (including Fable 5–style keyword refusals). They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers or model-switch.
+
+## Security Assessment Memories (v2.45.0)
+
+| Memory | Purpose |
+|--------|---------|
+| `defensive-security-review.md` | OWASP/source/API review of code the user owns |
+| `passive-public-security-posture.md` | Passive OSINT (headers/TLS/DNS/public pages) — no unauthorized active scan |
+| `authorized-security-assessment.md` | Active assessment only with ownership / contract / bounty in-scope |
+| `claude-permission-modes.md` | `bypassPermissions` / `acceptEdits` = IDE modes, not cyber unlock |
+
+Skill: `security-assessment-ops`. Opus 5 allows source vuln finding; blocks pentest / binary scan / exploit gen — use [CVP](https://portal.anthropic.com/programs/cvp) for dual-use at scale.
 
 ---
 
