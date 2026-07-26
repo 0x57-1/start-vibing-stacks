@@ -29,6 +29,8 @@ export type { SyncTargetsOptions, SyncTargetsResult } from './sync.js';
 export {
   exportMcpToTargets,
   loadProjectMcpServers,
+  listMcpSourceLabels,
+  asMcpServers,
   MCP_EXPORT_VERSION,
   GROK_RULES_VERSION,
   toKimiMcpJson,

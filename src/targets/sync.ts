@@ -87,6 +87,7 @@ export interface SyncTargetsResult {
     cursorWritten: boolean;
     grokRulesWritten: boolean;
     serverCount: number;
+    sources?: string[];
     skippedReason?: string;
   };
   cursorRules: {

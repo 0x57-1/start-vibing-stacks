@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.0
+svs-version: 1.1.1
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -37,11 +37,13 @@ When MCP tools are missing in this session, **find** configs and **register** th
 npx start-vibing-stacks@latest migrate --apply
 ```
 
+`migrate` already merges `~/.claude.json` (user MCP, e.g. `web-scraper`) with project `.claude/` before writing side-cars.
+
 ### Where to look (scan order)
 
-**Project:** `.claude/config/mcp-active.json` → `.claude/settings.json#mcpServers` → `.mcp.json` → `.kimi-code/mcp.json` → `.grok/config.toml` → `.cursor/mcp.json`
+**User-global:** `~/.claude.json` → `~/.claude/settings.json`
 
-**User-global:** `~/.claude.json` → `~/.claude/settings.json` → `~/.kimi-code/` → `~/.grok/` → `~/.cursor/mcp.json`
+**Project:** `.claude/config/mcp-active.json` → `.claude/settings.json#mcpServers` → `.mcp.json` → `.kimi-code/mcp.json` → `.grok/config.toml` → `.cursor/mcp.json`
 
 ### Where to write
 

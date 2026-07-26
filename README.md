@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.55.0** — Always-on memory `multi-target-mcp-discovery` + policy-pack MCP scan paths (Claude → Kimi/Grok/Cursor side-cars).
+> Latest: **v2.55.1** — MCP export merges `~/.claude.json` (user-global) + project `.claude/` into Kimi/Grok/Cursor side-cars.
 
 ---
 

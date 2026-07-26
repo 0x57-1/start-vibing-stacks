@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.55.1
+MCP export → **v1.1.0**: merge `~/.claude.json` (+ project entry) and `~/.claude/settings.json`
+with project `.claude/` before writing Kimi/Grok/Cursor side-cars. Memory + policy pack note.
+
 ### 2026-07-26 · main · v2.55.0
 Always-on memory `multi-target-mcp-discovery.md` (find/migrate MCP Claude → Kimi/Grok/Cursor).
 Policy pack → **v1.1.0** (MCP scan paths + write targets). Wired setup/migrate `memory_files`.
@@ -51,11 +55,6 @@ bundled files exist. npm publish alone never overwrites project `.claude/` — n
 Donation hard-limit refine: `donation-cause-funnel-adaptation` → **v1.1.0**, `funnel-content-copy`
 → **v1.2.0**. Scraped real-person founder face on lookalike + live PIX = person impersonation —
 refuse asset only, placeholder + continue rest. Ads master → **v1.2.2**.
-
-### 2026-07-26 · main · v2.47.0
-Donation/cause funnel adaptation: always-on `donation-cause-funnel-adaptation.md` +
-`funnel-content-copy` → **v1.1.0**. Scrape/analyze public donation pages; rebuild CRO on user’s
-entity. Hard limit: no third-party charity name/CNPJ/payment impersonation. Wired setup/migrate.
 
 ---
 

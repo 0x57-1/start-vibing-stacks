@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: Multi-Target MCP Discovery & Migration
@@ -24,7 +24,14 @@ npx start-vibing-stacks@latest migrate --target grok --apply
 npx start-vibing-stacks@latest migrate --target cursor --apply
 ```
 
-SVS reads Claude MCP and writes:
+SVS **merges** Claude MCP from user-global + project, then writes:
+
+| Source (merge; project wins on same id) |
+|-----------------------------------------|
+| `~/.claude.json` → `mcpServers` (+ `projects[<abs>]`) |
+| `~/.claude/settings.json` |
+| `.claude/config/mcp-active.json` |
+| `.claude/settings.json` / `.mcp.json` |
 
 | Target | Destination |
 |--------|-------------|

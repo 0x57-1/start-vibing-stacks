@@ -51,7 +51,7 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
     detail: mcp.missing
       ? mcpBits.length
         ? `partial (${mcpBits.join(',')})`
-        : 'missing (need mcp-active.json first)'
+        : 'missing (need ~/.claude.json or project mcp-active.json)'
       : mcp.outdated
         ? `outdated (${mcp.installedVersion})`
         : `ok (${mcpBits.join(',') || 'none'}; export ${manifest?.mcpExport?.version ?? '–'})`,

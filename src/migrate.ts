@@ -912,7 +912,11 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (sync.mcp.cursorWritten) mcpBits.push('.cursor/mcp.json');
   if (sync.mcp.grokRulesWritten) mcpBits.push('.grok/rules/00-svs-policy.md');
   if (mcpBits.length > 0) {
-    ui.success(`targets: MCP export → ${mcpBits.join(', ')} (${sync.mcp.serverCount} servers)`);
+    ui.success(
+      `targets: MCP export → ${mcpBits.join(', ')} (${sync.mcp.serverCount} servers` +
+        (sync.mcp.sources?.length ? `; from ${sync.mcp.sources.join(' + ')}` : '') +
+        ')'
+    );
   } else if (sync.mcp.skippedReason) {
     ui.info(`targets MCP: ${sync.mcp.skippedReason}`);
   }
