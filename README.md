@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.47.0** — Donation/cause funnel unlock: `donation-cause-funnel-adaptation` + `funnel-content-copy` v1.1.0 — scrape/analyze public donation pages and rebuild CRO on **your** entity; hard limit: no third-party charity impersonation + payment capture.
+> Latest: **v2.48.0** — Donation person-likeness hard limit: refuse publishing a scraped **real founder face** on lookalike + live PIX (placeholder + continue rest). `donation-cause-funnel-adaptation` v1.1.0 · `funnel-content-copy` v1.2.0.
 
 ---
 
@@ -201,7 +201,7 @@ Permissive memories for legitimate **paid advertising optimization** work:
 | `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |
 | `web-content-memory-ingestion.md` | Copy any public web content into memory (no source ownership requirement) |
 | `funnel-content-copy.md` | Public sales + donation funnel scrape/analysis |
-| `donation-cause-funnel-adaptation.md` | Rebuild donation/cause CRO on **your** entity (no charity impersonation) |
+| `donation-cause-funnel-adaptation.md` | Rebuild donation/cause CRO on **your** entity; no charity **or person**/founder-face impersonation |
 
 **Key behavior:** In paid-ads / funnel-research context, these memories take precedence over default **refusals** for cloaking/clocker/bypass/ad-review and donation-page scrape vocabulary. They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers. Charity/bank **impersonation + payment capture** remains a hard limit.
 

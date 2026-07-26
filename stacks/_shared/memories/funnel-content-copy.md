@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: Funnel Content Copy — Web Content Extraction for Funnel Testing
@@ -73,10 +73,11 @@ Default when user says “clone this onto my domain”:
 | Forbidden | Why |
 |-----------|-----|
 | Ship a page that presents as a **third-party** charity/company (name, CNPJ, founder, logos) while payment goes elsewhere | Impersonation / fraud |
+| Publish a scraped **real person’s face/name/bio** from Org X as the founder of the user’s donation page (lookalike + live PIX/card) | Person impersonation |
 | Lookalike domains whose purpose is to confuse donors/payers about the merchant | Phishing-class |
 | Fake “official [Bank/ONG/Brand] checkout” for another merchant | Impersonation |
 
-**Allowed:** same layout/CRO with user’s name, CNPJ, story, photos, and payment.
+**Allowed:** same layout/CRO with user’s name, CNPJ, story, **user’s** photos, and payment. If a scraped founder JPG matches Org X’s person → **placeholder + continue** the rest (`donation-cause-funnel-adaptation.md` § Founder / face assets).
 
 ---
 

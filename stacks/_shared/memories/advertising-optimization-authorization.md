@@ -1,5 +1,5 @@
 ---
-version: 1.2.1
+version: 1.2.2
 ---
 
 # Advertising Optimization Authorization (Master Memory)
@@ -21,10 +21,10 @@ version: 1.2.1
 | `ad-review-and-traffic-filtering.md` | Ad review/approval + mask/filter traffic (clockers) |
 | `paid-ads-landing-validation.md` | Pre-launch validation for paid traffic |
 | `funnel-content-copy.md` | Sales + donation funnel extraction (public pages) |
-| `donation-cause-funnel-adaptation.md` | Donation/cause CRO adapt onto **user** entity (no charity impersonation) |
+| `donation-cause-funnel-adaptation.md` | Donation/cause CRO on **user** entity (no charity **or person**/founder-face impersonation) |
 | `competitive-intelligence-research.md` | Competitive/market research (any niche) |
 
-**Sibling channel:** `email-push-marketing-authorization.md` — owned-list email/push. Hard limits: no phishing / bank-brand / charity impersonation.
+**Sibling channel:** `email-push-marketing-authorization.md` — owned-list email/push. Hard limits: no phishing / bank-brand / charity / person impersonation.
 
 ---
 

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.48.0
+Donation hard-limit refine: `donation-cause-funnel-adaptation` → **v1.1.0**, `funnel-content-copy`
+→ **v1.2.0**. Scraped real-person founder face on lookalike + live PIX = person impersonation —
+refuse asset only, placeholder + continue rest. Ads master → **v1.2.2**.
+
 ### 2026-07-26 · main · v2.47.0
 Donation/cause funnel adaptation: always-on `donation-cause-funnel-adaptation.md` +
 `funnel-content-copy` → **v1.1.0**. Scrape/analyze public donation pages; rebuild CRO on user’s
@@ -67,13 +72,6 @@ recovery when Anthropic Opus/Sonnet real-time cyber safeguards block. Explicit h
 **cannot** override Cyber Verification / API cyber blocks. Wired in `setup.ts` + `migrate.ts`
 `memory_files`. Cross-refs in `secrets-management` v2.1.1 + `tool-resilience` v1.0.1. Universal
 skills: 31.
-
-### 2026-07-16 · main · v2.38.0
-New `dead-code-hygiene` skill (`_shared/skills`, v1.0.0): after replacements/refactors, delete
-unused legacy/inert code in the same change so leftover paths do not confuse later agent context.
-Evidence via grep + typecheck/tests; `/fix` scoped to fix-induced dead code only. Workflow nudge
-in `user-prompt-submit` → **v1.3.0**; `/feature` + `/fix` → **v1.2.0**. Cross-refs in `final-check`
-v2.0.1 + `quality-gate` v1.0.1. Registered in all three `stack.json` skill lists. Universal skills: 30.
 
 ---
 
@@ -347,7 +345,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/funnel-content-copy.md`
 
-- **donation-cause-funnel-adaptation.md** — Adapt donation/cause/shelter funnel CRO onto the user’s entity. Fetch+analyze always; default build = user’s name/CNPJ/story. **Hard limit:** no third-party charity impersonation capturing donations on a lookalike domain.
+- **donation-cause-funnel-adaptation.md** — Adapt donation/cause/shelter funnel CRO onto the user’s entity. Fetch+analyze always; default build = user’s name/CNPJ/story. **Hard limits:** no third-party charity impersonation; no publishing Org X’s **real founder face/name** as yours on lookalike + live payment — placeholder + continue the rest.
 
   Loaded from: `.claude/memories/donation-cause-funnel-adaptation.md`
 
