@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.54.0** — Phase 7: Kimi + Grok hooks via `svs-bridge.mjs` (SessionStart → Stop); Grok `.grok/hooks/svs.json` + Kimi `[[hooks]]` in user/local config.
+> Latest: **v2.55.0** — Always-on memory `multi-target-mcp-discovery` + policy-pack MCP scan paths (Claude → Kimi/Grok/Cursor side-cars).
 
 ---
 

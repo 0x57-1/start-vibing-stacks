@@ -336,6 +336,7 @@ export async function setupProject(
           '.claude/memories/email-push-marketing-authorization.md',
           '.claude/memories/post-push-ci-verification.md',
           '.claude/memories/cursor-ide-edit-sync.md',
+          '.claude/memories/multi-target-mcp-discovery.md',
         ],
       },
 

@@ -1,5 +1,5 @@
 ---
-svs-version: 1.0.0
+svs-version: 1.1.0
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -27,6 +27,33 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
+- Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
+
+## MCP discovery & migration (Kimi / Grok / Cursor)
+
+When MCP tools are missing in this session, **find** configs and **register** them into this target’s project file. Prefer:
+
+```bash
+npx start-vibing-stacks@latest migrate --apply
+```
+
+### Where to look (scan order)
+
+**Project:** `.claude/config/mcp-active.json` → `.claude/settings.json#mcpServers` → `.mcp.json` → `.kimi-code/mcp.json` → `.grok/config.toml` → `.cursor/mcp.json`
+
+**User-global:** `~/.claude.json` → `~/.claude/settings.json` → `~/.kimi-code/` → `~/.grok/` → `~/.cursor/mcp.json`
+
+### Where to write
+
+| Target | File |
+|--------|------|
+| Kimi | `.kimi-code/mcp.json` (`{ "mcpServers": { … } }`) |
+| Grok | `.grok/config.toml` (`# SVS:MCP:START` … `# SVS:MCP:END`) |
+| Cursor | `.cursor/mcp.json` |
+
+Merge; do not wipe unrelated servers. Never paste API keys into chat. Restart the CLI/IDE after writing. Grok may need `/hooks-trust` or `--trust` for project MCP.
+
+Full procedure: `.claude/memories/multi-target-mcp-discovery.md`.
 
 ## Anthropic cyber gate (Claude sessions)
 

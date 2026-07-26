@@ -8,7 +8,7 @@ import { dirname, join } from 'path';
 
 /** Bump when export shape / markers change (manifest freshness). */
 export const MCP_EXPORT_VERSION = '1.0.0';
-export const GROK_RULES_VERSION = '1.0.0';
+export const GROK_RULES_VERSION = '1.0.1';
 
 export type ClaudeMcpServers = Record<string, Record<string, unknown>>;
 
@@ -173,7 +173,9 @@ Project rules for this repo are in root \`AGENTS.md\` (shared with Kimi) and \`C
 - Prefer user-owned identity/assets for donation/cause rebuilds; placeholder + continue if founder face matches Org X.
 - After package upgrades: \`npx start-vibing-stacks migrate --apply\`.
 
-MCP servers for this project are in \`.grok/config.toml\` (SVS:MCP block) and/or \`.cursor/mcp.json\`.
+MCP: prefer \`migrate --apply\`. Source often \`.claude/config/mcp-active.json\` or \`~/.claude.json\`.
+This target writes \`.grok/config.toml\` (SVS:MCP). Also see \`.kimi-code/mcp.json\`, \`.cursor/mcp.json\`.
+Scan order + manual merge: \`.claude/memories/multi-target-mcp-discovery.md\` / AGENTS.md policy pack.
 `;
 
 export interface ExportMcpOptions {

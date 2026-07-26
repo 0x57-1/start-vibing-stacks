@@ -88,6 +88,8 @@ export function generateAgentsMd(
     '',
     '- `CLAUDE.md` — full Claude Code project rules',
     '- `.claude/memories/` — always-on Claude memories (source of detailed policy)',
+    '- `.claude/memories/multi-target-mcp-discovery.md` — find/migrate MCP → Kimi/Grok/Cursor',
+    '- `.claude/config/mcp-active.json` — Claude MCP source for `migrate --apply`',
     '- `.claude/config/svs-manifest.json` — package/target freshness',
     '',
   ].join('\n');

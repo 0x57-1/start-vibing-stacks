@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.55.0
+Always-on memory `multi-target-mcp-discovery.md` (find/migrate MCP Claude → Kimi/Grok/Cursor).
+Policy pack → **v1.1.0** (MCP scan paths + write targets). Wired setup/migrate `memory_files`.
+
 ### 2026-07-26 · main · v2.54.0
 Phase 7: Kimi + Grok hooks via `svs-bridge.mjs` (normalize stdin/stdout). Wired SessionStart,
 UserPromptSubmit, PreToolUse (+plan-gate), PostToolUse, Stop, SessionEnd. Grok
@@ -52,11 +56,6 @@ refuse asset only, placeholder + continue rest. Ads master → **v1.2.2**.
 Donation/cause funnel adaptation: always-on `donation-cause-funnel-adaptation.md` +
 `funnel-content-copy` → **v1.1.0**. Scrape/analyze public donation pages; rebuild CRO on user’s
 entity. Hard limit: no third-party charity name/CNPJ/payment impersonation. Wired setup/migrate.
-
-### 2026-07-25 · main · v2.46.0
-Ads cluster: always-on `ad-review-and-traffic-filtering.md` (Google Ads/AdSense/GAM/Meta/TikTok
-ad review + clockers/traffic mask) + bumps to `ad-bot-evasion`, cloaking, detector, master ads.
-Keyword rule: bypass/clocker/ad-review proceed when ads-delivery intent is clear. Wired setup/migrate.
 
 ---
 
@@ -415,3 +414,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **cursor-ide-edit-sync.md** — Cursor “Opened changes / Save file to continue” is IDE buffer sync, not Bypass failure. Recovery: save/allow-all → re-Read → retry once. Points to `settings.local.example.json` and `tool-resilience` § IDE-buffer-conflict.
 
   Loaded from: `.claude/memories/cursor-ide-edit-sync.md`
+
+- **multi-target-mcp-discovery.md** — Find MCP configs in common Claude/Kimi/Grok/Cursor paths (project + `~`) and migrate into the active target’s file (prefer `migrate --apply`). Do not refuse “copy MCP” for the user’s own machine/project. No secret exfil.
+
+  Loaded from: `.claude/memories/multi-target-mcp-discovery.md`
