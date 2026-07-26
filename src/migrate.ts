@@ -160,8 +160,8 @@ function listAgentSources(): Array<{ source: string; name: string }> {
 
 function listHookSources(): Array<{ source: string; name: string }> {
   const dir = join(CLI_ROOT, 'stacks', '_shared', 'hooks');
-  // Track .ts and .sh files (runnable hooks + shared lib). _state.README.md is handled separately.
-  return listFiles(dir, ['.ts', '.sh']).map(n => ({ source: join(dir, n), name: n }));
+  // Track .ts/.sh/.mjs (runnable hooks + bridge + shared lib). _state.README.md separate.
+  return listFiles(dir, ['.ts', '.sh', '.mjs']).map(n => ({ source: join(dir, n), name: n }));
 }
 
 function listCommandSources(): Array<{ source: string; name: string }> {
@@ -682,12 +682,14 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     cursorRulesNeedsUpdate,
     kimiLocalNeedsUpdate,
     grokSkillsNeedsUpdate,
+    hooksExportNeedsUpdate,
     recentChangesDrifted,
     formatTargetsStatus,
     MCP_EXPORT_VERSION,
     CURSOR_RULES_VERSION,
     KIMI_LOCAL_VERSION,
     GROK_SKILLS_VERSION,
+    HOOKS_EXPORT_VERSION,
   } = await import('./targets/index.js');
   const agentsBundled = bundledAgentsMdVersion();
   const agentsNeed = agentsMdNeedsUpdate(projectDir, agentsBundled);
@@ -717,6 +719,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const grokSkillsPending =
     (migrateTarget === 'all' || migrateTarget === 'grok') &&
     (grokSkillsNeed.blockMissing || grokSkillsNeed.nativeMissing || grokSkillsNeed.outdated);
+  const hooksNeed = hooksExportNeedsUpdate(projectDir);
+  const hooksPending =
+    (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok') &&
+    (hooksNeed.kimiMissing || hooksNeed.grokMissing || hooksNeed.outdated);
 
   console.log('\n' + formatTargetsStatus(projectDir));
 
@@ -738,7 +744,14 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
   }
-  if (agentsPending || mcpPending || cursorPending || kimiPending || grokSkillsPending) {
+  if (
+    agentsPending ||
+    mcpPending ||
+    cursorPending ||
+    kimiPending ||
+    grokSkillsPending ||
+    hooksPending
+  ) {
     console.log('\n  TARGETS — pending updates:');
     if (agentsPending) {
       console.log(
@@ -775,6 +788,14 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
               : '  (outdated)')
       );
     }
+    if (hooksPending) {
+      console.log(
+        `    Kimi/Grok hooks  bundled=${HOOKS_EXPORT_VERSION}` +
+          (hooksNeed.kimiMissing ? '  (kimi miss)' : '') +
+          (hooksNeed.grokMissing ? '  (grok miss)' : '') +
+          (hooksNeed.outdated ? '  (outdated)' : '')
+      );
+    }
   }
 
   const upgradable = [
@@ -795,7 +816,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     !mcpPending &&
     !cursorPending &&
     !kimiPending &&
-    !grokSkillsPending
+    !grokSkillsPending &&
+    !hooksPending
   ) {
     console.log('');
     ui.success('Everything up to date.');
@@ -813,6 +835,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (cursorPending) todo.push('.cursor/rules/svs-policy.mdc');
     if (kimiPending) todo.push('.kimi-code/local.toml');
     if (grokSkillsPending) todo.push('Grok skills bridge');
+    if (hooksPending) todo.push('Kimi/Grok hooks bridge');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -871,6 +894,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     forceCursorRules: cursorPending || migrateTarget === 'cursor',
     forceKimiLocal: kimiPending || migrateTarget === 'kimi',
     forceGrokSkills: grokSkillsPending || migrateTarget === 'grok',
+    forceHooksExport: hooksPending || migrateTarget === 'kimi' || migrateTarget === 'grok',
     updateIfNeeded: true,
     migrateTarget,
   });
@@ -917,6 +941,24 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   ) {
     ui.info(`targets Grok skills: ${sync.grokSkills.skippedReason}`);
   }
+  if (
+    sync.hooksExport.kimiLocalUpdated ||
+    sync.hooksExport.kimiUserUpdated ||
+    sync.hooksExport.grokHooksWritten ||
+    sync.hooksExport.grokCompatUpdated
+  ) {
+    const bits: string[] = [];
+    if (sync.hooksExport.kimiLocalUpdated) bits.push('local.toml [[hooks]]');
+    if (sync.hooksExport.kimiUserUpdated) bits.push('~/.kimi-code/config.toml [[hooks]]');
+    if (sync.hooksExport.grokHooksWritten) bits.push('.grok/hooks/svs.json');
+    if (sync.hooksExport.grokCompatUpdated) bits.push('compat.claude.hooks=false');
+    ui.success(`targets: hooks → ${bits.join(', ')} (svs-version ${sync.hooksExport.version})`);
+  } else if (
+    sync.hooksExport.skippedReason &&
+    (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok')
+  ) {
+    ui.info(`targets hooks: ${sync.hooksExport.skippedReason}`);
+  }
   if (sync.manifestWritten) {
     ui.success('targets: refreshed svs-manifest.json');
   }
@@ -931,6 +973,11 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ', Kimi local' : '') +
       (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten
         ? ', Grok skills'
+        : '') +
+      (sync.hooksExport.kimiLocalUpdated ||
+      sync.hooksExport.kimiUserUpdated ||
+      sync.hooksExport.grokHooksWritten
+        ? ', hooks'
         : '')
   );
 

@@ -548,6 +548,7 @@ export async function setupProject(
       forceCursorRules: true,
       forceKimiLocal: true,
       forceGrokSkills: true,
+      forceHooksExport: true,
       updateIfNeeded: true,
     });
     if (sync.agentsMdWritten) {
@@ -561,6 +562,9 @@ export async function setupProject(
         (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ' + Kimi local' : '') +
         (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten
           ? ' + Grok skills'
+          : '') +
+        (sync.hooksExport.grokHooksWritten || sync.hooksExport.kimiUserUpdated
+          ? ' + Kimi/Grok hooks'
           : '') +
         (sync.mcp.kimiWritten || sync.mcp.grokWritten || sync.mcp.cursorWritten
           ? ' + MCP targets'

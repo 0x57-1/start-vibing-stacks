@@ -59,6 +59,16 @@ export {
 } from './grok-skills.js';
 export type { GrokSkillsResult } from './grok-skills.js';
 export {
+  exportHooksToTargets,
+  hooksExportNeedsUpdate,
+  exportKimiHooksLocal,
+  exportKimiHooksUser,
+  exportGrokHooks,
+  HOOKS_EXPORT_VERSION,
+  GROK_HOOKS_REL,
+} from './hooks-export.js';
+export type { HooksExportResult } from './hooks-export.js';
+export {
   collectTargetsStatus,
   formatTargetsStatus,
   recentChangesDrifted,

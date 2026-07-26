@@ -13,6 +13,9 @@ merge_all_available_skills = true
 # Absolute paths filled by migrate into local.toml (SVS:KIMI block):
 # extra_skill_dirs = ["/ABS/PATH/TO/PROJECT/.claude/skills"]
 # extra_agent_dirs = ["/ABS/PATH/TO/PROJECT/.claude/agents"]
+#
+# Hooks: SVS:HOOKS block (migrate) + ~/.kimi-code/config.toml — bridge to
+# .claude/hooks/*.ts via node .claude/hooks/svs-bridge.mjs kimi <hook>
 
 [thinking]
 enabled = true

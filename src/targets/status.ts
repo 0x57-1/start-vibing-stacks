@@ -13,6 +13,7 @@ import { bundledAgentsMdVersion, readClaudeRecentChangesHash } from './agents-md
 import { cursorRulesNeedsUpdate, CURSOR_RULES_REL } from './cursor-rules.js';
 import { kimiLocalNeedsUpdate, KIMI_LOCAL_REL } from './kimi-local.js';
 import { grokSkillsNeedsUpdate, GROK_NATIVE_SKILL_REL } from './grok-skills.js';
+import { hooksExportNeedsUpdate, GROK_HOOKS_REL, HOOKS_EXPORT_VERSION } from './hooks-export.js';
 import { isBinaryOnPath } from './launch.js';
 import { LAUNCH_SPECS } from './types.js';
 
@@ -89,6 +90,20 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
         : grokSk.outdated
           ? 'outdated'
           : `ok (export ${manifest?.grokSkills?.version ?? '–'})`,
+  });
+
+  const hooks = hooksExportNeedsUpdate(projectDir);
+  const bridgeOk = existsSync(join(projectDir, '.claude', 'hooks', 'svs-bridge.mjs'));
+  lines.push({
+    id: 'Kimi/Grok hooks',
+    ok: bridgeOk && !hooks.kimiMissing && !hooks.grokMissing && !hooks.outdated,
+    detail: !bridgeOk
+      ? 'svs-bridge.mjs missing (migrate hooks)'
+      : hooks.kimiMissing || hooks.grokMissing
+        ? `pending (kimi=${hooks.kimiMissing ? 'miss' : 'ok'}, grok=${hooks.grokMissing ? 'miss' : 'ok'})`
+        : hooks.outdated
+          ? `outdated → ${HOOKS_EXPORT_VERSION}`
+          : `ok (${GROK_HOOKS_REL}; export ${manifest?.hooksExport?.version ?? HOOKS_EXPORT_VERSION})`,
   });
 
   lines.push({

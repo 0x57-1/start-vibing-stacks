@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.1.1
 /**
  * PreToolUse Hook — Multi-Instance Coordination
  *
@@ -126,8 +126,10 @@ async function main(): Promise<void> {
   const toolName: string = input.tool_name || input.toolName || '';
   const toolInput: any = input.tool_input || input.toolInput || {};
 
-  // Defensive: only act on edit-class tools.
-  if (!/^(Edit|Write|MultiEdit|NotebookEdit)$/.test(toolName)) {
+  // Defensive: only act on edit-class tools (Claude + Kimi + Grok aliases).
+  if (
+    !/^(Edit|Write|MultiEdit|NotebookEdit|WriteFile|StrReplaceFile|StrReplace)$/.test(toolName)
+  ) {
     console.log(JSON.stringify({ continue: true }));
     return;
   }

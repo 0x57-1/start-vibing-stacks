@@ -1,5 +1,6 @@
 /**
- * Sync multi-target artefacts: AGENTS.md + MCP + Cursor rules + Kimi local + Grok skills + manifest
+ * Sync multi-target artefacts: AGENTS.md + MCP + Cursor rules + Kimi local +
+ * Grok skills + Kimi/Grok hooks + manifest
  */
 
 import { createHash } from 'crypto';
@@ -40,6 +41,12 @@ import {
   GROK_SKILLS_VERSION,
   GROK_NATIVE_SKILL_REL,
 } from './grok-skills.js';
+import {
+  exportHooksToTargets,
+  hooksExportNeedsUpdate,
+  HOOKS_EXPORT_VERSION,
+  GROK_HOOKS_REL,
+} from './hooks-export.js';
 import { recentChangesDrifted } from './status.js';
 import type { MigrateTarget } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
@@ -63,6 +70,7 @@ export interface SyncTargetsOptions {
   forceCursorRules?: boolean;
   forceKimiLocal?: boolean;
   forceGrokSkills?: boolean;
+  forceHooksExport?: boolean;
   updateIfNeeded?: boolean;
   migrateTarget?: MigrateTarget;
 }
@@ -100,6 +108,14 @@ export interface SyncTargetsResult {
     version: string;
     skippedReason?: string;
   };
+  hooksExport: {
+    kimiLocalUpdated: boolean;
+    kimiUserUpdated: boolean;
+    grokHooksWritten: boolean;
+    grokCompatUpdated: boolean;
+    version: string;
+    skippedReason?: string;
+  };
   skippedReason?: string;
 }
 
@@ -112,6 +128,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
   const syncCursorRules = target === 'all' || target === 'cursor';
   const syncKimi = target === 'all' || target === 'kimi';
   const syncGrokSkills = target === 'all' || target === 'grok';
+  const syncHooks = target === 'all' || target === 'kimi' || target === 'grok';
 
   const bundled = bundledAgentsMdVersion();
   const need = agentsMdNeedsUpdate(projectDir, bundled);
@@ -240,6 +257,30 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
           : 'skipped (target≠grok/all)',
       };
 
+  const hooksNeed = hooksExportNeedsUpdate(projectDir);
+  const shouldWriteHooks =
+    syncHooks &&
+    (opts.forceHooksExport === true ||
+      (updateIfNeeded &&
+        (hooksNeed.kimiMissing || hooksNeed.grokMissing || hooksNeed.outdated)));
+
+  const hookTargets: Array<'kimi' | 'grok'> =
+    target === 'kimi' ? ['kimi'] : target === 'grok' ? ['grok'] : ['kimi', 'grok'];
+
+  const hooksExport = shouldWriteHooks
+    ? exportHooksToTargets(projectDir, {
+        force: opts.forceHooksExport === true,
+        targets: hookTargets,
+      })
+    : {
+        kimiLocalUpdated: false,
+        kimiUserUpdated: false,
+        grokHooksWritten: false,
+        grokCompatUpdated: false,
+        version: HOOKS_EXPORT_VERSION,
+        skippedReason: syncHooks ? 'Hooks export current' : 'skipped (target≠kimi/grok/all)',
+      };
+
   const prev = readManifest(projectDir);
   const manifest = defaultManifest(packageVersion(), {
     version: AGENTS_MD_GENERATOR_VERSION,
@@ -313,6 +354,18 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     manifest.grokSkills = prev.grokSkills;
   }
 
+  if (
+    hooksExport.kimiLocalUpdated ||
+    hooksExport.kimiUserUpdated ||
+    hooksExport.grokHooksWritten ||
+    existsSync(join(projectDir, GROK_HOOKS_REL)) ||
+    existsSync(join(projectDir, '.claude', 'hooks', 'svs-bridge.mjs'))
+  ) {
+    manifest.hooksExport = { version: HOOKS_EXPORT_VERSION };
+  } else if (prev?.hooksExport) {
+    manifest.hooksExport = prev.hooksExport;
+  }
+
   const hasMcpSidecars =
     mcp.kimiWritten ||
     mcp.grokWritten ||
@@ -344,6 +397,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
       gitignoreUpdated,
     },
     grokSkills,
+    hooksExport,
     skippedReason,
   };
 }

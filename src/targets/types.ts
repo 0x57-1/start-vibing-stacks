@@ -45,6 +45,7 @@ export interface SvsManifest {
   cursorRules?: { version: string };
   kimiLocal?: { version: string };
   grokSkills?: { version: string };
+  hooksExport?: { version: string };
 }
 
 export const AGENTS_MD_GENERATOR_VERSION = '1.0.0';

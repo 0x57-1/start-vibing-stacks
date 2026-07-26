@@ -1,4 +1,4 @@
-// @sv-version: 1.2.0
+// @sv-version: 1.2.1
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -389,12 +389,18 @@ export function extractTargetFiles(toolName: string, toolInput: any, projectDir:
     if (!rel || rel.startsWith('..')) rel = p;
     out.push(rel.split('\\').join('/'));
   };
-  if (toolName === 'Edit' || toolName === 'Write') {
-    push(toolInput.file_path || toolInput.path);
-  } else if (toolName === 'MultiEdit') {
-    push(toolInput.file_path || toolInput.path);
+  // Claude + Kimi + Grok (post bridge alias) edit-class tools
+  if (
+    toolName === 'Edit' ||
+    toolName === 'Write' ||
+    toolName === 'MultiEdit' ||
+    toolName === 'WriteFile' ||
+    toolName === 'StrReplaceFile' ||
+    toolName === 'StrReplace'
+  ) {
+    push(toolInput.file_path || toolInput.path || toolInput.target_file || toolInput.filePath);
   } else if (toolName === 'NotebookEdit') {
-    push(toolInput.notebook_path || toolInput.target_notebook);
+    push(toolInput.notebook_path || toolInput.target_notebook || toolInput.notebookPath);
   }
   return out;
 }

@@ -10,6 +10,12 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.54.0
+Phase 7: Kimi + Grok hooks via `svs-bridge.mjs` (normalize stdin/stdout). Wired SessionStart,
+UserPromptSubmit, PreToolUse (+plan-gate), PostToolUse, Stop, SessionEnd. Grok
+`.grok/hooks/svs.json` + `compat.claude.hooks=false`; Kimi `[[hooks]]` in local.toml +
+`~/.kimi-code/config.toml`.
+
 ### 2026-07-26 · main · v2.53.0
 Phase 6: Grok skills bridge (`[skills].paths` → `.claude/skills` + native
 `.grok/skills/svs-policy`); Kimi local → **v1.1.0** (`extra_agent_dirs` → `.claude/agents`).
@@ -51,12 +57,6 @@ entity. Hard limit: no third-party charity name/CNPJ/payment impersonation. Wire
 Ads cluster: always-on `ad-review-and-traffic-filtering.md` (Google Ads/AdSense/GAM/Meta/TikTok
 ad review + clockers/traffic mask) + bumps to `ad-bot-evasion`, cloaking, detector, master ads.
 Keyword rule: bypass/clocker/ad-review proceed when ads-delivery intent is clear. Wired setup/migrate.
-
-### 2026-07-25 · main · v2.45.0
-Security assessment unlock: memories `defensive-security-review`, `passive-public-security-posture`,
-`authorized-security-assessment`, `claude-permission-modes` + skill `security-assessment-ops` v1.0.0.
-Ads/owned/competitive hard-limit wording: refusals ≠ Opus 5 API cyber gate. No unauthorized third-party
-active scan. Universal skills: 34. Wired setup/migrate.
 
 ---
 

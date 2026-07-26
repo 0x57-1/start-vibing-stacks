@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.53.0** — Phase 6: Grok skills bridge (`[skills].paths` + native `svs-policy`) + Kimi `extra_agent_dirs` → `.claude/agents` (local.toml v1.1.0).
+> Latest: **v2.54.0** — Phase 7: Kimi + Grok hooks via `svs-bridge.mjs` (SessionStart → Stop); Grok `.grok/hooks/svs.json` + Kimi `[[hooks]]` in user/local config.
 
 ---
 
