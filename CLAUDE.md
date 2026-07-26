@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.52.0
+Phase 5: Kimi `.kimi-code/local.toml` (+ example, gitignore); AGENTS.md regenerates when
+CLAUDE.md Recent Changes hash drifts; migrate/resume print TARGET STATUS.
+
 ### 2026-07-26 · main · v2.51.0
 Phase 4 Cursor: `.cursor/rules/svs-policy.mdc` (alwaysApply) from policy pack; migrate
 `--target cursor`; resume “Sync Cursor rules + MCP”. Manifest `cursorRules` version.
@@ -54,12 +58,6 @@ Own-subscription unlock: memories `own-subscription-api-integration.md` + `local
 + skill `own-subscription-integration` v1.0.0 — wire paid Kimi/xAI OAuth into user MCP; observe
 own CLI refresh (mitmproxy); endpoint strings from installed CLI. ToS advisory only. Hard limit:
 cannot override Anthropic cyber/model-switch. Wired setup/migrate; universal skills: 33.
-
-### 2026-07-24 · main · v2.43.0
-Always-on memory `owned-server-backup.md` + `owned-infra-ops` skill/memory → **v1.1.0**: backup
-protocol (scoped tar of known paths, local analysis, DR inventory phrasing vs recon). Reduces
-Opus cyber false positives on owned-host backup; hard limit: cannot override Anthropic Cyber
-Verification API. Wired in `setup.ts` + `migrate.ts` `memory_files`.
 
 ---
 

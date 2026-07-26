@@ -75,6 +75,7 @@ if (FLAGS.help) {
     --force           Overwrite existing configuration (default command)
     --apply           Apply updates (migrate command)
     --target <id>     migrate only: claude | kimi | grok | cursor | all (default: all)
+                      (migrate always prints TARGET STATUS)
     --force-legacy    Overwrite legacy hooks (no @sv-version) AND legacy commands
                       (no version: frontmatter) — each gets a timestamped .bak
     --force-hooks     Alias for --force-legacy (kept for back-compat)
@@ -148,11 +149,40 @@ async function main(): Promise<void> {
       const pending = planMigration(projectDir, { apply: false }).filter(
         (it) => it.status === 'outdated' || it.status === 'missing'
       );
-      const { availableLaunchTargets, launchTarget, agentsMdNeedsUpdate, bundledAgentsMdVersion, syncTargets } =
-        await import('./targets/index.js');
+      const {
+        availableLaunchTargets,
+        launchTarget,
+        agentsMdNeedsUpdate,
+        bundledAgentsMdVersion,
+        syncTargets,
+        formatTargetsStatus,
+        recentChangesDrifted,
+        cursorRulesNeedsUpdate,
+        kimiLocalNeedsUpdate,
+        mcpExportNeedsUpdate,
+      } = await import('./targets/index.js');
       const agentsNeed = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
-      const agentsPending = agentsNeed.missing || agentsNeed.outdated;
-      const pendingTotal = pending.length + (agentsPending ? 1 : 0);
+      const agentsPending =
+        agentsNeed.missing || agentsNeed.outdated || recentChangesDrifted(projectDir);
+      const cursorPending = (() => {
+        const c = cursorRulesNeedsUpdate(projectDir);
+        return c.missing || c.outdated;
+      })();
+      const kimiPending = (() => {
+        const k = kimiLocalNeedsUpdate(projectDir);
+        return k.localMissing || k.blockMissing || k.exampleMissing;
+      })();
+      const mcpPending = (() => {
+        const m = mcpExportNeedsUpdate(projectDir);
+        return m.missing || m.outdated;
+      })();
+      const pendingTotal =
+        pending.length +
+        (agentsPending ? 1 : 0) +
+        (cursorPending ? 1 : 0) +
+        (kimiPending ? 1 : 0) +
+        (mcpPending ? 1 : 0);
+      console.log('\n' + formatTargetsStatus(projectDir));
 
       const pendingLabel =
         pendingTotal > 0
@@ -203,6 +233,7 @@ async function main(): Promise<void> {
         const sync = syncTargets(projectDir, {
           forceAgentsMd: true,
           forceCursorRules: true,
+          forceKimiLocal: true,
           migrateTarget: 'all',
         });
         if (sync.agentsMdWritten) {
@@ -212,6 +243,9 @@ async function main(): Promise<void> {
         }
         if (sync.cursorRules.written) {
           ui.success(`Wrote .cursor/rules/svs-policy.mdc (svs-version ${sync.cursorRules.version})`);
+        }
+        if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated) {
+          ui.success('Updated .kimi-code/local.toml (SVS block)');
         }
         process.exit(0);
       }

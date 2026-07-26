@@ -16,7 +16,12 @@ export {
   agentsMdNeedsUpdate,
   mcpExportNeedsUpdate,
 } from './manifest.js';
-export { generateAgentsMd, bundledAgentsMdVersion } from './agents-md.js';
+export {
+  generateAgentsMd,
+  bundledAgentsMdVersion,
+  hashClaudeRecentChanges,
+  readClaudeRecentChangesHash,
+} from './agents-md.js';
 export type { GenerateAgentsMdOptions, GenerateAgentsMdResult } from './agents-md.js';
 export { isBinaryOnPath, availableLaunchTargets, launchTarget, resolveLaunchSpec } from './launch.js';
 export { syncTargets, packageVersion } from './sync.js';
@@ -37,3 +42,18 @@ export {
   CURSOR_RULES_REL,
 } from './cursor-rules.js';
 export type { CursorRulesResult } from './cursor-rules.js';
+export {
+  exportKimiLocal,
+  ensureKimiLocalGitignore,
+  kimiLocalNeedsUpdate,
+  KIMI_LOCAL_VERSION,
+  KIMI_LOCAL_REL,
+  KIMI_LOCAL_EXAMPLE_REL,
+} from './kimi-local.js';
+export type { KimiLocalResult } from './kimi-local.js';
+export {
+  collectTargetsStatus,
+  formatTargetsStatus,
+  recentChangesDrifted,
+} from './status.js';
+export type { TargetStatusLine } from './status.js';

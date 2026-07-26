@@ -20,6 +20,8 @@ export interface AgentsMdMeta {
   version: string;
   /** sha256 of generated body (optional diagnostics) */
   hash?: string;
+  /** sha256 prefix of CLAUDE.md ## Recent Changes (Phase 5 drift detection) */
+  claudeRcHash?: string;
 }
 
 export interface TargetManifestEntry {
@@ -41,6 +43,7 @@ export interface SvsManifest {
   agentsMd: AgentsMdMeta;
   mcpExport?: { version: string };
   cursorRules?: { version: string };
+  kimiLocal?: { version: string };
 }
 
 export const AGENTS_MD_GENERATOR_VERSION = '1.0.0';

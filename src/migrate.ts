@@ -674,23 +674,28 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     ? { created: [] as string[], copied: [] as string[], gitignoreUpdated: false }
     : ensureRuntimeArtefacts(projectDir, true);
 
-  // Multi-target: AGENTS.md + MCP side-cars freshness
+  // Multi-target freshness
   const {
     agentsMdNeedsUpdate,
     bundledAgentsMdVersion,
     mcpExportNeedsUpdate,
     cursorRulesNeedsUpdate,
+    kimiLocalNeedsUpdate,
+    recentChangesDrifted,
+    formatTargetsStatus,
     MCP_EXPORT_VERSION,
     CURSOR_RULES_VERSION,
+    KIMI_LOCAL_VERSION,
   } = await import('./targets/index.js');
   const agentsBundled = bundledAgentsMdVersion();
   const agentsNeed = agentsMdNeedsUpdate(projectDir, agentsBundled);
+  const rcDrift = recentChangesDrifted(projectDir);
   const agentsPending =
     (migrateTarget === 'all' ||
       migrateTarget === 'kimi' ||
       migrateTarget === 'grok' ||
       migrateTarget === 'cursor') &&
-    (agentsNeed.missing || agentsNeed.outdated);
+    (agentsNeed.missing || agentsNeed.outdated || rcDrift);
   const mcpNeed = mcpExportNeedsUpdate(projectDir);
   const mcpPending =
     (migrateTarget === 'all' ||
@@ -702,6 +707,12 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const cursorPending =
     (migrateTarget === 'all' || migrateTarget === 'cursor') &&
     (cursorNeed.missing || cursorNeed.outdated);
+  const kimiNeed = kimiLocalNeedsUpdate(projectDir);
+  const kimiPending =
+    (migrateTarget === 'all' || migrateTarget === 'kimi') &&
+    (kimiNeed.exampleMissing || kimiNeed.localMissing || kimiNeed.blockMissing);
+
+  console.log('\n' + formatTargetsStatus(projectDir));
 
   if (settingsPreview.added.length > 0) {
     console.log('\n  SETTINGS.JSON — will add hook entries:');
@@ -721,12 +732,13 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
   }
-  if (agentsPending || mcpPending || cursorPending) {
-    console.log('\n  TARGETS (Kimi/Grok/Cursor):');
+  if (agentsPending || mcpPending || cursorPending || kimiPending) {
+    console.log('\n  TARGETS — pending updates:');
     if (agentsPending) {
       console.log(
         `    AGENTS.md  installed=${agentsNeed.installedVersion ?? '–'}  bundled=${agentsBundled}` +
-          (agentsNeed.missing ? '  (missing)' : '  (outdated)')
+          (agentsNeed.missing ? '  (missing)' : agentsNeed.outdated ? '  (outdated)' : '') +
+          (rcDrift ? '  (Recent Changes drift)' : '')
       );
     }
     if (mcpPending) {
@@ -739,6 +751,12 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       console.log(
         `    Cursor rules installed=${cursorNeed.installedVersion ?? '–'}  bundled=${CURSOR_RULES_VERSION}` +
           (cursorNeed.missing ? '  (missing)' : '  (outdated)')
+      );
+    }
+    if (kimiPending) {
+      console.log(
+        `    Kimi local.toml  bundled=${KIMI_LOCAL_VERSION}` +
+          (kimiNeed.localMissing ? '  (missing)' : '  (SVS block outdated)')
       );
     }
   }
@@ -759,7 +777,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     nothingRuntime &&
     !agentsPending &&
     !mcpPending &&
-    !cursorPending
+    !cursorPending &&
+    !kimiPending
   ) {
     console.log('');
     ui.success('Everything up to date.');
@@ -775,6 +794,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (agentsPending) todo.push('AGENTS.md / svs-manifest');
     if (mcpPending) todo.push('MCP side-cars (.kimi-code / .grok / .cursor)');
     if (cursorPending) todo.push('.cursor/rules/svs-policy.mdc');
+    if (kimiPending) todo.push('.kimi-code/local.toml');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -823,7 +843,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     );
   }
 
-  // Multi-target: AGENTS.md + MCP side-cars + Cursor rules + manifest
+  // Multi-target: AGENTS.md + MCP + Cursor rules + Kimi local + manifest
   const forceNonClaude =
     migrateTarget === 'kimi' || migrateTarget === 'grok' || migrateTarget === 'cursor';
   const { syncTargets } = await import('./targets/index.js');
@@ -831,11 +851,16 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     forceAgentsMd: agentsPending || forceNonClaude,
     forceMcp: mcpPending || forceNonClaude,
     forceCursorRules: cursorPending || migrateTarget === 'cursor',
+    forceKimiLocal: kimiPending || migrateTarget === 'kimi',
     updateIfNeeded: true,
     migrateTarget,
   });
   if (sync.agentsMdWritten) {
-    ui.success(`targets: wrote AGENTS.md (svs-version ${sync.agentsMdVersion})`);
+    ui.success(
+      `targets: wrote AGENTS.md (svs-version ${sync.agentsMdVersion}` +
+        (sync.claudeRcHash ? `, rc=${sync.claudeRcHash}` : '') +
+        ')'
+    );
   }
   const mcpBits: string[] = [];
   if (sync.mcp.kimiWritten) mcpBits.push('.kimi-code/mcp.json');
@@ -852,6 +877,16 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   } else if (sync.cursorRules.skippedReason && (migrateTarget === 'all' || migrateTarget === 'cursor')) {
     ui.info(`targets Cursor rules: ${sync.cursorRules.skippedReason}`);
   }
+  if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.exampleWritten) {
+    const bits: string[] = [];
+    if (sync.kimiLocal.exampleWritten) bits.push('local.toml.example');
+    if (sync.kimiLocal.localWritten) bits.push('local.toml (seeded)');
+    if (sync.kimiLocal.localUpdated) bits.push('local.toml (SVS block)');
+    ui.success(`targets: Kimi ${bits.join(', ')}`);
+  }
+  if (sync.kimiLocal.gitignoreUpdated) {
+    ui.success('gitignore: ignored .kimi-code/local.toml');
+  }
   if (sync.manifestWritten) {
     ui.success('targets: refreshed svs-manifest.json');
   }
@@ -862,7 +897,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       (legacyUpdated > 0 ? `, ${legacyUpdated} legacy file(s) overwritten with backup` : '') +
       (sync.agentsMdWritten ? ', AGENTS.md' : '') +
       (mcpBits.length > 0 ? ', MCP side-cars' : '') +
-      (sync.cursorRules.written ? ', Cursor rules' : '')
+      (sync.cursorRules.written ? ', Cursor rules' : '') +
+      (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ', Kimi local' : '')
   );
 
   if (grouped['modified-no-version'].length > 0) {

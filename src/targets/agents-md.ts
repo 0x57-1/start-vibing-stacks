@@ -27,6 +27,8 @@ export interface GenerateAgentsMdResult {
   path: string;
   version: string;
   hash: string;
+  /** Hash of CLAUDE.md Recent Changes used in this generation */
+  claudeRcHash: string;
   skippedReason?: string;
 }
 
@@ -50,6 +52,7 @@ export function generateAgentsMd(
   const overview = extractSection(claude, '30 Seconds Overview') ?? 'Project configured by start-vibing-stacks.';
   const stack = extractSection(claude, 'Stack') ?? '_See CLAUDE.md for stack table._';
   const recent = extractRecentChanges(claude, recentLimit);
+  const claudeRcHash = hashClaudeRecentChanges(claude, recentLimit);
   const projectName = basenameSafe(projectDir);
 
   const body = [
@@ -98,6 +101,7 @@ export function generateAgentsMd(
       path: dest,
       version: AGENTS_MD_GENERATOR_VERSION,
       hash,
+      claudeRcHash,
       skippedReason: 'exists (pass force to regenerate)',
     };
   }
@@ -109,7 +113,20 @@ export function generateAgentsMd(
     path: dest,
     version: AGENTS_MD_GENERATOR_VERSION,
     hash,
+    claudeRcHash,
   };
+}
+
+/** Hash of the Recent Changes slice mirrored into AGENTS.md (for drift detection). */
+export function hashClaudeRecentChanges(claudeMd: string, limit = 5): string {
+  const recent = extractRecentChanges(claudeMd, limit);
+  return createHash('sha256').update(recent).digest('hex').slice(0, 16);
+}
+
+export function readClaudeRecentChangesHash(projectDir: string, limit = 5): string | null {
+  const claudePath = join(projectDir, 'CLAUDE.md');
+  if (!existsSync(claudePath)) return null;
+  return hashClaudeRecentChanges(readFileSync(claudePath, 'utf8'), limit);
 }
 
 function loadPolicyPack(): string {

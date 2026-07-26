@@ -546,6 +546,7 @@ export async function setupProject(
       forceAgentsMd: !!options.force,
       forceMcp: !!options.force,
       forceCursorRules: true,
+      forceKimiLocal: true,
       updateIfNeeded: true,
     });
     if (sync.agentsMdWritten) {
@@ -556,6 +557,7 @@ export async function setupProject(
       `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks` +
         (sync.agentsMdWritten ? ' + AGENTS.md' : '') +
         (sync.cursorRules.written ? ' + Cursor rules' : '') +
+        (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ' + Kimi local' : '') +
         (sync.mcp.kimiWritten || sync.mcp.grokWritten || sync.mcp.cursorWritten
           ? ' + MCP targets'
           : '')

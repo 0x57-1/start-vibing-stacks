@@ -1,12 +1,16 @@
 /**
- * Sync multi-target artefacts: AGENTS.md + MCP side-cars + Cursor rules + manifest
+ * Sync multi-target artefacts: AGENTS.md + MCP + Cursor rules + Kimi local + manifest
  */
 
 import { createHash } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { generateAgentsMd, bundledAgentsMdVersion } from './agents-md.js';
+import {
+  generateAgentsMd,
+  bundledAgentsMdVersion,
+  readClaudeRecentChangesHash,
+} from './agents-md.js';
 import {
   agentsMdNeedsUpdate,
   defaultManifest,
@@ -24,6 +28,13 @@ import {
   cursorRulesNeedsUpdate,
   exportCursorRules,
 } from './cursor-rules.js';
+import {
+  exportKimiLocal,
+  ensureKimiLocalGitignore,
+  kimiLocalNeedsUpdate,
+  KIMI_LOCAL_VERSION,
+} from './kimi-local.js';
+import { recentChangesDrifted } from './status.js';
 import type { MigrateTarget } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
 
@@ -41,15 +52,11 @@ export function packageVersion(): string {
 }
 
 export interface SyncTargetsOptions {
-  /** Force regenerate AGENTS.md */
   forceAgentsMd?: boolean;
-  /** Force rewrite MCP side-cars + Grok rules */
   forceMcp?: boolean;
-  /** Force rewrite .cursor/rules/svs-policy.mdc */
   forceCursorRules?: boolean;
-  /** When true (default), regenerate only if missing or outdated */
+  forceKimiLocal?: boolean;
   updateIfNeeded?: boolean;
-  /** Limit which targets get artefacts (default all non-claude) */
   migrateTarget?: MigrateTarget;
 }
 
@@ -57,6 +64,7 @@ export interface SyncTargetsResult {
   agentsMdWritten: boolean;
   agentsMdVersion: string;
   agentsMdHash: string;
+  claudeRcHash?: string;
   manifestWritten: boolean;
   mcp: {
     kimiWritten: boolean;
@@ -71,12 +79,17 @@ export interface SyncTargetsResult {
     version: string;
     skippedReason?: string;
   };
+  kimiLocal: {
+    exampleWritten: boolean;
+    localWritten: boolean;
+    localUpdated: boolean;
+    gitignoreUpdated: boolean;
+    version: string;
+    skippedReason?: string;
+  };
   skippedReason?: string;
 }
 
-/**
- * Ensure AGENTS.md + MCP side-cars + Cursor rules + manifest exist / are refreshed.
- */
 export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): SyncTargetsResult {
   const target = opts.migrateTarget ?? 'all';
   const syncAgents =
@@ -84,28 +97,36 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
   const syncMcp =
     target === 'all' || target === 'kimi' || target === 'grok' || target === 'cursor';
   const syncCursorRules = target === 'all' || target === 'cursor';
+  const syncKimi = target === 'all' || target === 'kimi';
 
   const bundled = bundledAgentsMdVersion();
   const need = agentsMdNeedsUpdate(projectDir, bundled);
+  const rcDrift = recentChangesDrifted(projectDir);
   const updateIfNeeded = opts.updateIfNeeded !== false;
   const shouldWriteAgents =
     syncAgents &&
-    (opts.forceAgentsMd === true || (updateIfNeeded && (need.missing || need.outdated)));
+    (opts.forceAgentsMd === true ||
+      (updateIfNeeded && (need.missing || need.outdated || rcDrift)));
 
   let agentsMdWritten = false;
   let hash = '';
+  let claudeRcHash: string | undefined;
   let skippedReason: string | undefined;
 
   if (shouldWriteAgents) {
     const r = generateAgentsMd(projectDir, { force: true });
     agentsMdWritten = r.written;
     hash = r.hash;
+    claudeRcHash = r.claudeRcHash;
   } else if (syncAgents) {
-    skippedReason = `AGENTS.md current (svs-version ${need.installedVersion ?? '?'} >= ${bundled})`;
+    skippedReason = rcDrift
+      ? 'AGENTS.md RC drift detected but force not set'
+      : `AGENTS.md current (svs-version ${need.installedVersion ?? '?'} >= ${bundled})`;
     const p = join(projectDir, 'AGENTS.md');
     if (existsSync(p)) {
       hash = createHash('sha256').update(readFileSync(p, 'utf8')).digest('hex').slice(0, 16);
     }
+    claudeRcHash = readClaudeRecentChangesHash(projectDir) ?? undefined;
   }
 
   const mcpNeed = mcpExportNeedsUpdate(projectDir);
@@ -155,10 +176,41 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
           : 'skipped (target≠cursor/all)',
       };
 
+  const kimiNeed = kimiLocalNeedsUpdate(projectDir);
+  const shouldWriteKimi =
+    syncKimi &&
+    (opts.forceKimiLocal === true ||
+      (updateIfNeeded &&
+        (kimiNeed.exampleMissing || kimiNeed.localMissing || kimiNeed.blockMissing)));
+
+  let kimiLocalResult: {
+    exampleWritten: boolean;
+    localWritten: boolean;
+    localUpdated: boolean;
+    version: string;
+    skippedReason?: string;
+  } = {
+    exampleWritten: false,
+    localWritten: false,
+    localUpdated: false,
+    version: KIMI_LOCAL_VERSION,
+    skippedReason: syncKimi
+      ? shouldWriteKimi
+        ? undefined
+        : 'Kimi local.toml SVS block current'
+      : 'skipped (target≠kimi/all)',
+  };
+  let gitignoreUpdated = false;
+  if (shouldWriteKimi) {
+    kimiLocalResult = exportKimiLocal(projectDir, { force: opts.forceKimiLocal === true });
+    gitignoreUpdated = ensureKimiLocalGitignore(projectDir);
+  }
+
   const prev = readManifest(projectDir);
   const manifest = defaultManifest(packageVersion(), {
     version: AGENTS_MD_GENERATOR_VERSION,
     hash: hash || prev?.agentsMd?.hash,
+    claudeRcHash: claudeRcHash || prev?.agentsMd?.claudeRcHash,
   });
   if (prev?.targets) {
     manifest.targets = {
@@ -190,13 +242,26 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
       ...manifest.targets.cursor,
       enabled: true,
       rulesVersion: CURSOR_RULES_VERSION,
-      mcpVersion: mcp.cursorWritten
-        ? MCP_EXPORT_VERSION
-        : prev?.targets?.cursor?.mcpVersion,
+      mcpVersion: mcp.cursorWritten ? MCP_EXPORT_VERSION : prev?.targets?.cursor?.mcpVersion,
     };
     manifest.cursorRules = { version: CURSOR_RULES_VERSION };
   } else if (prev?.cursorRules) {
     manifest.cursorRules = prev.cursorRules;
+  }
+
+  if (
+    kimiLocalResult.localWritten ||
+    kimiLocalResult.localUpdated ||
+    existsSync(join(projectDir, '.kimi-code', 'local.toml'))
+  ) {
+    manifest.kimiLocal = { version: KIMI_LOCAL_VERSION };
+    manifest.targets.kimi = {
+      ...manifest.targets.kimi,
+      enabled: true,
+      rulesVersion: KIMI_LOCAL_VERSION,
+    };
+  } else if (prev?.kimiLocal) {
+    manifest.kimiLocal = prev.kimiLocal;
   }
 
   const hasMcpSidecars =
@@ -217,12 +282,17 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     agentsMdWritten,
     agentsMdVersion: AGENTS_MD_GENERATOR_VERSION,
     agentsMdHash: hash,
+    claudeRcHash,
     manifestWritten: true,
     mcp,
     cursorRules: {
       written: cursorRules.written,
       version: cursorRules.version,
       skippedReason: cursorRules.skippedReason,
+    },
+    kimiLocal: {
+      ...kimiLocalResult,
+      gitignoreUpdated,
     },
     skippedReason,
   };

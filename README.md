@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.51.0** — Phase 4: Cursor `.cursor/rules/svs-policy.mdc` (alwaysApply) from policy pack; `migrate --target cursor`; resume Sync Cursor.
+> Latest: **v2.52.0** — Phase 5: Kimi `.kimi-code/local.toml` (skills from `.claude/skills`, gitignored) + AGENTS.md Recent Changes drift sync + TARGET STATUS on migrate/resume.
 
 ---
 
