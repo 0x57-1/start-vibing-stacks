@@ -1,12 +1,12 @@
 # Start Vibing Stacks
 
-Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs agents, skills, hooks, and quality gates tailored to your stack.
+Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Cursor**. One command installs agents, skills, hooks, and quality gates tailored to your stack.
 
 ```bash
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.48.1** — Resume menu **Update from package** (= `migrate --apply`). Reminder: publishing a new npm version does not rewrite project `.claude/` until you migrate.
+> Latest: **v2.49.0** — Phase 1 multi-target: resume Launch **Claude / Kimi / Grok** (PATH), generates root `AGENTS.md` + `.claude/config/svs-manifest.json`, migrate refreshes AGENTS when outdated.
 
 ---
 

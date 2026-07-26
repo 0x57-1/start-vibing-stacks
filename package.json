@@ -1,7 +1,7 @@
 {
   "name": "start-vibing-stacks",
-  "version": "2.48.1",
-  "description": "AI-powered multi-stack dev workflow for Claude Code. Supports PHP, Node.js, Python and more.",
+  "version": "2.49.0",
+  "description": "AI-powered multi-stack dev workflow for Claude Code, Kimi Code, and Grok. Supports PHP, Node.js, Python and more.",
   "type": "module",
   "bin": {
     "start-vibing-stacks": "dist/index.js",

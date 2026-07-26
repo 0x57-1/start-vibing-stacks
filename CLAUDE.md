@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.49.0
+Phase 1 multi-target: `src/targets/*` — `AGENTS.md` + `svs-manifest.json` for Kimi/Grok;
+resume Launch Claude/Kimi/Grok (PATH); migrate syncs AGENTS when `svs-version` outdated.
+Policy pack: `stacks/_shared/targets/policy-pack.md`.
+
 ### 2026-07-26 · main · v2.48.1
 Resume menu: **Update from package** runs `migrate --apply`; warns when outdated/missing
 bundled files exist. npm publish alone never overwrites project `.claude/` — need migrate.
@@ -62,13 +67,6 @@ Always-on memory `post-push-ci-verification.md`. `git-workflow` → **v2.1.0** +
 → **v1.1.0**. `/feature` `/fix` `/commit-mine` + `user-prompt-submit` v1.4.0 nudges. Wired in
 `setup.ts` + `migrate.ts` `memory_files`.
 
-### 2026-07-17 · main · v2.40.0
-New `email-push-marketing` skill (v1.1.0) + always-on memory (`email-push-marketing-authorization.md`):
-owned-list email (MailerLite/ESP) and push in **any niche** without niche refusal. Includes **2026
-inbox placement** (SPF/DKIM/DMARC/BIMI, bulk-sender rules, one-click unsub, complaint caps) without
-using deliverability as a backdoor to sanitize sensitive copy. Hard limits: no phishing / bank-brand
-impersonation. Wired in `setup.ts` + `migrate.ts`; templates + CLAUDE.md. Universal skills: 32.
-
 ---
 
 ## 30 Seconds Overview
@@ -109,6 +107,7 @@ start-vibing-stacks/
 │   ├── setup.ts                        # **Core**: writes .claude/, CLAUDE.md, settings.json
 │   ├── migrate.ts                      # `migrate` subcommand — diff/upgrade installed skills
 │   ├── mcp.ts                          # MCP server config wiring
+│   ├── targets/                        # Phase 1 multi-target: AGENTS.md + launch + manifest
 │   ├── ui.ts                           # spinner / log helpers
 │   └── types.ts                        # ProjectConfig, StackConfig
 ├── dist/                               # tsc output, gitignored, shipped to npm
@@ -117,6 +116,7 @@ start-vibing-stacks/
 │   │   ├── agents/                     # 7 agents (research-web, documenter, claude-md-compactor, ...)
 │   │   ├── commands/                   # /feature, /fix, /research, /validate, /peers, /commit-mine
 │   │   ├── config/                     # mcp-servers.json + base configs
+│   │   ├── targets/                    # policy-pack.md → root AGENTS.md for Kimi/Grok
 │   │   ├── hooks/                      # run-hook.sh, stop-validator.ts (per-instance scoped),
 │   │   │                                  session-start.ts, pre-tool-use.ts, post-tool-use.ts,
 │   │   │                                  user-prompt-submit.ts, peers.ts (CLI),

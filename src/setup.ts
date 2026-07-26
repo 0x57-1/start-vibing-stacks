@@ -540,8 +540,16 @@ export async function setupProject(
       }
     }
 
+    // 16. Multi-target Phase 1: AGENTS.md (Kimi/Grok) + svs-manifest.json
+    const { syncTargets } = await import('./targets/index.js');
+    const sync = syncTargets(projectDir, { forceAgentsMd: !!options.force, updateIfNeeded: true });
+    if (sync.agentsMdWritten) {
+      spinner.text = `Wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) for Kimi/Grok`;
+    }
+
     spinner.succeed(
-      `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks`
+      `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks` +
+        (sync.agentsMdWritten ? ' + AGENTS.md' : '')
     );
 
     return true;

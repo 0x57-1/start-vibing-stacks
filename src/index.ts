@@ -55,8 +55,10 @@ if (FLAGS.help) {
 
   ${chalk.bold('Commands:')}
     (default)         Setup or resume current project
-                      (resume menu includes Update = migrate --apply)
+                      Resume: Launch Claude/Kimi/Grok · Update (migrate --apply)
+                      · Regenerate AGENTS.md
     migrate           Compare installed vs bundled skill/agent/memory versions
+                      Also syncs AGENTS.md + svs-manifest for Kimi/Grok
                       Add --apply to update outdated/missing items
                       (npm publish alone does NOT update project .claude/)
 
@@ -131,13 +133,33 @@ async function main(): Promise<void> {
       const pending = planMigration(projectDir, { apply: false }).filter(
         (it) => it.status === 'outdated' || it.status === 'missing'
       );
+      const { availableLaunchTargets, launchTarget, agentsMdNeedsUpdate, bundledAgentsMdVersion, syncTargets } =
+        await import('./targets/index.js');
+      const agentsNeed = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
+      const agentsPending = agentsNeed.missing || agentsNeed.outdated;
+      const pendingTotal = pending.length + (agentsPending ? 1 : 0);
+
       const pendingLabel =
-        pending.length > 0
-          ? `📦  Update from package (${pending.length} outdated/missing) — migrate --apply`
+        pendingTotal > 0
+          ? `📦  Update from package (${pendingTotal} outdated/missing) — migrate --apply`
           : '📦  Update from package (migrate --apply)';
-      if (pending.length > 0) {
-        ui.warn(`${pending.length} bundled file(s) newer than this project — choose Update, or: npx start-vibing-stacks migrate --apply`);
+      if (pendingTotal > 0) {
+        ui.warn(
+          `${pendingTotal} bundled artefact(s) newer than this project — choose Update, or: npx start-vibing-stacks migrate --apply`
+        );
       }
+
+      const launchChoices = availableLaunchTargets().map((t) => {
+        const icon = t.id === 'claude' ? '🚀' : t.id === 'kimi' ? '🌙' : '⚡';
+        return { name: `${icon}  Launch ${t.label}`, value: `launch:${t.id}` };
+      });
+      if (launchChoices.length === 0) {
+        launchChoices.push({
+          name: '🚀  Launch Claude Code (install `claude` on PATH first)',
+          value: 'launch:claude',
+        });
+      }
+
       console.log('');
 
       const { action } = await inquirer.prompt([
@@ -146,8 +168,9 @@ async function main(): Promise<void> {
           name: 'action',
           message: 'What do you want to do?',
           choices: [
-            { name: '🚀  Launch Claude Code', value: 'launch' },
+            ...launchChoices,
             { name: pendingLabel, value: 'migrate' },
+            { name: '📄  Regenerate AGENTS.md (Kimi/Grok)', value: 'sync-agents' },
             { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
             { name: '❌  Exit', value: 'exit' },
           ],
@@ -160,21 +183,31 @@ async function main(): Promise<void> {
         process.exit(0);
       }
 
-      if (action === 'launch') {
-        if (!FLAGS.noClaude) {
-          console.log(chalk.dim('\n  Launching Claude Code...\n'));
-          const { execSync: run } = await import('child_process');
-          try {
-            // Launch convenience only — project settings.json stays defaultMode: plan.
-            // Persistent opt-in: cp .claude/settings.local.example.json .claude/settings.local.json
-            run('claude --dangerously-skip-permissions', {
-              cwd: projectDir,
-              stdio: 'inherit',
-              env: { ...process.env },
-            });
-          } catch {
-            ui.info('Claude Code session ended.');
-          }
+      if (action === 'sync-agents') {
+        const sync = syncTargets(projectDir, { forceAgentsMd: true });
+        if (sync.agentsMdWritten) {
+          ui.success(`Wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) + svs-manifest.json`);
+        } else {
+          ui.info(sync.skippedReason || 'AGENTS.md unchanged');
+        }
+        process.exit(0);
+      }
+
+      if (typeof action === 'string' && action.startsWith('launch:')) {
+        const targetId = action.slice('launch:'.length) as 'claude' | 'kimi' | 'grok';
+        if (targetId === 'claude' && FLAGS.noClaude) {
+          process.exit(0);
+        }
+        // Ensure AGENTS.md exists before launching Kimi/Grok
+        if (targetId === 'kimi' || targetId === 'grok') {
+          syncTargets(projectDir, { updateIfNeeded: true });
+        }
+        console.log(chalk.dim(`\n  Launching ${targetId}...\n`));
+        const result = launchTarget(projectDir, targetId);
+        if (!result.ok) {
+          ui.warn(result.message || 'Launch failed');
+        } else if (result.message) {
+          ui.info(result.message);
         }
         process.exit(0);
       }

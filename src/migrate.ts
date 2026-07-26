@@ -660,6 +660,12 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const settingsPreview = patchSettings(projectDir, true);
   const runtimePreview = ensureRuntimeArtefacts(projectDir, true);
 
+  // Multi-target Phase 1: AGENTS.md + svs-manifest freshness
+  const { agentsMdNeedsUpdate, bundledAgentsMdVersion } = await import('./targets/index.js');
+  const agentsBundled = bundledAgentsMdVersion();
+  const agentsNeed = agentsMdNeedsUpdate(projectDir, agentsBundled);
+  const agentsPending = agentsNeed.missing || agentsNeed.outdated;
+
   if (settingsPreview.added.length > 0) {
     console.log('\n  SETTINGS.JSON — will add hook entries:');
     for (const ev of settingsPreview.added) console.log(`    + ${ev}`);
@@ -678,6 +684,13 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
   }
+  if (agentsPending) {
+    console.log('\n  TARGETS (Kimi/Grok):');
+    console.log(
+      `    AGENTS.md  installed=${agentsNeed.installedVersion ?? '–'}  bundled=${agentsBundled}` +
+        (agentsNeed.missing ? '  (missing)' : '  (outdated)')
+    );
+  }
 
   const upgradable = [
     ...grouped.missing,
@@ -689,7 +702,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const nothingRuntime =
     runtimePreview.created.length === 0 && runtimePreview.copied.length === 0 && !runtimePreview.gitignoreUpdated;
 
-  if (nothingFile && nothingSettings && nothingRuntime) {
+  if (nothingFile && nothingSettings && nothingRuntime && !agentsPending) {
     console.log('');
     ui.success('Everything up to date.');
     return;
@@ -701,6 +714,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (upgradable.length > 0) todo.push(`${upgradable.length} file(s)`);
     if (settingsPreview.added.length > 0) todo.push(`${settingsPreview.added.length} settings entry(ies)`);
     if (!nothingRuntime) todo.push('runtime artefacts');
+    if (agentsPending) todo.push('AGENTS.md / svs-manifest');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -745,10 +759,23 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     );
   }
 
+  // Multi-target: regenerate AGENTS.md + manifest when missing/outdated (or always refresh manifest)
+  const { syncTargets } = await import('./targets/index.js');
+  const sync = syncTargets(projectDir, {
+    forceAgentsMd: agentsPending,
+    updateIfNeeded: true,
+  });
+  if (sync.agentsMdWritten) {
+    ui.success(`targets: wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) + svs-manifest.json`);
+  } else if (sync.manifestWritten) {
+    ui.success('targets: refreshed svs-manifest.json');
+  }
+
   console.log('');
   ui.success(
     `Migration complete: ${updated} file(s), ${settingsApply.added.length} settings entry(ies)` +
-      (legacyUpdated > 0 ? `, ${legacyUpdated} legacy file(s) overwritten with backup` : '')
+      (legacyUpdated > 0 ? `, ${legacyUpdated} legacy file(s) overwritten with backup` : '') +
+      (sync.agentsMdWritten ? ', AGENTS.md' : '')
   );
 
   if (grouped['modified-no-version'].length > 0) {
