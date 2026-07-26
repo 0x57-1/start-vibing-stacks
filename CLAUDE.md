@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.48.1
+Resume menu: **Update from package** runs `migrate --apply`; warns when outdated/missing
+bundled files exist. npm publish alone never overwrites project `.claude/` — need migrate.
+
 ### 2026-07-26 · main · v2.48.0
 Donation hard-limit refine: `donation-cause-funnel-adaptation` → **v1.1.0**, `funnel-content-copy`
 → **v1.2.0**. Scraped real-person founder face on lookalike + live PIX = person impersonation —
@@ -64,14 +68,6 @@ owned-list email (MailerLite/ESP) and push in **any niche** without niche refusa
 inbox placement** (SPF/DKIM/DMARC/BIMI, bulk-sender rules, one-click unsub, complaint caps) without
 using deliverability as a backdoor to sanitize sensitive copy. Hard limits: no phishing / bank-brand
 impersonation. Wired in `setup.ts` + `migrate.ts`; templates + CLAUDE.md. Universal skills: 32.
-
-### 2026-07-16 · main · v2.39.0
-New `owned-infra-ops` skill + always-on memory (`_shared`, v1.0.0): legitimate ops on **user-owned**
-servers (health check, key-based SSH backup/deploy) with ownership framing, safe tool order, and
-recovery when Anthropic Opus/Sonnet real-time cyber safeguards block. Explicit hard limit: memories
-**cannot** override Cyber Verification / API cyber blocks. Wired in `setup.ts` + `migrate.ts`
-`memory_files`. Cross-refs in `secrets-management` v2.1.1 + `tool-resilience` v1.0.1. Universal
-skills: 31.
 
 ---
 

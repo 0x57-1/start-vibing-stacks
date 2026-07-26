@@ -55,8 +55,10 @@ if (FLAGS.help) {
 
   ${chalk.bold('Commands:')}
     (default)         Setup or resume current project
-    migrate           Compare installed vs bundled skill/agent versions
+                      (resume menu includes Update = migrate --apply)
+    migrate           Compare installed vs bundled skill/agent/memory versions
                       Add --apply to update outdated/missing items
+                      (npm publish alone does NOT update project .claude/)
 
   ${chalk.bold('Options:')}
     --force           Overwrite existing configuration (default command)
@@ -122,6 +124,20 @@ async function main(): Promise<void> {
       const existing = JSON.parse(readFileSync(activeProjectPath, 'utf8'));
       ui.success(`Project already configured: ${existing.name || projectName}`);
       ui.info(`Stack: ${existing.stack} | Framework: ${existing.framework} | DB: ${existing.database}`);
+
+      // Surface pending package updates (memories/skills/etc.) — resume alone never
+      // overwrites .claude/; users must migrate --apply (or pick the menu option).
+      const { planMigration } = await import('./migrate.js');
+      const pending = planMigration(projectDir, { apply: false }).filter(
+        (it) => it.status === 'outdated' || it.status === 'missing'
+      );
+      const pendingLabel =
+        pending.length > 0
+          ? `📦  Update from package (${pending.length} outdated/missing) — migrate --apply`
+          : '📦  Update from package (migrate --apply)';
+      if (pending.length > 0) {
+        ui.warn(`${pending.length} bundled file(s) newer than this project — choose Update, or: npx start-vibing-stacks migrate --apply`);
+      }
       console.log('');
 
       const { action } = await inquirer.prompt([
@@ -131,11 +147,18 @@ async function main(): Promise<void> {
           message: 'What do you want to do?',
           choices: [
             { name: '🚀  Launch Claude Code', value: 'launch' },
+            { name: pendingLabel, value: 'migrate' },
             { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
             { name: '❌  Exit', value: 'exit' },
           ],
         },
       ]);
+
+      if (action === 'migrate') {
+        const { runMigrate } = await import('./migrate.js');
+        await runMigrate(projectDir, { apply: true, forceHooks: FLAGS.forceHooks });
+        process.exit(0);
+      }
 
       if (action === 'launch') {
         if (!FLAGS.noClaude) {

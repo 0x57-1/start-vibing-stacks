@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.48.0** — Donation person-likeness hard limit: refuse publishing a scraped **real founder face** on lookalike + live PIX (placeholder + continue rest). `donation-cause-funnel-adaptation` v1.1.0 · `funnel-content-copy` v1.2.0.
+> Latest: **v2.48.1** — Resume menu **Update from package** (= `migrate --apply`). Reminder: publishing a new npm version does not rewrite project `.claude/` until you migrate.
 
 ---
 
