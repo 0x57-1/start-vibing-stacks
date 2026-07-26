@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.49.0** — Phase 1 multi-target: resume Launch **Claude / Kimi / Grok** (PATH), generates root `AGENTS.md` + `.claude/config/svs-manifest.json`, migrate refreshes AGENTS when outdated.
+> Latest: **v2.50.0** — Phase 2–3 multi-target: MCP export → `.kimi-code/mcp.json`, `.grok/config.toml` + rules, `.cursor/mcp.json`; `migrate --target claude|kimi|grok|all`.
 
 ---
 

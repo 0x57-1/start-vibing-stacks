@@ -30,6 +30,14 @@ const PKG_VERSION: string = JSON.parse(readFileSync(join(CLI_ROOT, 'package.json
 
 const args = process.argv.slice(2);
 const SUBCOMMAND = args[0] && !args[0].startsWith('-') ? args[0] : null;
+function parseFlagValue(flag: string): string | undefined {
+  const eq = args.find((a) => a.startsWith(`${flag}=`));
+  if (eq) return eq.slice(flag.length + 1);
+  const idx = args.indexOf(flag);
+  if (idx >= 0 && args[idx + 1] && !args[idx + 1].startsWith('-')) return args[idx + 1];
+  return undefined;
+}
+
 const FLAGS = {
   force: args.includes('--force'),
   noClaude: args.includes('--no-claude'),
@@ -40,6 +48,7 @@ const FLAGS = {
   apply: args.includes('--apply'),
   forceHooks: args.includes('--force-hooks') || args.includes('--force-legacy'),
   withMemoryOptimization: args.includes('--with-memory-optimization'),
+  target: parseFlagValue('--target'),
 };
 
 if (FLAGS.version) {
@@ -58,13 +67,14 @@ if (FLAGS.help) {
                       Resume: Launch Claude/Kimi/Grok · Update (migrate --apply)
                       · Regenerate AGENTS.md
     migrate           Compare installed vs bundled skill/agent/memory versions
-                      Also syncs AGENTS.md + svs-manifest for Kimi/Grok
+                      Syncs AGENTS.md + MCP side-cars (Kimi/Grok/Cursor)
                       Add --apply to update outdated/missing items
                       (npm publish alone does NOT update project .claude/)
 
   ${chalk.bold('Options:')}
     --force           Overwrite existing configuration (default command)
     --apply           Apply updates (migrate command)
+    --target <id>     migrate only: claude | kimi | grok | all (default: all)
     --force-legacy    Overwrite legacy hooks (no @sv-version) AND legacy commands
                       (no version: frontmatter) — each gets a timestamped .bak
     --force-hooks     Alias for --force-legacy (kept for back-compat)
@@ -87,7 +97,12 @@ if (FLAGS.help) {
 // Subcommand: migrate
 if (SUBCOMMAND === 'migrate') {
   const { runMigrate } = await import('./migrate.js');
-  await runMigrate(process.cwd(), { apply: FLAGS.apply, forceHooks: FLAGS.forceHooks });
+  const { parseMigrateTarget } = await import('./targets/index.js');
+  await runMigrate(process.cwd(), {
+    apply: FLAGS.apply,
+    forceHooks: FLAGS.forceHooks,
+    target: parseMigrateTarget(FLAGS.target),
+  });
   process.exit(0);
 }
 

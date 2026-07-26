@@ -1,8 +1,10 @@
 /**
- * Multi-target adapters (Claude / Kimi / Grok) — Phase 1 types.
+ * Multi-target adapters (Claude / Kimi / Grok) — Phase 1–3 types.
  */
 
 export type TargetId = 'claude' | 'kimi' | 'grok';
+
+export type MigrateTarget = TargetId | 'all';
 
 export interface TargetLaunchSpec {
   id: TargetId;
@@ -20,16 +22,23 @@ export interface AgentsMdMeta {
   hash?: string;
 }
 
+export interface TargetManifestEntry {
+  enabled: boolean;
+  mcpVersion?: string;
+  rulesVersion?: string;
+}
+
 export interface SvsManifest {
   /** npm package version that last wrote this manifest */
   packageVersion: string;
   updatedAt: string;
   targets: {
-    claude: { enabled: boolean };
-    kimi: { enabled: boolean };
-    grok: { enabled: boolean };
+    claude: TargetManifestEntry;
+    kimi: TargetManifestEntry;
+    grok: TargetManifestEntry;
   };
   agentsMd: AgentsMdMeta;
+  mcpExport?: { version: string };
 }
 
 export const AGENTS_MD_GENERATOR_VERSION = '1.0.0';
@@ -55,3 +64,10 @@ export const LAUNCH_SPECS: TargetLaunchSpec[] = [
     args: [],
   },
 ];
+
+export function parseMigrateTarget(raw: string | undefined | null): MigrateTarget {
+  if (!raw) return 'all';
+  const v = raw.trim().toLowerCase();
+  if (v === 'all' || v === 'claude' || v === 'kimi' || v === 'grok') return v;
+  return 'all';
+}

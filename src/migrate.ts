@@ -69,6 +69,8 @@ export interface MigrateOptions {
   apply: boolean;
   scope?: 'skills' | 'agents' | 'hooks' | 'commands' | 'memories' | 'all';
   forceHooks?: boolean;
+  /** Multi-target: claude | kimi | grok | all (default all) */
+  target?: 'claude' | 'kimi' | 'grok' | 'all';
 }
 
 interface ProjectConfig {
@@ -623,9 +625,12 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
  * -------------------------------------------------------------------------*/
 
 export async function runMigrate(projectDir: string, opts: MigrateOptions): Promise<void> {
-  ui.header('🔄 Start Vibing — Migrate');
+  const migrateTarget = opts.target ?? 'all';
+  ui.header(`🔄 Start Vibing — Migrate (target=${migrateTarget})`);
 
-  const items = planMigration(projectDir, opts);
+  const skipClaudeFiles = migrateTarget === 'kimi' || migrateTarget === 'grok';
+
+  const items = skipClaudeFiles ? [] : planMigration(projectDir, opts);
 
   const grouped: Record<Status, MigrateItem[]> = {
     missing: [],
@@ -649,22 +654,41 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (list.length > 30) console.log(`    ... and ${list.length - 30} more`);
   };
 
-  summary('MISSING', grouped.missing);
-  summary('OUTDATED', grouped.outdated);
-  summary('NEEDS UPDATE — legacy (hooks without @sv-version, commands without version: frontmatter)', grouped['needs-update-legacy']);
-  summary('AHEAD (installed newer than bundled — kept)', grouped.ahead);
-  summary('UNVERSIONED (manual review)', grouped['modified-no-version']);
-  summary('CURRENT', grouped.current);
+  if (!skipClaudeFiles) {
+    summary('MISSING', grouped.missing);
+    summary('OUTDATED', grouped.outdated);
+    summary('NEEDS UPDATE — legacy (hooks without @sv-version, commands without version: frontmatter)', grouped['needs-update-legacy']);
+    summary('AHEAD (installed newer than bundled — kept)', grouped.ahead);
+    summary('UNVERSIONED (manual review)', grouped['modified-no-version']);
+    summary('CURRENT', grouped.current);
+  } else {
+    console.log(`\n  (skipping Claude skill/agent/hook/memory file scan — target=${migrateTarget})`);
+  }
 
-  // Settings.json + runtime — preview always, regardless of items.
-  const settingsPreview = patchSettings(projectDir, true);
-  const runtimePreview = ensureRuntimeArtefacts(projectDir, true);
+  // Settings.json + runtime — Claude targets only
+  const settingsPreview = skipClaudeFiles
+    ? { added: [] as string[], alreadyPresent: [] as string[], error: undefined as string | undefined }
+    : patchSettings(projectDir, true);
+  const runtimePreview = skipClaudeFiles
+    ? { created: [] as string[], copied: [] as string[], gitignoreUpdated: false }
+    : ensureRuntimeArtefacts(projectDir, true);
 
-  // Multi-target Phase 1: AGENTS.md + svs-manifest freshness
-  const { agentsMdNeedsUpdate, bundledAgentsMdVersion } = await import('./targets/index.js');
+  // Multi-target: AGENTS.md + MCP side-cars freshness
+  const {
+    agentsMdNeedsUpdate,
+    bundledAgentsMdVersion,
+    mcpExportNeedsUpdate,
+    MCP_EXPORT_VERSION,
+  } = await import('./targets/index.js');
   const agentsBundled = bundledAgentsMdVersion();
   const agentsNeed = agentsMdNeedsUpdate(projectDir, agentsBundled);
-  const agentsPending = agentsNeed.missing || agentsNeed.outdated;
+  const agentsPending =
+    (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok') &&
+    (agentsNeed.missing || agentsNeed.outdated);
+  const mcpNeed = mcpExportNeedsUpdate(projectDir);
+  const mcpPending =
+    (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok') &&
+    (mcpNeed.missing || mcpNeed.outdated);
 
   if (settingsPreview.added.length > 0) {
     console.log('\n  SETTINGS.JSON — will add hook entries:');
@@ -684,12 +708,20 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
   }
-  if (agentsPending) {
-    console.log('\n  TARGETS (Kimi/Grok):');
-    console.log(
-      `    AGENTS.md  installed=${agentsNeed.installedVersion ?? '–'}  bundled=${agentsBundled}` +
-        (agentsNeed.missing ? '  (missing)' : '  (outdated)')
-    );
+  if (agentsPending || mcpPending) {
+    console.log('\n  TARGETS (Kimi/Grok/Cursor):');
+    if (agentsPending) {
+      console.log(
+        `    AGENTS.md  installed=${agentsNeed.installedVersion ?? '–'}  bundled=${agentsBundled}` +
+          (agentsNeed.missing ? '  (missing)' : '  (outdated)')
+      );
+    }
+    if (mcpPending) {
+      console.log(
+        `    MCP export installed=${mcpNeed.installedVersion ?? '–'}  bundled=${MCP_EXPORT_VERSION}` +
+          (mcpNeed.missing ? '  (side-cars missing)' : '  (outdated)')
+      );
+    }
   }
 
   const upgradable = [
@@ -702,7 +734,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const nothingRuntime =
     runtimePreview.created.length === 0 && runtimePreview.copied.length === 0 && !runtimePreview.gitignoreUpdated;
 
-  if (nothingFile && nothingSettings && nothingRuntime && !agentsPending) {
+  if (nothingFile && nothingSettings && nothingRuntime && !agentsPending && !mcpPending) {
     console.log('');
     ui.success('Everything up to date.');
     return;
@@ -715,6 +747,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (settingsPreview.added.length > 0) todo.push(`${settingsPreview.added.length} settings entry(ies)`);
     if (!nothingRuntime) todo.push('runtime artefacts');
     if (agentsPending) todo.push('AGENTS.md / svs-manifest');
+    if (mcpPending) todo.push('MCP side-cars (.kimi-code / .grok / .cursor)');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -742,9 +775,13 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     }
   }
 
-  // Apply settings + runtime.
-  const settingsApply = patchSettings(projectDir, false);
-  const runtimeApply = ensureRuntimeArtefacts(projectDir, false);
+  // Apply settings + runtime (Claude targets).
+  const settingsApply = skipClaudeFiles
+    ? { added: [] as string[], alreadyPresent: [] as string[], error: undefined as string | undefined }
+    : patchSettings(projectDir, false);
+  const runtimeApply = skipClaudeFiles
+    ? { created: [] as string[], copied: [] as string[], gitignoreUpdated: false }
+    : ensureRuntimeArtefacts(projectDir, false);
 
   for (const ev of settingsApply.added) ui.success(`settings.json: wired ${ev}`);
   if (settingsApply.error) ui.warn(settingsApply.error);
@@ -759,15 +796,28 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     );
   }
 
-  // Multi-target: regenerate AGENTS.md + manifest when missing/outdated (or always refresh manifest)
+  // Multi-target: AGENTS.md + MCP side-cars + manifest
   const { syncTargets } = await import('./targets/index.js');
   const sync = syncTargets(projectDir, {
-    forceAgentsMd: agentsPending,
+    forceAgentsMd: agentsPending || migrateTarget === 'kimi' || migrateTarget === 'grok',
+    forceMcp: mcpPending || migrateTarget === 'kimi' || migrateTarget === 'grok',
     updateIfNeeded: true,
+    migrateTarget,
   });
   if (sync.agentsMdWritten) {
-    ui.success(`targets: wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) + svs-manifest.json`);
-  } else if (sync.manifestWritten) {
+    ui.success(`targets: wrote AGENTS.md (svs-version ${sync.agentsMdVersion})`);
+  }
+  const mcpBits: string[] = [];
+  if (sync.mcp.kimiWritten) mcpBits.push('.kimi-code/mcp.json');
+  if (sync.mcp.grokWritten) mcpBits.push('.grok/config.toml');
+  if (sync.mcp.cursorWritten) mcpBits.push('.cursor/mcp.json');
+  if (sync.mcp.grokRulesWritten) mcpBits.push('.grok/rules/00-svs-policy.md');
+  if (mcpBits.length > 0) {
+    ui.success(`targets: MCP export → ${mcpBits.join(', ')} (${sync.mcp.serverCount} servers)`);
+  } else if (sync.mcp.skippedReason) {
+    ui.info(`targets MCP: ${sync.mcp.skippedReason}`);
+  }
+  if (sync.manifestWritten) {
     ui.success('targets: refreshed svs-manifest.json');
   }
 
@@ -775,7 +825,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   ui.success(
     `Migration complete: ${updated} file(s), ${settingsApply.added.length} settings entry(ies)` +
       (legacyUpdated > 0 ? `, ${legacyUpdated} legacy file(s) overwritten with backup` : '') +
-      (sync.agentsMdWritten ? ', AGENTS.md' : '')
+      (sync.agentsMdWritten ? ', AGENTS.md' : '') +
+      (mcpBits.length > 0 ? ', MCP side-cars' : '')
   );
 
   if (grouped['modified-no-version'].length > 0) {

@@ -223,6 +223,22 @@ export async function installMcpServers(
 
   spinner.succeed(`${selectedIds.length} MCP servers configured`);
 
+  // Multi-target: mirror MCP to Kimi / Grok / Cursor
+  try {
+    const { exportMcpToTargets } = await import('./targets/index.js');
+    const exported = exportMcpToTargets(projectDir, { force: true });
+    const bits: string[] = [];
+    if (exported.kimiWritten) bits.push('.kimi-code/mcp.json');
+    if (exported.grokWritten) bits.push('.grok/config.toml');
+    if (exported.cursorWritten) bits.push('.cursor/mcp.json');
+    if (exported.grokRulesWritten) bits.push('.grok/rules/00-svs-policy.md');
+    if (bits.length > 0) {
+      ui.success(`MCP also exported for: ${bits.join(', ')}`);
+    }
+  } catch {
+    // Non-fatal — Claude MCP is already written
+  }
+
   // Show env var warnings
   const needsEnv = selectedIds.filter((id) => {
     const server = registry.servers[id];

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.50.0
+Phase 2–3 multi-target: MCP export to `.kimi-code/mcp.json`, `.grok/config.toml` (+ rules),
+`.cursor/mcp.json`; `migrate --target kimi|grok|claude|all`. Manifest stamps `mcpExport` only
+after side-cars exist.
+
 ### 2026-07-26 · main · v2.49.0
 Phase 1 multi-target: `src/targets/*` — `AGENTS.md` + `svs-manifest.json` for Kimi/Grok;
 resume Launch Claude/Kimi/Grok (PATH); migrate syncs AGENTS when `svs-version` outdated.
@@ -59,13 +64,6 @@ Cursor/IDE edit sync + versioning hygiene. Always-on memory `cursor-ide-edit-syn
 `run-hook.sh` (`# @sv-version`), `_state.README.md`, config `"$sv-version"`. migrate: shell
 `@sv-version` parse, gitignore `settings.local.json`, stage example + upgrade state README.
 `user-prompt-submit` → **v1.5.0**.
-
-### 2026-07-19 · main · v2.41.0
-Post-push **GitHub Actions** verification. `commit-manager` → **v3.2.0** (Step 5.5: `gh run
-list/watch` for pushed SHA; report deploy/release jobs; never claim success without CI status).
-Always-on memory `post-push-ci-verification.md`. `git-workflow` → **v2.1.0** + `ci-pipelines`
-→ **v1.1.0**. `/feature` `/fix` `/commit-mine` + `user-prompt-submit` v1.4.0 nudges. Wired in
-`setup.ts` + `migrate.ts` `memory_files`.
 
 ---
 

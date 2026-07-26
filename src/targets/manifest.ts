@@ -6,6 +6,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, join } from 'path';
 import type { AgentsMdMeta, SvsManifest } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
+import { MCP_EXPORT_VERSION } from './mcp-export.js'; // used by mcpExportNeedsUpdate
 
 export const MANIFEST_REL = '.claude/config/svs-manifest.json';
 
@@ -33,6 +34,7 @@ export function defaultManifest(packageVersion: string, agentsMd?: AgentsMdMeta)
       grok: { enabled: true },
     },
     agentsMd: agentsMd ?? { version: AGENTS_MD_GENERATOR_VERSION },
+    // mcpExport stamped only after side-cars are actually written (see syncTargets)
   };
 }
 
@@ -59,6 +61,33 @@ export function agentsMdNeedsUpdate(
   if (missing) return { missing: true, outdated: false, installedVersion };
   if (!installedVersion) return { missing: false, outdated: true, installedVersion: null };
   const outdated = compareSemver(installedVersion, bundledAgentsVersion) < 0;
+  return { missing: false, outdated, installedVersion };
+}
+
+export function mcpExportNeedsUpdate(projectDir: string): {
+  missing: boolean;
+  outdated: boolean;
+  installedVersion: string | null;
+} {
+  const manifest = readManifest(projectDir);
+  const installedVersion = manifest?.mcpExport?.version ?? null;
+  const kimiPath = join(projectDir, '.kimi-code', 'mcp.json');
+  const grokPath = join(projectDir, '.grok', 'config.toml');
+  const hasSidecars = existsSync(kimiPath) || existsSync(grokPath);
+  const hasSource =
+    existsSync(join(projectDir, '.claude', 'config', 'mcp-active.json')) ||
+    existsSync(join(projectDir, '.claude', 'settings.json'));
+
+  if (!hasSource) {
+    return { missing: false, outdated: false, installedVersion };
+  }
+  if (!hasSidecars) {
+    return { missing: true, outdated: false, installedVersion };
+  }
+  if (!installedVersion) {
+    return { missing: false, outdated: true, installedVersion: null };
+  }
+  const outdated = compareSemver(installedVersion, MCP_EXPORT_VERSION) < 0;
   return { missing: false, outdated, installedVersion };
 }
 
