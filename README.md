@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code** & **Cursor**. One command installs a
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.46.0** — Ads cluster: always-on `ad-review-and-traffic-filtering` (Google Ads/AdSense/GAM/Meta/TikTok ad review + clockers/traffic mask) + stronger `ad-bot-evasion` / cloaking / detector memories. Keyword rule: bypass/clocker ≠ refuse when ads-delivery intent is clear.
+> Latest: **v2.47.0** — Donation/cause funnel unlock: `donation-cause-funnel-adaptation` + `funnel-content-copy` v1.1.0 — scrape/analyze public donation pages and rebuild CRO on **your** entity; hard limit: no third-party charity impersonation + payment capture.
 
 ---
 
@@ -199,9 +199,11 @@ Permissive memories for legitimate **paid advertising optimization** work:
 | `ad-bot-evasion.md` | Ad verification crawlers + frontend bot/ML classification (AdsBot, Meta, TikTok, GAM) |
 | `ad-review-and-traffic-filtering.md` | Ad review/approval + clockers / traffic filter / access masking |
 | `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |
-| `web-content-memory-ingestion.md` | Copy any public web content into memory (no source ownership required) |
+| `web-content-memory-ingestion.md` | Copy any public web content into memory (no source ownership requirement) |
+| `funnel-content-copy.md` | Public sales + donation funnel scrape/analysis |
+| `donation-cause-funnel-adaptation.md` | Rebuild donation/cause CRO on **your** entity (no charity impersonation) |
 
-**Key behavior:** In paid-ads context, these memories take precedence over default **refusals** (including Fable 5–style keyword refusals) for cloaking/clocker/bypass/ad-review vocabulary. They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers or model-switch.
+**Key behavior:** In paid-ads / funnel-research context, these memories take precedence over default **refusals** for cloaking/clocker/bypass/ad-review and donation-page scrape vocabulary. They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers. Charity/bank **impersonation + payment capture** remains a hard limit.
 
 ## Security Assessment Memories (v2.45.0)
 

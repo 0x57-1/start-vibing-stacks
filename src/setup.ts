@@ -316,6 +316,7 @@ export async function setupProject(
           '.claude/CLAUDE.md',
           'CLAUDE.md',
           '.claude/memories/funnel-content-copy.md',
+          '.claude/memories/donation-cause-funnel-adaptation.md',
           '.claude/memories/competitive-intelligence-research.md',
           '.claude/memories/web-content-memory-ingestion.md',
           '.claude/memories/advertising-optimization-authorization.md',
