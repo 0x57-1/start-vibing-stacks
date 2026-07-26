@@ -1,5 +1,5 @@
 /**
- * Phase 5–6: Kimi project-local config (.kimi-code/local.toml + example).
+ * Phase 5–7: Kimi project-local config (.kimi-code/local.toml + example).
  * local.toml is machine-specific (absolute paths) — gitignored; example is committed.
  */
 
@@ -19,8 +19,12 @@ const EXAMPLE_SRC = join(
   'kimi-local.toml.example'
 );
 
-/** 1.1.0: + extra_agent_dirs → .claude/agents */
-export const KIMI_LOCAL_VERSION = '1.1.0';
+/**
+ * 1.2.0: default_permission_mode = yolo (parity with Claude Launch
+ * --dangerously-skip-permissions) so MCP/tool calls are not prompted every turn.
+ * Plan mode stays on (plan-then-act); exit plan still needs approval.
+ */
+export const KIMI_LOCAL_VERSION = '1.2.0';
 export const KIMI_LOCAL_REL = '.kimi-code/local.toml';
 export const KIMI_LOCAL_EXAMPLE_REL = '.kimi-code/local.toml.example';
 
@@ -41,8 +45,10 @@ function skillsBlock(projectDir: string): string {
     '# SVS:KIMI:START — managed by start-vibing-stacks migrate',
     `# svs-version: ${KIMI_LOCAL_VERSION}`,
     '# Root AGENTS.md = project instructions. MCP = .kimi-code/mcp.json',
+    '# yolo ≈ Claude --dangerously-skip-permissions (tools/MCP auto-approved).',
+    '# Plan mode still on — approve the plan once; tools inside the turn are auto-allowed.',
     'default_plan_mode = true',
-    'default_permission_mode = "manual"',
+    'default_permission_mode = "yolo"',
     'merge_all_available_skills = true',
     `extra_skill_dirs = [${JSON.stringify(skillsAbs)}]`,
     `extra_agent_dirs = [${JSON.stringify(agentsAbs)}]`,
@@ -65,7 +71,8 @@ export function kimiLocalNeedsUpdate(projectDir: string): {
     blockMissing =
       !SKILLS_BLOCK_RE.test(raw) ||
       !raw.includes(`svs-version: ${KIMI_LOCAL_VERSION}`) ||
-      !raw.includes('extra_agent_dirs');
+      !raw.includes('extra_agent_dirs') ||
+      !raw.includes('default_permission_mode = "yolo"');
   }
   return {
     exampleMissing: !existsSync(examplePath),
@@ -110,7 +117,8 @@ export function exportKimiLocal(
       if (
         opts.force ||
         !existing.includes(`svs-version: ${KIMI_LOCAL_VERSION}`) ||
-        !existing.includes('extra_agent_dirs')
+        !existing.includes('extra_agent_dirs') ||
+        !existing.includes('default_permission_mode = "yolo"')
       ) {
         writeFileSync(localPath, existing.replace(SKILLS_BLOCK_RE, block.trimEnd() + '\n'));
         localUpdated = true;

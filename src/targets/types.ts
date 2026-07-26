@@ -62,13 +62,15 @@ export const LAUNCH_SPECS: TargetLaunchSpec[] = [
     id: 'kimi',
     label: 'Kimi Code',
     bin: 'kimi',
-    args: [],
+    // Parity with Claude Launch --dangerously-skip-permissions (tools/MCP auto-approve).
+    args: ['--yolo'],
   },
   {
     id: 'grok',
     label: 'Grok',
     bin: 'grok',
-    args: [],
+    // Parity with Claude Launch bypass (--always-approve; alias --yolo).
+    args: ['--always-approve'],
   },
 ];
 

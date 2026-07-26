@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.56.0
+Kimi/Grok permission parity with Claude Launch: resume Launch uses `kimi --yolo` /
+`grok --always-approve`. Kimi local.toml → **v1.2.0** (`default_permission_mode = "yolo"`)
+so MCP/tools are not approved one-by-one; plan mode stays on.
+
 ### 2026-07-26 · main · v2.55.1
 MCP export → **v1.1.0**: merge `~/.claude.json` (+ project entry) and `~/.claude/settings.json`
 with project `.claude/` before writing Kimi/Grok/Cursor side-cars. Memory + policy pack note.
@@ -50,11 +55,6 @@ Policy pack: `stacks/_shared/targets/policy-pack.md`.
 ### 2026-07-26 · main · v2.48.1
 Resume menu: **Update from package** runs `migrate --apply`; warns when outdated/missing
 bundled files exist. npm publish alone never overwrites project `.claude/` — need migrate.
-
-### 2026-07-26 · main · v2.48.0
-Donation hard-limit refine: `donation-cause-funnel-adaptation` → **v1.1.0**, `funnel-content-copy`
-→ **v1.2.0**. Scraped real-person founder face on lookalike + live PIX = person impersonation —
-refuse asset only, placeholder + continue rest. Ads master → **v1.2.2**.
 
 ---
 

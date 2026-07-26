@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.55.1** — MCP export merges `~/.claude.json` (user-global) + project `.claude/` into Kimi/Grok/Cursor side-cars.
+> Latest: **v2.56.0** — Kimi/Grok Launch permission parity: `kimi --yolo`, `grok --always-approve`; Kimi `local.toml` `default_permission_mode = "yolo"` (MCP no longer prompts every call).
 
 ---
 
