@@ -1,5 +1,5 @@
 /**
- * Sync multi-target artefacts: AGENTS.md + MCP side-cars + svs-manifest.json
+ * Sync multi-target artefacts: AGENTS.md + MCP side-cars + Cursor rules + manifest
  */
 
 import { createHash } from 'crypto';
@@ -19,6 +19,11 @@ import {
   GROK_RULES_VERSION,
   MCP_EXPORT_VERSION,
 } from './mcp-export.js';
+import {
+  CURSOR_RULES_VERSION,
+  cursorRulesNeedsUpdate,
+  exportCursorRules,
+} from './cursor-rules.js';
 import type { MigrateTarget } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
 
@@ -40,9 +45,11 @@ export interface SyncTargetsOptions {
   forceAgentsMd?: boolean;
   /** Force rewrite MCP side-cars + Grok rules */
   forceMcp?: boolean;
+  /** Force rewrite .cursor/rules/svs-policy.mdc */
+  forceCursorRules?: boolean;
   /** When true (default), regenerate only if missing or outdated */
   updateIfNeeded?: boolean;
-  /** Limit which targets get MCP / rules (default all non-claude) */
+  /** Limit which targets get artefacts (default all non-claude) */
   migrateTarget?: MigrateTarget;
 }
 
@@ -59,16 +66,24 @@ export interface SyncTargetsResult {
     serverCount: number;
     skippedReason?: string;
   };
+  cursorRules: {
+    written: boolean;
+    version: string;
+    skippedReason?: string;
+  };
   skippedReason?: string;
 }
 
 /**
- * Ensure AGENTS.md + MCP side-cars + manifest exist / are refreshed.
+ * Ensure AGENTS.md + MCP side-cars + Cursor rules + manifest exist / are refreshed.
  */
 export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): SyncTargetsResult {
   const target = opts.migrateTarget ?? 'all';
-  const syncAgents = target === 'all' || target === 'kimi' || target === 'grok';
-  const syncMcp = target === 'all' || target === 'kimi' || target === 'grok';
+  const syncAgents =
+    target === 'all' || target === 'kimi' || target === 'grok' || target === 'cursor';
+  const syncMcp =
+    target === 'all' || target === 'kimi' || target === 'grok' || target === 'cursor';
+  const syncCursorRules = target === 'all' || target === 'cursor';
 
   const bundled = bundledAgentsMdVersion();
   const need = agentsMdNeedsUpdate(projectDir, bundled);
@@ -103,7 +118,9 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
       ? ['kimi']
       : target === 'grok'
         ? ['grok', 'cursor']
-        : ['kimi', 'grok', 'cursor'];
+        : target === 'cursor'
+          ? ['cursor']
+          : ['kimi', 'grok', 'cursor'];
 
   const mcp = shouldWriteMcp
     ? exportMcpToTargets(projectDir, { targets: mcpTargets, force: opts.forceMcp === true })
@@ -120,10 +137,23 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
           : 'skipped (target=claude)',
       };
 
-  // If forceMcp but export skipped (no source), keep reason
-  if (shouldWriteMcp && mcp.skippedReason && !mcp.kimiWritten && !mcp.grokWritten) {
-    /* already set */
-  }
+  const cursorNeed = cursorRulesNeedsUpdate(projectDir);
+  const shouldWriteCursorRules =
+    syncCursorRules &&
+    (opts.forceCursorRules === true ||
+      (updateIfNeeded && (cursorNeed.missing || cursorNeed.outdated)));
+
+  const cursorRules = shouldWriteCursorRules
+    ? exportCursorRules(projectDir, { force: true })
+    : {
+        written: false,
+        version: CURSOR_RULES_VERSION,
+        skippedReason: syncCursorRules
+          ? cursorNeed.missing || cursorNeed.outdated
+            ? undefined
+            : `Cursor rules current (svs-version ${cursorNeed.installedVersion})`
+          : 'skipped (target≠cursor/all)',
+      };
 
   const prev = readManifest(projectDir);
   const manifest = defaultManifest(packageVersion(), {
@@ -135,6 +165,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
       claude: { ...manifest.targets.claude, ...prev.targets.claude },
       kimi: { ...manifest.targets.kimi, ...prev.targets.kimi },
       grok: { ...manifest.targets.grok, ...prev.targets.grok },
+      cursor: { ...manifest.targets.cursor, ...prev.targets.cursor },
     };
   }
   if (mcp.kimiWritten) {
@@ -154,13 +185,27 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
         : prev?.targets?.grok?.rulesVersion ?? GROK_RULES_VERSION,
     };
   }
-  // Only stamp mcpExport when side-cars were written this run or already on disk
+  if (cursorRules.written || existsSync(join(projectDir, '.cursor', 'rules', 'svs-policy.mdc'))) {
+    manifest.targets.cursor = {
+      ...manifest.targets.cursor,
+      enabled: true,
+      rulesVersion: CURSOR_RULES_VERSION,
+      mcpVersion: mcp.cursorWritten
+        ? MCP_EXPORT_VERSION
+        : prev?.targets?.cursor?.mcpVersion,
+    };
+    manifest.cursorRules = { version: CURSOR_RULES_VERSION };
+  } else if (prev?.cursorRules) {
+    manifest.cursorRules = prev.cursorRules;
+  }
+
   const hasMcpSidecars =
     mcp.kimiWritten ||
     mcp.grokWritten ||
     mcp.cursorWritten ||
     existsSync(join(projectDir, '.kimi-code', 'mcp.json')) ||
-    existsSync(join(projectDir, '.grok', 'config.toml'));
+    existsSync(join(projectDir, '.grok', 'config.toml')) ||
+    existsSync(join(projectDir, '.cursor', 'mcp.json'));
   if (hasMcpSidecars) {
     manifest.mcpExport = { version: MCP_EXPORT_VERSION };
   } else if (prev?.mcpExport) {
@@ -174,6 +219,11 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     agentsMdHash: hash,
     manifestWritten: true,
     mcp,
+    cursorRules: {
+      written: cursorRules.written,
+      version: cursorRules.version,
+      skippedReason: cursorRules.skippedReason,
+    },
     skippedReason,
   };
 }

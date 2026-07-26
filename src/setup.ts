@@ -545,16 +545,20 @@ export async function setupProject(
     const sync = syncTargets(projectDir, {
       forceAgentsMd: !!options.force,
       forceMcp: !!options.force,
+      forceCursorRules: true,
       updateIfNeeded: true,
     });
     if (sync.agentsMdWritten) {
-      spinner.text = `Wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) for Kimi/Grok`;
+      spinner.text = `Wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) for Kimi/Grok/Cursor`;
     }
 
     spinner.succeed(
       `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks` +
         (sync.agentsMdWritten ? ' + AGENTS.md' : '') +
-        (sync.mcp.kimiWritten || sync.mcp.grokWritten ? ' + MCP targets' : '')
+        (sync.cursorRules.written ? ' + Cursor rules' : '') +
+        (sync.mcp.kimiWritten || sync.mcp.grokWritten || sync.mcp.cursorWritten
+          ? ' + MCP targets'
+          : '')
     );
 
     return true;

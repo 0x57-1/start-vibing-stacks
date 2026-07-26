@@ -32,6 +32,7 @@ export function defaultManifest(packageVersion: string, agentsMd?: AgentsMdMeta)
       claude: { enabled: true },
       kimi: { enabled: true },
       grok: { enabled: true },
+      cursor: { enabled: true },
     },
     agentsMd: agentsMd ?? { version: AGENTS_MD_GENERATOR_VERSION },
     // mcpExport stamped only after side-cars are actually written (see syncTargets)
@@ -73,7 +74,8 @@ export function mcpExportNeedsUpdate(projectDir: string): {
   const installedVersion = manifest?.mcpExport?.version ?? null;
   const kimiPath = join(projectDir, '.kimi-code', 'mcp.json');
   const grokPath = join(projectDir, '.grok', 'config.toml');
-  const hasSidecars = existsSync(kimiPath) || existsSync(grokPath);
+  const cursorMcpPath = join(projectDir, '.cursor', 'mcp.json');
+  const hasSidecars = existsSync(kimiPath) || existsSync(grokPath) || existsSync(cursorMcpPath);
   const hasSource =
     existsSync(join(projectDir, '.claude', 'config', 'mcp-active.json')) ||
     existsSync(join(projectDir, '.claude', 'settings.json'));

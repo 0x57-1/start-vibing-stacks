@@ -65,16 +65,16 @@ if (FLAGS.help) {
   ${chalk.bold('Commands:')}
     (default)         Setup or resume current project
                       Resume: Launch Claude/Kimi/Grok · Update (migrate --apply)
-                      · Regenerate AGENTS.md
+                      · Regenerate AGENTS.md / Cursor rules
     migrate           Compare installed vs bundled skill/agent/memory versions
-                      Syncs AGENTS.md + MCP side-cars (Kimi/Grok/Cursor)
+                      Syncs AGENTS.md + MCP + .cursor/rules (Kimi/Grok/Cursor)
                       Add --apply to update outdated/missing items
                       (npm publish alone does NOT update project .claude/)
 
   ${chalk.bold('Options:')}
     --force           Overwrite existing configuration (default command)
     --apply           Apply updates (migrate command)
-    --target <id>     migrate only: claude | kimi | grok | all (default: all)
+    --target <id>     migrate only: claude | kimi | grok | cursor | all (default: all)
     --force-legacy    Overwrite legacy hooks (no @sv-version) AND legacy commands
                       (no version: frontmatter) — each gets a timestamped .bak
     --force-hooks     Alias for --force-legacy (kept for back-compat)
@@ -185,7 +185,8 @@ async function main(): Promise<void> {
           choices: [
             ...launchChoices,
             { name: pendingLabel, value: 'migrate' },
-            { name: '📄  Regenerate AGENTS.md (Kimi/Grok)', value: 'sync-agents' },
+            { name: '📄  Regenerate AGENTS.md (Kimi/Grok/Cursor)', value: 'sync-agents' },
+            { name: '🧩  Sync Cursor rules + MCP (.cursor/)', value: 'sync-cursor' },
             { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
             { name: '❌  Exit', value: 'exit' },
           ],
@@ -199,11 +200,41 @@ async function main(): Promise<void> {
       }
 
       if (action === 'sync-agents') {
-        const sync = syncTargets(projectDir, { forceAgentsMd: true });
+        const sync = syncTargets(projectDir, {
+          forceAgentsMd: true,
+          forceCursorRules: true,
+          migrateTarget: 'all',
+        });
         if (sync.agentsMdWritten) {
-          ui.success(`Wrote AGENTS.md (svs-version ${sync.agentsMdVersion}) + svs-manifest.json`);
+          ui.success(`Wrote AGENTS.md (svs-version ${sync.agentsMdVersion})`);
         } else {
           ui.info(sync.skippedReason || 'AGENTS.md unchanged');
+        }
+        if (sync.cursorRules.written) {
+          ui.success(`Wrote .cursor/rules/svs-policy.mdc (svs-version ${sync.cursorRules.version})`);
+        }
+        process.exit(0);
+      }
+
+      if (action === 'sync-cursor') {
+        const sync = syncTargets(projectDir, {
+          forceAgentsMd: true,
+          forceMcp: true,
+          forceCursorRules: true,
+          migrateTarget: 'cursor',
+        });
+        if (sync.cursorRules.written) {
+          ui.success(`Wrote .cursor/rules/svs-policy.mdc (svs-version ${sync.cursorRules.version})`);
+        } else {
+          ui.info(sync.cursorRules.skippedReason || 'Cursor rules unchanged');
+        }
+        if (sync.mcp.cursorWritten) {
+          ui.success('Wrote .cursor/mcp.json');
+        } else if (sync.mcp.skippedReason) {
+          ui.info(sync.mcp.skippedReason);
+        }
+        if (sync.agentsMdWritten) {
+          ui.success(`Wrote AGENTS.md (svs-version ${sync.agentsMdVersion})`);
         }
         process.exit(0);
       }

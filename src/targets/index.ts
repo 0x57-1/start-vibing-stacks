@@ -30,3 +30,10 @@ export {
   toGrokMcpTomlFragment,
 } from './mcp-export.js';
 export type { McpExportResult, ExportMcpOptions, ClaudeMcpServers } from './mcp-export.js';
+export {
+  exportCursorRules,
+  cursorRulesNeedsUpdate,
+  CURSOR_RULES_VERSION,
+  CURSOR_RULES_REL,
+} from './cursor-rules.js';
+export type { CursorRulesResult } from './cursor-rules.js';

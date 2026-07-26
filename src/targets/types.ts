@@ -4,7 +4,7 @@
 
 export type TargetId = 'claude' | 'kimi' | 'grok';
 
-export type MigrateTarget = TargetId | 'all';
+export type MigrateTarget = TargetId | 'cursor' | 'all';
 
 export interface TargetLaunchSpec {
   id: TargetId;
@@ -36,9 +36,11 @@ export interface SvsManifest {
     claude: TargetManifestEntry;
     kimi: TargetManifestEntry;
     grok: TargetManifestEntry;
+    cursor?: TargetManifestEntry;
   };
   agentsMd: AgentsMdMeta;
   mcpExport?: { version: string };
+  cursorRules?: { version: string };
 }
 
 export const AGENTS_MD_GENERATOR_VERSION = '1.0.0';
@@ -68,6 +70,6 @@ export const LAUNCH_SPECS: TargetLaunchSpec[] = [
 export function parseMigrateTarget(raw: string | undefined | null): MigrateTarget {
   if (!raw) return 'all';
   const v = raw.trim().toLowerCase();
-  if (v === 'all' || v === 'claude' || v === 'kimi' || v === 'grok') return v;
+  if (v === 'all' || v === 'claude' || v === 'kimi' || v === 'grok' || v === 'cursor') return v;
   return 'all';
 }

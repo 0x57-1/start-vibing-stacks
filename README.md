@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.50.0** — Phase 2–3 multi-target: MCP export → `.kimi-code/mcp.json`, `.grok/config.toml` + rules, `.cursor/mcp.json`; `migrate --target claude|kimi|grok|all`.
+> Latest: **v2.51.0** — Phase 4: Cursor `.cursor/rules/svs-policy.mdc` (alwaysApply) from policy pack; `migrate --target cursor`; resume Sync Cursor.
 
 ---
 

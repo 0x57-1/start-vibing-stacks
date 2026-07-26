@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.51.0
+Phase 4 Cursor: `.cursor/rules/svs-policy.mdc` (alwaysApply) from policy pack; migrate
+`--target cursor`; resume “Sync Cursor rules + MCP”. Manifest `cursorRules` version.
+
 ### 2026-07-26 · main · v2.50.0
 Phase 2–3 multi-target: MCP export to `.kimi-code/mcp.json`, `.grok/config.toml` (+ rules),
 `.cursor/mcp.json`; `migrate --target kimi|grok|claude|all`. Manifest stamps `mcpExport` only
@@ -56,14 +60,6 @@ Always-on memory `owned-server-backup.md` + `owned-infra-ops` skill/memory → *
 protocol (scoped tar of known paths, local analysis, DR inventory phrasing vs recon). Reduces
 Opus cyber false positives on owned-host backup; hard limit: cannot override Anthropic Cyber
 Verification API. Wired in `setup.ts` + `migrate.ts` `memory_files`.
-
-### 2026-07-22 · main · v2.42.0
-Cursor/IDE edit sync + versioning hygiene. Always-on memory `cursor-ide-edit-sync.md` +
-`tool-resilience` → **v1.1.0** (IDE-buffer-conflict). Optional `.claude/settings.local.example.json`
-(`acceptEdits` / `bypassPermissions`) without changing project `defaultMode: plan`. Versioned
-`run-hook.sh` (`# @sv-version`), `_state.README.md`, config `"$sv-version"`. migrate: shell
-`@sv-version` parse, gitignore `settings.local.json`, stage example + upgrade state README.
-`user-prompt-submit` → **v1.5.0**.
 
 ---
 
