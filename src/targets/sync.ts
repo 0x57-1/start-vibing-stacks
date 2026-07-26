@@ -1,5 +1,5 @@
 /**
- * Sync multi-target artefacts: AGENTS.md + MCP + Cursor rules + Kimi local + manifest
+ * Sync multi-target artefacts: AGENTS.md + MCP + Cursor rules + Kimi local + Grok skills + manifest
  */
 
 import { createHash } from 'crypto';
@@ -34,6 +34,12 @@ import {
   kimiLocalNeedsUpdate,
   KIMI_LOCAL_VERSION,
 } from './kimi-local.js';
+import {
+  exportGrokSkills,
+  grokSkillsNeedsUpdate,
+  GROK_SKILLS_VERSION,
+  GROK_NATIVE_SKILL_REL,
+} from './grok-skills.js';
 import { recentChangesDrifted } from './status.js';
 import type { MigrateTarget } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
@@ -56,6 +62,7 @@ export interface SyncTargetsOptions {
   forceMcp?: boolean;
   forceCursorRules?: boolean;
   forceKimiLocal?: boolean;
+  forceGrokSkills?: boolean;
   updateIfNeeded?: boolean;
   migrateTarget?: MigrateTarget;
 }
@@ -87,6 +94,12 @@ export interface SyncTargetsResult {
     version: string;
     skippedReason?: string;
   };
+  grokSkills: {
+    configUpdated: boolean;
+    nativeSkillWritten: boolean;
+    version: string;
+    skippedReason?: string;
+  };
   skippedReason?: string;
 }
 
@@ -98,6 +111,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     target === 'all' || target === 'kimi' || target === 'grok' || target === 'cursor';
   const syncCursorRules = target === 'all' || target === 'cursor';
   const syncKimi = target === 'all' || target === 'kimi';
+  const syncGrokSkills = target === 'all' || target === 'grok';
 
   const bundled = bundledAgentsMdVersion();
   const need = agentsMdNeedsUpdate(projectDir, bundled);
@@ -206,6 +220,26 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     gitignoreUpdated = ensureKimiLocalGitignore(projectDir);
   }
 
+  const grokSkillsNeed = grokSkillsNeedsUpdate(projectDir);
+  const shouldWriteGrokSkills =
+    syncGrokSkills &&
+    (opts.forceGrokSkills === true ||
+      (updateIfNeeded &&
+        (grokSkillsNeed.blockMissing ||
+          grokSkillsNeed.nativeMissing ||
+          grokSkillsNeed.outdated)));
+
+  const grokSkills = shouldWriteGrokSkills
+    ? exportGrokSkills(projectDir, { force: opts.forceGrokSkills === true })
+    : {
+        configUpdated: false,
+        nativeSkillWritten: false,
+        version: GROK_SKILLS_VERSION,
+        skippedReason: syncGrokSkills
+          ? 'Grok skills bridge current'
+          : 'skipped (target≠grok/all)',
+      };
+
   const prev = readManifest(projectDir);
   const manifest = defaultManifest(packageVersion(), {
     version: AGENTS_MD_GENERATOR_VERSION,
@@ -264,6 +298,21 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     manifest.kimiLocal = prev.kimiLocal;
   }
 
+  if (
+    grokSkills.configUpdated ||
+    grokSkills.nativeSkillWritten ||
+    existsSync(join(projectDir, GROK_NATIVE_SKILL_REL))
+  ) {
+    manifest.grokSkills = { version: GROK_SKILLS_VERSION };
+    manifest.targets.grok = {
+      ...manifest.targets.grok,
+      enabled: true,
+      rulesVersion: prev?.targets?.grok?.rulesVersion ?? GROK_RULES_VERSION,
+    };
+  } else if (prev?.grokSkills) {
+    manifest.grokSkills = prev.grokSkills;
+  }
+
   const hasMcpSidecars =
     mcp.kimiWritten ||
     mcp.grokWritten ||
@@ -294,6 +343,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
       ...kimiLocalResult,
       gitignoreUpdated,
     },
+    grokSkills,
     skippedReason,
   };
 }

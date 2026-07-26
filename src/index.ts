@@ -159,6 +159,7 @@ async function main(): Promise<void> {
         recentChangesDrifted,
         cursorRulesNeedsUpdate,
         kimiLocalNeedsUpdate,
+        grokSkillsNeedsUpdate,
         mcpExportNeedsUpdate,
       } = await import('./targets/index.js');
       const agentsNeed = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
@@ -172,6 +173,10 @@ async function main(): Promise<void> {
         const k = kimiLocalNeedsUpdate(projectDir);
         return k.localMissing || k.blockMissing || k.exampleMissing;
       })();
+      const grokSkillsPending = (() => {
+        const g = grokSkillsNeedsUpdate(projectDir);
+        return g.blockMissing || g.nativeMissing || g.outdated;
+      })();
       const mcpPending = (() => {
         const m = mcpExportNeedsUpdate(projectDir);
         return m.missing || m.outdated;
@@ -181,6 +186,7 @@ async function main(): Promise<void> {
         (agentsPending ? 1 : 0) +
         (cursorPending ? 1 : 0) +
         (kimiPending ? 1 : 0) +
+        (grokSkillsPending ? 1 : 0) +
         (mcpPending ? 1 : 0);
       console.log('\n' + formatTargetsStatus(projectDir));
 
@@ -234,6 +240,7 @@ async function main(): Promise<void> {
           forceAgentsMd: true,
           forceCursorRules: true,
           forceKimiLocal: true,
+          forceGrokSkills: true,
           migrateTarget: 'all',
         });
         if (sync.agentsMdWritten) {
@@ -246,6 +253,9 @@ async function main(): Promise<void> {
         }
         if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated) {
           ui.success('Updated .kimi-code/local.toml (SVS block)');
+        }
+        if (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten) {
+          ui.success(`Updated Grok skills bridge (svs-version ${sync.grokSkills.version})`);
         }
         process.exit(0);
       }

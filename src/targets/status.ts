@@ -12,6 +12,7 @@ import {
 import { bundledAgentsMdVersion, readClaudeRecentChangesHash } from './agents-md.js';
 import { cursorRulesNeedsUpdate, CURSOR_RULES_REL } from './cursor-rules.js';
 import { kimiLocalNeedsUpdate, KIMI_LOCAL_REL } from './kimi-local.js';
+import { grokSkillsNeedsUpdate, GROK_NATIVE_SKILL_REL } from './grok-skills.js';
 import { isBinaryOnPath } from './launch.js';
 import { LAUNCH_SPECS } from './types.js';
 
@@ -75,6 +76,19 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
       : kimi.blockMissing
         ? 'SVS block missing/outdated'
         : 'ok (SVS block present)',
+  });
+
+  const grokSk = grokSkillsNeedsUpdate(projectDir);
+  lines.push({
+    id: 'Grok skills bridge',
+    ok: !grokSk.blockMissing && !grokSk.nativeMissing && !grokSk.outdated,
+    detail: grokSk.blockMissing
+      ? 'SVS:SKILLS block missing in .grok/config.toml'
+      : grokSk.nativeMissing
+        ? `native skill missing (${GROK_NATIVE_SKILL_REL})`
+        : grokSk.outdated
+          ? 'outdated'
+          : `ok (export ${manifest?.grokSkills?.version ?? '–'})`,
   });
 
   lines.push({

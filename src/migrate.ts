@@ -681,11 +681,13 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     mcpExportNeedsUpdate,
     cursorRulesNeedsUpdate,
     kimiLocalNeedsUpdate,
+    grokSkillsNeedsUpdate,
     recentChangesDrifted,
     formatTargetsStatus,
     MCP_EXPORT_VERSION,
     CURSOR_RULES_VERSION,
     KIMI_LOCAL_VERSION,
+    GROK_SKILLS_VERSION,
   } = await import('./targets/index.js');
   const agentsBundled = bundledAgentsMdVersion();
   const agentsNeed = agentsMdNeedsUpdate(projectDir, agentsBundled);
@@ -711,6 +713,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const kimiPending =
     (migrateTarget === 'all' || migrateTarget === 'kimi') &&
     (kimiNeed.exampleMissing || kimiNeed.localMissing || kimiNeed.blockMissing);
+  const grokSkillsNeed = grokSkillsNeedsUpdate(projectDir);
+  const grokSkillsPending =
+    (migrateTarget === 'all' || migrateTarget === 'grok') &&
+    (grokSkillsNeed.blockMissing || grokSkillsNeed.nativeMissing || grokSkillsNeed.outdated);
 
   console.log('\n' + formatTargetsStatus(projectDir));
 
@@ -732,7 +738,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
   }
-  if (agentsPending || mcpPending || cursorPending || kimiPending) {
+  if (agentsPending || mcpPending || cursorPending || kimiPending || grokSkillsPending) {
     console.log('\n  TARGETS — pending updates:');
     if (agentsPending) {
       console.log(
@@ -759,6 +765,16 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
           (kimiNeed.localMissing ? '  (missing)' : '  (SVS block outdated)')
       );
     }
+    if (grokSkillsPending) {
+      console.log(
+        `    Grok skills bridge  bundled=${GROK_SKILLS_VERSION}` +
+          (grokSkillsNeed.blockMissing
+            ? '  (config block missing)'
+            : grokSkillsNeed.nativeMissing
+              ? '  (native skill missing)'
+              : '  (outdated)')
+      );
+    }
   }
 
   const upgradable = [
@@ -778,7 +794,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     !agentsPending &&
     !mcpPending &&
     !cursorPending &&
-    !kimiPending
+    !kimiPending &&
+    !grokSkillsPending
   ) {
     console.log('');
     ui.success('Everything up to date.');
@@ -795,6 +812,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (mcpPending) todo.push('MCP side-cars (.kimi-code / .grok / .cursor)');
     if (cursorPending) todo.push('.cursor/rules/svs-policy.mdc');
     if (kimiPending) todo.push('.kimi-code/local.toml');
+    if (grokSkillsPending) todo.push('Grok skills bridge');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -843,7 +861,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     );
   }
 
-  // Multi-target: AGENTS.md + MCP + Cursor rules + Kimi local + manifest
+  // Multi-target: AGENTS.md + MCP + Cursor rules + Kimi local + Grok skills + manifest
   const forceNonClaude =
     migrateTarget === 'kimi' || migrateTarget === 'grok' || migrateTarget === 'cursor';
   const { syncTargets } = await import('./targets/index.js');
@@ -852,6 +870,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     forceMcp: mcpPending || forceNonClaude,
     forceCursorRules: cursorPending || migrateTarget === 'cursor',
     forceKimiLocal: kimiPending || migrateTarget === 'kimi',
+    forceGrokSkills: grokSkillsPending || migrateTarget === 'grok',
     updateIfNeeded: true,
     migrateTarget,
   });
@@ -887,6 +906,17 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (sync.kimiLocal.gitignoreUpdated) {
     ui.success('gitignore: ignored .kimi-code/local.toml');
   }
+  if (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten) {
+    const bits: string[] = [];
+    if (sync.grokSkills.configUpdated) bits.push('.grok/config.toml [skills]');
+    if (sync.grokSkills.nativeSkillWritten) bits.push('.grok/skills/svs-policy');
+    ui.success(`targets: Grok skills → ${bits.join(', ')} (svs-version ${sync.grokSkills.version})`);
+  } else if (
+    sync.grokSkills.skippedReason &&
+    (migrateTarget === 'all' || migrateTarget === 'grok')
+  ) {
+    ui.info(`targets Grok skills: ${sync.grokSkills.skippedReason}`);
+  }
   if (sync.manifestWritten) {
     ui.success('targets: refreshed svs-manifest.json');
   }
@@ -898,7 +928,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       (sync.agentsMdWritten ? ', AGENTS.md' : '') +
       (mcpBits.length > 0 ? ', MCP side-cars' : '') +
       (sync.cursorRules.written ? ', Cursor rules' : '') +
-      (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ', Kimi local' : '')
+      (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ', Kimi local' : '') +
+      (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten
+        ? ', Grok skills'
+        : '')
   );
 
   if (grouped['modified-no-version'].length > 0) {

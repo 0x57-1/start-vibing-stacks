@@ -52,6 +52,13 @@ export {
 } from './kimi-local.js';
 export type { KimiLocalResult } from './kimi-local.js';
 export {
+  exportGrokSkills,
+  grokSkillsNeedsUpdate,
+  GROK_SKILLS_VERSION,
+  GROK_NATIVE_SKILL_REL,
+} from './grok-skills.js';
+export type { GrokSkillsResult } from './grok-skills.js';
+export {
   collectTargetsStatus,
   formatTargetsStatus,
   recentChangesDrifted,

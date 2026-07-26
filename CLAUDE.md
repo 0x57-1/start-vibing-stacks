@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-26 · main · v2.53.0
+Phase 6: Grok skills bridge (`[skills].paths` → `.claude/skills` + native
+`.grok/skills/svs-policy`); Kimi local → **v1.1.0** (`extra_agent_dirs` → `.claude/agents`).
+Hooks adapters deferred (Claude vs Kimi stdin differ).
+
 ### 2026-07-26 · main · v2.52.0
 Phase 5: Kimi `.kimi-code/local.toml` (+ example, gitignore); AGENTS.md regenerates when
 CLAUDE.md Recent Changes hash drifts; migrate/resume print TARGET STATUS.
@@ -52,12 +57,6 @@ Security assessment unlock: memories `defensive-security-review`, `passive-publi
 `authorized-security-assessment`, `claude-permission-modes` + skill `security-assessment-ops` v1.0.0.
 Ads/owned/competitive hard-limit wording: refusals ≠ Opus 5 API cyber gate. No unauthorized third-party
 active scan. Universal skills: 34. Wired setup/migrate.
-
-### 2026-07-25 · main · v2.44.0
-Own-subscription unlock: memories `own-subscription-api-integration.md` + `local-cli-auth-capture.md`
-+ skill `own-subscription-integration` v1.0.0 — wire paid Kimi/xAI OAuth into user MCP; observe
-own CLI refresh (mitmproxy); endpoint strings from installed CLI. ToS advisory only. Hard limit:
-cannot override Anthropic cyber/model-switch. Wired setup/migrate; universal skills: 33.
 
 ---
 

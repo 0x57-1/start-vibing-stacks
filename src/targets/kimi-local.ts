@@ -1,11 +1,12 @@
 /**
- * Phase 5: Kimi project-local config (.kimi-code/local.toml + example).
+ * Phase 5–6: Kimi project-local config (.kimi-code/local.toml + example).
  * local.toml is machine-specific (absolute paths) — gitignored; example is committed.
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join, resolve } from 'path';
+import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -18,7 +19,8 @@ const EXAMPLE_SRC = join(
   'kimi-local.toml.example'
 );
 
-export const KIMI_LOCAL_VERSION = '1.0.0';
+/** 1.1.0: + extra_agent_dirs → .claude/agents */
+export const KIMI_LOCAL_VERSION = '1.1.0';
 export const KIMI_LOCAL_REL = '.kimi-code/local.toml';
 export const KIMI_LOCAL_EXAMPLE_REL = '.kimi-code/local.toml.example';
 
@@ -34,14 +36,16 @@ export interface KimiLocalResult {
 
 function skillsBlock(projectDir: string): string {
   const skillsAbs = join(projectDir, '.claude', 'skills');
+  const agentsAbs = join(projectDir, '.claude', 'agents');
   return [
     '# SVS:KIMI:START — managed by start-vibing-stacks migrate',
     `# svs-version: ${KIMI_LOCAL_VERSION}`,
-    '# Root AGENTS.md = project instructions for Kimi. MCP = .kimi-code/mcp.json',
+    '# Root AGENTS.md = project instructions. MCP = .kimi-code/mcp.json',
     'default_plan_mode = true',
     'default_permission_mode = "manual"',
     'merge_all_available_skills = true',
     `extra_skill_dirs = [${JSON.stringify(skillsAbs)}]`,
+    `extra_agent_dirs = [${JSON.stringify(agentsAbs)}]`,
     '# SVS:KIMI:END',
     '',
   ].join('\n');
@@ -58,7 +62,10 @@ export function kimiLocalNeedsUpdate(projectDir: string): {
   let blockMissing = localMissing;
   if (!localMissing) {
     const raw = readFileSync(localPath, 'utf8');
-    blockMissing = !SKILLS_BLOCK_RE.test(raw) || !raw.includes(`svs-version: ${KIMI_LOCAL_VERSION}`);
+    blockMissing =
+      !SKILLS_BLOCK_RE.test(raw) ||
+      !raw.includes(`svs-version: ${KIMI_LOCAL_VERSION}`) ||
+      !raw.includes('extra_agent_dirs');
   }
   return {
     exampleMissing: !existsSync(examplePath),
@@ -67,10 +74,6 @@ export function kimiLocalNeedsUpdate(projectDir: string): {
   };
 }
 
-/**
- * Write local.toml.example always (when missing/outdated force).
- * Seed or refresh SVS:KIMI block in local.toml (create file if missing).
- */
 export function exportKimiLocal(
   projectDir: string,
   opts: { force?: boolean } = {}
@@ -104,7 +107,11 @@ export function exportKimiLocal(
   } else {
     const existing = readFileSync(localPath, 'utf8');
     if (SKILLS_BLOCK_RE.test(existing)) {
-      if (opts.force || !existing.includes(`svs-version: ${KIMI_LOCAL_VERSION}`)) {
+      if (
+        opts.force ||
+        !existing.includes(`svs-version: ${KIMI_LOCAL_VERSION}`) ||
+        !existing.includes('extra_agent_dirs')
+      ) {
         writeFileSync(localPath, existing.replace(SKILLS_BLOCK_RE, block.trimEnd() + '\n'));
         localUpdated = true;
       }
@@ -126,7 +133,6 @@ export function exportKimiLocal(
   };
 }
 
-/** Ensure .gitignore ignores machine-local Kimi config. */
 export function ensureKimiLocalGitignore(projectDir: string): boolean {
   const giPath = join(projectDir, '.gitignore');
   if (!existsSync(giPath)) return false;
