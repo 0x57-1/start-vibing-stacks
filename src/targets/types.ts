@@ -46,6 +46,8 @@ export interface SvsManifest {
   kimiLocal?: { version: string };
   grokSkills?: { version: string };
   hooksExport?: { version: string };
+  grokUserConfig?: { version: string };
+  grokAgents?: { version: string };
 }
 
 export const AGENTS_MD_GENERATOR_VERSION = '1.0.0';
@@ -70,6 +72,7 @@ export const LAUNCH_SPECS: TargetLaunchSpec[] = [
     label: 'Grok',
     bin: 'grok',
     // Parity with Claude Launch bypass (--always-approve; alias --yolo).
+    // Folder trust: `/hooks-trust` in TUI (or trusted_folders.toml) — not a CLI flag in 0.2.x.
     args: ['--always-approve'],
   },
 ];

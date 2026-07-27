@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.5.0
 ---
 
 # Memory: Multi-Target MCP Discovery & Migration
@@ -24,7 +24,7 @@ npx start-vibing-stacks@latest migrate --target grok --apply
 npx start-vibing-stacks@latest migrate --target cursor --apply
 ```
 
-SVS **merges** Claude MCP from user-global + project, then writes:
+SVS **merges** Claude MCP from user-global + project, **filters**, then writes:
 
 | Source (merge; project wins on same id) |
 |-----------------------------------------|
@@ -36,8 +36,39 @@ SVS **merges** Claude MCP from user-global + project, then writes:
 | Target | Destination |
 |--------|-------------|
 | Kimi | `.kimi-code/mcp.json` → `{ "mcpServers": { … } }` |
-| Grok | `.grok/config.toml` block `# SVS:MCP:START` … `# SVS:MCP:END` |
+| Grok | `.grok/config.toml` **MCP-only** (`# SVS:MCP:START` … `# SVS:MCP:END`). No `[skills]` / `[compat.*]` in project file. |
 | Cursor | `.cursor/mcp.json` → `{ "mcpServers": { … } }` |
+
+### Export filters (always applied)
+
+| Drop | When |
+|------|------|
+| `claude.ai` / Gmail / Google Calendar / Google Drive connectors | **Always** — Claude-only OAuth; hang Kimi/Grok/Cursor |
+| `vercel` (`https://mcp.vercel.com`) / `nextjs-devtools` | Stack **≠ nodejs** (php/python/…). Keep only on Node/Next |
+
+### Grok Claude → native map (official)
+
+| Claude | Grok |
+|--------|------|
+| `.claude/skills/` | **Off by default** (`compat.claude.skills=false`) — use `.grok/skills/` only |
+| `.claude/agents/` | Auto **and** copied to `.grok/agents/` by migrate |
+| `.claude/settings.json` hooks | Prefer `.grok/hooks/*.json` (paths relative to JSON); set user `compat.claude.hooks = false` |
+| `~/.claude.json` MCP | **Do not** rely on global dump — export to `.grok/config.toml`; user `compat.claude.mcps = false` |
+| Claude plugins (`vercel@…`) | Loaded by Grok; **disable** `vercel` in `~/.grok` `[plugins].disabled` (OAuth hang) |
+| `CLAUDE.md` / `AGENTS.md` | Both loaded as project rules |
+
+**Grok slow/hang on start (evidence from session logs):**
+
+| Symptom | Cause |
+|---------|--------|
+| `session.create` many minutes; MCP handshake &lt;1s | Loading huge Claude skill trees (`~/.claude/skills/cybersecurity-suite` etc.) via `compat.claude.skills` |
+| `/mcps` spinner forever | Extensions modal also scans marketplace + skills; OAuth github/sentry noise |
+| 2 fail in doctor | github/sentry OAuth without `~/.grok/mcp_credentials.json` |
+| mysql flaky | `MYSQL_HOST=""` etc. — export starts `enabled=false` |
+
+Migrate writes `~/.grok` SVS:COMPAT: `mcps/hooks/skills=false`, `agents/rules=true`, `disabled=["vercel"]`. Project OAuth + empty-mysql stay `enabled=false`. Trust: `/hooks-trust`. Restart Grok after migrate. Flip `skills=true` only if you need Claude skill parity and accept slow boot.
+
+`grok mcp doctor` may show project `.grok/config.toml` as `0 servers` while `grok mcp list` shows `(project)` — Grok CLI attribution bug; trust `list` + healthy checks.
 
 After migrate, restart the target CLI / IDE so servers load.
 

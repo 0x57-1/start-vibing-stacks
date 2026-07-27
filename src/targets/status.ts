@@ -14,6 +14,8 @@ import { cursorRulesNeedsUpdate, CURSOR_RULES_REL } from './cursor-rules.js';
 import { kimiLocalNeedsUpdate, KIMI_LOCAL_REL } from './kimi-local.js';
 import { grokSkillsNeedsUpdate, GROK_NATIVE_SKILL_REL } from './grok-skills.js';
 import { hooksExportNeedsUpdate, GROK_HOOKS_REL, HOOKS_EXPORT_VERSION } from './hooks-export.js';
+import { grokUserConfigNeedsUpdate, GROK_USER_CONFIG_VERSION } from './grok-user-config.js';
+import { grokAgentsNeedsUpdate, GROK_AGENTS_REL, GROK_AGENTS_VERSION } from './grok-agents.js';
 import { isBinaryOnPath } from './launch.js';
 import { LAUNCH_SPECS } from './types.js';
 
@@ -84,12 +86,12 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
     id: 'Grok skills bridge',
     ok: !grokSk.blockMissing && !grokSk.nativeMissing && !grokSk.outdated,
     detail: grokSk.blockMissing
-      ? 'SVS:SKILLS block missing in .grok/config.toml'
+      ? 'strip illegal [skills] from project .grok/config.toml'
       : grokSk.nativeMissing
         ? `native skill missing (${GROK_NATIVE_SKILL_REL})`
         : grokSk.outdated
           ? 'outdated'
-          : `ok (export ${manifest?.grokSkills?.version ?? '–'})`,
+          : `ok (${GROK_NATIVE_SKILL_REL}; export ${manifest?.grokSkills?.version ?? '–'})`,
   });
 
   const hooks = hooksExportNeedsUpdate(projectDir);
@@ -104,6 +106,27 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
         : hooks.outdated
           ? `outdated → ${HOOKS_EXPORT_VERSION}`
           : `ok (${GROK_HOOKS_REL}; export ${manifest?.hooksExport?.version ?? HOOKS_EXPORT_VERSION})`,
+  });
+
+  const userCompatStale = grokUserConfigNeedsUpdate();
+  lines.push({
+    id: 'Grok user compat',
+    ok: !userCompatStale,
+    detail: userCompatStale
+      ? `pending → ~/.grok SVS:COMPAT ${GROK_USER_CONFIG_VERSION}`
+      : `ok (~/.grok SVS:COMPAT ${GROK_USER_CONFIG_VERSION})`,
+  });
+
+  const ga = grokAgentsNeedsUpdate(projectDir);
+  lines.push({
+    id: 'Grok agents',
+    ok: ga.claudeCount === 0 || (!ga.missing && !ga.outdated),
+    detail:
+      ga.claudeCount === 0
+        ? 'n/a (no .claude/agents)'
+        : ga.missing || ga.outdated
+          ? `pending → ${GROK_AGENTS_REL}/ (${ga.claudeCount} agents)`
+          : `ok (${GROK_AGENTS_REL}/; ${GROK_AGENTS_VERSION})`,
   });
 
   lines.push({

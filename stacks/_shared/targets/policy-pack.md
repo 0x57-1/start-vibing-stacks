@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.1
+svs-version: 1.1.2
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -38,6 +38,7 @@ npx start-vibing-stacks@latest migrate --apply
 ```
 
 `migrate` already merges `~/.claude.json` (user MCP, e.g. `web-scraper`) with project `.claude/` before writing side-cars.
+**Filters:** drop Claude.ai connectors (Gmail / Calendar / Drive) always; keep Vercel / Next DevTools MCP only on **nodejs** stacks.
 
 ### Where to look (scan order)
 

@@ -226,7 +226,17 @@ export async function installMcpServers(
   // Multi-target: mirror MCP to Kimi / Grok / Cursor
   try {
     const { exportMcpToTargets } = await import('./targets/index.js');
-    const exported = exportMcpToTargets(projectDir, { force: true });
+    const stackId = (() => {
+      try {
+        const p = join(projectDir, '.claude', 'config', 'active-project.json');
+        if (!existsSync(p)) return null;
+        const j = JSON.parse(readFileSync(p, 'utf8')) as { stack?: unknown };
+        return typeof j.stack === 'string' ? j.stack : null;
+      } catch {
+        return null;
+      }
+    })();
+    const exported = exportMcpToTargets(projectDir, { force: true, stack: stackId });
     const bits: string[] = [];
     if (exported.kimiWritten) bits.push('.kimi-code/mcp.json');
     if (exported.grokWritten) bits.push('.grok/config.toml');
@@ -234,6 +244,12 @@ export async function installMcpServers(
     if (exported.grokRulesWritten) bits.push('.grok/rules/00-svs-policy.md');
     if (bits.length > 0) {
       ui.success(`MCP also exported for: ${bits.join(', ')}`);
+    }
+    if (exported.dropped && exported.dropped.length > 0) {
+      ui.info(
+        `Skipped MCP (stack/connectors): ${exported.dropped.join(', ')}` +
+          (stackId && stackId !== 'nodejs' ? ' — Vercel/Next only on nodejs' : '')
+      );
     }
   } catch {
     // Non-fatal — Claude MCP is already written

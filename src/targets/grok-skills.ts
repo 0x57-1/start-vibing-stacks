@@ -1,6 +1,8 @@
 /**
- * Phase 6: Grok skills bridge — [skills] paths → .claude/skills + native svs-policy skill.
- * Grok also auto-discovers Claude skills; explicit paths survive if compat is disabled.
+ * Phase 6: Grok skills bridge — native `.grok/skills/svs-policy` only.
+ * Grok auto-discovers `./.claude/skills` and `./.grok/skills/`.
+ * Do NOT write `[skills]` into project `.grok/config.toml` (project may only
+ * contribute mcp_servers / plugins / permission).
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
@@ -12,29 +14,17 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.0.0';
+export const GROK_SKILLS_VERSION = '1.1.1';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 
 const SKILLS_BLOCK_RE = /# SVS:SKILLS:START[\s\S]*?# SVS:SKILLS:END\n?/;
 
 export interface GrokSkillsResult {
+  /** True when illegal SVS:SKILLS block was stripped from project config.toml */
   configUpdated: boolean;
   nativeSkillWritten: boolean;
   version: string;
   skippedReason?: string;
-}
-
-function skillsTomlBlock(projectDir: string): string {
-  const skillsAbs = join(projectDir, '.claude', 'skills');
-  return [
-    '# SVS:SKILLS:START — managed by start-vibing-stacks',
-    `# svs-version: ${GROK_SKILLS_VERSION}`,
-    '# Grok also auto-reads .claude/skills; this path keeps discovery if Claude compat is off.',
-    '[skills]',
-    `paths = [${JSON.stringify(skillsAbs)}]`,
-    '# SVS:SKILLS:END',
-    '',
-  ].join('\n');
 }
 
 function nativeSkillBody(): string {
@@ -55,7 +45,7 @@ function nativeSkillBody(): string {
     '# start-vibing-stacks policy (Grok skill)',
     '',
     '> Also see root `AGENTS.md` and `CLAUDE.md`. Full memories: `.claude/memories/`.',
-    '> Claude skills are on `[skills].paths` → `.claude/skills` (see `.grok/config.toml`).',
+    '> Claude skills auto-load from `.claude/skills/` (no project `[skills]` paths needed).',
     '',
     policy.trim(),
     '',
@@ -63,6 +53,7 @@ function nativeSkillBody(): string {
 }
 
 export function grokSkillsNeedsUpdate(projectDir: string): {
+  /** Project config still has illegal [skills] SVS block (needs strip). */
   blockMissing: boolean;
   nativeMissing: boolean;
   outdated: boolean;
@@ -70,15 +61,11 @@ export function grokSkillsNeedsUpdate(projectDir: string): {
   const configPath = join(projectDir, '.grok', 'config.toml');
   const nativePath = join(projectDir, GROK_NATIVE_SKILL_REL);
   const nativeMissing = !existsSync(nativePath);
-  let blockMissing = true;
-  let outdated = false;
+  let configPolluted = false;
   if (existsSync(configPath)) {
-    const raw = readFileSync(configPath, 'utf8');
-    blockMissing = !SKILLS_BLOCK_RE.test(raw);
-    if (!blockMissing && !raw.includes(`svs-version: ${GROK_SKILLS_VERSION}`)) {
-      outdated = true;
-    }
+    configPolluted = SKILLS_BLOCK_RE.test(readFileSync(configPath, 'utf8'));
   }
+  let outdated = false;
   if (!nativeMissing) {
     try {
       const sk = readFileSync(nativePath, 'utf8');
@@ -87,7 +74,8 @@ export function grokSkillsNeedsUpdate(projectDir: string): {
       /* ignore */
     }
   }
-  return { blockMissing, nativeMissing, outdated };
+  // Reuse blockMissing = "needs config action" (pollution present)
+  return { blockMissing: configPolluted, nativeMissing, outdated };
 }
 
 export function exportGrokSkills(
@@ -95,10 +83,10 @@ export function exportGrokSkills(
   opts: { force?: boolean } = {}
 ): GrokSkillsResult {
   const need = grokSkillsNeedsUpdate(projectDir);
-  const shouldConfig = opts.force || need.blockMissing || need.outdated;
+  const shouldClean = opts.force || need.blockMissing;
   const shouldNative = opts.force || need.nativeMissing || need.outdated;
 
-  if (!shouldConfig && !shouldNative) {
+  if (!shouldClean && !shouldNative) {
     return {
       configUpdated: false,
       nativeSkillWritten: false,
@@ -108,23 +96,16 @@ export function exportGrokSkills(
   }
 
   let configUpdated = false;
-  if (shouldConfig) {
-    const grokDir = join(projectDir, '.grok');
-    mkdirSync(grokDir, { recursive: true });
-    const configPath = join(grokDir, 'config.toml');
-    const block = skillsTomlBlock(projectDir);
-    const existing = existsSync(configPath) ? readFileSync(configPath, 'utf8') : '';
-    if (!existing.trim()) {
-      writeFileSync(
-        configPath,
-        '# Grok Build project config — managed blocks by start-vibing-stacks\n\n' + block
-      );
-    } else if (SKILLS_BLOCK_RE.test(existing)) {
-      writeFileSync(configPath, existing.replace(SKILLS_BLOCK_RE, block.trimEnd() + '\n'));
-    } else {
-      writeFileSync(configPath, existing.replace(/\s*$/, '\n\n') + block);
+  if (shouldClean) {
+    const configPath = join(projectDir, '.grok', 'config.toml');
+    if (existsSync(configPath)) {
+      const existing = readFileSync(configPath, 'utf8');
+      if (SKILLS_BLOCK_RE.test(existing)) {
+        const cleaned = existing.replace(SKILLS_BLOCK_RE, '').replace(/\n{3,}/g, '\n\n');
+        writeFileSync(configPath, cleaned);
+        configUpdated = true;
+      }
     }
-    configUpdated = true;
   }
 
   let nativeSkillWritten = false;

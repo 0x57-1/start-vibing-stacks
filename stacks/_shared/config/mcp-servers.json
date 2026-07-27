@@ -1,6 +1,6 @@
 {
-  "$sv-version": "1.0.0",
-  "$comment": "MCP Server Registry — available servers for all stacks",
+  "$sv-version": "1.1.0",
+  "$comment": "MCP Server Registry — available servers for all stacks. Vercel/Next DevTools = nodejs only. Never ship Claude.ai Gmail/Calendar/Drive connectors (Claude-only auth).",
   "servers": {
     "context7": {
       "name": "Context7",
@@ -88,7 +88,7 @@
     },
     "nextjs-devtools": {
       "name": "Next.js DevTools",
-      "description": "Next.js 16+ error detection and live state",
+      "description": "Next.js 16+ error detection and live state (nodejs/Next only — never exported to php/python)",
       "icon": "▲",
       "tier": "stack-specific",
       "stacks": ["nodejs"],

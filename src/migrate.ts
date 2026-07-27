@@ -783,7 +783,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       console.log(
         `    Grok skills bridge  bundled=${GROK_SKILLS_VERSION}` +
           (grokSkillsNeed.blockMissing
-            ? '  (config block missing)'
+            ? '  (strip project [skills] pollution)'
             : grokSkillsNeed.nativeMissing
               ? '  (native skill missing)'
               : '  (outdated)')
@@ -917,6 +917,12 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
         (sync.mcp.sources?.length ? `; from ${sync.mcp.sources.join(' + ')}` : '') +
         ')'
     );
+    if (sync.mcp.dropped && sync.mcp.dropped.length > 0) {
+      ui.info(
+        `targets MCP filtered: ${sync.mcp.dropped.join(', ')}` +
+          ' (Claude.ai connectors always; Vercel/Next only on nodejs)'
+      );
+    }
   } else if (sync.mcp.skippedReason) {
     ui.info(`targets MCP: ${sync.mcp.skippedReason}`);
   }
@@ -937,7 +943,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   }
   if (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten) {
     const bits: string[] = [];
-    if (sync.grokSkills.configUpdated) bits.push('.grok/config.toml [skills]');
+    if (sync.grokSkills.configUpdated) bits.push('stripped project [skills]');
     if (sync.grokSkills.nativeSkillWritten) bits.push('.grok/skills/svs-policy');
     ui.success(`targets: Grok skills → ${bits.join(', ')} (svs-version ${sync.grokSkills.version})`);
   } else if (
@@ -956,13 +962,33 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (sync.hooksExport.kimiLocalUpdated) bits.push('local.toml [[hooks]]');
     if (sync.hooksExport.kimiUserUpdated) bits.push('~/.kimi-code/config.toml [[hooks]]');
     if (sync.hooksExport.grokHooksWritten) bits.push('.grok/hooks/svs.json');
-    if (sync.hooksExport.grokCompatUpdated) bits.push('compat.claude.hooks=false');
+    if (sync.hooksExport.grokCompatUpdated) bits.push('stripped project [compat.claude]');
     ui.success(`targets: hooks → ${bits.join(', ')} (svs-version ${sync.hooksExport.version})`);
   } else if (
     sync.hooksExport.skippedReason &&
     (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok')
   ) {
     ui.info(`targets hooks: ${sync.hooksExport.skippedReason}`);
+  }
+  if (sync.grokUserConfig.written) {
+    ui.success(
+      `targets: ~/.grok/config.toml SVS:COMPAT (disable Claude MCP dump + vercel plugin) svs-version ${sync.grokUserConfig.version}`
+    );
+  } else if (
+    sync.grokUserConfig.skippedReason &&
+    (migrateTarget === 'all' || migrateTarget === 'grok')
+  ) {
+    ui.info(`targets Grok user config: ${sync.grokUserConfig.skippedReason}`);
+  }
+  if (sync.grokAgents.written > 0) {
+    ui.success(
+      `targets: .grok/agents/ ← .claude/agents/ (${sync.grokAgents.written} files, svs-version ${sync.grokAgents.version})`
+    );
+  } else if (
+    sync.grokAgents.skippedReason &&
+    (migrateTarget === 'all' || migrateTarget === 'grok')
+  ) {
+    ui.info(`targets Grok agents: ${sync.grokAgents.skippedReason}`);
   }
   if (sync.manifestWritten) {
     ui.success('targets: refreshed svs-manifest.json');

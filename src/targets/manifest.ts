@@ -86,6 +86,21 @@ export function mcpExportNeedsUpdate(projectDir: string): {
   if (!hasSidecars) {
     return { missing: true, outdated: false, installedVersion };
   }
+  // Project .grok/config.toml must be MCP-only — skills/compat blocks are pollution.
+  if (existsSync(grokPath)) {
+    try {
+      const grok = readFileSync(grokPath, 'utf8');
+      if (
+        /# SVS:SKILLS:START/.test(grok) ||
+        /# SVS:COMPAT:START/.test(grok) ||
+        (!/# svs-version: 1\.[2-9]/.test(grok) && /# SVS:MCP:START/.test(grok))
+      ) {
+        return { missing: false, outdated: true, installedVersion: installedVersion ?? '0.0.0' };
+      }
+    } catch {
+      /* ignore */
+    }
+  }
   if (!installedVersion) {
     return { missing: false, outdated: true, installedVersion: null };
   }

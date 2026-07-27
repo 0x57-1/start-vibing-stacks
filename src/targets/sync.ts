@@ -47,6 +47,17 @@ import {
   HOOKS_EXPORT_VERSION,
   GROK_HOOKS_REL,
 } from './hooks-export.js';
+import {
+  exportGrokUserConfig,
+  grokUserConfigNeedsUpdate,
+  GROK_USER_CONFIG_VERSION,
+} from './grok-user-config.js';
+import {
+  exportGrokAgents,
+  grokAgentsNeedsUpdate,
+  GROK_AGENTS_VERSION,
+  GROK_AGENTS_REL,
+} from './grok-agents.js';
 import { recentChangesDrifted } from './status.js';
 import type { MigrateTarget } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
@@ -71,6 +82,8 @@ export interface SyncTargetsOptions {
   forceKimiLocal?: boolean;
   forceGrokSkills?: boolean;
   forceHooksExport?: boolean;
+  forceGrokUserConfig?: boolean;
+  forceGrokAgents?: boolean;
   updateIfNeeded?: boolean;
   migrateTarget?: MigrateTarget;
 }
@@ -87,6 +100,7 @@ export interface SyncTargetsResult {
     cursorWritten: boolean;
     grokRulesWritten: boolean;
     serverCount: number;
+    dropped?: string[];
     sources?: string[];
     skippedReason?: string;
   };
@@ -114,6 +128,16 @@ export interface SyncTargetsResult {
     kimiUserUpdated: boolean;
     grokHooksWritten: boolean;
     grokCompatUpdated: boolean;
+    version: string;
+    skippedReason?: string;
+  };
+  grokUserConfig: {
+    written: boolean;
+    version: string;
+    skippedReason?: string;
+  };
+  grokAgents: {
+    written: number;
     version: string;
     skippedReason?: string;
   };
@@ -175,8 +199,23 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
           ? ['cursor']
           : ['kimi', 'grok', 'cursor'];
 
+  const activeStack = (() => {
+    try {
+      const p = join(projectDir, '.claude', 'config', 'active-project.json');
+      if (!existsSync(p)) return null;
+      const j = JSON.parse(readFileSync(p, 'utf8')) as { stack?: unknown };
+      return typeof j.stack === 'string' ? j.stack : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const mcp = shouldWriteMcp
-    ? exportMcpToTargets(projectDir, { targets: mcpTargets, force: opts.forceMcp === true })
+    ? exportMcpToTargets(projectDir, {
+        targets: mcpTargets,
+        force: opts.forceMcp === true,
+        stack: activeStack,
+      })
     : {
         kimiWritten: false,
         grokWritten: false,
@@ -282,6 +321,40 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
         skippedReason: syncHooks ? 'Hooks export current' : 'skipped (target≠kimi/grok/all)',
       };
 
+  const syncGrokUser = target === 'all' || target === 'grok';
+  const shouldWriteGrokUser =
+    syncGrokUser &&
+    (opts.forceGrokUserConfig === true ||
+      (updateIfNeeded && grokUserConfigNeedsUpdate()));
+  const grokUserConfig = shouldWriteGrokUser
+    ? exportGrokUserConfig({ force: true, stack: activeStack })
+    : {
+        written: false,
+        version: GROK_USER_CONFIG_VERSION,
+        path: '',
+        skippedReason: syncGrokUser
+          ? 'Grok user compat current'
+          : 'skipped (target≠grok/all)',
+      };
+
+  const syncGrokAgents = target === 'all' || target === 'grok';
+  const agentsNeed = grokAgentsNeedsUpdate(projectDir);
+  const shouldWriteGrokAgents =
+    syncGrokAgents &&
+    (opts.forceGrokAgents === true ||
+      (updateIfNeeded && (agentsNeed.missing || agentsNeed.outdated)));
+  const grokAgents = shouldWriteGrokAgents
+    ? exportGrokAgents(projectDir, { force: opts.forceGrokAgents === true })
+    : {
+        written: 0,
+        version: GROK_AGENTS_VERSION,
+        skippedReason: syncGrokAgents
+          ? agentsNeed.claudeCount === 0
+            ? 'No .claude/agents to export'
+            : 'Grok agents current'
+          : 'skipped (target≠grok/all)',
+      };
+
   const prev = readManifest(projectDir);
   const manifest = defaultManifest(packageVersion(), {
     version: AGENTS_MD_GENERATOR_VERSION,
@@ -367,6 +440,21 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     manifest.hooksExport = prev.hooksExport;
   }
 
+  if (grokUserConfig.written || !grokUserConfigNeedsUpdate()) {
+    manifest.grokUserConfig = { version: GROK_USER_CONFIG_VERSION };
+  } else if (prev?.grokUserConfig) {
+    manifest.grokUserConfig = prev.grokUserConfig;
+  }
+
+  if (
+    grokAgents.written > 0 ||
+    existsSync(join(projectDir, GROK_AGENTS_REL, '.svs-version'))
+  ) {
+    manifest.grokAgents = { version: GROK_AGENTS_VERSION };
+  } else if (prev?.grokAgents) {
+    manifest.grokAgents = prev.grokAgents;
+  }
+
   const hasMcpSidecars =
     mcp.kimiWritten ||
     mcp.grokWritten ||
@@ -399,6 +487,16 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     },
     grokSkills,
     hooksExport,
+    grokUserConfig: {
+      written: grokUserConfig.written,
+      version: grokUserConfig.version,
+      skippedReason: grokUserConfig.skippedReason,
+    },
+    grokAgents: {
+      written: grokAgents.written,
+      version: grokAgents.version,
+      skippedReason: grokAgents.skippedReason,
+    },
     skippedReason,
   };
 }

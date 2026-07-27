@@ -10,6 +10,24 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-27 · main · v2.60.0
+Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skills);
+MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
+Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
+
+### 2026-07-26 · main · v2.59.0
+Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable vercel plugin);
+`.grok/agents/` from `.claude/agents/`; hooks path relative to JSON (`../../.claude/hooks/…`).
+
+### 2026-07-26 · main · v2.58.0
+MCP export filter → **v1.3.0**: drop Claude.ai connectors (Gmail/Calendar/Drive) always;
+Vercel/`nextjs-devtools` only on **nodejs** (stripped for php/python). Memory → **v1.3.0**.
+
+### 2026-07-26 · main · v2.57.0
+Grok hang fix: project `.grok/config.toml` is **MCP-only** (strip `[skills]`/`[compat]`);
+OAuth MCPs start `enabled=false`; npx `startup_timeout_sec=60`. Slim native hooks
+(edit/stop). Skills = `.grok/skills/svs-policy` only. Memory MCP discovery → **v1.2.0**.
+
 ### 2026-07-26 · main · v2.56.0
 Kimi/Grok permission parity with Claude Launch: resume Launch uses `kimi --yolo` /
 `grok --always-approve`. Kimi local.toml → **v1.2.0** (`default_permission_mode = "yolo"`)
@@ -37,24 +55,6 @@ Hooks adapters deferred (Claude vs Kimi stdin differ).
 ### 2026-07-26 · main · v2.52.0
 Phase 5: Kimi `.kimi-code/local.toml` (+ example, gitignore); AGENTS.md regenerates when
 CLAUDE.md Recent Changes hash drifts; migrate/resume print TARGET STATUS.
-
-### 2026-07-26 · main · v2.51.0
-Phase 4 Cursor: `.cursor/rules/svs-policy.mdc` (alwaysApply) from policy pack; migrate
-`--target cursor`; resume “Sync Cursor rules + MCP”. Manifest `cursorRules` version.
-
-### 2026-07-26 · main · v2.50.0
-Phase 2–3 multi-target: MCP export to `.kimi-code/mcp.json`, `.grok/config.toml` (+ rules),
-`.cursor/mcp.json`; `migrate --target kimi|grok|claude|all`. Manifest stamps `mcpExport` only
-after side-cars exist.
-
-### 2026-07-26 · main · v2.49.0
-Phase 1 multi-target: `src/targets/*` — `AGENTS.md` + `svs-manifest.json` for Kimi/Grok;
-resume Launch Claude/Kimi/Grok (PATH); migrate syncs AGENTS when `svs-version` outdated.
-Policy pack: `stacks/_shared/targets/policy-pack.md`.
-
-### 2026-07-26 · main · v2.48.1
-Resume menu: **Update from package** runs `migrate --apply`; warns when outdated/missing
-bundled files exist. npm publish alone never overwrites project `.claude/` — need migrate.
 
 ---
 

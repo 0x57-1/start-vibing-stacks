@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-export const HOOKS_EXPORT_VERSION = '1.0.0';
+export const HOOKS_EXPORT_VERSION = '1.2.0';
 export const GROK_HOOKS_REL = '.grok/hooks/svs.json';
 
 const KIMI_HOOKS_BLOCK_RE = /# SVS:HOOKS:START[\s\S]*?# SVS:HOOKS:END\n?/;
@@ -24,6 +24,7 @@ interface HookSpec {
   timeout: number;
 }
 
+/** Full set for Kimi [[hooks]]. */
 const HOOK_SPECS: HookSpec[] = [
   { event: 'SessionStart', hook: 'session-start', timeout: 15 },
   { event: 'UserPromptSubmit', hook: 'user-prompt-submit', timeout: 15 },
@@ -32,6 +33,19 @@ const HOOK_SPECS: HookSpec[] = [
   { event: 'PostToolUse', matcher: EDIT_MATCHER, hook: 'post-tool-use', timeout: 10 },
   { event: 'Stop', hook: 'stop-validator', timeout: 45 },
   { event: 'SessionEnd', hook: 'stop-validator', timeout: 15 },
+];
+
+/**
+ * Slim set for Grok native `.grok/hooks/svs.json`.
+ * Skip SessionStart/SessionEnd/UserPromptSubmit — Claude settings.json hooks
+ * still load via compat when the project is trusted; doubling SessionStart
+ * slowed TUI boot. Edit/Stop stay on the bridge for multi-instance safety.
+ */
+const GROK_HOOK_SPECS: HookSpec[] = [
+  { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'pre-tool-use', timeout: 10 },
+  { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'plan-gate', timeout: 10 },
+  { event: 'PostToolUse', matcher: EDIT_MATCHER, hook: 'post-tool-use', timeout: 10 },
+  { event: 'Stop', hook: 'stop-validator', timeout: 45 },
 ];
 
 export interface HooksExportResult {
@@ -44,8 +58,13 @@ export interface HooksExportResult {
 }
 
 function bridgeCmd(target: 'kimi' | 'grok', hook: string): string {
-  // Relative to project cwd (Kimi/Grok run hooks with session project as cwd).
-  return `node .claude/hooks/svs-bridge.mjs ${target} ${hook}`;
+  if (target === 'grok') {
+    // Grok resolves hook command paths relative to the JSON file (.grok/hooks/).
+    // See ~/.grok/docs/user-guide/10-hooks.md — not project cwd.
+    return `node ../../.claude/hooks/svs-bridge.mjs grok ${hook}`;
+  }
+  // Kimi: session cwd = project root.
+  return `node .claude/hooks/svs-bridge.mjs kimi ${hook}`;
 }
 
 function kimiHooksTomlBlock(): string {
@@ -72,7 +91,7 @@ function grokHooksJson(): string {
   const hooks: Record<string, Array<{ matcher?: string; hooks: Array<Record<string, unknown>> }>> =
     {};
 
-  for (const h of HOOK_SPECS) {
+  for (const h of GROK_HOOK_SPECS) {
     if (!hooks[h.event]) hooks[h.event] = [];
     const entry: { matcher?: string; hooks: Array<Record<string, unknown>> } = {
       hooks: [
@@ -84,12 +103,11 @@ function grokHooksJson(): string {
       ],
     };
     if (h.matcher) entry.matcher = h.matcher;
-    // Merge same-event same-matcher into one block when possible
-    const existing = hooks[h.event].find((b) => (b.matcher || '') === (h.matcher || ''));
+    const existing = hooks[h.event]!.find((b) => (b.matcher || '') === (h.matcher || ''));
     if (existing) {
-      existing.hooks.push(entry.hooks[0]);
+      existing.hooks.push(entry.hooks[0]!);
     } else {
-      hooks[h.event].push(entry);
+      hooks[h.event]!.push(entry);
     }
   }
 
@@ -98,7 +116,7 @@ function grokHooksJson(): string {
       {
         _svs: {
           version: HOOKS_EXPORT_VERSION,
-          note: 'SVS bridge → Claude hooks. Trust project: /hooks-trust or grok --trust',
+          note: 'SVS bridge → Claude hooks (edit/stop). Path relative to this JSON. Trust: /hooks-trust. User [compat.claude] hooks=false via migrate.',
         },
         hooks,
       },
@@ -106,18 +124,6 @@ function grokHooksJson(): string {
       2
     ) + '\n'
   );
-}
-
-function grokCompatBlock(): string {
-  return [
-    '# SVS:COMPAT:START — avoid double-running Claude settings.json hooks',
-    `# svs-version: ${HOOKS_EXPORT_VERSION}`,
-    '# Native hooks live in .grok/hooks/svs.json (bridge). Disable Claude hook scan.',
-    '[compat.claude]',
-    'hooks = false',
-    '# SVS:COMPAT:END',
-    '',
-  ].join('\n');
 }
 
 export function hooksExportNeedsUpdate(projectDir: string): {
@@ -147,6 +153,12 @@ export function hooksExportNeedsUpdate(projectDir: string): {
     } catch {
       outdated = true;
     }
+  }
+
+  // Illegal project [compat.claude] — strip on next export
+  const grokConfig = join(projectDir, '.grok', 'config.toml');
+  if (existsSync(grokConfig) && GROK_COMPAT_BLOCK_RE.test(readFileSync(grokConfig, 'utf8'))) {
+    outdated = true;
   }
 
   const bridge = join(projectDir, '.claude', 'hooks', 'svs-bridge.mjs');
@@ -212,6 +224,7 @@ export function exportKimiHooksUser(opts: { force?: boolean } = {}): boolean {
 
 export function exportGrokHooks(projectDir: string, opts: { force?: boolean } = {}): {
   hooksWritten: boolean;
+  /** True when illegal project [compat.claude] SVS block was stripped. */
   compatUpdated: boolean;
 } {
   const hooksPath = join(projectDir, GROK_HOOKS_REL);
@@ -232,26 +245,16 @@ export function exportGrokHooks(projectDir: string, opts: { force?: boolean } = 
     hooksWritten = true;
   }
 
+  // [compat.*] belongs in ~/.grok/config.toml only — strip project pollution.
   let compatUpdated = false;
   const configPath = join(projectDir, '.grok', 'config.toml');
-  const compat = grokCompatBlock();
-  mkdirSync(dirname(configPath), { recursive: true });
-  if (!existsSync(configPath)) {
-    writeFileSync(
-      configPath,
-      '# Grok Build project config — managed blocks by start-vibing-stacks\n\n' + compat
-    );
-    compatUpdated = true;
-  } else {
+  if (existsSync(configPath)) {
     const existing = readFileSync(configPath, 'utf8');
     if (GROK_COMPAT_BLOCK_RE.test(existing)) {
-      const m = existing.match(GROK_COMPAT_BLOCK_RE);
-      if (opts.force || !m?.[0]?.includes(`svs-version: ${HOOKS_EXPORT_VERSION}`)) {
-        writeFileSync(configPath, existing.replace(GROK_COMPAT_BLOCK_RE, compat.trimEnd() + '\n'));
-        compatUpdated = true;
-      }
-    } else {
-      writeFileSync(configPath, existing.replace(/\s*$/, '\n\n') + compat);
+      writeFileSync(
+        configPath,
+        existing.replace(GROK_COMPAT_BLOCK_RE, '').replace(/\n{3,}/g, '\n\n')
+      );
       compatUpdated = true;
     }
   }

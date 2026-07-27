@@ -31,6 +31,11 @@ export {
   loadProjectMcpServers,
   listMcpSourceLabels,
   asMcpServers,
+  filterServersForExport,
+  isClaudeAiConnector,
+  isVercelStackMcp,
+  isMysqlMissingEnv,
+  isOauthLikelyUrl,
   MCP_EXPORT_VERSION,
   GROK_RULES_VERSION,
   toKimiMcpJson,
@@ -70,6 +75,19 @@ export {
   GROK_HOOKS_REL,
 } from './hooks-export.js';
 export type { HooksExportResult } from './hooks-export.js';
+export {
+  exportGrokUserConfig,
+  grokUserConfigNeedsUpdate,
+  GROK_USER_CONFIG_VERSION,
+} from './grok-user-config.js';
+export type { GrokUserConfigResult } from './grok-user-config.js';
+export {
+  exportGrokAgents,
+  grokAgentsNeedsUpdate,
+  GROK_AGENTS_VERSION,
+  GROK_AGENTS_REL,
+} from './grok-agents.js';
+export type { GrokAgentsResult } from './grok-agents.js';
 export {
   collectTargetsStatus,
   formatTargetsStatus,
