@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.63.0** — project brain + PreCompact/SessionStart continuity; ADRs; Grok curated domains; compact guide for Claude/Kimi/Grok.
+> Latest: **v2.64.0** — Kimi/Grok join `.claude/state/sessions` (+ `_archive`); skill `kimi-grok-session-lookup`; Grok curated 1.4.0.
 
 ---
 
@@ -44,7 +44,7 @@ npx start-vibing-stacks
 | **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `owned-infra-ops` · `own-subscription-integration` |
+| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `session-history` · `kimi-grok-session-lookup` · `owned-infra-ops` · `own-subscription-integration` |
 | **Marketing** | `email-push-marketing` |
 | **Framework** | `react-server-components` · `laravel-octane-inertia` |
 | **Testing** | `playwright-automation` · `test-coverage` |

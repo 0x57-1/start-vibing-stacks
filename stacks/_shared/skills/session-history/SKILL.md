@@ -1,11 +1,12 @@
 ---
 name: session-history
-version: 1.1.0
+version: 1.2.0
 description: >
   Find and read agent session history across Claude Code, Kimi Code, and Grok.
   Locate transcripts, list peers via .claude/state/, resume by id/title, and
   choose efficient context compaction (/compact vs project brain) without
   bloating the window. Use for past sessions, /resume, compact, or lost context.
+  For Kimi/Grok folder recipes only, also load kimi-grok-session-lookup.
 ---
 
 # Session history (Claude / Kimi / Grok)
@@ -111,73 +112,19 @@ Sidecars (same stem as uuid): `<uuid>/subagents/`, `tool-results/`, `workflows/`
 
 ---
 
-## 3. Kimi Code — find a session & read history
+## 3–4. Kimi Code & Grok — folder lookup
 
-### Index
+**Canonical recipes:** skill `kimi-grok-session-lookup` (paths, encode cwd,
+`session_index.jsonl`, `updates.jsonl` preview).
 
-```bash
-rg -F "$(pwd)" ~/.kimi-code/session_index.jsonl | tail -20
-```
+Short reminder:
 
-Each line ≈ `{ sessionId, sessionDir, workDir }`.
+| Product | Start here |
+|---------|------------|
+| Kimi | `rg -F "$(pwd)" ~/.kimi-code/session_index.jsonl` → `sessionDir` |
+| Grok | URL-encode cwd → `~/.grok/sessions/<enc>/<id>/` + `summary.json` |
 
-### Session dir
-
-```text
-~/.kimi-code/sessions/wd_<slug>_<hash>/session_<uuid>/
-  state.json
-  agents/main/wire.jsonl    # conversation / tool stream
-  logs/
-```
-
-```bash
-# Preview wire (last messages)
-tail -n 40 "$SESSION_DIR/agents/main/wire.jsonl" | head
-```
-
-Kimi sessions often register in `.claude/state/sessions/session_*.json` via SVS bridge (SessionStart) — use `peers list`, then open `sessionDir` from the index.
-
----
-
-## 4. Grok — find a session & read history
-
-### Active
-
-```bash
-cat ~/.grok/active_sessions.json
-```
-
-### On disk
-
-```text
-~/.grok/sessions/<url-encoded-cwd>/<session-id>/
-  summary.json           # title, model, timestamps
-  updates.jsonl          # authoritative conversation (/resume)
-  chat_history.jsonl     # raw model messages
-  events.jsonl           # mcp_/session.create diagnostics
-```
-
-Encode cwd like Grok: URL-encode path (`/` → `%2F`):
-
-```bash
-python3 - <<'PY'
-from pathlib import Path
-from urllib.parse import quote
-cwd = Path.cwd().resolve()
-enc = quote(str(cwd), safe="")
-print(Path.home() / ".grok" / "sessions" / enc)
-PY
-ls -lt "$(python3 -c 'from pathlib import Path; from urllib.parse import quote; print(Path.home()/".grok"/"sessions"/quote(str(Path.cwd().resolve()), safe=""))')" | head
-```
-
-### Resume
-
-```text
-/resume
-grok --resume <session-id-or-title>
-```
-
-Prefer `updates.jsonl` + `summary.json` over dumping full `chat_history.jsonl`.
+Prefer that skill over re-deriving paths here.
 
 ---
 
@@ -278,6 +225,7 @@ Nested `CLAUDE.md` does **not** survive `/compact` — promote critical bits to 
 
 ## See Also
 
+- `kimi-grok-session-lookup` — Kimi/Grok disk paths and safe previews (Claude-oriented)
 - `multi-instance-coordination` — live collision / `/peers` protocol
 - `decision-records` — durable why
 - Agent `long-session-consistency` — brain architecture

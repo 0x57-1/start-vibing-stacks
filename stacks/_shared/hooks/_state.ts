@@ -1,4 +1,4 @@
-// @sv-version: 1.2.1
+// @sv-version: 1.3.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -7,8 +7,8 @@
  *
  * Layout (project-local, gitignored):
  *   .claude/state/
- *     sessions/<id>.json        one record per active Claude instance
- *     sessions/_archive/        sessions ended or stale
+ *     sessions/<id>.json        one record per active Claude/Kimi/Grok instance
+ *     sessions/_archive/        sessions ended (SessionEnd) or stale (>30min)
  *     inbox/<id>.jsonl          messages queued for that session
  *     file-touches.jsonl        append-only edit log
  *     file-touches/_archive/    rotated logs
@@ -17,6 +17,8 @@
  * - All writes are atomic (.tmp + rename) where the file is read by peers.
  * - Every read tolerates corruption (try/catch) — hooks must NEVER block Claude.
  * - Heartbeat thresholds: <180s active, 180s-30min idle, >30min stale, >24h removed.
+ * - Kimi + Grok register via the same SessionStart→heartbeat path (svs-bridge
+ *   sets SVS_TARGET). Native transcript dirs are optional metadata only.
  *
  * v1.1.0: ACTIVE window 60s→180s (agent think/generate time between tool calls
  * routinely exceeds 60s — a 60s window mis-classifies busy peers as IDLE);
@@ -27,6 +29,9 @@
  * v1.2.0: added optional `planGateNotifiedAt` to SessionRecord — a one-shot
  * marker so plan-gate.ts nudges the user toward `/effort ultracode` only once
  * per session when a change crosses the distinct-file threshold.
+ *
+ * v1.3.0: `target` + `nativeSessionDir` on SessionRecord; resolve Kimi/Grok
+ * on-disk session folders for transcriptPath/title enrichment.
  */
 
 import {
@@ -44,6 +49,7 @@ import {
   closeSync,
 } from 'fs';
 import { join, basename, resolve, relative, isAbsolute } from 'path';
+import { homedir } from 'os';
 import { randomBytes } from 'crypto';
 import { spawnSync } from 'child_process';
 
@@ -55,6 +61,8 @@ export const COLLISION_WINDOW_MS = 5 * 60 * 1000;
 export const TOUCHES_ROTATE_THRESHOLD = 1000;
 export const TOUCHES_TAIL_LINES = 200;
 export const FILES_TOUCHED_CAP = 200;
+
+export type SvsTarget = 'claude' | 'kimi' | 'grok';
 
 export interface SessionRecord {
   sessionId: string;
@@ -69,6 +77,16 @@ export interface SessionRecord {
   filesTouched: string[];
   /** ISO timestamp set once when plan-gate fired its high-reasoning nudge. */
   planGateNotifiedAt?: string;
+  /** Which CLI owns this heartbeat (set by svs-bridge / SessionStart). */
+  target?: SvsTarget;
+  /** Product session folder (Kimi sessionDir or Grok session dir). */
+  nativeSessionDir?: string;
+}
+
+export interface NativeSessionMeta {
+  nativeSessionDir?: string;
+  transcriptPath?: string;
+  title?: string;
 }
 
 export interface FileTouch {
@@ -126,8 +144,13 @@ export function readJsonSafe<T>(path: string): T | null {
   }
 }
 
+/** Safe filename stem — keep real sessionId inside the JSON body. */
+export function safeSessionFileId(sessionId: string): string {
+  return sessionId.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 200) || 'unknown';
+}
+
 export function getSessionPath(stateDir: string, sessionId: string): string {
-  return join(stateDir, 'sessions', `${sessionId}.json`);
+  return join(stateDir, 'sessions', `${safeSessionFileId(sessionId)}.json`);
 }
 
 export function readSession(stateDir: string, sessionId: string): SessionRecord | null {
@@ -203,7 +226,17 @@ export function heartbeat(
   const existing = readSession(stateDir, sessionId);
   const now = nowIso();
   const merged: SessionRecord = existing
-    ? { ...existing, ...patch, lastSeenAt: now, lastActivity: activity }
+    ? {
+        ...existing,
+        ...patch,
+        sessionId: existing.sessionId || sessionId,
+        lastSeenAt: now,
+        lastActivity: activity,
+        // Never wipe known target / native dir with undefined patches.
+        target: patch.target ?? existing.target,
+        nativeSessionDir: patch.nativeSessionDir ?? existing.nativeSessionDir,
+        transcriptPath: patch.transcriptPath ?? existing.transcriptPath,
+      }
     : {
         sessionId,
         title: patch.title || '(untitled)',
@@ -211,6 +244,8 @@ export function heartbeat(
         ppid: patch.ppid ?? process.ppid ?? 0,
         gitBranch: patch.gitBranch,
         transcriptPath: patch.transcriptPath,
+        target: patch.target,
+        nativeSessionDir: patch.nativeSessionDir,
         startedAt: now,
         lastSeenAt: now,
         lastActivity: activity,
@@ -316,6 +351,134 @@ export function clearInbox(stateDir: string, sessionId: string): void {
 }
 
 /** Read up to ~8KB of the transcript and extract a human title. */
+/**
+ * Detect CLI target for registry tagging.
+ * Prefer SVS_TARGET (bridge); fall back to session id shape (`session_*` → kimi).
+ */
+export function detectSvsTarget(input: Record<string, unknown> = {}): SvsTarget {
+  const env = (process.env['SVS_TARGET'] || '').toLowerCase();
+  if (env === 'kimi' || env === 'grok' || env === 'claude') return env;
+  const tagged = String(input['svs_target'] || input['svsTarget'] || '').toLowerCase();
+  if (tagged === 'kimi' || tagged === 'grok' || tagged === 'claude') return tagged;
+  const sid = String(input['session_id'] || input['sessionId'] || '');
+  if (sid.startsWith('session_')) return 'kimi';
+  return 'claude';
+}
+
+/**
+ * Resolve product-native session folder + best transcript/title for Kimi/Grok.
+ * Fail-open: returns {} when indexes or dirs are missing.
+ */
+export function resolveNativeSessionMeta(
+  projectDir: string,
+  sessionId: string,
+  target: SvsTarget
+): NativeSessionMeta {
+  try {
+    if (target === 'kimi') {
+      return resolveKimiSessionMeta(projectDir, sessionId);
+    }
+    if (target === 'grok') {
+      return resolveGrokSessionMeta(projectDir, sessionId);
+    }
+  } catch {
+    /* fail-open */
+  }
+  return {};
+}
+
+function resolveKimiSessionMeta(projectDir: string, sessionId: string): NativeSessionMeta {
+  const indexPath = join(homedir(), '.kimi-code', 'session_index.jsonl');
+  let sessionDir: string | undefined;
+  if (existsSync(indexPath)) {
+    const lines = readFileSync(indexPath, 'utf8').split('\n');
+    const root = resolve(projectDir);
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const line = lines[i]?.trim();
+      if (!line) continue;
+      try {
+        const row = JSON.parse(line) as {
+          sessionId?: string;
+          sessionDir?: string;
+          workDir?: string;
+        };
+        if (row.sessionId === sessionId && row.sessionDir) {
+          sessionDir = row.sessionDir;
+          break;
+        }
+        if (
+          !sessionDir &&
+          row.sessionDir &&
+          row.workDir &&
+          resolve(row.workDir) === root &&
+          row.sessionId === sessionId
+        ) {
+          sessionDir = row.sessionDir;
+          break;
+        }
+      } catch {
+        /* skip bad line */
+      }
+    }
+  }
+  if (!sessionDir) {
+    // Fallback: scan wd_* folders for this session id
+    const sessionsRoot = join(homedir(), '.kimi-code', 'sessions');
+    if (existsSync(sessionsRoot)) {
+      for (const wd of readdirSync(sessionsRoot)) {
+        const candidate = join(sessionsRoot, wd, sessionId);
+        if (existsSync(candidate)) {
+          sessionDir = candidate;
+          break;
+        }
+      }
+    }
+  }
+  if (!sessionDir || !existsSync(sessionDir)) return {};
+
+  let title: string | undefined;
+  const statePath = join(sessionDir, 'state.json');
+  if (existsSync(statePath)) {
+    try {
+      const st = JSON.parse(readFileSync(statePath, 'utf8')) as { title?: string };
+      if (st.title && st.title !== 'New Session') title = truncate(st.title, 80);
+    } catch {
+      /* ignore */
+    }
+  }
+  const wire = join(sessionDir, 'agents', 'main', 'wire.jsonl');
+  return {
+    nativeSessionDir: sessionDir,
+    transcriptPath: existsSync(wire) ? wire : undefined,
+    title,
+  };
+}
+
+function resolveGrokSessionMeta(projectDir: string, sessionId: string): NativeSessionMeta {
+  const enc = encodeURIComponent(resolve(projectDir));
+  const sessionDir = join(homedir(), '.grok', 'sessions', enc, sessionId);
+  if (!existsSync(sessionDir)) return {};
+
+  let title: string | undefined;
+  const summaryPath = join(sessionDir, 'summary.json');
+  if (existsSync(summaryPath)) {
+    try {
+      const sum = JSON.parse(readFileSync(summaryPath, 'utf8')) as {
+        session_summary?: string;
+        info?: { id?: string };
+      };
+      const t = (sum.session_summary || '').trim();
+      if (t) title = truncate(t, 80);
+    } catch {
+      /* ignore */
+    }
+  }
+  const updates = join(sessionDir, 'updates.jsonl');
+  const chat = join(sessionDir, 'chat_history.jsonl');
+  const transcriptPath = existsSync(updates) ? updates : existsSync(chat) ? chat : undefined;
+  return { nativeSessionDir: sessionDir, transcriptPath, title };
+}
+
 export function extractTitle(transcriptPath?: string, fallbackPrompt?: string): string {
   if (transcriptPath && existsSync(transcriptPath)) {
     try {
@@ -359,7 +522,9 @@ export function truncate(s: string, n: number): string {
 }
 
 export function shortId(sessionId: string): string {
-  return sessionId.slice(0, 8);
+  // Kimi ids are `session_<uuid>` — show uuid prefix, not the literal "session_".
+  const bare = sessionId.startsWith('session_') ? sessionId.slice('session_'.length) : sessionId;
+  return bare.slice(0, 8);
 }
 
 export function classifyAge(ageMsec: number): 'active' | 'idle' | 'stale' {
@@ -469,5 +634,6 @@ export function formatPeer(peer: SessionRecord): string {
         ? `${Math.round(idleSec / 60)}min`
         : `${Math.round(idleSec / 3600)}h`;
   const branch = peer.gitBranch ? ` @${peer.gitBranch}` : '';
-  return `[${klass}] ${shortId(peer.sessionId)} "${peer.title}"${branch} idle=${idleStr}`;
+  const tgt = peer.target ? ` ·${peer.target}` : '';
+  return `[${klass}] ${shortId(peer.sessionId)} "${peer.title}"${branch}${tgt} idle=${idleStr}`;
 }

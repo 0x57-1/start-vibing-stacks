@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.5.0
+// @sv-version: 1.6.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,7 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.6.0: re-tag `target` + native session paths on heartbeat (Kimi/Grok parity).
  * v1.5.0: Cursor Opened-changes / Save-file prompts = IDE buffer sync (memory
  * cursor-ide-edit-sync); optional settings.local.example for acceptEdits/bypass.
  * v1.4.0: after commit/push, verify GitHub Actions (gh run list/watch) before
@@ -26,6 +27,7 @@ import { join } from 'path';
 import {
   ACTIVE_MS,
   ageMs,
+  detectSvsTarget,
   drainInbox,
   ensureStateDirs,
   extractTitle,
@@ -37,6 +39,7 @@ import {
   listPeerSessions,
   readSession,
   readStdinJson,
+  resolveNativeSessionMeta,
   shortId,
   truncate,
   type InboxMessage,
@@ -97,9 +100,11 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
 
   // Heartbeat + capture title on first prompt of the session.
   const existing = readSession(stateDir, sessionId);
+  const target = detectSvsTarget({ session_id: sessionId, sessionId });
+  const native = resolveNativeSessionMeta(PROJECT_DIR, sessionId, target);
   const titleNeeded = !existing || !existing.title || existing.title === '(untitled)';
   const title = titleNeeded
-    ? extractTitle(existing?.transcriptPath, prompt)
+    ? native.title || extractTitle(existing?.transcriptPath || native.transcriptPath, prompt)
     : existing!.title;
 
   const branch = existing?.gitBranch ?? getGitBranch(PROJECT_DIR);
@@ -108,6 +113,9 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
     title,
     cwd: PROJECT_DIR,
     gitBranch: branch,
+    target: existing?.target || target,
+    nativeSessionDir: existing?.nativeSessionDir || native.nativeSessionDir,
+    transcriptPath: existing?.transcriptPath || native.transcriptPath,
   });
 
   const peers: SessionRecord[] = listPeerSessions(stateDir, sessionId);

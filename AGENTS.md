@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.5
+svs-version: 1.1.6
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -30,6 +30,12 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-28 · main · v2.64.0
+Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
+writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
+to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
+
+
 ### 2026-07-28 · main · v2.63.0
 Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
 ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
@@ -51,11 +57,6 @@ Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
 Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skills);
 MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
 Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
-
-
-### 2026-07-26 · main · v2.59.0
-Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable vercel plugin);
-`.grok/agents/` from `.claude/agents/`; hooks path relative to JSON (`../../.claude/hooks/…`).
 
 ## Development process (Kimi / Grok)
 
@@ -111,7 +112,7 @@ Claude `/commit-mine` is the same idea. Prefer `scope commit` over staging the w
 
 - **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.
 - **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).
-  Load `svs-dev-process`, `svs-memory-index`, and `session-history` (Claude/Kimi/Grok transcripts).
+  Load `svs-dev-process`, `svs-memory-index`, `session-history`, and `kimi-grok-session-lookup`.
 - **Shared bus** — `.claude/state/` (peers, locks, inbox; gitignored).
 - **Project brain** — `.claude/brain/` (committed tasks + journal). SessionStart brief + PreCompact stamp.
 - **Decisions** — `docs/decisions/` (ADRs — durable why). Skill `decision-records`.

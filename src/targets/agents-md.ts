@@ -134,7 +134,7 @@ export function generateAgentsMd(
     '',
     '- **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.',
     '- **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).',
-    '  Load `svs-dev-process`, `svs-memory-index`, and `session-history` (Claude/Kimi/Grok transcripts).',
+    '  Load `svs-dev-process`, `svs-memory-index`, `session-history`, and `kimi-grok-session-lookup`.',
     '- **Shared bus** — `.claude/state/` (peers, locks, inbox; gitignored).',
     '- **Project brain** — `.claude/brain/` (committed tasks + journal). SessionStart brief + PreCompact stamp.',
     '- **Decisions** — `docs/decisions/` (ADRs — durable why). Skill `decision-records`.',

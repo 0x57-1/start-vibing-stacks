@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.4.0
+// @sv-version: 1.5.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -24,6 +24,10 @@
  * blocking check (so a peer's work never blocks you), but silently leaving them
  * behind is exactly what makes the NEXT instance "see files and hesitate to
  * deploy". We never block on them; we WARN so the agent can verify/own them.
+ *
+ * v1.5.0: SessionEnd is teardown-only (journal + archive + clearInbox) — skip
+ * quality validate so Kimi/Grok closing a session cannot get blocked mid-exit.
+ * Stop (end of turn) still runs the full validator.
  */
 
 import { execSync } from 'child_process';
@@ -319,12 +323,42 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  // Multi-instance coordination side effects.
-  const sessionId: string | undefined = hookInput.session_id || hookInput.sessionId;
-
-  const result = validate(sessionId);
+  const sessionId: string | undefined =
+    hookInput.session_id || hookInput.sessionId || hookInput.id;
   const eventName: string = hookInput.hook_event_name || hookInput.hookEventName || '';
   const isSessionEnd = /SessionEnd/i.test(eventName);
+
+  // SessionEnd = move registry JSON → _archive (Claude / Kimi / Grok). No validate.
+  if (isSessionEnd) {
+    try {
+      const stateDir = getStateDir(PROJECT_DIR);
+      ensureStateDirs(stateDir);
+      if (sessionId) {
+        const rec = readSession(stateDir, sessionId);
+        appendJournalEntry(PROJECT_DIR, {
+          target: process.env['SVS_TARGET'] || rec?.target,
+          sessionId,
+          branch: rec?.gitBranch,
+          filesTouched: rec?.filesTouched,
+          startedAt: rec?.startedAt,
+        });
+        archiveSession(stateDir, sessionId);
+        clearInbox(stateDir, sessionId);
+      }
+    } catch {
+      /* fail-open */
+    }
+    console.log(
+      JSON.stringify({
+        continue: false,
+        decision: 'approve',
+        reason: 'SessionEnd — archived to .claude/state/sessions/_archive/',
+      })
+    );
+    process.exit(0);
+  }
+
+  const result = validate(sessionId);
 
   try {
     const stateDir = getStateDir(PROJECT_DIR);
@@ -339,20 +373,6 @@ async function main(): Promise<void> {
           `\n\nNOTE: ${activePeers.length} peer instance(s) still active in this project:\n${lines}\n` +
           `If you committed and pushed, your work is now visible to them.`;
       }
-    }
-
-    // Journal once on SessionEnd (Stop may also fire — avoid duplicate digests).
-    if (isSessionEnd && sessionId) {
-      const rec = readSession(stateDir, sessionId);
-      appendJournalEntry(PROJECT_DIR, {
-        target: process.env['SVS_TARGET'],
-        sessionId,
-        branch: rec?.gitBranch,
-        filesTouched: rec?.filesTouched,
-        startedAt: rec?.startedAt,
-      });
-      archiveSession(stateDir, sessionId);
-      clearInbox(stateDir, sessionId);
     }
   } catch {}
 

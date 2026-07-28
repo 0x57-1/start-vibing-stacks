@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
  * SVS hook bridge — normalize Kimi/Grok stdin → Claude hook shape, translate stdout.
  *
@@ -9,7 +9,8 @@
  * hook-base: session-start | user-prompt-submit | pre-tool-use | plan-gate |
  *            post-tool-use | stop-validator | pre-compact
  *
- * Sets SVS_TARGET=kimi|grok for brain journal / SessionRecord tagging.
+ * Sets SVS_TARGET=kimi|grok so SessionStart writes `.claude/state/sessions/<id>.json`
+ * with target tag; SessionEnd archives to `_archive/` (same bus as Claude).
  * Fail-open: any bridge/hook crash exits 0 (allow).
  */
 
@@ -116,15 +117,26 @@ function normalizeToolInput(input) {
   return out;
 }
 
+function pickSessionId(raw) {
+  return (
+    raw.session_id ||
+    raw.sessionId ||
+    raw.id ||
+    (raw.session && (raw.session.id || raw.session.sessionId || raw.session.session_id)) ||
+    ''
+  );
+}
+
 function toClaudePayload(raw, forcedEvent) {
   const toolName = normalizeToolName(raw.tool_name || raw.toolName || '');
   const event =
     normalizeEventName(raw.hook_event_name || raw.hookEventName || '') || forcedEvent || '';
   const cwd = raw.cwd || raw.workspaceRoot || raw.workspace_root || process.cwd();
+  const sessionId = pickSessionId(raw);
   return {
     ...raw,
-    session_id: raw.session_id || raw.sessionId || '',
-    sessionId: raw.session_id || raw.sessionId || '',
+    session_id: sessionId,
+    sessionId,
     cwd,
     hook_event_name: event,
     hookEventName: event,
@@ -135,7 +147,7 @@ function toClaudePayload(raw, forcedEvent) {
     transcript_path: raw.transcript_path || raw.transcriptPath,
     prompt: raw.prompt || raw.user_prompt || raw.userPrompt,
     stop_hook_active: raw.stop_hook_active ?? raw.stopHookActive,
-    source: raw.source,
+    source: raw.source || raw.reason || raw.trigger,
   };
 }
 
@@ -237,7 +249,9 @@ async function main() {
     process.exit(0);
   }
 
-  const projectDir = process.env.CLAUDE_PROJECT_DIR || process.env.GROK_WORKSPACE_ROOT || process.cwd();
+  // Prefer workspace from stdin after parse — set below once raw is known.
+  let projectDir =
+    process.env.CLAUDE_PROJECT_DIR || process.env.GROK_WORKSPACE_ROOT || process.cwd();
   process.env.CLAUDE_PROJECT_DIR = projectDir;
 
   const hookPath = join(__dirname, `${hookBase}.ts`);
@@ -270,7 +284,11 @@ async function main() {
 
   const payload = toClaudePayload(raw, forcedEvent);
   payload.svs_target = target;
-  // stop-validator uses SessionEnd when that event fires
+  if (payload.cwd && typeof payload.cwd === 'string') {
+    projectDir = payload.cwd;
+    process.env.CLAUDE_PROJECT_DIR = projectDir;
+  }
+  // stop-validator uses SessionEnd when that event fires (archive only).
   if (hookBase === 'stop-validator') {
     const ev = normalizeEventName(raw.hook_event_name || raw.hookEventName || '');
     if (ev === 'SessionEnd') {

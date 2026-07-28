@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-28 · main · v2.64.0
+Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
+writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
+to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
+
 ### 2026-07-28 · main · v2.63.0
 Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
 ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
@@ -50,10 +55,6 @@ so MCP/tools are not approved one-by-one; plan mode stays on.
 ### 2026-07-26 · main · v2.55.1
 MCP export → **v1.1.0**: merge `~/.claude.json` (+ project entry) and `~/.claude/settings.json`
 with project `.claude/` before writing Kimi/Grok/Cursor side-cars. Memory + policy pack note.
-
-### 2026-07-26 · main · v2.55.0
-Always-on memory `multi-target-mcp-discovery.md` (find/migrate MCP Claude → Kimi/Grok/Cursor).
-Policy pack → **v1.1.0** (MCP scan paths + write targets). Wired setup/migrate `memory_files`.
 
 ---
 

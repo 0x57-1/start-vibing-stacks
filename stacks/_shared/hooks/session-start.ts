@@ -1,18 +1,20 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
  * SessionStart Hook — Multi-Instance Coordination + project brain brief
  *
  * Runs once per session start (startup | resume | compact). Responsibilities:
- *  1. Register this session in `.claude/state/sessions/<id>.json`.
- *  2. Inject a capped PROJECT BRAIN brief (branch, Recent Change, Next step).
- *  3. Extract title from transcript when present.
- *  4. Scan peers; drain inbox.
+ *  1. Register this session in `.claude/state/sessions/<id>.json` (Claude, Kimi, Grok).
+ *  2. Tag `target` + resolve native session dir / transcript when available.
+ *  3. Inject a capped PROJECT BRAIN brief (branch, Recent Change, Next step).
+ *  4. Extract title from transcript / product state when present.
+ *  5. Scan peers; drain inbox.
  */
 
 import {
   ACTIVE_MS,
   ageMs,
+  detectSvsTarget,
   drainInbox,
   ensureStateDirs,
   extractTitle,
@@ -24,6 +26,7 @@ import {
   listPeerSessions,
   readSession,
   readStdinJson,
+  resolveNativeSessionMeta,
   shortId,
   type InboxMessage,
 } from './_state.js';
@@ -31,16 +34,15 @@ import { buildResumeBrief } from './_brain.js';
 
 async function main(): Promise<void> {
   const input = await readStdinJson(1500);
-  const sessionId: string | undefined = input.session_id || input.sessionId;
-  const transcriptPath: string | undefined = input.transcript_path || input.transcriptPath;
+  const sessionId: string | undefined =
+    input.session_id || input.sessionId || input.id || input.session?.id;
+  const transcriptPathIn: string | undefined = input.transcript_path || input.transcriptPath;
   const source: string =
     (typeof input.source === 'string' && input.source) ||
     (typeof input.hook_event_name === 'string' ? 'startup' : 'startup');
   const projectDir = getProjectDir();
   const stateDir = getStateDir(projectDir);
-  const target =
-    process.env['SVS_TARGET'] ||
-    (typeof input.svs_target === 'string' ? input.svs_target : undefined);
+  const target = detectSvsTarget(input);
 
   if (!sessionId) {
     console.log(JSON.stringify({ continue: true }));
@@ -49,19 +51,24 @@ async function main(): Promise<void> {
 
   ensureStateDirs(stateDir);
 
+  const native = resolveNativeSessionMeta(projectDir, sessionId, target);
+  const transcriptPath = transcriptPathIn || native.transcriptPath;
+
   const existing = readSession(stateDir, sessionId);
   const title =
     existing?.title && existing.title !== '(untitled)'
       ? existing.title
-      : extractTitle(transcriptPath);
+      : native.title || extractTitle(transcriptPath);
 
   const branch = getGitBranch(projectDir);
 
   heartbeat(stateDir, sessionId, 'SessionStart', {
     transcriptPath,
+    nativeSessionDir: native.nativeSessionDir,
     title,
     cwd: projectDir,
     gitBranch: branch,
+    target,
   });
 
   const peers = listPeerSessions(stateDir, sessionId);
@@ -87,8 +94,8 @@ async function main(): Promise<void> {
 
   messageParts.push(
     `MULTI-INSTANCE COORDINATION ACTIVE — session ${shortId(sessionId)} ("${title}")` +
-      (target ? ` · target=${target}` : '') +
-      `. State at .claude/state/.`
+      ` · target=${target}` +
+      `. State at .claude/state/sessions/ (archive on SessionEnd or >30min idle).`
   );
 
   if (peers.length > 0) {
