@@ -1,25 +1,18 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
- * SessionStart Hook — Multi-Instance Coordination
+ * SessionStart Hook — Multi-Instance Coordination + project brain brief
  *
- * Runs once per Claude session start. Responsibilities:
+ * Runs once per session start (startup | resume | compact). Responsibilities:
  *  1. Register this session in `.claude/state/sessions/<id>.json`.
- *  2. Extract a human title from the transcript (matches what `claude --resume` shows).
- *  3. Scan for peer sessions in the same project; warn if any are active.
- *  4. Drain the inbox so messages from peers are surfaced in the first prompt.
- *
- * Hook input (JSON via stdin):
- *   { session_id, transcript_path, cwd, hook_event_name, source }
- *
- * Output (JSON to stdout):
- *   { continue: true, systemMessage?: string }
+ *  2. Inject a capped PROJECT BRAIN brief (branch, Recent Change, Next step).
+ *  3. Extract title from transcript when present.
+ *  4. Scan peers; drain inbox.
  */
 
 import {
   ACTIVE_MS,
   ageMs,
-  appendInbox,
   drainInbox,
   ensureStateDirs,
   extractTitle,
@@ -29,19 +22,25 @@ import {
   getStateDir,
   heartbeat,
   listPeerSessions,
-  nowIso,
   readSession,
   readStdinJson,
   shortId,
   type InboxMessage,
 } from './_state.js';
+import { buildResumeBrief } from './_brain.js';
 
 async function main(): Promise<void> {
   const input = await readStdinJson(1500);
   const sessionId: string | undefined = input.session_id || input.sessionId;
   const transcriptPath: string | undefined = input.transcript_path || input.transcriptPath;
+  const source: string =
+    (typeof input.source === 'string' && input.source) ||
+    (typeof input.hook_event_name === 'string' ? 'startup' : 'startup');
   const projectDir = getProjectDir();
   const stateDir = getStateDir(projectDir);
+  const target =
+    process.env['SVS_TARGET'] ||
+    (typeof input.svs_target === 'string' ? input.svs_target : undefined);
 
   if (!sessionId) {
     console.log(JSON.stringify({ continue: true }));
@@ -50,13 +49,11 @@ async function main(): Promise<void> {
 
   ensureStateDirs(stateDir);
 
-  // Resolve title: prefer the existing record (so we don't lose a real title
-  // captured by user-prompt-submit when the SessionStart event also fires for
-  // a `/resume` flow that already had a title).
   const existing = readSession(stateDir, sessionId);
-  const title = existing?.title && existing.title !== '(untitled)'
-    ? existing.title
-    : extractTitle(transcriptPath);
+  const title =
+    existing?.title && existing.title !== '(untitled)'
+      ? existing.title
+      : extractTitle(transcriptPath);
 
   const branch = getGitBranch(projectDir);
 
@@ -67,35 +64,48 @@ async function main(): Promise<void> {
     gitBranch: branch,
   });
 
-  // Discover peers (active or idle within 30min).
   const peers = listPeerSessions(stateDir, sessionId);
-
-  // Drain inbox messages addressed to this session.
   const inbox = drainInbox(stateDir, sessionId);
 
   const messageParts: string[] = [];
+
+  // Brain brief first on resume/compact (what was lost is task context, not peers).
+  const src = String(source).toLowerCase();
+  try {
+    messageParts.push(
+      buildResumeBrief(projectDir, {
+        source: src,
+        branch,
+        target,
+        sessionShort: shortId(sessionId),
+      })
+    );
+    messageParts.push('');
+  } catch {
+    /* fail-open */
+  }
+
   messageParts.push(
-    `MULTI-INSTANCE COORDINATION ACTIVE — this Claude session is registered as ${shortId(sessionId)} ("${title}"). State at .claude/state/.`
+    `MULTI-INSTANCE COORDINATION ACTIVE — session ${shortId(sessionId)} ("${title}")` +
+      (target ? ` · target=${target}` : '') +
+      `. State at .claude/state/.`
   );
 
   if (peers.length > 0) {
     messageParts.push('');
     messageParts.push(`PEERS DETECTED in this project (${peers.length}):`);
     for (const p of peers) messageParts.push(`  - ${formatPeer(p)}`);
-    const anyActive = peers.some(p => ageMs(p.lastSeenAt) < ACTIVE_MS);
+    const anyActive = peers.some((p) => ageMs(p.lastSeenAt) < ACTIVE_MS);
     if (anyActive) {
       messageParts.push('');
       messageParts.push(
-        'WARNING: at least one peer is ACTIVE right now. Edit/Write of a file ' +
-          'a peer just touched will be BLOCKED by the PreToolUse hook to prevent ' +
-          'overwriting their uncommitted work. Coordinate via `/peers notify <id> "msg"` ' +
-          'before touching shared files.'
+        'WARNING: at least one peer is ACTIVE. Edit/Write of a file a peer just ' +
+          'touched will be BLOCKED. Coordinate via peers notify before shared files.'
       );
     } else {
       messageParts.push('');
       messageParts.push(
-        'Peers are idle (>3min). Edits will be allowed but you will see a notice if ' +
-          'you touch files they recently modified.'
+        'Peers are idle (>3min). Edits allowed; you may see a notice on recent peer files.'
       );
     }
   }
@@ -106,21 +116,16 @@ async function main(): Promise<void> {
     for (const m of inbox) messageParts.push(formatInbox(m));
   }
 
-  const systemMessage = messageParts.join('\n');
-
-  console.log(JSON.stringify({ continue: true, systemMessage }));
+  console.log(JSON.stringify({ continue: true, systemMessage: messageParts.join('\n') }));
 }
 
 function formatInbox(m: InboxMessage): string {
-  const from = m.fromTitle ? `${shortId(m.fromSessionId)} "${m.fromTitle}"` : shortId(m.fromSessionId);
+  const from = m.fromTitle
+    ? `${shortId(m.fromSessionId)} "${m.fromTitle}"`
+    : shortId(m.fromSessionId);
   return `  [${m.ts}] from ${from}: ${m.message}`;
 }
 
 main().catch(() => {
   console.log(JSON.stringify({ continue: true }));
-  process.exit(0);
 });
-
-// Silence unused-import warning when type-only imports are tree-shaken
-void nowIso;
-void appendInbox;

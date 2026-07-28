@@ -26,7 +26,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.2.1';
+export const GROK_SKILLS_VERSION = '1.3.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -36,6 +36,9 @@ export const GROK_CURATED_SKILL_NAMES = [
   'git-workflow',
   'multi-instance-coordination',
   'session-history',
+  'codebase-knowledge',
+  'docs-tracker',
+  'decision-records',
   'security-baseline',
   'secrets-management',
   'quality-gate',

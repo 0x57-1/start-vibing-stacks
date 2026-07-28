@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.3
+svs-version: 1.1.5
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -30,10 +30,15 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-28 · main · v2.63.0
+Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
+ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
+codebase-knowledge/docs-tracker/decision-records. Compact guide in `session-history` 1.1.0.
+
+
 ### 2026-07-28 · main · v2.62.0
 Skill `session-history` (Claude/Kimi/Grok transcripts + resume). Shared `.claude/state`
-bus: Grok hooks **1.3.0** add SessionStart/UserPromptSubmit/SessionEnd (parity with Kimi).
-Grok skills **1.2.1** + AGENTS.md **1.1.3** document the bus; curated includes session-history.
+bus: Grok hooks SessionStart/UserPromptSubmit/SessionEnd. Curated includes session-history.
 
 
 ### 2026-07-28 · main · v2.61.0
@@ -51,11 +56,6 @@ Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
 ### 2026-07-26 · main · v2.59.0
 Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable vercel plugin);
 `.grok/agents/` from `.claude/agents/`; hooks path relative to JSON (`../../.claude/hooks/…`).
-
-
-### 2026-07-26 · main · v2.58.0
-MCP export filter → **v1.3.0**: drop Claude.ai connectors (Gmail/Calendar/Drive) always;
-Vercel/`nextjs-devtools` only on **nodejs** (stripped for php/python). Memory → **v1.3.0**.
 
 ## Development process (Kimi / Grok)
 
@@ -83,6 +83,8 @@ agents are markdown files. **Open the matching agent and follow its steps.**
 | `domain-updater` | Gotchas + learnings into domains | same |
 | `commit-manager` | Commit / push / finalize | same |
 | `claude-md-compactor` | CLAUDE.md over size budget | same |
+| `long-session-consistency` | Resume/compact/cross-CLI memory design | same |
+| `knowledge-rag-eval` | Obsidian/ADR/embeddings — ship or skip | same |
 
 Kimi: `extra_agent_dirs` → `.claude/agents/`. Grok: copied to `.grok/agents/` on migrate.
 
@@ -110,7 +112,10 @@ Claude `/commit-mine` is the same idea. Prefer `scope commit` over staging the w
 - **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.
 - **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).
   Load `svs-dev-process`, `svs-memory-index`, and `session-history` (Claude/Kimi/Grok transcripts).
-- **Shared bus** — `.claude/state/` (peers, file locks, inbox) for Claude + Kimi + Grok via SVS hooks.
+- **Shared bus** — `.claude/state/` (peers, locks, inbox; gitignored).
+- **Project brain** — `.claude/brain/` (committed tasks + journal). SessionStart brief + PreCompact stamp.
+- **Decisions** — `docs/decisions/` (ADRs — durable why). Skill `decision-records`.
+- **Compact** — use product `/compact` with a short hint; restore from brain — see skill `session-history`.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

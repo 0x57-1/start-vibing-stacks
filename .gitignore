@@ -58,3 +58,6 @@ tmp/
 # Local runtime state (MCP/hook SQLite, etc.) — never commit
 data/
 .grok/
+
+# Claude Code local permission overrides (copy from settings.local.example.json)
+.claude/settings.local.json

@@ -370,6 +370,13 @@ const REQUIRED_HOOK_BLOCKS: Record<string, HookBlock[]> = {
       ],
     },
   ],
+  PreCompact: [
+    {
+      hooks: [
+        { type: 'command', command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.ts"', timeout: 10 },
+      ],
+    },
+  ],
 };
 
 function commandSubstring(cmd: string): string {
@@ -554,16 +561,93 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
   const report: RuntimeReport = { created: [], copied: [], gitignoreUpdated: false };
 
   const stateRoot = join(projectDir, '.claude', 'state');
+  const brainRoot = join(projectDir, '.claude', 'brain');
   const dirs = [
     join(stateRoot, 'sessions', '_archive'),
     join(stateRoot, 'inbox'),
     join(stateRoot, 'file-touches', '_archive'),
+    join(brainRoot, 'tasks'),
+    join(brainRoot, 'journal'),
+    join(projectDir, 'docs', 'decisions'),
   ];
   for (const d of dirs) {
     if (!existsSync(d)) {
       if (!dryRun) mkdirSync(d, { recursive: true });
       report.created.push(relative(projectDir, d));
     }
+  }
+
+  // Project brain (committed) — opposite of gitignored .claude/state/
+  const brainReadme = join(brainRoot, 'README.md');
+  if (!existsSync(brainReadme) && !dryRun) {
+    writeFileSync(
+      brainReadme,
+      [
+        '# Project brain',
+        '',
+        'Durable in-flight state for Claude / Kimi / Grok (committed).',
+        'Live peers stay in `.claude/state/` (gitignored).',
+        '',
+        '| Path | Role |',
+        '|------|------|',
+        '| `tasks/<branch>.md` | Current work (copy from TEMPLATE.md) |',
+        '| `journal/YYYY-MM.md` | Session digests (SessionEnd hook) |',
+        '',
+        'SessionStart injects a short brief; PreCompact stamps Next step before `/compact`.',
+        '',
+      ].join('\n')
+    );
+    report.created.push(relative(projectDir, brainReadme));
+  }
+  const brainTpl = join(brainRoot, 'TEMPLATE.md');
+  const tplSrc = join(CLI_ROOT, 'stacks', '_shared', 'hooks', '_brain.ts');
+  // Prefer skill template text inlined (avoid importing hook TS into migrate)
+  if (!existsSync(brainTpl) && !dryRun) {
+    writeFileSync(
+      brainTpl,
+      [
+        '---',
+        'task: example-task',
+        'branch: feature/example',
+        'status: planned',
+        'updated: YYYY-MM-DDTHH:MM:SSZ',
+        'updated_by: claude/xxxxxxxx',
+        'domains: []',
+        '---',
+        '',
+        '## Goal',
+        '',
+        '1–3 lines.',
+        '',
+        '## Plan',
+        '',
+        '- [ ] step',
+        '',
+        '## Next step',
+        '',
+        'One sentence for the next session.',
+        '',
+      ].join('\n')
+    );
+    report.created.push(relative(projectDir, brainTpl));
+  }
+  void tplSrc;
+
+  const decisionsIndex = join(projectDir, 'docs', 'decisions', '_index.md');
+  if (!existsSync(decisionsIndex) && !dryRun) {
+    writeFileSync(
+      decisionsIndex,
+      [
+        '# Architecture decision records',
+        '',
+        '| ID | Title | Status | Date | Domains |',
+        '|----|-------|--------|------|---------|',
+        '',
+        '_Add ADRs as `NNNN-slug.md`. See skill `decision-records`._',
+        '',
+      ].join('\n')
+    );
+    report.created.push(relative(projectDir, decisionsIndex));
   }
 
   const readmeSrc = join(CLI_ROOT, 'stacks', '_shared', 'hooks', '_state.README.md');
@@ -603,7 +687,7 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
     if (!stateCovered) {
       gi =
         gi.trimEnd() +
-        '\n\n# Claude Code multi-instance coordination state (runtime, per-host)\n.claude/state/\n';
+        '\n\n# Live peers/locks only (per-host). Do NOT ignore .claude/brain/ (committed continuity).\n.claude/state/\n';
       changed = true;
     }
     if (!gi.includes('.claude/settings.local.json')) {

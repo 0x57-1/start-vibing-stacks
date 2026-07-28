@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * SVS hook bridge — normalize Kimi/Grok stdin → Claude hook shape, translate stdout.
  *
@@ -7,8 +7,9 @@
  *   node .claude/hooks/svs-bridge.mjs <kimi|grok> <hook-base>
  *
  * hook-base: session-start | user-prompt-submit | pre-tool-use | plan-gate |
- *            post-tool-use | stop-validator
+ *            post-tool-use | stop-validator | pre-compact
  *
+ * Sets SVS_TARGET=kimi|grok for brain journal / SessionRecord tagging.
  * Fail-open: any bridge/hook crash exits 0 (allow).
  */
 
@@ -263,10 +264,12 @@ async function main() {
       'pre-tool-use': 'PreToolUse',
       'plan-gate': 'PreToolUse',
       'post-tool-use': 'PostToolUse',
+      'pre-compact': 'PreCompact',
       'stop-validator': raw.hook_event_name || raw.hookEventName || 'Stop',
     }[hookBase] || '';
 
   const payload = toClaudePayload(raw, forcedEvent);
+  payload.svs_target = target;
   // stop-validator uses SessionEnd when that event fires
   if (hookBase === 'stop-validator') {
     const ev = normalizeEventName(raw.hook_event_name || raw.hookEventName || '');
@@ -282,7 +285,7 @@ async function main() {
   const input = JSON.stringify(payload);
   const result = spawnSync('npx', ['tsx', hookPath], {
     cwd: projectDir,
-    env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir },
+    env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir, SVS_TARGET: target },
     input,
     encoding: 'utf8',
     timeout: 55_000,

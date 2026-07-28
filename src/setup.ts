@@ -434,6 +434,17 @@ export async function setupProject(
             ],
           },
         ],
+        PreCompact: [
+          {
+            hooks: [
+              {
+                type: 'command',
+                command: 'npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/pre-compact.ts"',
+                timeout: 10,
+              },
+            ],
+          },
+        ],
       },
 
       agents: {

@@ -1,12 +1,11 @@
 ---
 name: session-history
-version: 1.0.0
+version: 1.1.0
 description: >
   Find and read agent session history across Claude Code, Kimi Code, and Grok.
-  Locate transcripts (Claude JSONL, Kimi wire.jsonl, Grok updates/chat_history),
-  list peers via .claude/state/, resume by id/title. Use when the user asks for
-  a past session, Claude history, /resume, transcript, or "what did the other
-  agent do". Complements multi-instance-coordination (live peers + file locks).
+  Locate transcripts, list peers via .claude/state/, resume by id/title, and
+  choose efficient context compaction (/compact vs project brain) without
+  bloating the window. Use for past sessions, /resume, compact, or lost context.
 ---
 
 # Session history (Claude / Kimi / Grok)
@@ -223,14 +222,63 @@ Requires the peer to run UserPromptSubmit/SessionStart drains (Kimi yes; Grok Se
 
 ---
 
+## Context compaction (efficient — do not explode the window)
+
+### What Claude has today (SVS)
+
+| Mechanism | Role |
+|-----------|------|
+| Product `/compact` | Summarizes transcript inside the model window |
+| `PreCompact` hook | Stamps `.claude/brain/tasks/<branch>.md` before compress |
+| SessionStart brief | Re-injects branch + Next step + Recent Change (~1.2 KB) after startup/resume/compact |
+| `claude-md-compactor` | Keeps **CLAUDE.md / skills** small (instruction budget), not chat history |
+| Domains + ADRs | Settled knowledge via grep — not pasted every turn |
+
+Nested `CLAUDE.md` does **not** survive `/compact` — promote critical bits to rules.
+
+### Kimi Code
+
+| Tool | Notes |
+|------|--------|
+| Auto-compact | When context nears limit (`loop_control.compaction_trigger_ratio`, default ~0.85) |
+| `/compact [hint]` | Manual; pass focus e.g. `/compact keep migration plan` |
+| `/clear` | Wipes conversation context (session state like approvals may remain) |
+| `-c` / `-S` | Continue / resume session from disk |
+| Status bar | Watch % before compacting |
+
+**Efficient pattern:** compact with a **hint** pointing at the brain Next step; do not re-attach full memories or skill trees after compact — SessionStart brief + Read one domain/ADR is enough.
+
+### Grok
+
+| Tool | Notes |
+|------|--------|
+| Auto-compact | Near context limit (`context_window` / model config) |
+| `/compact [context]` | Manual; optional preserve instructions |
+| `compaction_checkpoints/` | Under session dir after compact |
+| `/session-info` | Token usage |
+| `--experimental-memory` / `[memory] enabled` | Cross-session recall (experimental, **off by default**) |
+| `/new` | Fresh conversation |
+
+**Efficient pattern:** prefer **project brain + domains** over enabling experimental memory for every session (memory indexes grow and can add noise). Use `/compact keep Next step from .claude/brain` then trust SessionStart brief. `grok memory` is optional for personal facts — not a substitute for committed `docs/decisions/` / domains.
+
+### Shared SVS strategy (all three)
+
+1. **Before** long work: ensure `.claude/brain/tasks/<branch>.md` has a one-line Next step  
+2. **When** context > ~70–85%: product `/compact` with a short preserve hint  
+3. **After** compact/resume: rely on SessionStart brain brief — do **not** reload 20 memories or huge skills  
+4. **Never** use `compat.claude.skills=true` on Grok to “restore context”  
+5. Journal at SessionEnd: `.claude/brain/journal/YYYY-MM.md` (hook-written)
+
 ## Guardrails
 
 - Never `git add` `.claude/state/`, `~/.claude/projects/`, `~/.kimi-code/sessions/`, `~/.grok/sessions/`
-- Fail-open: missing transcript ≠ permission to invent history — say what you could not find
-- Huge JSONL: sample with `tail` / typed filters; do not load entire files into the prompt
+- **Do** commit `.claude/brain/` (in-flight) and `docs/decisions/` (why)
+- Fail-open: missing transcript ≠ invent history
+- Huge JSONL: sample with `tail` / typed filters
 
 ## See Also
 
 - `multi-instance-coordination` — live collision / `/peers` protocol
-- `git-workflow` — commits vs in-flight session coordination
+- `decision-records` — durable why
+- Agent `long-session-consistency` — brain architecture
 - `.claude/state/README.md` (copied from hooks `_state.README.md`)

@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.62.0** — `session-history` skill (Claude/Kimi/Grok transcripts); Grok hooks join shared `.claude/state` (SessionStart/End); curated skills include session-history.
+> Latest: **v2.63.0** — project brain + PreCompact/SessionStart continuity; ADRs; Grok curated domains; compact guide for Claude/Kimi/Grok.
 
 ---
 

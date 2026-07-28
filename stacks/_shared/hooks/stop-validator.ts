@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.3.0
+// @sv-version: 1.4.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -40,6 +40,7 @@ import {
   listPeerSessions,
   readSession,
 } from './_state.js';
+import { appendJournalEntry } from './_brain.js';
 
 const PROJECT_DIR = process.env['CLAUDE_PROJECT_DIR'] || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
@@ -340,7 +341,16 @@ async function main(): Promise<void> {
       }
     }
 
+    // Journal once on SessionEnd (Stop may also fire — avoid duplicate digests).
     if (isSessionEnd && sessionId) {
+      const rec = readSession(stateDir, sessionId);
+      appendJournalEntry(PROJECT_DIR, {
+        target: process.env['SVS_TARGET'],
+        sessionId,
+        branch: rec?.gitBranch,
+        filesTouched: rec?.filesTouched,
+        startedAt: rec?.startedAt,
+      });
       archiveSession(stateDir, sessionId);
       clearInbox(stateDir, sessionId);
     }
