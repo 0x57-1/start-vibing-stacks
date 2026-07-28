@@ -1,5 +1,5 @@
 ---
-version: 1.5.0
+version: 1.6.0
 ---
 
 # Memory: Multi-Target MCP Discovery & Migration
@@ -50,8 +50,8 @@ SVS **merges** Claude MCP from user-global + project, **filters**, then writes:
 
 | Claude | Grok |
 |--------|------|
-| `.claude/skills/` | **Off by default** (`compat.claude.skills=false`) — use `.grok/skills/` only |
-| `.claude/agents/` | Auto **and** copied to `.grok/agents/` by migrate |
+| `.claude/skills/` | **Off by default** (`compat.claude.skills=false`). Migrate copies a **curated allowlist** + `svs-policy` / `svs-dev-process` / `svs-memory-index` into `.grok/skills/` (never cybersecurity-suite) |
+| `.claude/agents/` | Auto **and** copied to `.grok/agents/` by migrate. AGENTS.md documents the flow (no Task parity) |
 | `.claude/settings.json` hooks | Prefer `.grok/hooks/*.json` (paths relative to JSON); set user `compat.claude.hooks = false` |
 | `~/.claude.json` MCP | **Do not** rely on global dump — export to `.grok/config.toml`; user `compat.claude.mcps = false` |
 | Claude plugins (`vercel@…`) | Loaded by Grok; **disable** `vercel` in `~/.grok` `[plugins].disabled` (OAuth hang) |

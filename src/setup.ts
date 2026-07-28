@@ -561,7 +561,10 @@ export async function setupProject(
         (sync.agentsMdWritten ? ' + AGENTS.md' : '') +
         (sync.cursorRules.written ? ' + Cursor rules' : '') +
         (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ' + Kimi local' : '') +
-        (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten
+        (sync.grokSkills.configUpdated ||
+        sync.grokSkills.nativeSkillWritten ||
+        sync.grokSkills.curatedCopied > 0 ||
+        sync.grokSkills.generatedWritten > 0
           ? ' + Grok skills'
           : '') +
         (sync.hooksExport.grokHooksWritten || sync.hooksExport.kimiUserUpdated

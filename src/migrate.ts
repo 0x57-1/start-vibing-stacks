@@ -719,7 +719,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const grokSkillsNeed = grokSkillsNeedsUpdate(projectDir);
   const grokSkillsPending =
     (migrateTarget === 'all' || migrateTarget === 'grok') &&
-    (grokSkillsNeed.blockMissing || grokSkillsNeed.nativeMissing || grokSkillsNeed.outdated);
+    (grokSkillsNeed.blockMissing ||
+      grokSkillsNeed.nativeMissing ||
+      grokSkillsNeed.outdated ||
+      grokSkillsNeed.curatedMissing > 0);
   const hooksNeed = hooksExportNeedsUpdate(projectDir);
   const hooksPending =
     (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok') &&
@@ -786,7 +789,9 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
             ? '  (strip project [skills] pollution)'
             : grokSkillsNeed.nativeMissing
               ? '  (native skill missing)'
-              : '  (outdated)')
+              : grokSkillsNeed.curatedMissing > 0
+                ? `  (+${grokSkillsNeed.curatedMissing} curated pending)`
+                : '  (outdated)')
       );
     }
     if (hooksPending) {
@@ -941,10 +946,20 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   if (sync.kimiLocal.gitignoreUpdated) {
     ui.success('gitignore: ignored .kimi-code/local.toml');
   }
-  if (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten) {
+  if (
+    sync.grokSkills.configUpdated ||
+    sync.grokSkills.nativeSkillWritten ||
+    sync.grokSkills.curatedCopied > 0 ||
+    sync.grokSkills.generatedWritten > 0
+  ) {
     const bits: string[] = [];
     if (sync.grokSkills.configUpdated) bits.push('stripped project [skills]');
-    if (sync.grokSkills.nativeSkillWritten) bits.push('.grok/skills/svs-policy');
+    if (sync.grokSkills.generatedWritten > 0) {
+      bits.push(`${sync.grokSkills.generatedWritten} generated (.grok/skills/svs-*)`);
+    }
+    if (sync.grokSkills.curatedCopied > 0) {
+      bits.push(`${sync.grokSkills.curatedCopied} curated from .claude/skills`);
+    }
     ui.success(`targets: Grok skills → ${bits.join(', ')} (svs-version ${sync.grokSkills.version})`);
   } else if (
     sync.grokSkills.skippedReason &&
@@ -1002,7 +1017,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       (mcpBits.length > 0 ? ', MCP side-cars' : '') +
       (sync.cursorRules.written ? ', Cursor rules' : '') +
       (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated ? ', Kimi local' : '') +
-      (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten
+      (sync.grokSkills.configUpdated ||
+      sync.grokSkills.nativeSkillWritten ||
+      sync.grokSkills.curatedCopied > 0 ||
+      sync.grokSkills.generatedWritten > 0
         ? ', Grok skills'
         : '') +
       (sync.hooksExport.kimiLocalUpdated ||

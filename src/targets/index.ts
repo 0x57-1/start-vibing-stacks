@@ -63,6 +63,8 @@ export {
   grokSkillsNeedsUpdate,
   GROK_SKILLS_VERSION,
   GROK_NATIVE_SKILL_REL,
+  GROK_SKILLS_DIR_REL,
+  GROK_CURATED_SKILL_NAMES,
 } from './grok-skills.js';
 export type { GrokSkillsResult } from './grok-skills.js';
 export {

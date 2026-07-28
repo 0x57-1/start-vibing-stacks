@@ -90,8 +90,10 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
       : grokSk.nativeMissing
         ? `native skill missing (${GROK_NATIVE_SKILL_REL})`
         : grokSk.outdated
-          ? 'outdated'
-          : `ok (${GROK_NATIVE_SKILL_REL}; export ${manifest?.grokSkills?.version ?? '–'})`,
+          ? grokSk.curatedMissing > 0
+            ? `outdated (+${grokSk.curatedMissing} curated pending)`
+            : 'outdated'
+          : `ok (.grok/skills curated+svs; export ${manifest?.grokSkills?.version ?? '–'})`,
   });
 
   const hooks = hooksExportNeedsUpdate(projectDir);

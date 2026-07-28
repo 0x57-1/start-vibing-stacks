@@ -50,7 +50,8 @@ export interface SvsManifest {
   grokAgents?: { version: string };
 }
 
-export const AGENTS_MD_GENERATOR_VERSION = '1.0.0';
+/** Keep ≥ policy-pack svs-version so bundledAgentsMdVersion() does not stale-loop. */
+export const AGENTS_MD_GENERATOR_VERSION = '1.1.2';
 
 export const LAUNCH_SPECS: TargetLaunchSpec[] = [
   {

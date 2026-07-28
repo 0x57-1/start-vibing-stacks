@@ -176,7 +176,7 @@ async function main(): Promise<void> {
       })();
       const grokSkillsPending = (() => {
         const g = grokSkillsNeedsUpdate(projectDir);
-        return g.blockMissing || g.nativeMissing || g.outdated;
+        return g.blockMissing || g.nativeMissing || g.outdated || g.curatedMissing > 0;
       })();
       const hooksPending = (() => {
         const h = hooksExportNeedsUpdate(projectDir);
@@ -261,8 +261,16 @@ async function main(): Promise<void> {
         if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated) {
           ui.success('Updated .kimi-code/local.toml (SVS block)');
         }
-        if (sync.grokSkills.configUpdated || sync.grokSkills.nativeSkillWritten) {
-          ui.success(`Updated Grok skills bridge (svs-version ${sync.grokSkills.version})`);
+        if (
+          sync.grokSkills.configUpdated ||
+          sync.grokSkills.nativeSkillWritten ||
+          sync.grokSkills.curatedCopied > 0 ||
+          sync.grokSkills.generatedWritten > 0
+        ) {
+          ui.success(
+            `Updated Grok skills (svs-version ${sync.grokSkills.version};` +
+              ` curated=${sync.grokSkills.curatedCopied}, generated=${sync.grokSkills.generatedWritten})`
+          );
         }
         if (
           sync.hooksExport.kimiLocalUpdated ||

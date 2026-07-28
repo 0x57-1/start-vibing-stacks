@@ -120,6 +120,8 @@ export interface SyncTargetsResult {
   grokSkills: {
     configUpdated: boolean;
     nativeSkillWritten: boolean;
+    curatedCopied: number;
+    generatedWritten: number;
     version: string;
     skippedReason?: string;
   };
@@ -284,13 +286,16 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
       (updateIfNeeded &&
         (grokSkillsNeed.blockMissing ||
           grokSkillsNeed.nativeMissing ||
-          grokSkillsNeed.outdated)));
+          grokSkillsNeed.outdated ||
+          grokSkillsNeed.curatedMissing > 0)));
 
   const grokSkills = shouldWriteGrokSkills
     ? exportGrokSkills(projectDir, { force: opts.forceGrokSkills === true })
     : {
         configUpdated: false,
         nativeSkillWritten: false,
+        curatedCopied: 0,
+        generatedWritten: 0,
         version: GROK_SKILLS_VERSION,
         skippedReason: syncGrokSkills
           ? 'Grok skills bridge current'
@@ -416,6 +421,8 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
   if (
     grokSkills.configUpdated ||
     grokSkills.nativeSkillWritten ||
+    grokSkills.curatedCopied > 0 ||
+    grokSkills.generatedWritten > 0 ||
     existsSync(join(projectDir, GROK_NATIVE_SKILL_REL))
   ) {
     manifest.grokSkills = { version: GROK_SKILLS_VERSION };

@@ -1,5 +1,5 @@
 ---
-svs-version: 1.0.0
+svs-version: 1.1.2
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -30,6 +30,12 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-28 · main · v2.61.0
+AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
+Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
+`svs-memory-index` (still no cybersecurity-suite / compat.claude.skills).
+
+
 ### 2026-07-27 · main · v2.60.0
 Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skills);
 MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
@@ -51,11 +57,59 @@ Grok hang fix: project `.grok/config.toml` is **MCP-only** (strip `[skills]`/`[c
 OAuth MCPs start `enabled=false`; npx `startup_timeout_sec=60`. Slim native hooks
 (edit/stop). Skills = `.grok/skills/svs-policy` only. Memory MCP discovery → **v1.2.0**.
 
+## Development process (Kimi / Grok)
 
-### 2026-07-26 · main · v2.56.0
-Kimi/Grok permission parity with Claude Launch: resume Launch uses `kimi --yolo` /
-`grok --always-approve`. Kimi local.toml → **v1.2.0** (`default_permission_mode = "yolo"`)
-so MCP/tools are not approved one-by-one; plan mode stays on.
+Claude Code can auto-invoke specialized agents via Task/Subagent. **Kimi and Grok do not** —
+agents are markdown files. **Open the matching agent and follow its steps.**
+
+### Flow
+
+1. **Research** (new features) → agent `research-web`
+2. **Branch** — `feature/` | `fix/` | `refactor/` (avoid direct commits to `main`)
+3. **Implement** — scoped edits; hooks may enforce plan-gate + multi-instance file locks
+4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`
+5. **Before commit** → agent `commit-manager` (never `git add -A` / `git add .`)
+6. **Document** → agent `documenter`, then `domain-updater`
+7. **Stop** — bridged Stop may run `stop-validator` (clean git, CLAUDE.md Recent Changes, secrets)
+
+### Agents
+
+| Agent | When | Path |
+|-------|------|------|
+| `research-web` | New feature / unfamiliar tech | `.grok/agents/` or `.claude/agents/` |
+| `security-auditor` | Auth, secrets, APIs, infra | same |
+| `tester` | New logic / user-facing flows | same |
+| `documenter` | After code changes — map files → domains | same |
+| `domain-updater` | Gotchas + learnings into domains | same |
+| `commit-manager` | Commit / push / finalize | same |
+| `claude-md-compactor` | CLAUDE.md over size budget | same |
+
+Kimi: `extra_agent_dirs` → `.claude/agents/`. Grok: copied to `.grok/agents/` on migrate.
+
+### Safe commit (multi-instance)
+
+```bash
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>"
+```
+
+Claude `/commit-mine` is the same idea. Prefer `scope commit` over staging the whole tree.
+
+### Commands (Claude slash → run the file)
+
+| Claude | On Kimi / Grok |
+|--------|----------------|
+| `/commit-mine` | `scope.ts commit` (above) or read `.claude/commands/commit-mine.md` |
+| `/feature` | Read `.claude/commands/feature.md` |
+| `/fix` | Read `.claude/commands/fix.md` |
+| `/research` | Read `.claude/commands/research.md` + agent `research-web` |
+| `/validate` | Read `.claude/commands/validate.md` + project quality gates |
+| `/peers` | `npx tsx .claude/hooks/peers.ts` |
+
+### Skills & memories
+
+- **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.
+- **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).
+  Load `svs-dev-process` and `svs-memory-index` for workflow + on-demand `.claude/memories/*`.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -128,7 +182,8 @@ After `npx start-vibing-stacks migrate --apply`, keep this `AGENTS.md` in sync w
 ## See also
 
 - `CLAUDE.md` — full Claude Code project rules
-- `.claude/memories/` — always-on Claude memories (source of detailed policy)
+- `.claude/memories/` — detailed always-on Claude memories (Read on demand from Kimi/Grok)
 - `.claude/memories/multi-target-mcp-discovery.md` — find/migrate MCP → Kimi/Grok/Cursor
 - `.claude/config/mcp-active.json` — Claude MCP source for `migrate --apply`
 - `.claude/config/svs-manifest.json` — package/target freshness
+- `.grok/skills/svs-dev-process/SKILL.md` — same process as a Grok-native skill

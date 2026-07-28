@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-28 · main · v2.61.0
+AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
+Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
+`svs-memory-index` (still no cybersecurity-suite / compat.claude.skills).
+
 ### 2026-07-27 · main · v2.60.0
 Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skills);
 MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
@@ -51,10 +56,6 @@ UserPromptSubmit, PreToolUse (+plan-gate), PostToolUse, Stop, SessionEnd. Grok
 Phase 6: Grok skills bridge (`[skills].paths` → `.claude/skills` + native
 `.grok/skills/svs-policy`); Kimi local → **v1.1.0** (`extra_agent_dirs` → `.claude/agents`).
 Hooks adapters deferred (Claude vs Kimi stdin differ).
-
-### 2026-07-26 · main · v2.52.0
-Phase 5: Kimi `.kimi-code/local.toml` (+ example, gitignore); AGENTS.md regenerates when
-CLAUDE.md Recent Changes hash drifts; migrate/resume print TARGET STATUS.
 
 ---
 

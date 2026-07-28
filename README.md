@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.60.0** — Grok boot: `compat.claude.skills=false` (skip huge Claude skill trees); MCP export disables OAuth + empty mysql; agents/hooks native side-cars.
+> Latest: **v2.61.0** — AGENTS.md development process for Kimi/Grok; curated Grok skills + `svs-dev-process` / `svs-memory-index` (no cybersecurity dump).
 
 ---
 
