@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-28 · main · v2.65.0
+Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
+after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
+
 ### 2026-07-28 · main · v2.64.0
 Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
 writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
@@ -51,10 +55,6 @@ OAuth MCPs start `enabled=false`; npx `startup_timeout_sec=60`. Slim native hook
 Kimi/Grok permission parity with Claude Launch: resume Launch uses `kimi --yolo` /
 `grok --always-approve`. Kimi local.toml → **v1.2.0** (`default_permission_mode = "yolo"`)
 so MCP/tools are not approved one-by-one; plan mode stays on.
-
-### 2026-07-26 · main · v2.55.1
-MCP export → **v1.1.0**: merge `~/.claude.json` (+ project entry) and `~/.claude/settings.json`
-with project `.claude/` before writing Kimi/Grok/Cursor side-cars. Memory + policy pack note.
 
 ---
 

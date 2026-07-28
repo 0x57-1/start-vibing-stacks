@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.64.0** — Kimi/Grok join `.claude/state/sessions` (+ `_archive`); skill `kimi-grok-session-lookup`; Grok curated 1.4.0.
+> Latest: **v2.65.0** — Kimi/Grok mandatory finalize (documenter → domain-updater); Stop blocks docs skip; `svs-finalize`.
 
 ---
 

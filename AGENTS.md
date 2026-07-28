@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.6
+svs-version: 1.1.7
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -30,6 +30,11 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-28 · main · v2.65.0
+Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
+after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
+
+
 ### 2026-07-28 · main · v2.64.0
 Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
 writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
@@ -52,26 +57,25 @@ AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi
 Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
 `svs-memory-index` (still no cybersecurity-suite / compat.claude.skills).
 
-
-### 2026-07-27 · main · v2.60.0
-Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skills);
-MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
-Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
-
 ## Development process (Kimi / Grok)
 
 Claude Code can auto-invoke specialized agents via Task/Subagent. **Kimi and Grok do not** —
-agents are markdown files. **Open the matching agent and follow its steps.**
+agents are markdown files. **Read each agent and execute every step inline** (see skill `svs-finalize`).
 
-### Flow
+### Flow (do not skip)
 
 1. **Research** (new features) → agent `research-web`
 2. **Branch** — `feature/` | `fix/` | `refactor/` (avoid direct commits to `main`)
 3. **Implement** — scoped edits; hooks may enforce plan-gate + multi-instance file locks
 4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`
-5. **Before commit** → agent `commit-manager` (never `git add -A` / `git add .`)
-6. **Document** → agent `documenter`, then `domain-updater`
-7. **Stop** — bridged Stop may run `stop-validator` (clean git, CLAUDE.md Recent Changes, secrets)
+5. **Commit code** → agent `commit-manager` + `scope.ts` (never `git add -A` / `git add .`)
+6. **REQUIRED finalize** → `documenter` then `domain-updater` (CLAUDE.md Recent Changes)
+7. **Stop** — stop-validator blocks if CLAUDE / domain `_index.json` stale after source edits
+
+### FORBIDDEN
+
+- Code-only deploy without documenter + domain-updater
+- Claiming done while Stop would block on finalize
 
 ### Agents
 
@@ -80,14 +84,14 @@ agents are markdown files. **Open the matching agent and follow its steps.**
 | `research-web` | New feature / unfamiliar tech | `.grok/agents/` or `.claude/agents/` |
 | `security-auditor` | Auth, secrets, APIs, infra | same |
 | `tester` | New logic / user-facing flows | same |
-| `documenter` | After code changes — map files → domains | same |
-| `domain-updater` | Gotchas + learnings into domains | same |
-| `commit-manager` | Commit / push / finalize | same |
+| `commit-manager` | Scoped commit / push | same |
+| `documenter` | **After** code commit — map files → domains | same |
+| `domain-updater` | **After** documenter — wisdom + Recent Changes | same |
 | `claude-md-compactor` | CLAUDE.md over size budget | same |
 | `long-session-consistency` | Resume/compact/cross-CLI memory design | same |
 | `knowledge-rag-eval` | Obsidian/ADR/embeddings — ship or skip | same |
 
-Kimi: `extra_agent_dirs` → `.claude/agents/`. Grok: copied to `.grok/agents/` on migrate.
+Kimi: `extra_agent_dirs` → `.claude/agents/`. Grok: adapted copy in `.grok/agents/` on migrate.
 
 ### Safe commit (multi-instance)
 
@@ -112,7 +116,7 @@ Claude `/commit-mine` is the same idea. Prefer `scope commit` over staging the w
 
 - **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.
 - **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).
-  Load `svs-dev-process`, `svs-memory-index`, `session-history`, and `kimi-grok-session-lookup`.
+  Load `svs-dev-process`, `svs-finalize`, `svs-memory-index`, `session-history`, `kimi-grok-session-lookup`.
 - **Shared bus** — `.claude/state/` (peers, locks, inbox; gitignored).
 - **Project brain** — `.claude/brain/` (committed tasks + journal). SessionStart brief + PreCompact stamp.
 - **Decisions** — `docs/decisions/` (ADRs — durable why). Skill `decision-records`.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.5.0
+// @sv-version: 1.6.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -8,10 +8,11 @@
  * 1. Branch != main (work must be merged)
  * 2. Git tree not clean — SCOPED TO THIS SESSION'S filesTouched when available
  *    (multi-instance safe: peer N's dirty files do not block instance M's Stop)
- * 3. CLAUDE.md not updated
+ * 3. CLAUDE.md not updated this session after source edits (finalize chain)
  * 4. CLAUDE.md missing required sections — accepts `## Last Change` OR `## Recent Changes`
  * 5. CLAUDE.md exceeds 40k chars
  * 6. Secret pattern detected in committed/staged files (uses gitleaks if present, fallback to regex)
+ * 7. Domain `_index.json#last_commit` stale vs HEAD after source edits (documenter skipped)
  *
  * v1.2.0: per-instance scoping for the dirty-tree check + accept `## Recent Changes`
  * (append-only LIFO) as a valid changelog section. Source of truth for "what did
@@ -28,6 +29,10 @@
  * v1.5.0: SessionEnd is teardown-only (journal + archive + clearInbox) — skip
  * quality validate so Kimi/Grok closing a session cannot get blocked mid-exit.
  * Stop (end of turn) still runs the full validator.
+ *
+ * v1.6.0: after source filesTouched, require CLAUDE.md update since startedAt and
+ * (when present) codebase-knowledge `_index.json` last_commit === HEAD — forces
+ * Kimi/Grok documenter → domain-updater chain (skill svs-finalize).
  */
 
 import { execSync } from 'child_process';
@@ -70,6 +75,17 @@ const STACK_EXTENSIONS: Record<string, Set<string>> = {
 };
 
 const sourceExtensions = STACK_EXTENSIONS[stackId] || new Set(['.ts', '.js', '.php', '.py']);
+
+/** Broad source set for finalize-chain (all stacks). */
+const FINALIZE_SOURCE_RE =
+  /\.(ts|tsx|js|jsx|mjs|cjs|php|py|go|rs|vue|svelte|blade\.php)$/i;
+
+const FINALIZE_HINT =
+  `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
+  `1. Read + execute .grok/agents/documenter.md (or .claude/agents/documenter.md)\n` +
+  `2. Read + execute domain-updater.md (PREPEND CLAUDE.md ## Recent Changes)\n` +
+  `3. scope.ts commit "docs: …" if docs dirty\n` +
+  `4. Re-run Stop`;
 
 interface HookResult {
   continue: boolean;
@@ -282,6 +298,10 @@ function validate(sessionId: string | undefined): HookResult {
     };
   }
 
+  // 6. Finalize chain — source edits this session require docs (Kimi/Grok skip Task).
+  const finalizeBlock = checkFinalizeChain(sessionId, content);
+  if (finalizeBlock) return finalizeBlock;
+
   // All good. If per-instance scoping hid orphan dirty files (dirty, but not in
   // THIS session's filesTouched), surface them — they may be your own Bash/codegen
   // changes that post-tool-use could not attribute. We do NOT block on them.
@@ -299,8 +319,103 @@ function validate(sessionId: string | undefined): HookResult {
   return {
     continue: false,
     decision: 'approve',
-    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean (this-session scope)\nSecrets: clean${orphanNote}`,
+    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean (this-session scope)\nSecrets: clean\nFinalize: docs current${orphanNote}`,
   };
+}
+
+function isFinalizeSourcePath(file: string): boolean {
+  if (FINALIZE_SOURCE_RE.test(file)) return true;
+  for (const ext of sourceExtensions) {
+    if (file.endsWith(ext)) return true;
+  }
+  return false;
+}
+
+/** Parse first `### YYYY-MM-DD` under ## Recent Changes (or Last Change date line). */
+function topChangelogDate(claudeMd: string): Date | null {
+  const rc = claudeMd.match(/^## Recent Changes\s*\n([\s\S]*?)(?=\n## |\n# |$)/m);
+  if (rc) {
+    const m = rc[1]!.match(/###\s+(\d{4}-\d{2}-\d{2})\b/);
+    if (m) {
+      const d = Date.parse(`${m[1]}T00:00:00.000Z`);
+      if (!Number.isNaN(d)) return new Date(d);
+    }
+  }
+  const lc = claudeMd.match(/^## Last Change\s*\n[\s\S]*?\*\*Date:\*\*\s*(\d{4}-\d{2}-\d{2})/m);
+  if (lc) {
+    const d = Date.parse(`${lc[1]}T00:00:00.000Z`);
+    if (!Number.isNaN(d)) return new Date(d);
+  }
+  return null;
+}
+
+function checkFinalizeChain(sessionId: string | undefined, claudeMd: string): HookResult | null {
+  if (!sessionId) return null;
+  let sess;
+  try {
+    sess = readSession(getStateDir(PROJECT_DIR), sessionId);
+  } catch {
+    return null;
+  }
+  if (!sess?.filesTouched?.length || !sess.startedAt) return null;
+
+  const sourceTouched = sess.filesTouched.filter(isFinalizeSourcePath);
+  if (sourceTouched.length === 0) return null;
+
+  const startedMs = Date.parse(sess.startedAt);
+  if (Number.isNaN(startedMs)) return null;
+
+  // CLAUDE.md must be touched in git after session start, OR top RC date >= session day (UTC).
+  const claudeGitDate = cmd('git log -1 --format=%cI -- CLAUDE.md');
+  const claudeGitMs = claudeGitDate ? Date.parse(claudeGitDate) : NaN;
+  const topRc = topChangelogDate(claudeMd);
+  const sessionDayStart = Date.parse(new Date(startedMs).toISOString().slice(0, 10) + 'T00:00:00.000Z');
+  const claudeOk =
+    (!Number.isNaN(claudeGitMs) && claudeGitMs >= startedMs - 60_000) ||
+    (topRc !== null && topRc.getTime() >= sessionDayStart);
+
+  if (!claudeOk) {
+    return {
+      continue: true,
+      decision: 'block',
+      reason:
+        `BLOCKED: Source files edited this session but CLAUDE.md was not updated ` +
+        `(no Recent Changes / git date since session start ${sess.startedAt}).` +
+        `\nSource samples: ${sourceTouched.slice(0, 8).join(', ')}` +
+        FINALIZE_HINT,
+    };
+  }
+
+  // documenter: when memory layer exists, _index.json last_commit must match HEAD
+  const indexPath = join(
+    PROJECT_DIR,
+    '.claude',
+    'skills',
+    'codebase-knowledge',
+    '_index.json'
+  );
+  if (existsSync(indexPath)) {
+    try {
+      const idx = JSON.parse(readFileSync(indexPath, 'utf8')) as { last_commit?: string };
+      const head = cmd('git rev-parse HEAD');
+      const headShort = cmd('git rev-parse --short HEAD');
+      const last = (idx.last_commit || '').trim();
+      if (last && head && last !== head && last !== headShort && !head.startsWith(last)) {
+        return {
+          continue: true,
+          decision: 'block',
+          reason:
+            `BLOCKED: codebase-knowledge _index.json last_commit=${last} ≠ HEAD=${headShort} ` +
+            `(documenter skipped after source edits).` +
+            FINALIZE_HINT,
+        };
+      }
+    } catch {
+      /* fail-open on corrupt index */
+    }
+  }
+
+  return null;
 }
 
 async function main(): Promise<void> {

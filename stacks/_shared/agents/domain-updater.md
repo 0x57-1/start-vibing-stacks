@@ -1,13 +1,15 @@
 ---
 name: domain-updater
-version: 3.0.0
-description: "AUTOMATICALLY invoke AFTER `documenter` completes. Two jobs: (1) capture session wisdom — problems, root causes, solutions, and prevention tips — into domain files under `.claude/skills/codebase-knowledge/domains/`; (2) PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` entry to the `## Recent Changes` section in the project's root `CLAUDE.md` (append-only LIFO, cap 10). Does NOT map files or commits (that is `documenter`'s job). Runs AFTER documenter, BEFORE session ends. v3.0.0 (May-2026): Recent Changes (LIFO) replaces the old Last Change overwrite pattern — multi-instance safe; no longer stomps peers' entries."
+version: 3.1.0
+description: "AUTOMATICALLY invoke AFTER `documenter` completes. Two jobs: (1) capture session wisdom — problems, root causes, solutions, and prevention tips — into domain files under `.claude/skills/codebase-knowledge/domains/`; (2) PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` entry to the `## Recent Changes` section in the project's root `CLAUDE.md` (append-only LIFO, cap 10). Does NOT map files or commits (that is `documenter`'s job). Runs AFTER documenter, BEFORE session ends. v3.1.0: Kimi/Grok execute inline; stop-validator requires Recent Changes update after source edits."
 model: sonnet
 tools: Read, Edit, Bash, Grep, Glob
-skills: codebase-knowledge
+skills: codebase-knowledge, svs-finalize
 ---
 
-# Domain Updater Agent (v3.0.0 — wisdom layer + Recent Changes prepend)
+# Domain Updater Agent (v3.1.0 — wisdom layer + Recent Changes prepend)
+
+> **Kimi / Grok:** Execute every step below inline (especially CLAUDE.md Recent Changes PREPEND). Stop blocks if you skip.
 
 You record **session-level learnings** so the next session avoids the same mistakes and has immediate context. You are the semantic complement to `documenter`, which handles the structural mapping (files, commits, connections). You handle **why** things happened and **what was learned**, and you PREPEND a new entry to `## Recent Changes` (append-only LIFO) — the multi-instance-safe replacement for the old `## Last Change` overwrite pattern (which caused parallel sessions to silently lose each other's entries).
 

@@ -4,12 +4,15 @@
  * Per Grok README Claude Compatibility: `.claude/agents/` is also scanned, but
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
+ *
+ * v1.1.0: adapt for Kimi/Grok — strip Claude-only `model: sonnet`, inject banner
+ * that agents must be Read+executed inline (no Task auto-invoke).
  */
 
-import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-export const GROK_AGENTS_VERSION = '1.0.0';
+export const GROK_AGENTS_VERSION = '1.1.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 
 export interface GrokAgentsResult {
@@ -18,12 +21,40 @@ export interface GrokAgentsResult {
   skippedReason?: string;
 }
 
+const GROK_BANNER =
+  '> **Kimi / Grok:** Claude Task/Subagent auto-invoke is unavailable. ' +
+  '**Read this entire agent file and execute every step inline** before continuing. ' +
+  'Do not skip to git commit/push. After source edits, skill `svs-finalize` is mandatory ' +
+  '(documenter → domain-updater → CLAUDE.md Recent Changes).\n';
+
 function listClaudeAgentFiles(projectDir: string): string[] {
   const dir = join(projectDir, '.claude', 'agents');
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((n) => n.endsWith('.md') && !n.startsWith('_'))
     .sort();
+}
+
+/** Strip Claude-only frontmatter keys and inject Kimi/Grok execution banner. */
+export function adaptAgentForGrok(body: string): string {
+  const fm = body.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
+  if (!fm) {
+    return `${GROK_BANNER}\n${body}`;
+  }
+  let meta = fm[1]!;
+  meta = meta
+    .split('\n')
+    .filter((line) => !/^\s*model:\s*/i.test(line))
+    .join('\n');
+  // Prefer generic tool list wording for Grok (Claude Edit/Bash names still OK via bridge).
+  if (!/^\s*description:/m.test(meta)) {
+    /* keep */
+  }
+  const rest = fm[2]!.replace(/^\s*\n/, '');
+  if (rest.includes('**Kimi / Grok:**')) {
+    return `---\n${meta}\n---\n\n${rest}`;
+  }
+  return `---\n${meta}\n---\n\n${GROK_BANNER}\n${rest}`;
 }
 
 export function grokAgentsNeedsUpdate(projectDir: string): {
@@ -82,12 +113,13 @@ export function exportGrokAgents(
 
   let written = 0;
   for (const name of listClaudeAgentFiles(projectDir)) {
-    copyFileSync(join(srcDir, name), join(destDir, name));
+    const raw = readFileSync(join(srcDir, name), 'utf8');
+    writeFileSync(join(destDir, name), adaptAgentForGrok(raw));
     written++;
   }
   writeFileSync(
     join(destDir, '.svs-version'),
-    `# svs-version: ${GROK_AGENTS_VERSION}\n# Copied from .claude/agents/ by start-vibing-stacks\n`
+    `# svs-version: ${GROK_AGENTS_VERSION}\n# Adapted from .claude/agents/ by start-vibing-stacks (inline-exec banner)\n`
   );
 
   return { written, version: GROK_AGENTS_VERSION };

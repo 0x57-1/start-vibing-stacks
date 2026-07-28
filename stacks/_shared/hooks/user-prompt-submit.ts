@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.6.0
+// @sv-version: 1.7.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.7.0: when filesTouched includes source, inject FINALIZE CHAIN (svs-finalize)
+ * so Kimi/Grok cannot “forget” documenter → domain-updater.
  * v1.6.0: re-tag `target` + native session paths on heartbeat (Kimi/Grok parity).
  * v1.5.0: Cursor Opened-changes / Save-file prompts = IDE buffer sync (memory
  * cursor-ide-edit-sync); optional settings.local.example for acceptEdits/bypass.
@@ -139,6 +141,18 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
     parts.push('');
     parts.push(`INBOX (${inbox.length} message${inbox.length === 1 ? '' : 's'} from peers — surface to the user):`);
     for (const m of inbox) parts.push(formatInbox(m));
+  }
+
+  const touched = readSession(stateDir, sessionId)?.filesTouched || existing?.filesTouched || [];
+  const hasSource = touched.some((f) =>
+    /\.(ts|tsx|js|jsx|mjs|cjs|php|py|go|rs|vue|svelte)$/i.test(f)
+  );
+  if (hasSource) {
+    parts.push('');
+    parts.push('FINALIZE CHAIN REQUIRED (source edits in this session — skill svs-finalize):');
+    parts.push('  Before claiming done: documenter → domain-updater (CLAUDE.md Recent Changes) → scope commit.');
+    parts.push('  Kimi/Grok: Read .grok/agents/<name>.md (or .claude/agents/) and execute steps inline — no Task auto-invoke.');
+    parts.push('  FORBIDDEN: code-only push without docs. Stop will BLOCK if CLAUDE/_index.json are stale.');
   }
 
   return parts.join('\n');
