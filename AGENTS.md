@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.2
+svs-version: 1.1.3
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -30,6 +30,12 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-28 · main · v2.62.0
+Skill `session-history` (Claude/Kimi/Grok transcripts + resume). Shared `.claude/state`
+bus: Grok hooks **1.3.0** add SessionStart/UserPromptSubmit/SessionEnd (parity with Kimi).
+Grok skills **1.2.1** + AGENTS.md **1.1.3** document the bus; curated includes session-history.
+
+
 ### 2026-07-28 · main · v2.61.0
 AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
 Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
@@ -50,12 +56,6 @@ Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable ve
 ### 2026-07-26 · main · v2.58.0
 MCP export filter → **v1.3.0**: drop Claude.ai connectors (Gmail/Calendar/Drive) always;
 Vercel/`nextjs-devtools` only on **nodejs** (stripped for php/python). Memory → **v1.3.0**.
-
-
-### 2026-07-26 · main · v2.57.0
-Grok hang fix: project `.grok/config.toml` is **MCP-only** (strip `[skills]`/`[compat]`);
-OAuth MCPs start `enabled=false`; npx `startup_timeout_sec=60`. Slim native hooks
-(edit/stop). Skills = `.grok/skills/svs-policy` only. Memory MCP discovery → **v1.2.0**.
 
 ## Development process (Kimi / Grok)
 
@@ -109,7 +109,8 @@ Claude `/commit-mine` is the same idea. Prefer `scope commit` over staging the w
 
 - **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.
 - **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).
-  Load `svs-dev-process` and `svs-memory-index` for workflow + on-demand `.claude/memories/*`.
+  Load `svs-dev-process`, `svs-memory-index`, and `session-history` (Claude/Kimi/Grok transcripts).
+- **Shared bus** — `.claude/state/` (peers, file locks, inbox) for Claude + Kimi + Grok via SVS hooks.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

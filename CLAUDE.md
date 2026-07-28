@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-28 · main · v2.62.0
+Skill `session-history` (Claude/Kimi/Grok transcripts + resume). Shared `.claude/state`
+bus: Grok hooks **1.3.0** add SessionStart/UserPromptSubmit/SessionEnd (parity with Kimi).
+Grok skills **1.2.1** + AGENTS.md **1.1.3** document the bus; curated includes session-history.
+
 ### 2026-07-28 · main · v2.61.0
 AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
 Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
@@ -51,11 +56,6 @@ Phase 7: Kimi + Grok hooks via `svs-bridge.mjs` (normalize stdin/stdout). Wired 
 UserPromptSubmit, PreToolUse (+plan-gate), PostToolUse, Stop, SessionEnd. Grok
 `.grok/hooks/svs.json` + `compat.claude.hooks=false`; Kimi `[[hooks]]` in local.toml +
 `~/.kimi-code/config.toml`.
-
-### 2026-07-26 · main · v2.53.0
-Phase 6: Grok skills bridge (`[skills].paths` → `.claude/skills` + native
-`.grok/skills/svs-policy`); Kimi local → **v1.1.0** (`extra_agent_dirs` → `.claude/agents`).
-Hooks adapters deferred (Claude vs Kimi stdin differ).
 
 ---
 

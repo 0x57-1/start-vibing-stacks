@@ -1,5 +1,5 @@
 ---
-version: 1.6.0
+version: 1.7.0
 ---
 
 # Memory: Multi-Target MCP Discovery & Migration
@@ -69,6 +69,8 @@ SVS **merges** Claude MCP from user-global + project, **filters**, then writes:
 Migrate writes `~/.grok` SVS:COMPAT: `mcps/hooks/skills=false`, `agents/rules=true`, `disabled=["vercel"]`. Project OAuth + empty-mysql stay `enabled=false`. Trust: `/hooks-trust`. Restart Grok after migrate. Flip `skills=true` only if you need Claude skill parity and accept slow boot.
 
 `grok mcp doctor` may show project `.grok/config.toml` as `0 servers` while `grok mcp list` shows `(project)` — Grok CLI attribution bug; trust `list` + healthy checks.
+
+**Session bus / history:** Claude, Kimi, and Grok share project `.claude/state/` (peers, locks, inbox) via SVS hooks — not separate `.kimi/state` / `.grok/state`. Past chats live in product dirs (`~/.claude/projects/…`, `~/.kimi-code/sessions/…`, `~/.grok/sessions/…`). Load skill `session-history`.
 
 After migrate, restart the target CLI / IDE so servers load.
 

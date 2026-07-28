@@ -6,7 +6,7 @@ Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Curs
 npx start-vibing-stacks
 ```
 
-> Latest: **v2.61.0** — AGENTS.md development process for Kimi/Grok; curated Grok skills + `svs-dev-process` / `svs-memory-index` (no cybersecurity dump).
+> Latest: **v2.62.0** — `session-history` skill (Claude/Kimi/Grok transcripts); Grok hooks join shared `.claude/state` (SessionStart/End); curated skills include session-history.
 
 ---
 

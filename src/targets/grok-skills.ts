@@ -26,7 +26,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.2.0';
+export const GROK_SKILLS_VERSION = '1.2.1';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -35,6 +35,7 @@ export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
 export const GROK_CURATED_SKILL_NAMES = [
   'git-workflow',
   'multi-instance-coordination',
+  'session-history',
   'security-baseline',
   'secrets-management',
   'quality-gate',
@@ -234,13 +235,25 @@ function memoryIndexSkillBody(): string {
     '',
     'All paths are under `.claude/memories/`.',
     '',
+    'For past chats / `/resume` / transcripts across Claude·Kimi·Grok, load skill',
+    '`session-history` (also under `.grok/skills/session-history/` after migrate).',
+    '',
   ].join('\n');
 }
 
+function curatedSkillSource(projectDir: string, name: string): string | null {
+  if (isBlockedSkillName(name)) return null;
+  const projectSrc = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
+  if (existsSync(projectSrc)) return projectSrc;
+  // Fallback: bundled _shared skill (so Grok migrate works before Claude skill scan)
+  const bundled = join(PACKAGE_ROOT, 'stacks', '_shared', 'skills', name, 'SKILL.md');
+  if (existsSync(bundled)) return bundled;
+  return null;
+}
+
 function copyCuratedSkill(projectDir: string, name: string): boolean {
-  if (isBlockedSkillName(name)) return false;
-  const src = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
-  if (!existsSync(src)) return false;
+  const src = curatedSkillSource(projectDir, name);
+  if (!src) return false;
   const destDir = join(skillsRoot(projectDir), name);
   mkdirSync(destDir, { recursive: true });
   copyFileSync(src, join(destDir, 'SKILL.md'));
@@ -286,9 +299,9 @@ export function grokSkillsNeedsUpdate(projectDir: string): {
 
   let curatedMissing = 0;
   for (const name of GROK_CURATED_SKILL_NAMES) {
-    const src = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
+    const src = curatedSkillSource(projectDir, name);
     const dest = join(skillsRoot(projectDir), name, 'SKILL.md');
-    if (existsSync(src) && !existsSync(dest)) curatedMissing += 1;
+    if (src && !existsSync(dest)) curatedMissing += 1;
   }
 
   return {

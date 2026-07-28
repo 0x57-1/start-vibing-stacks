@@ -1,12 +1,20 @@
 ---
 name: multi-instance-coordination
-version: 1.0.0
-description: Coordination protocol when multiple Claude Code instances run in the same project folder. State layout under `.claude/state/`, peer detection, file-edit collision avoidance (hybrid block/warn), and the `/peers` CLI for cross-instance messaging. Use when the user mentions another Claude instance, parallel work, concurrent sessions, the word "peers", or asks about /resume titles, file-touches.jsonl, or `.claude/state/`.
+version: 1.1.0
+description: >
+  Coordination when multiple Claude / Kimi / Grok sessions share a project folder.
+  Shared bus under `.claude/state/`, peer detection, file-edit collision avoidance,
+  `/peers` CLI. Use for parallel work, peers, file-touches.jsonl, or `.claude/state/`.
+  For reading past transcripts (/resume, Claude JSONL, Kimi wire, Grok updates), use
+  skill session-history.
 ---
 
 # Multi-Instance Coordination
 
-When two or more Claude Code instances are running in the same project folder, they auto-discover each other through `.claude/state/` and refuse to overwrite each other's uncommitted work.
+When two or more agent sessions (Claude Code, Kimi, or Grok via SVS bridge) share a
+project folder, they auto-discover each other through **one** bus — `.claude/state/` —
+and refuse to overwrite each other's uncommitted work. There is no separate
+`.kimi/state` or `.grok/state`; migrate wires hooks into that shared tree.
 
 ## Mental model
 
@@ -28,13 +36,15 @@ Every hook updates `lastSeenAt` (heartbeat). Thresholds:
 | > 30min              | stale    | Auto-archived on the next sweep.                                       |
 | > 24h                | removed  | Deleted entirely.                                                      |
 
-## How a Claude session announces itself
+## How a session announces itself
 
-1. `SessionStart` runs once. It registers the session, extracts a `title` from the transcript (this is the same title that appears in `claude --resume`), lists peers, and drains the inbox.
-2. `UserPromptSubmit` keeps the heartbeat fresh on every user turn. It re-drains the inbox so messages arrive between turns, not stuck waiting for a SessionStart.
-3. `PreToolUse` (matcher `Edit|Write|MultiEdit|NotebookEdit`) checks `file-touches.jsonl` against the target file BEFORE the edit runs.
-4. `PostToolUse` (same matcher) records the touch AFTER a successful edit.
+1. `SessionStart` registers the session, extracts a `title` when `transcript_path` is present (Claude `/resume` titles), lists peers, drains inbox.
+2. `UserPromptSubmit` heartbeats each user turn and re-drains the inbox.
+3. `PreToolUse` (edit tools) checks `file-touches.jsonl` before Edit/Write.
+4. `PostToolUse` records the touch after a successful edit.
 5. `Stop` / `SessionEnd` archives the session and clears its inbox.
+
+Kimi and Grok reach the same hooks through `svs-bridge.mjs` (project `.kimi-code` / `.grok/hooks`). Keep user `compat.claude.hooks=false` on Grok so hooks do not double-fire.
 
 ## PreToolUse decision matrix
 
@@ -85,6 +95,7 @@ The `/peers` slash command wraps these.
 
 ## See Also
 
+- `session-history` — find Claude / Kimi / Grok transcripts and resume past chats.
 - `git-workflow` — branch and commit hygiene; the coordination layer is an in-flight collision shield, not a replacement for branches.
 - `_state.ts` — shared TypeScript helpers used by every hook.
 - `.claude/state/` README at `.claude/hooks/_state.README.md`.

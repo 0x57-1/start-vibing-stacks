@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-export const HOOKS_EXPORT_VERSION = '1.2.0';
+export const HOOKS_EXPORT_VERSION = '1.3.0';
 export const GROK_HOOKS_REL = '.grok/hooks/svs.json';
 
 const KIMI_HOOKS_BLOCK_RE = /# SVS:HOOKS:START[\s\S]*?# SVS:HOOKS:END\n?/;
@@ -36,16 +36,19 @@ const HOOK_SPECS: HookSpec[] = [
 ];
 
 /**
- * Slim set for Grok native `.grok/hooks/svs.json`.
- * Skip SessionStart/SessionEnd/UserPromptSubmit — Claude settings.json hooks
- * still load via compat when the project is trusted; doubling SessionStart
- * slowed TUI boot. Edit/Stop stay on the bridge for multi-instance safety.
+ * Grok native `.grok/hooks/svs.json` — shared `.claude/state` bus parity.
+ * SessionStart/UserPromptSubmit/SessionEnd register peers + drain inbox.
+ * Keep compat.claude.hooks=false so these do not double-fire with Claude settings.
+ * (Boot cost is skills/MCP, not these light hooks.)
  */
 const GROK_HOOK_SPECS: HookSpec[] = [
+  { event: 'SessionStart', hook: 'session-start', timeout: 15 },
+  { event: 'UserPromptSubmit', hook: 'user-prompt-submit', timeout: 15 },
   { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'pre-tool-use', timeout: 10 },
   { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'plan-gate', timeout: 10 },
   { event: 'PostToolUse', matcher: EDIT_MATCHER, hook: 'post-tool-use', timeout: 10 },
   { event: 'Stop', hook: 'stop-validator', timeout: 45 },
+  { event: 'SessionEnd', hook: 'stop-validator', timeout: 15 },
 ];
 
 export interface HooksExportResult {
@@ -116,7 +119,7 @@ function grokHooksJson(): string {
       {
         _svs: {
           version: HOOKS_EXPORT_VERSION,
-          note: 'SVS bridge → Claude hooks (edit/stop). Path relative to this JSON. Trust: /hooks-trust. User [compat.claude] hooks=false via migrate.',
+          note: 'SVS bridge → Claude hooks (session + edit + stop). Path relative to this JSON. Trust: /hooks-trust. User [compat.claude] hooks=false via migrate.',
         },
         hooks,
       },
