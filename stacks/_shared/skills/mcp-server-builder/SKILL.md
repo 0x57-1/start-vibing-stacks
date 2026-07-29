@@ -1,7 +1,15 @@
 ---
 name: mcp-server-builder
-version: 1.0.0
-description: Build, audit or modify MCP servers to the 2026-07-28 protocol revision. Covers the version-pin traps (Python `mcp` 2.0.0 renamed FastMCP to MCPServer; Node SDK v2 moved to @modelcontextprotocol/server), what the stateless rewrite removed (initialize handshake, sessions, ping, logging/setLevel, resources/subscribe, SSE resumability), what is deprecated and must not be adopted (Roots, Sampling, Logging, HTTP+SSE, DCR), tool naming/annotations/pagination rules, and the house pattern for servers under ~/.claude/mcps. Invoke before creating a new MCP server, before editing an existing server.py/server.js, before touching a pyproject.toml or package.json that declares an MCP SDK, and before registering a server in ~/.claude.json.
+version: 1.1.0
+description: >
+  Build, audit, upgrade or modify MCP servers (protocol 2026-07-28 + safe 1.x
+  fleet upgrades). Covers version-pin traps (Python mcp 2.0.0 renamed FastMCP→
+  MCPServer; Node v2 is @modelcontextprotocol/server), unbounded pins like
+  mcp[cli]>=1.0.0, one-server-at-a-time upgrade (reference/safe-upgrade.md),
+  deprecated surfaces, tool naming/annotations/pagination, and ~/.claude/mcps
+  house pattern. Invoke before creating/editing a server, before uv lock
+  --upgrade / npm update on MCP deps, before touching pyproject.toml or
+  package.json that declares an MCP SDK, and before registering in ~/.claude.json.
 ---
 
 # MCP Server Builder — protocol 2026-07-28
@@ -14,10 +22,11 @@ description: Build, audit or modify MCP servers to the 2026-07-28 protocol revis
 
 | | |
 |---|---|
-| **Skill version** | `1.0.0` |
+| **Skill version** | `1.1.0` |
 | **Spec revision covered** | `2026-07-28` |
 | **Primary source** | [Bringing MCP 2026-07-28 to Claude](https://claude.com/blog/bringing-mcp-2026-07-28-to-claude) |
 | **Last verified** | **2026-07-29** — Claude Code `2.1.220` (negotiates ≤ `2025-11-25`), PyPI `mcp` `2.0.0`, npm `@modelcontextprotocol/sdk` `1.30.0`, `@modelcontextprotocol/server` `2.0.0` |
+| **House fleet note** | Most `~/.claude/mcps/*` Python servers still declare `mcp[cli]>=1.0.0` with locks on **1.27–1.28** — see `reference/safe-upgrade.md` before any upgrade |
 
 > **Re-verify before trusting §1.** The pin table depends on what the local client
 > negotiates and on the latest published SDKs — both move. Run the check in §1,
@@ -80,6 +89,11 @@ Rules that never change:
   PyPI `fastmcp` package (v3.x, different project, different API).
 
 For the exact rename list, load `reference/sdk-migration.md`.
+
+**Upgrading existing servers** (not greenfield): load `reference/safe-upgrade.md`
+**before** `uv lock --upgrade`, deleting a lockfile, or changing a pin. Default
+lane while Claude Code max-negotiates `2025-11-25`: bound to `mcp[cli]>=1.27,<2`
+and upgrade **one directory at a time**.
 
 ---
 
@@ -248,6 +262,7 @@ Register in `~/.claude.json` under user scope (`type: "stdio"`), pointing at the
 ## 8. Checklist before declaring done
 
 - [ ] SDK pin has an upper major bound; lockfile committed
+- [ ] Existing fleet: no unbounded `mcp[cli]>=1.0.0` left after touch (see `safe-upgrade.md`)
 - [ ] Nothing from §2 adopted
 - [ ] stdio: zero writes to stdout
 - [ ] Every tool: service-prefixed name, exact description, 4 annotations
@@ -256,7 +271,7 @@ Register in `~/.claude.json` under user scope (`type: "stdio"`), pointing at the
 - [ ] Secrets only from env / `.env.d/`
 - [ ] Free-form exec tool has the 3-layer guard + `SECURITY.md`
 - [ ] Inspector run clean
-- [ ] 10 evals written and passing
+- [ ] 10 evals written and passing (new server or 2.0 migration)
 - [ ] Registered in `~/.claude.json`
 
 ---
@@ -265,6 +280,7 @@ Register in `~/.claude.json` under user scope (`type: "stdio"`), pointing at the
 
 | File | Load when |
 |---|---|
+| `reference/safe-upgrade.md` | **upgrading** existing `~/.claude/mcps` / project MCPs without fleet outage |
 | `reference/protocol-2026-07-28.md` | need the full spec delta, `_meta` keys, error-code policy |
 | `reference/sdk-migration.md` | migrating 1.x → 2.0.0 (Python or Node) |
 | `reference/house-pattern.md` | creating a server under `~/.claude/mcps` |
@@ -299,4 +315,5 @@ the upstream one on top.
 
 | Version | Date | Change |
 |---|---|---|
+| `1.1.0` | 2026-07-29 | `reference/safe-upgrade.md` — inventory of house MCPs, bound pins, one-server upgrade + rollback. |
 | `1.0.0` | 2026-07-29 | Initial. Covers spec `2026-07-28`; pin table verified against Claude Code `2.1.220`. |

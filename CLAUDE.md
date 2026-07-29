@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-29 · main · v2.68.0
+`mcp-server-builder` **1.1.0**: `reference/safe-upgrade.md` — inventory house MCPs,
+bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrade`).
+
 ### 2026-07-29 · main · v2.67.0
 Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
 `reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
@@ -52,9 +56,6 @@ Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skil
 MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
 Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
 
-### 2026-07-26 · main · v2.59.0
-Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable vercel plugin);
-`.grok/agents/` from `.claude/agents/`; hooks path relative to JSON (`../../.claude/hooks/…`).
 
 ---
 
