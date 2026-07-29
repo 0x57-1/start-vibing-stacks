@@ -30,6 +30,12 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-29 · main · v2.69.0
+Opus-5 skill pass: `git-workflow` 2.2 (scope.ts §0), `svs-finalize` 1.2 (verify),
+`multi-instance` 1.2 + `tool-resilience` 1.2, `secrets-management` 2.2 (contain-before-revoke),
+`mcp-server-builder` 1.2 (`>=1.29,<2`), stop-validator 1.8 (no `git add -A`). Grok **1.9.0**.
+
+
 ### 2026-07-29 · main · v2.68.1
 `migrate` copies full skill bundles — not only `SKILL.md`. Companions today:
 `mcp-server-builder/reference/*`, `decision-records` + `codebase-knowledge` `TEMPLATE.md`.

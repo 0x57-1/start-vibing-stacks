@@ -1,6 +1,6 @@
 ---
 name: multi-instance-coordination
-version: 1.1.0
+version: 1.2.0
 description: >
   Coordination when multiple Claude / Kimi / Grok sessions share a project folder.
   Shared bus under `.claude/state/`, peer detection, file-edit collision avoidance,
@@ -57,6 +57,33 @@ Kimi and Grok reach the same hooks through `svs-bridge.mjs` (project `.kimi-code
 
 Override path: wait until the active peer's heartbeat goes idle (180s of no activity), then retry — the hook will downgrade to a warning. If the user explicitly tells you to override, ask them to run `peers notify <id> "I'm taking over <file>"` first so the other instance gets the heads-up.
 
+## Committing under multi-instance (`scope.ts`)
+
+Edits are shielded by PreToolUse; **commits** need `scope.ts` (see `git-workflow` §0).
+
+```bash
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <subject>"
+```
+
+With ≥2 active sessions and no `$CLAUDE_SESSION_ID`, `scope` **exits 1** — fix with
+`--session`, never `git add -A`. Prefer `commit` over `stage` (atomic path).
+
+## Verify the bridge fires (Kimi / Grok)
+
+Hooks are **fail-open**: a broken bridge produces no block and no bus entry.
+
+```bash
+ls -l .claude/hooks/svs-bridge.mjs
+rg -n 'svs-bridge' .grok/hooks/svs.json .kimi-code/local.toml ~/.kimi-code/config.toml
+# must NOT contain ../../
+echo '{"session_id":"smoke","cwd":"'$PWD'","hook_event_name":"SessionStart"}' \
+  | node .claude/hooks/svs-bridge.mjs grok session-start; echo "exit=$?"
+```
+
+Correct form: `node .claude/hooks/svs-bridge.mjs <kimi|grok> <hook>`. Grok needs
+`/hooks-trust` and user `compat.claude.hooks=false`.
+
 ## Talking to a peer
 
 Always use the `peers` CLI. NEVER write to `.claude/state/inbox/` by hand.
@@ -92,10 +119,14 @@ The `/peers` slash command wraps these.
 | Edit blocked but the other instance is gone              | Stale heartbeat, peer never archived | Wait 30min, or run `peers cleanup`                     |
 | Inbox messages didn't arrive                             | Peer is paused / no `UserPromptSubmit` | They will appear on the next prompt the peer submits   |
 | Two edits hit the same file in the same second           | Race condition (rare)                | The append-only log captures both; review with `git diff` |
+| Stop never blocks after source edits | Bridge path wrong / not trusted → fail-open | Bridge smoke-test above; `migrate --apply`; Grok `/hooks-trust` |
+| `scope` exits 1 | ≥2 sessions, no session id | `peers list` → `scope commit --session <id>` |
+| Empty `.claude/state/sessions/` while a peer is working | Their bridge fail-open | Smoke-test their side; do not conclude "no peers" |
 
 ## See Also
 
 - `session-history` — find Claude / Kimi / Grok transcripts and resume past chats.
-- `git-workflow` — branch and commit hygiene; the coordination layer is an in-flight collision shield, not a replacement for branches.
+- `git-workflow` §0 — scoped commit; the coordination layer is an in-flight collision shield, not a replacement for branches.
+- `svs-finalize` — documenter → domain-updater after code commits.
 - `_state.ts` — shared TypeScript helpers used by every hook.
 - `.claude/state/` README at `.claude/hooks/_state.README.md`.

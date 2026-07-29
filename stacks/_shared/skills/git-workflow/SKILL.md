@@ -1,7 +1,11 @@
 ---
 name: git-workflow
-version: 2.1.0
-description: "Git workflow conventions used by commit-manager v3.2.0+: Conventional Commits (no AI-attribution footers), branch naming, direct-to-main vs feature-branch flow, end-on-main rule, push policy, post-push GitHub Actions verification (gh run list/watch), never force-push main, signed commits encouraged. Invoke when starting a feature, creating commits, pushing, or wiring git-related hooks."
+version: 2.2.0
+description: >
+  Git workflow for commit-manager: Conventional Commits, branch naming, push
+  policy, post-push gh run verification, and multi-instance scoped commits via
+  scope.ts (FORBIDDEN: git add -A / git add .). Invoke when starting a feature,
+  creating commits, pushing, or wiring git-related hooks.
 ---
 
 # Git Workflow
@@ -9,6 +13,28 @@ description: "Git workflow conventions used by commit-manager v3.2.0+: Conventio
 **ALWAYS invoke when starting work, creating commits, pushing, or wiring `pre-commit` / `Stop` hooks that touch git.**
 
 > The git history is documentation. A reader six months from now should understand *why*, not just *what*. The commit-manager agent enforces the message format below; this skill defines what counts as compliant.
+
+## 0. Scoped commit (multi-instance) — READ BEFORE ANY `git add`
+
+This worktree may host more than one agent session (Claude / Kimi / Grok) at once.
+`git add -A`, `git add .`, `git add -u` and `git commit -a` bundle a **peer’s**
+uncommitted files into your commit. They are FORBIDDEN.
+
+```bash
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>(<scope>): <subject>"
+# optional: … commit "docs: …" --push
+```
+
+Source of truth: `.claude/state/sessions/<id>.json#filesTouched` (from `post-tool-use`).
+
+| `scope` exit | Meaning | Response |
+|---|---|---|
+| 0 | committed only your files | continue |
+| 1 | session unresolved (≥2 active, no `$CLAUDE_SESSION_ID`) | `peers.ts list` → retry with `--session <short-id>`. **Never** fall back to `git add -A` |
+| 2 | peer touched one of your files (last 5 min) | `peers.ts notify`, wait, retry; `--include-conflicted` only if the user says so |
+
+Files changed via Bash/formatter/codegen may be missing from `filesTouched` — add **by pathspec** (`git add -- <path>`), never `-A`.
 
 ## 1. Branch naming
 
@@ -176,13 +202,19 @@ Semver: bump `MAJOR.MINOR.PATCH` per breaking/feature/fix.
 
 | Situation | Fix |
 |---|---|
-| Bad commit not pushed | `git reset --soft HEAD~1`, fix, re-commit |
+| Bad commit not pushed | `git reset --soft HEAD~1`, fix, re-commit via `scope.ts commit` |
 | Bad commit pushed to feature branch | `git commit --amend` then `git push --force-with-lease` |
 | Bad commit pushed to main | `git revert <sha>` and push the revert (NEVER force-push main) |
-| Pushed a secret | Revoke at provider FIRST, then `git filter-repo` + force-push (one-time, document it) |
+| Pushed a secret | Follow `secrets-management` rotation triage (contain before revoke if compromise suspected) |
 | Wrong branch | `git stash`, `git checkout <correct>`, `git stash pop` |
+| `scope` exits 1 | `peers.ts list` → `scope commit --session <short-id>` |
+| `scope` exits 2 | `peers.ts notify`, wait, retry |
+| Committed a peer's file | revert/soft-reset if unpushed, then `scope commit`; notify peer |
 
 ## Rules
+
+- **NEVER** `git add -A` / `git add .` / `git add -u` / `git commit -a` — use `scope.ts commit`
+- **NEVER** widen staging to work around a `scope` refusal
 
 - **NEVER** force-push `main` / `master`
 - **NEVER** `--no-verify` to bypass hooks

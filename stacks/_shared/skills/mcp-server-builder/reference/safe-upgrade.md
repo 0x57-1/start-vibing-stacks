@@ -1,6 +1,6 @@
 # Safe upgrade of existing MCP servers
 
-> `mcp-server-builder` v`1.1.0` · last verified **2026-07-29**
+> `mcp-server-builder` v`1.2.0` · last verified **2026-07-29**
 >
 > Load this when changing SDK pins, running `uv lock --upgrade`, or after a new
 > Claude Code / MCP SDK release. Pair with `sdk-migration.md` for the 1.x → 2.0 API rename.
@@ -87,7 +87,7 @@ Flag every line where the pin is `>=1.0.0`, `*`, or missing an **upper major**.
 
 | Client max negotiation | Python target | Node target |
 |------------------------|---------------|-------------|
-| ≤ `2025-11-25` (**today**) | `mcp[cli]>=1.27,<2` | `@modelcontextprotocol/sdk@^1.30.0` |
+| ≤ `2025-11-25` (**today**) | `mcp[cli]>=1.29,<2` | `@modelcontextprotocol/sdk@^1.30.0` |
 | `2026-07-28` (+ `server/discover`) | `mcp>=2.0,<3` + API rename | `@modelcontextprotocol/server@^2.0.0` |
 
 Rules:
@@ -123,7 +123,7 @@ In `pyproject.toml`:
 dependencies = ["mcp[cli]>=1.0.0"]
 
 # AFTER (safe for current Claude Code)
-dependencies = ["mcp[cli]>=1.27,<2"]
+dependencies = ["mcp[cli]>=1.29,<2"]
 ```
 
 Node (`package.json`):

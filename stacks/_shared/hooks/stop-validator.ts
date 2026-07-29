@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.7.0
+// @sv-version: 1.8.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -36,6 +36,8 @@
  *
  * v1.7.0: FINALIZE_HINT is SVS_TARGET-aware (Grok spawn_subagent / Kimi Read agents).
  * Bridge v1.3.0 emits native Stop block for Grok/Kimi so the reason is fed back.
+ *
+ * v1.8.0: unscoped commitGuide no longer recommends `git add -A` — always scope.ts.
  */
 
 import { execSync } from 'child_process';
@@ -248,7 +250,7 @@ function validate(sessionId: string | undefined): HookResult {
   //    pull in peer-session changes (see CLAUDE.md NRY "Instance N's commit bundling...").
   const commitGuide = perInstance
     ? `\n\nRecommended workflow (multi-instance safe):\n1. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status\n2. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" stage\n3. git commit -m "type: description"\n4. git checkout main && git merge ${branch} && git push origin main && git branch -d ${branch}`
-    : `\n\nComplete git workflow:\n1. git add -A\n2. git commit -m "type: description"\n3. git checkout main\n4. git merge ${branch}\n5. git push origin main\n6. git branch -d ${branch}`;
+    : `\n\nComplete git workflow (scoped — never git add -A):\n1. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status\n2. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "type: description"\n   (if exit 1: peers.ts list → scope commit --session <id>)\n3. git checkout main && git merge ${branch} && git push origin main && git branch -d ${branch}`;
 
   if (!isMain && modified.length > 0) {
     return {

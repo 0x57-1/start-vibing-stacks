@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-29 · main · v2.69.0
+Opus-5 skill pass: `git-workflow` 2.2 (scope.ts §0), `svs-finalize` 1.2 (verify),
+`multi-instance` 1.2 + `tool-resilience` 1.2, `secrets-management` 2.2 (contain-before-revoke),
+`mcp-server-builder` 1.2 (`>=1.29,<2`), stop-validator 1.8 (no `git add -A`). Grok **1.9.0**.
+
 ### 2026-07-29 · main · v2.68.1
 `migrate` copies full skill bundles — not only `SKILL.md`. Companions today:
 `mcp-server-builder/reference/*`, `decision-records` + `codebase-knowledge` `TEMPLATE.md`.
@@ -50,11 +55,6 @@ codebase-knowledge/docs-tracker/decision-records. Compact guide in `session-hist
 ### 2026-07-28 · main · v2.62.0
 Skill `session-history` (Claude/Kimi/Grok transcripts + resume). Shared `.claude/state`
 bus: Grok hooks SessionStart/UserPromptSubmit/SessionEnd. Curated includes session-history.
-
-### 2026-07-28 · main · v2.61.0
-AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
-Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
-`svs-memory-index` (still no cybersecurity-suite / compat.claude.skills).
 
 
 ---

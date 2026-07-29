@@ -1,6 +1,6 @@
 ---
 name: mcp-server-builder
-version: 1.1.0
+version: 1.2.0
 description: >
   Build, audit, upgrade or modify MCP servers (protocol 2026-07-28 + safe 1.x
   fleet upgrades). Covers version-pin traps (Python mcp 2.0.0 renamed FastMCP→
@@ -22,7 +22,7 @@ description: >
 
 | | |
 |---|---|
-| **Skill version** | `1.1.0` |
+| **Skill version** | `1.2.0` |
 | **Spec revision covered** | `2026-07-28` |
 | **Primary source** | [Bringing MCP 2026-07-28 to Claude](https://claude.com/blog/bringing-mcp-2026-07-28-to-claude) |
 | **Last verified** | **2026-07-29** — Claude Code `2.1.220` (negotiates ≤ `2025-11-25`), PyPI `mcp` `2.0.0`, npm `@modelcontextprotocol/sdk` `1.30.0`, `@modelcontextprotocol/server` `2.0.0` |
@@ -74,7 +74,7 @@ grep -ac "server/discover" "$B"    # 0 = client is still pre-2026-07-28
 
 | Client negotiates | Python | Node |
 |---|---|---|
-| **max `2025-11-25`** (today) | `mcp[cli]>=1.27,<2` | `@modelcontextprotocol/sdk@^1.30.0` |
+| **max `2025-11-25`** (today) | `mcp[cli]>=1.29,<2` | `@modelcontextprotocol/sdk@^1.30.0` |
 | `2026-07-28` | `mcp>=2.0,<3` | `@modelcontextprotocol/server@^2.0.0` |
 
 Rules that never change:
@@ -315,5 +315,6 @@ the upstream one on top.
 
 | Version | Date | Change |
 |---|---|---|
+| `1.2.0` | 2026-07-29 | Python pin floor `>=1.29,<2` (1.29.0 = same-day as spec). |
 | `1.1.0` | 2026-07-29 | `reference/safe-upgrade.md` — inventory of house MCPs, bound pins, one-server upgrade + rollback. |
 | `1.0.0` | 2026-07-29 | Initial. Covers spec `2026-07-28`; pin table verified against Claude Code `2.1.220`. |

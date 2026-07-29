@@ -1,6 +1,6 @@
 ---
 name: secrets-management
-version: 2.1.3
+version: 2.2.0
 description: "Environment variable hygiene, OIDC federation for CI/CD (2026 default — replaces long-lived static secrets), secret detection (gitleaks 3-layer: pre-commit + CI + GitHub push protection), rotation, and secret-store patterns. Invoke whenever .env, secrets, API keys, env-var-reading code, or CI cloud-deploy credentials are touched."
 ---
 
@@ -321,14 +321,43 @@ git diff --cached -U0 | grep -nEi \
 
 ## Rotation Playbook
 
-When a secret leaks (or is suspected):
+> **2026 ordering — triage before revoke.** Worm-class compromises (e.g. Mini
+> Shai-Hulud / CVE-2026-45321) may install a revocation watchdog that wipes the
+> home directory when a stolen token dies. **Revoke-first is correct for a plain
+> leak and wrong for a suspected host compromise.**
+
+### Step 0 — Plain leak vs compromise?
+
+| Signal | Class | Order |
+|---|---|---|
+| Secret committed/pushed by a human; no unexpected publishes/daemons | **Plain leak** | Revoke first |
+| Unexpected publishes, unknown LaunchAgent/daemon, odd `.npmrc`, hooks you did not write | **Suspected compromise** | Contain first |
+
+If unsure, treat as **compromise**.
+
+### Plain-leak path
 
 1. **Revoke** at the provider immediately. Do not wait for git history rewrites.
 2. **Issue new secret**, deploy with new value.
 3. **Update audit log** — what leaked, when, who, scope of access.
-4. **Scan history**: `gitleaks detect --log-opts="--all"` — find every commit/branch that contained it.
-5. **History rewrite is optional** — git filter-repo / BFG only if you also rotate. The leaked secret in history is already gone from the world's POV once rotated.
-6. **Notify** — if customer data was reachable with the leaked secret, follow incident-disclosure policy.
+4. **Scan history**: `gitleaks detect --log-opts="--all"`.
+5. **History rewrite is optional** — only if you also rotate.
+6. **Notify** if customer data was reachable.
+
+### Compromise path (contain → clean → rotate)
+
+1. **Isolate** the host (network off / disk snapshot). Do **not** revoke yet.
+2. **Remove persistence** before touching credentials — check in order:
+   - `~/.claude/settings.json` + project `.claude/settings.json` — unexpected `hooks`
+   - `.claude/hooks/*`, `.grok/hooks/*` — files without `@sv-version`
+   - `.vscode/tasks.json`, MCP configs (`~/.claude.json`, `.mcp.json`, side-cars)
+   - `~/Library/LaunchAgents/` / user systemd units (e.g. token monitors)
+   - `.npmrc` / `.git-credentials` you did not author
+3. **Then rotate**, widest blast radius first (registry → forge PATs → cloud → SSH → app).
+4. Audit registry versions published in the window; continue with plain-leak steps 3–6.
+
+> Provenance/attestation is **not** proof of benign code — SLSA-attested malware
+> shipped in 2026 via hijacked trusted publishing.
 
 Token lifetimes (default targets):
 - Access token: ≤ 15 min

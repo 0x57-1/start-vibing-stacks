@@ -1,7 +1,12 @@
 ---
 name: tool-resilience
-version: 1.1.2
-description: How the agent should recover from TOOL failures (not application errors) — Read/Edit/StrReplace/Bash/WebFetch/WebSearch/Grep/Glob. Error taxonomy, retry/backoff, read-before-edit, Cursor IDE dirty-buffer / Opened changes sync, and the Cloudflare 520 / HTTP 444 bot-block recovery (switch User-Agent). Invoke when a tool call fails, times out, returns non-2xx, a fetch is blocked, or Cursor asks Save file to continue.
+version: 1.2.0
+description: >
+  Recover from TOOL failures (not app errors): taxonomy including hook-block,
+  silent fail-open hooks, subagent-unavailable, Anthropic cyber gate, stale
+  skill install, Cursor IDE buffer sync, Cloudflare 520/444 UA recovery.
+  Invoke when a tool fails, Stop blocks, spawn_subagent errors, or Cursor asks
+  Save file to continue.
 ---
 
 # Tool Resilience
@@ -35,6 +40,11 @@ description: How the agent should recover from TOOL failures (not application er
 | **Parse-failed** | JSON/HTML parse error, empty result where content expected | Inspect raw output; adjust selector/parse; retry once |
 | **Too-broad** | `Glob`/`Grep` returns thousands of hits | Narrow the pattern; do NOT process all blindly |
 | **Fatal-input** | malformed args, invalid regex | Fix the input; retrying identical args is pointless |
+| **Hook-block** | Stop/PreToolUse `BLOCKED:…`; Grok `decision:block`; Kimi exit 2 | **Not a tool failure.** Satisfy the gate (`svs-finalize`). Never disable the hook or ride the cycle-escape |
+| **Silent fail-open hook** | hook exits 1 in ~50 ms; no block/output/state | Bridge path: `node .claude/hooks/svs-bridge.mjs <target> <hook>` then `migrate --apply` |
+| **Subagent-unavailable** | `Task` / `spawn_subagent` missing or erroring | Read `.claude/agents/<name>.md` (or `.grok/agents/`) and execute inline — do not skip the agent |
+| **Policy-gate (Anthropic cyber)** | API block on dual-use / remote chains | Stop the chain. Hand user a script or use CVP. Memories/`bypassPermissions` cannot lift it |
+| **Stale-install** | skill loads but `reference/` / `TEMPLATE.md` missing | `migrate --apply` (full bundles since 2.68.1) — do not improvise missing references |
 
 If the error doesn't fit, treat it as **Transient** for the first retry, then as **Fatal** if it recurs.
 
@@ -201,6 +211,10 @@ def fetch_with_ua_fallback(url: str) -> httpx.Response:
 | Retrying a 403/permission error | Not transient | Report; fix auth |
 | Processing thousands of `Glob` hits | Context blow-up | Narrow first |
 | Silent give-up | User doesn't know what happened | Report what failed + what was tried |
+| Treating a hook block as a tool bug | Gate exists because a routine was skipped | Complete the routine (`svs-finalize`), then Stop again |
+| "Bypass / memories should allow this" on a cyber gate | Memories ≠ API cyber classifiers | Hand user a script or use CVP |
+| Skipping documenter because spawn failed | Silent memory loss | Read agent md and run inline |
+| Assuming an edit landed after IDE-buffer conflict | Write may be silently dropped | Re-`Read` and confirm bytes |
 
 ---
 
