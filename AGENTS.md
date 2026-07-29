@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.7
+svs-version: 1.1.8
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,12 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-07-29 · main · v2.66.0
+`svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
+exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
+Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
+
 
 ### 2026-07-28 · main · v2.65.0
 Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
@@ -60,7 +66,7 @@ Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
 ## Development process (Kimi / Grok)
 
 Claude Code can auto-invoke specialized agents via Task/Subagent. **Kimi and Grok do not** —
-agents are markdown files. **Read each agent and execute every step inline** (see skill `svs-finalize`).
+use native spawn / Read agents (skill `svs-finalize`). Stop hook blocks until finalize is done.
 
 ### Flow (do not skip)
 
@@ -70,7 +76,10 @@ agents are markdown files. **Read each agent and execute every step inline** (se
 4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`
 5. **Commit code** → agent `commit-manager` + `scope.ts` (never `git add -A` / `git add .`)
 6. **REQUIRED finalize** → `documenter` then `domain-updater` (CLAUDE.md Recent Changes)
-7. **Stop** — stop-validator blocks if CLAUDE / domain `_index.json` stale after source edits
+7. **Stop** — `svs-bridge` emits native block (Grok `decision:block` / Kimi exit 2) until docs catch up
+
+**Grok:** `spawn_subagent(subagent_type="documenter"|"domain-updater", …)` (see `.grok/agents/`).
+**Kimi:** Read + execute `.claude/agents/documenter.md` then `domain-updater.md`.
 
 ### FORBIDDEN
 

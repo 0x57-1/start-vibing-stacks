@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-export const HOOKS_EXPORT_VERSION = '1.5.0';
+export const HOOKS_EXPORT_VERSION = '1.6.0';
 export const GROK_HOOKS_REL = '.grok/hooks/svs.json';
 
 const KIMI_HOOKS_BLOCK_RE = /# SVS:HOOKS:START[\s\S]*?# SVS:HOOKS:END\n?/;

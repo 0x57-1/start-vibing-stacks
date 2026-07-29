@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.6.0
+// @sv-version: 1.7.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -33,6 +33,9 @@
  * v1.6.0: after source filesTouched, require CLAUDE.md update since startedAt and
  * (when present) codebase-knowledge `_index.json` last_commit === HEAD — forces
  * Kimi/Grok documenter → domain-updater chain (skill svs-finalize).
+ *
+ * v1.7.0: FINALIZE_HINT is SVS_TARGET-aware (Grok spawn_subagent / Kimi Read agents).
+ * Bridge v1.3.0 emits native Stop block for Grok/Kimi so the reason is fed back.
  */
 
 import { execSync } from 'child_process';
@@ -80,12 +83,35 @@ const sourceExtensions = STACK_EXTENSIONS[stackId] || new Set(['.ts', '.js', '.p
 const FINALIZE_SOURCE_RE =
   /\.(ts|tsx|js|jsx|mjs|cjs|php|py|go|rs|vue|svelte|blade\.php)$/i;
 
-const FINALIZE_HINT =
-  `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
-  `1. Read + execute .grok/agents/documenter.md (or .claude/agents/documenter.md)\n` +
-  `2. Read + execute domain-updater.md (PREPEND CLAUDE.md ## Recent Changes)\n` +
-  `3. scope.ts commit "docs: …" if docs dirty\n` +
-  `4. Re-run Stop`;
+function finalizeHint(): string {
+  const target = (process.env['SVS_TARGET'] || '').toLowerCase();
+  if (target === 'grok') {
+    return (
+      `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
+      `1. spawn_subagent(subagent_type="documenter", prompt="Map edited files → domains; update _index.json")\n` +
+      `2. spawn_subagent(subagent_type="domain-updater", prompt="PREPEND CLAUDE.md ## Recent Changes; sync domains")\n` +
+      `   (fallback: Read .grok/agents/documenter.md + domain-updater.md and execute inline)\n` +
+      `3. npx tsx .claude/hooks/scope.ts commit "docs: …" if docs dirty\n` +
+      `4. Continue until Stop approves (do not claim done while blocked)`
+    );
+  }
+  if (target === 'kimi') {
+    return (
+      `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
+      `1. Read + execute .claude/agents/documenter.md (or spawn that agent)\n` +
+      `2. Read + execute .claude/agents/domain-updater.md (PREPEND CLAUDE.md ## Recent Changes)\n` +
+      `3. npx tsx .claude/hooks/scope.ts commit "docs: …" if docs dirty\n` +
+      `4. Continue until Stop approves (do not claim done while blocked)`
+    );
+  }
+  return (
+    `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
+    `1. Run documenter agent (Task / spawn)\n` +
+    `2. Run domain-updater (PREPEND CLAUDE.md ## Recent Changes)\n` +
+    `3. scope.ts commit "docs: …" if docs dirty\n` +
+    `4. Re-run Stop`
+  );
+}
 
 interface HookResult {
   continue: boolean;
@@ -382,7 +408,7 @@ function checkFinalizeChain(sessionId: string | undefined, claudeMd: string): Ho
         `BLOCKED: Source files edited this session but CLAUDE.md was not updated ` +
         `(no Recent Changes / git date since session start ${sess.startedAt}).` +
         `\nSource samples: ${sourceTouched.slice(0, 8).join(', ')}` +
-        FINALIZE_HINT,
+        finalizeHint(),
     };
   }
 
@@ -407,7 +433,7 @@ function checkFinalizeChain(sessionId: string | undefined, claudeMd: string): Ho
           reason:
             `BLOCKED: codebase-knowledge _index.json last_commit=${last} ≠ HEAD=${headShort} ` +
             `(documenter skipped after source edits).` +
-            FINALIZE_HINT,
+            finalizeHint(),
         };
       }
     } catch {

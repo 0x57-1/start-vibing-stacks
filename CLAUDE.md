@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-29 · main · v2.66.0
+`svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
+exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
+Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
+
 ### 2026-07-28 · main · v2.65.0
 Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
 after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
@@ -50,11 +55,6 @@ Vercel/`nextjs-devtools` only on **nodejs** (stripped for php/python). Memory �
 Grok hang fix: project `.grok/config.toml` is **MCP-only** (strip `[skills]`/`[compat]`);
 OAuth MCPs start `enabled=false`; npx `startup_timeout_sec=60`. Slim native hooks
 (edit/stop). Skills = `.grok/skills/svs-policy` only. Memory MCP discovery → **v1.2.0**.
-
-### 2026-07-26 · main · v2.56.0
-Kimi/Grok permission parity with Claude Launch: resume Launch uses `kimi --yolo` /
-`grok --always-approve`. Kimi local.toml → **v1.2.0** (`default_permission_mode = "yolo"`)
-so MCP/tools are not approved one-by-one; plan mode stays on.
 
 ---
 

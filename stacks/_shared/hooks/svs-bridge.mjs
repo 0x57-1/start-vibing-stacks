@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * SVS hook bridge — normalize Kimi/Grok stdin → Claude hook shape, translate stdout.
  *
@@ -12,6 +12,10 @@
  * Sets SVS_TARGET=kimi|grok so SessionStart writes `.claude/state/sessions/<id>.json`
  * with target tag; SessionEnd archives to `_archive/` (same bus as Claude).
  * Fail-open: any bridge/hook crash exits 0 (allow).
+ *
+ * v1.3.0 — Stop/SubagentStop native emit:
+ *   Grok: {"decision":"block","reason"} | allow = exit 0 empty (docs § Stop Decision Control)
+ *   Kimi: exit 2 + stderr + hookSpecificOutput.deny (docs: Stop block → model continues)
  */
 
 import { spawnSync } from 'node:child_process';
@@ -191,6 +195,16 @@ function blockReason(result) {
   );
 }
 
+function contextText(result) {
+  if (!result || typeof result !== 'object') return '';
+  if (typeof result.systemMessage === 'string' && result.systemMessage.trim()) {
+    return result.systemMessage.trim();
+  }
+  const ctx = result.hookSpecificOutput?.additionalContext;
+  if (typeof ctx === 'string' && ctx.trim()) return ctx.trim();
+  return '';
+}
+
 function emitForTarget(target, result, eventName) {
   const event = normalizeEventName(eventName) || '';
 
@@ -205,22 +219,69 @@ function emitForTarget(target, result, eventName) {
       process.stdout.write(JSON.stringify({ decision: 'allow' }) + '\n');
       process.exit(0);
     }
-    // Stop / others: Claude-compatible (decision block|approve)
+
+    // Stop / SubagentStop — native gate (do NOT emit Claude continue:false approve JSON;
+    // that can look like force-stop. Allow = empty stdout. Block = decision:block.)
+    if (event === 'Stop' || event === 'SubagentStop') {
+      if (isBlock(result)) {
+        const reason = blockReason(result);
+        process.stdout.write(JSON.stringify({ decision: 'block', reason }) + '\n');
+        process.exit(0);
+      }
+      // Allow stop: exit 0, no JSON (Grok docs)
+      process.exit(0);
+    }
+
+    // UserPromptSubmit — inject workflow text as additionalContext when present
+    if (event === 'UserPromptSubmit') {
+      const ctx = contextText(result);
+      if (ctx) {
+        process.stdout.write(
+          JSON.stringify({
+            hookSpecificOutput: {
+              hookEventName: 'UserPromptSubmit',
+              additionalContext: ctx,
+            },
+          }) + '\n'
+        );
+      }
+      process.exit(0);
+    }
+
+    // SessionStart / PostToolUse / PreCompact / SessionEnd — pass through useful JSON
     if (result) {
-      process.stdout.write(JSON.stringify(result) + '\n');
+      const ctx = contextText(result);
+      if (ctx && (event === 'SessionStart' || event === 'PreCompact')) {
+        process.stdout.write(
+          JSON.stringify({
+            hookSpecificOutput: {
+              hookEventName: event,
+              additionalContext: ctx,
+            },
+          }) + '\n'
+        );
+      } else if (!result.decision || result.decision === 'approve') {
+        // Avoid dumping Claude stop-style approve blobs on observe events
+        if (ctx) process.stdout.write(ctx + '\n');
+        else if (result.hookSpecificOutput) {
+          process.stdout.write(JSON.stringify(result) + '\n');
+        }
+      } else {
+        process.stdout.write(JSON.stringify(result) + '\n');
+      }
     }
     process.exit(0);
   }
 
-  // kimi
+  // kimi — PreToolUse / Stop / UserPromptSubmit are blockable (exit 2 + stderr)
   if (event === 'PreToolUse' || event === 'Stop' || event === 'UserPromptSubmit') {
     if (isBlock(result)) {
       const reason = blockReason(result);
       process.stderr.write(reason + '\n');
-      // Also emit Claude-style JSON (Kimi accepts hookSpecificOutput)
       process.stdout.write(
         JSON.stringify({
           hookSpecificOutput: {
+            hookEventName: event,
             permissionDecision: 'deny',
             permissionDecisionReason: reason,
           },
@@ -230,11 +291,17 @@ function emitForTarget(target, result, eventName) {
     }
   }
 
+  // Kimi Stop allow: silent exit 0 (do not dump Claude approve JSON into context)
+  if (event === 'Stop' || event === 'SubagentStop') {
+    process.exit(0);
+  }
+
   if (result) {
-    // Surface context appends (UserPromptSubmit / systemMessage)
-    if (typeof result.systemMessage === 'string' && result.systemMessage && !result.decision) {
-      process.stdout.write(result.systemMessage + '\n');
-    } else {
+    // Surface context appends (UserPromptSubmit / SessionStart systemMessage)
+    const ctx = contextText(result);
+    if (ctx && (!result.decision || result.decision === 'approve')) {
+      process.stdout.write(ctx + '\n');
+    } else if (result.hookSpecificOutput || result.decision) {
       process.stdout.write(JSON.stringify(result) + '\n');
     }
   }

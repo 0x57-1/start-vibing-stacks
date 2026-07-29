@@ -1,18 +1,20 @@
 ---
 name: svs-finalize
-version: 1.0.0
+version: 1.1.0
 description: >
   Mandatory finalize chain for Kimi/Grok (and Claude when Task is skipped): after
   source edits, run documenter → domain-updater → CLAUDE.md Recent Changes →
   scoped commit. Use before claiming done, before Stop approve, or when
-  stop-validator blocks on stale docs. FORBIDDEN to skip after code changes.
+  stop-validator blocks on stale docs (Grok decision:block / Kimi exit 2 via
+  svs-bridge). FORBIDDEN to skip after code changes. Grok: spawn_subagent
+  documenter then domain-updater.
 ---
 
 # SVS finalize chain (do not skip)
 
-Claude Code may auto-`Task` agents. **Kimi and Grok must open each agent file and
-execute its steps inline.** Skipping documenter / domain-updater leaves the next
-session blind (seen on Exittus-style deploys: code shipped, zero domain/CLAUDE updates).
+Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
+Read+execute). Skipping documenter / domain-updater leaves the next session blind
+(code shipped, zero domain/CLAUDE updates). Stop feeds the block reason back until fixed.
 
 ## When this is mandatory
 
@@ -27,10 +29,8 @@ via Edit/Write (recorded in `.claude/state/sessions/<id>.json#filesTouched`).
 1. Quality / security as needed (tester, security-auditor)
 2. scope status — confirm filesTouched
 3. commit-manager steps → scope.ts commit (code) — never git add -A
-4. Read + execute agent documenter
-      .grok/agents/documenter.md   OR   .claude/agents/documenter.md
-5. Read + execute agent domain-updater
-      (PREPEND ## Recent Changes + wisdom into domains/)
+4. documenter (Grok spawn_subagent OR Read agent md)
+5. domain-updater (PREPEND ## Recent Changes + wisdom into domains/)
 6. If docs dirty → scope.ts commit "docs: …" (or include in follow-up)
 7. Only then claim done / allow Stop approve
 ```
@@ -40,11 +40,22 @@ npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"
 ```
 
-## How to “run” an agent on Kimi/Grok
+## How to run agents
 
-1. **Read** the full agent markdown (do not summarize and invent a shorter path).
-2. **Execute** every step (bash / Edit / Write as the agent specifies).
-3. **Do not** jump to git push until documenter + domain-updater finished.
+### Grok (preferred)
+
+```
+spawn_subagent(subagent_type="documenter", prompt="Map this session's edits → domains; update _index.json")
+spawn_subagent(subagent_type="domain-updater", prompt="PREPEND CLAUDE.md Recent Changes; sync domains")
+```
+
+Fallback: Read `.grok/agents/<name>.md` and execute every step inline.
+
+### Kimi
+
+1. **Read** `.claude/agents/documenter.md` then `domain-updater.md` (full file).
+2. **Execute** every step (do not invent a shorter path).
+3. Or spawn the same agent names if your Kimi build supports them.
 
 | Agent | Path (prefer Grok native when present) |
 |-------|------------------------------------------|

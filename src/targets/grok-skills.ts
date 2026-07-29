@@ -26,7 +26,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.5.0';
+export const GROK_SKILLS_VERSION = '1.6.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -146,8 +146,9 @@ function devProcessSkillBody(): string {
     '',
     '# Development process (Kimi / Grok)',
     '',
-    'Claude Code may auto-invoke agents via Task/Subagent. **Kimi and Grok do not** —',
-    'agents are markdown files. **Read each agent file and execute every step inline.**',
+    'Claude Code may auto-invoke agents via Task. **Grok:** prefer `spawn_subagent`',
+    'with `subagent_type` = agent name. **Kimi:** Read agent md and execute inline.',
+    'Stop blocks via `svs-bridge` until finalize completes (`decision:block` / exit 2).',
     '',
     '## Flow (do not reorder / skip)',
     '',
@@ -156,9 +157,10 @@ function devProcessSkillBody(): string {
     '3. **Implement** — keep edits scoped; hooks may run plan-gate + multi-instance locks',
     '4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`',
     '5. **Commit code** → agent `commit-manager` + `scope.ts commit` (never `git add -A`)',
-    '6. **REQUIRED finalize** → skill `svs-finalize`: agent `documenter`, then `domain-updater`',
+    '6. **REQUIRED finalize** → skill `svs-finalize`:',
+    '   `spawn_subagent(subagent_type="documenter")` then `domain-updater`',
     '   (PREPEND `CLAUDE.md` ## Recent Changes). Docs commit if dirty.',
-    '7. **Stop** — stop-validator: clean tree + CLAUDE updated this session + `_index.json` == HEAD',
+    '7. **Stop** — stop-validator + bridge: clean tree + CLAUDE this session + `_index.json` == HEAD',
     '',
     '## FORBIDDEN',
     '',
@@ -168,7 +170,7 @@ function devProcessSkillBody(): string {
     '| Code-only push then “done” | Same as Exittus hardening gap |',
     '| `git add -A` | Bundles peer files |',
     '',
-    '## Agents (Read the file — do not invent a shorter path)',
+    '## Agents (spawn_subagent or Read — do not invent a shorter path)',
     '',
     '| Agent | When |',
     '|-------|------|',
