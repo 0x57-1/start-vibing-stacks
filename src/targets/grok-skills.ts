@@ -16,6 +16,7 @@ import {
   readFileSync,
   readdirSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'fs';
 import { dirname, join, resolve } from 'path';
@@ -26,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.7.0';
+export const GROK_SKILLS_VERSION = '1.8.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -269,12 +270,61 @@ function curatedSkillSource(projectDir: string, name: string): string | null {
   return null;
 }
 
-function copyCuratedSkill(projectDir: string, name: string): boolean {
-  const src = curatedSkillSource(projectDir, name);
-  if (!src) return false;
-  const destDir = join(skillsRoot(projectDir), name);
+/** Skip project-owned runtime dirs when mirroring a skill tree into .grok/skills. */
+const SKILL_RUNTIME_DIRS = new Set(['domains', 'cache', 'node_modules', '.git']);
+const SKILL_RUNTIME_FILES = new Set(['_index.json']);
+
+function copySkillTree(srcSkillMd: string, destDir: string): void {
+  const srcDir = dirname(srcSkillMd);
+  const walk = (dir: string, prefix: string) => {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const ent of entries) {
+      if (ent.startsWith('.') || ent.endsWith('.bak')) continue;
+      const from = join(dir, ent);
+      const rel = prefix ? `${prefix}/${ent}` : ent;
+      let st;
+      try {
+        st = statSync(from);
+      } catch {
+        continue;
+      }
+      if (st.isDirectory()) {
+        if (SKILL_RUNTIME_DIRS.has(ent)) continue;
+        walk(from, rel);
+      } else if (st.isFile()) {
+        if (SKILL_RUNTIME_FILES.has(ent)) continue;
+        const to = join(destDir, rel);
+        mkdirSync(dirname(to), { recursive: true });
+        copyFileSync(from, to);
+      }
+    }
+  };
   mkdirSync(destDir, { recursive: true });
-  copyFileSync(src, join(destDir, 'SKILL.md'));
+  walk(srcDir, '');
+}
+
+function copyCuratedSkill(projectDir: string, name: string): boolean {
+  // Prefer bundled tree so reference/ companions ship even when project SKILL.md
+  // was migrated alone by an older SVS. Fall back to project skill dir.
+  const bundled = join(PACKAGE_ROOT, 'stacks', '_shared', 'skills', name, 'SKILL.md');
+  const projectSrc = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
+  const src =
+    !isBlockedSkillName(name) && existsSync(bundled)
+      ? bundled
+      : curatedSkillSource(projectDir, name);
+  if (!src) return false;
+  // If bundled exists but project has a newer SKILL.md, still copy companions
+  // from bundled and overlay project's SKILL.md.
+  const destDir = join(skillsRoot(projectDir), name);
+  copySkillTree(src, destDir);
+  if (src === bundled && existsSync(projectSrc)) {
+    copyFileSync(projectSrc, join(destDir, 'SKILL.md'));
+  }
   return true;
 }
 

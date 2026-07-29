@@ -2,6 +2,8 @@
  * Start Vibing Stacks — Migrate (v2 — smart, idempotent, settings-aware)
  *
  * Compares installed vs bundled versions for skills, agents, hooks, commands AND memories.
+ * Skills: copies the full skill folder (SKILL.md + reference/, TEMPLATE.md, …),
+ * not only SKILL.md — missing companions mark the skill outdated.
  * Also reconciles runtime artefacts that earlier migrate versions ignored:
  *
  *  - hooks: parsed via `// @sv-version: x.y.z` header. Legacy installs (no tag)
@@ -110,6 +112,67 @@ function statusFromSemver(bundled: string, installed: string | null): Status {
   return 'current';
 }
 
+/** Runtime / project-owned paths under a skill dir — never clobber on migrate. */
+const SKILL_RUNTIME_DIRS = new Set(['domains', 'cache', 'node_modules', '.git']);
+const SKILL_RUNTIME_FILES = new Set(['_index.json']);
+
+/** Relative paths of bundled skill files (SKILL.md + reference/, TEMPLATE.md, …). */
+function listSkillBundleRels(skillDir: string): string[] {
+  const out: string[] = [];
+  const walk = (dir: string, prefix: string) => {
+    let entries: string[];
+    try {
+      entries = readdirSync(dir);
+    } catch {
+      return;
+    }
+    for (const name of entries) {
+      if (name.startsWith('.') || name.endsWith('.bak')) continue;
+      const rel = prefix ? `${prefix}/${name}` : name;
+      const full = join(dir, name);
+      let st;
+      try {
+        st = statSync(full);
+      } catch {
+        continue;
+      }
+      if (st.isDirectory()) {
+        if (SKILL_RUNTIME_DIRS.has(name)) continue;
+        walk(full, rel);
+      } else if (st.isFile()) {
+        if (SKILL_RUNTIME_FILES.has(name)) continue;
+        out.push(rel);
+      }
+    }
+  };
+  walk(skillDir, '');
+  return out.sort();
+}
+
+/** True when bundled companions (e.g. reference/*.md) are missing on disk. */
+function skillCompanionsMissing(sourceSkillMd: string, targetSkillMd: string): boolean {
+  const srcDir = dirname(sourceSkillMd);
+  const tgtDir = dirname(targetSkillMd);
+  for (const rel of listSkillBundleRels(srcDir)) {
+    if (rel === 'SKILL.md') continue;
+    if (!existsSync(join(tgtDir, rel))) return true;
+  }
+  return false;
+}
+
+/** Copy SKILL.md + companions from bundled skill folder (skips domains/cache/_index). */
+function copySkillBundle(sourceSkillMd: string, targetSkillMd: string): void {
+  const srcDir = dirname(sourceSkillMd);
+  const tgtDir = dirname(targetSkillMd);
+  mkdirSync(tgtDir, { recursive: true });
+  for (const rel of listSkillBundleRels(srcDir)) {
+    const from = join(srcDir, rel);
+    const to = join(tgtDir, rel);
+    mkdirSync(dirname(to), { recursive: true });
+    copyFileSync(from, to);
+  }
+}
+
 function listSubdirs(dir: string): string[] {
   if (!existsSync(dir)) return [];
   try {
@@ -200,7 +263,16 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
       const bundledVersion = parseFrontmatterVersion(source);
       if (!bundledVersion) continue;
       const installedVersion = parseFrontmatterVersion(target);
-      const status: Status = !existsSync(target) ? 'missing' : statusFromSemver(bundledVersion, installedVersion);
+      let status: Status = !existsSync(target)
+        ? 'missing'
+        : statusFromSemver(bundledVersion, installedVersion);
+      // SKILL.md alone is not enough — reference/, TEMPLATE.md, etc. must match bundle.
+      if (
+        (status === 'current' || status === 'ahead') &&
+        skillCompanionsMissing(source, target)
+      ) {
+        status = 'outdated';
+      }
       items.push({ kind: 'skill', name, source, target, bundledVersion, installedVersion, status });
     }
   }
@@ -297,7 +369,17 @@ function applyOne(item: MigrateItem, opts: MigrateOptions): { applied: boolean; 
   if (item.status === 'needs-update-legacy') {
     if (!opts.forceHooks) return { applied: false };
     const backupPath = backup(item.target);
-    copyFileSync(item.source, item.target);
+    if (item.kind === 'skill') {
+      copySkillBundle(item.source, item.target);
+    } else {
+      copyFileSync(item.source, item.target);
+    }
+    return { applied: true, backupPath };
+  }
+
+  if (item.kind === 'skill') {
+    const backupPath = existsSync(item.target) ? backup(item.target) : null;
+    copySkillBundle(item.source, item.target);
     return { applied: true, backupPath };
   }
 

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-29 · main · v2.68.1
+`migrate` copies full skill bundles — not only `SKILL.md`. Companions today:
+`mcp-server-builder/reference/*`, `decision-records` + `codebase-knowledge` `TEMPLATE.md`.
+Missing companions → outdated. Grok curated **1.8.0**.
+
 ### 2026-07-29 · main · v2.68.0
 `mcp-server-builder` **1.1.0**: `reference/safe-upgrade.md` — inventory house MCPs,
 bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrade`).
@@ -50,11 +55,6 @@ bus: Grok hooks SessionStart/UserPromptSubmit/SessionEnd. Curated includes sessi
 AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
 Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
 `svs-memory-index` (still no cybersecurity-suite / compat.claude.skills).
-
-### 2026-07-27 · main · v2.60.0
-Grok boot: `compat.claude.skills=false` (avoid ~/.claude cybersecurity ~750 skills);
-MCP export **1.4.0** disables mysql without MYSQL_*; OAuth github/sentry stay off.
-Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
 
 
 ---
@@ -290,6 +290,7 @@ When tests are added, this section gets the standard typecheck/lint/test/build m
 - **Stomping the `## Recent Changes` log** — same fix. The section is APPEND-ONLY LIFO with a cap of 10 (compactor enforces the cap, not the prepend). PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` block; NEVER edit or delete a peer's entry. If you must compact, drop only the OLDEST entry. See `claude-md-compactor.md` §5 + §6 + §6.1.
 - **Renaming a CLAUDE.md section without auditing the entire agent chain** — fixed in v2.26.0. The Recent Changes rename (v2.25.x → v2.26.0) was incomplete for 1 release: `commit-manager` v2 still ran `git add -A` and `domain-updater` v2 still tried to overwrite `## Last Change` (which no longer existed). Rule: **any rename of a CLAUDE.md section, file, or hook the chain depends on REQUIRES** (1) `rg "<old name>"` across `stacks/_shared/agents/**`, `commands/**`, `hooks/**`, `skills/**`, `templates/**`, `README.md`, AND (2) version-bump every agent in the affected chain (so `migrate` reaches existing installs). The chain `commit-manager → documenter → domain-updater` is one unit; bump all three when any of them change behavior.
 - **`migrate` half-applying a release** — fixed in v2.24.0 / v2.25.0. Any new feature that ships hooks, commands, settings.json entries, runtime dirs, or `.gitignore` changes MUST be reachable through `migrate --apply` (not only via fresh `setup --force`). Hooks ship `// @sv-version: x.y.z`; commands ship frontmatter `version:`; `patchSettings()` and `ensureRuntimeArtefacts()` are the canonical place to wire everything else. Re-running `migrate --apply` MUST be idempotent. Legacy un-versioned files (hooks without `@sv-version`, commands without `version:` — i.e. anything installed before the versioning landed) are recovered via `--force-legacy` (alias `--force-hooks`) which overwrites with a timestamped `.bak`. Skills and agents stay manual-review (`modified-no-version`) because users customize them.
+- **`migrate` copying only `SKILL.md`** — fixed in v2.68.1. Skills with companions (`mcp-server-builder/reference/*`, `decision-records/TEMPLATE.md`, `codebase-knowledge/TEMPLATE.md`) must ship the whole tree. Missing companions mark the skill **outdated**. Never add a new companion file without ensuring `copySkillBundle` still covers it (skip only `domains/`, `cache/`, `_index.json`).
 - **Adding new permission domains (e.g. ads & anti-detection) without updating templates** — when introducing a new area of explicit permission (like `## Ads & Anti-Detection Guidance`), the same chain audit rule applies: update `CLAUDE.md`, all `templates/CLAUDE-*.md`, and any related skills/agents. Version bump the affected files so `migrate` reaches existing installs.
 
 ---

@@ -30,6 +30,12 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-29 · main · v2.68.1
+`migrate` copies full skill bundles — not only `SKILL.md`. Companions today:
+`mcp-server-builder/reference/*`, `decision-records` + `codebase-knowledge` `TEMPLATE.md`.
+Missing companions → outdated. Grok curated **1.8.0**.
+
+
 ### 2026-07-29 · main · v2.68.0
 `mcp-server-builder` **1.1.0**: `reference/safe-upgrade.md` — inventory house MCPs,
 bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrade`).
