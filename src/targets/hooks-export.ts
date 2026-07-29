@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-export const HOOKS_EXPORT_VERSION = '1.6.0';
+export const HOOKS_EXPORT_VERSION = '1.7.0';
 export const GROK_HOOKS_REL = '.grok/hooks/svs.json';
 
 const KIMI_HOOKS_BLOCK_RE = /# SVS:HOOKS:START[\s\S]*?# SVS:HOOKS:END\n?/;
@@ -62,13 +62,13 @@ export interface HooksExportResult {
 }
 
 function bridgeCmd(target: 'kimi' | 'grok', hook: string): string {
-  if (target === 'grok') {
-    // Grok resolves hook command paths relative to the JSON file (.grok/hooks/).
-    // See ~/.grok/docs/user-guide/10-hooks.md — not project cwd.
-    return `node ../../.claude/hooks/svs-bridge.mjs grok ${hook}`;
-  }
-  // Kimi: session cwd = project root.
-  return `node .claude/hooks/svs-bridge.mjs kimi ${hook}`;
+  // Both CLIs run hook commands with cwd = project root.
+  // Grok docs say "executable path relative to the JSON file", but an *inline*
+  // `node …` command is resolved by Node against process.cwd() — so
+  // `../../.claude/hooks/…` from `.grok/hooks/svs.json` becomes
+  // `<parent-of-repo>/.claude/hooks/…` → MODULE_NOT_FOUND / exit 1 (fail-open).
+  // Evidence: pubweb session 019faa63 — 17/17 Stop hooks failed ~50ms, no block.
+  return `node .claude/hooks/svs-bridge.mjs ${target} ${hook}`;
 }
 
 function kimiHooksTomlBlock(): string {
@@ -120,7 +120,7 @@ function grokHooksJson(): string {
       {
         _svs: {
           version: HOOKS_EXPORT_VERSION,
-          note: 'SVS bridge → Claude hooks (session + edit + stop). Path relative to this JSON. Trust: /hooks-trust. User [compat.claude] hooks=false via migrate.',
+          note: 'SVS bridge → Claude hooks. Command uses project-cwd path (.claude/hooks/svs-bridge.mjs). Trust: /hooks-trust. User [compat.claude] hooks=false via migrate.',
         },
         hooks,
       },

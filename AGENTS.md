@@ -30,6 +30,12 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-29 · main · v2.66.1
+Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
+`../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
+(fail-open) — finalize gate never ran. Hooks export **1.7.0**.
+
+
 ### 2026-07-29 · main · v2.66.0
 `svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
 exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;

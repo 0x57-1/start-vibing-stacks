@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-29 · main · v2.66.1
+Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
+`../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
+(fail-open) — finalize gate never ran. Hooks export **1.7.0**.
+
 ### 2026-07-29 · main · v2.66.0
 `svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
 exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
@@ -50,11 +55,6 @@ Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable ve
 ### 2026-07-26 · main · v2.58.0
 MCP export filter → **v1.3.0**: drop Claude.ai connectors (Gmail/Calendar/Drive) always;
 Vercel/`nextjs-devtools` only on **nodejs** (stripped for php/python). Memory → **v1.3.0**.
-
-### 2026-07-26 · main · v2.57.0
-Grok hang fix: project `.grok/config.toml` is **MCP-only** (strip `[skills]`/`[compat]`);
-OAuth MCPs start `enabled=false`; npx `startup_timeout_sec=60`. Slim native hooks
-(edit/stop). Skills = `.grok/skills/svs-policy` only. Memory MCP discovery → **v1.2.0**.
 
 ---
 
