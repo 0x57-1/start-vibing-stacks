@@ -30,6 +30,11 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-07-29 · main · v2.67.0
+Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
+`reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
+
+
 ### 2026-07-29 · main · v2.66.1
 Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
 `../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1

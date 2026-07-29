@@ -44,7 +44,7 @@ npx start-vibing-stacks
 | **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
 | **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
 | **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `session-history` · `kimi-grok-session-lookup` · `owned-infra-ops` · `own-subscription-integration` |
+| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `session-history` · `kimi-grok-session-lookup` · `mcp-server-builder` · `owned-infra-ops` · `own-subscription-integration` |
 | **Marketing** | `email-push-marketing` |
 | **Framework** | `react-server-components` · `laravel-octane-inertia` |
 | **Testing** | `playwright-automation` · `test-coverage` |

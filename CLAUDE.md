@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-07-29 · main · v2.67.0
+Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
+`reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
+
 ### 2026-07-29 · main · v2.66.1
 Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
 `../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
@@ -51,10 +55,6 @@ Evidence: session.create ~8m was skills/bootstrap, not MCP handshake (~1s).
 ### 2026-07-26 · main · v2.59.0
 Grok Claude→native migration: `~/.grok` SVS:COMPAT (mcps/hooks off; disable vercel plugin);
 `.grok/agents/` from `.claude/agents/`; hooks path relative to JSON (`../../.claude/hooks/…`).
-
-### 2026-07-26 · main · v2.58.0
-MCP export filter → **v1.3.0**: drop Claude.ai connectors (Gmail/Calendar/Drive) always;
-Vercel/`nextjs-devtools` only on **nodejs** (stripped for php/python). Memory → **v1.3.0**.
 
 ---
 
@@ -111,7 +111,7 @@ start-vibing-stacks/
 │   │   │                                  user-prompt-submit.ts, peers.ts (CLI),
 │   │   │                                  scope.ts (per-instance commit scoping CLI),
 │   │   │                                  _state.ts (multi-instance state lib)
-│   │   └── skills/                     # 34 universal skills (security-baseline,
+│   │   └── skills/                     # universal skills (mcp-server-builder, security-baseline,
 │   │                                      security-assessment-ops, owned-infra-ops,
 │   │                                      own-subscription-integration, ai-llm-security, etc.)
 │   ├── frontend/
