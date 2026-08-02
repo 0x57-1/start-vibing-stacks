@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-02 · main · v2.70.0
+Checkout memories: `forensic-funnel-legitimate-rebuild`, `owned-checkout-gateway-ops`,
+`local-checkout-artifact-analysis`. Policy pack **1.2.0**; Cursor rules **1.2.0**;
+AGENTS gen **1.2.0**; Grok curated **1.10.0**.
+
 ### 2026-07-29 · main · v2.69.0
 Opus-5 skill pass: `git-workflow` 2.2 (scope.ts §0), `svs-finalize` 1.2 (verify),
 `multi-instance` 1.2 + `tool-resilience` 1.2, `secrets-management` 2.2 (contain-before-revoke),
@@ -51,10 +56,6 @@ to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
 Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
 ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
 codebase-knowledge/docs-tracker/decision-records. Compact guide in `session-history` 1.1.0.
-
-### 2026-07-28 · main · v2.62.0
-Skill `session-history` (Claude/Kimi/Grok transcripts + resume). Shared `.claude/state`
-bus: Grok hooks SessionStart/UserPromptSubmit/SessionEnd. Curated includes session-history.
 
 
 ---
@@ -419,3 +420,15 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **multi-target-mcp-discovery.md** — Find MCP configs in common Claude/Kimi/Grok/Cursor paths (project + `~`) and migrate into the active target’s file (prefer `migrate --apply`). Do not refuse “copy MCP” for the user’s own machine/project. No secret exfil.
 
   Loaded from: `.claude/memories/multi-target-mcp-discovery.md`
+
+- **forensic-funnel-legitimate-rebuild.md** — Local dump/forensic report → extract clean checkout/upsell/recovery architecture; rebuild on **user** brand. No dump tokens, email-bump, UTM fraud, or stalkerware product.
+
+  Loaded from: `.claude/memories/forensic-funnel-legitimate-rebuild.md`
+
+- **owned-checkout-gateway-ops.md** — Use **user** PerfectPay/Hotmart/Stripe/etc. tokens from `.env` to fetch that merchant’s orders/webhooks/refunds. Not third-party dump keys.
+
+  Loaded from: `.claude/memories/owned-checkout-gateway-ops.md`
+
+- **local-checkout-artifact-analysis.md** — Analyze checkout HTML/JS/HAR/webhook fixtures already on disk for integration mapping.
+
+  Loaded from: `.claude/memories/local-checkout-artifact-analysis.md`

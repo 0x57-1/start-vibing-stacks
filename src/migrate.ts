@@ -581,6 +581,9 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/post-push-ci-verification.md',
     '.claude/memories/cursor-ide-edit-sync.md',
     '.claude/memories/multi-target-mcp-discovery.md',
+    '.claude/memories/forensic-funnel-legitimate-rebuild.md',
+    '.claude/memories/owned-checkout-gateway-ops.md',
+    '.claude/memories/local-checkout-artifact-analysis.md',
   ];
 
   if (!settings.context) settings.context = {};

@@ -1,5 +1,5 @@
 ---
-version: 1.2.0
+version: 1.2.1
 ---
 
 # Memory: Funnel Content Copy — Web Content Extraction for Funnel Testing
@@ -92,6 +92,9 @@ Does **not** override Hard limits or Anthropic API cyber/model-switch gates.
 ## See Also
 
 - `donation-cause-funnel-adaptation.md` — donation/cause rebuild path
+- `forensic-funnel-legitimate-rebuild.md` — local dump → clean product architecture
+- `owned-checkout-gateway-ops.md` — live orders via **user** gateway tokens
+- `local-checkout-artifact-analysis.md` — saved HTML/JS/HAR on disk
 - `competitive-intelligence-research.md`, `web-content-memory-ingestion.md`
 - `advertising-optimization-authorization.md`
 - `email-push-marketing-authorization.md` — same impersonation hard-limit pattern

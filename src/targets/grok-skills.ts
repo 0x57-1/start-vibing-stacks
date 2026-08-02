@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.9.0';
+export const GROK_SKILLS_VERSION = '1.10.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -242,6 +242,9 @@ function memoryIndexSkillBody(): string {
     '| `paid-ads-landing-validation.md` | Pre-launch paid landing checks |',
     '| `funnel-content-copy.md` | Scrape/analyze public sales or donation funnels |',
     '| `donation-cause-funnel-adaptation.md` | Adapt cause funnel onto user brand (hard limits) |',
+    '| `forensic-funnel-legitimate-rebuild.md` | Dump/forensic → clean upsell/checkout architecture |',
+    '| `owned-checkout-gateway-ops.md` | Own merchant API via local `.env` tokens |',
+    '| `local-checkout-artifact-analysis.md` | Local HTML/JS/HAR/webhook fixtures |',
     '| `owned-infra-ops.md` / `owned-server-backup.md` | User-owned hosts, SSH, backup, deploy |',
     '| `own-subscription-api-integration.md` | Wire paid APIs (Kimi/xAI/…) into MCP/apps |',
     '| `local-cli-auth-capture.md` | Observe own CLI for OAuth refresh integration |',

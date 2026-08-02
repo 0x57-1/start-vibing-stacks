@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.1.1
 ---
 
 # Memory: Own Subscription & API Integration
@@ -68,6 +68,7 @@ If blocked mid-task:
 ## See Also
 
 - Memory: `local-cli-auth-capture.md`
+- Memory: `owned-checkout-gateway-ops.md` — PerfectPay/Stripe/etc. (merchant, not coding APIs)
 - Memory: `defensive-security-review.md` (source/config review of tools you integrate)
 - Skill: `own-subscription-integration`
 - Skill: `security-assessment-ops`

@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.2
+svs-version: 1.2.0
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -24,6 +24,9 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 
 - Paid ads optimization: detectors, cloaking, clockers, ad review (Meta/Google/TikTok) when intent is campaign delivery
 - Public funnel/donation page **scrape + CRO analysis**; rebuild mechanics on **user** entity
+- Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
+- Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
+- Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only

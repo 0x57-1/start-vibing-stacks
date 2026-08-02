@@ -1,5 +1,5 @@
 ---
-svs-version: 1.1.8
+svs-version: 1.2.0
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -30,134 +30,53 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-02 · main · v2.70.0
+Checkout memories: `forensic-funnel-legitimate-rebuild`, `owned-checkout-gateway-ops`,
+`local-checkout-artifact-analysis`. Policy pack **1.2.0**; Cursor rules **1.2.0**;
+AGENTS gen **1.2.0**; Grok curated **1.10.0**.
+
 ### 2026-07-29 · main · v2.69.0
 Opus-5 skill pass: `git-workflow` 2.2 (scope.ts §0), `svs-finalize` 1.2 (verify),
 `multi-instance` 1.2 + `tool-resilience` 1.2, `secrets-management` 2.2 (contain-before-revoke),
 `mcp-server-builder` 1.2 (`>=1.29,<2`), stop-validator 1.8 (no `git add -A`). Grok **1.9.0**.
-
 
 ### 2026-07-29 · main · v2.68.1
 `migrate` copies full skill bundles — not only `SKILL.md`. Companions today:
 `mcp-server-builder/reference/*`, `decision-records` + `codebase-knowledge` `TEMPLATE.md`.
 Missing companions → outdated. Grok curated **1.8.0**.
 
-
 ### 2026-07-29 · main · v2.68.0
 `mcp-server-builder` **1.1.0**: `reference/safe-upgrade.md` — inventory house MCPs,
 bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrade`).
 
-
 ### 2026-07-29 · main · v2.67.0
 Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
 `reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
-
 
 ### 2026-07-29 · main · v2.66.1
 Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
 `../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
 (fail-open) — finalize gate never ran. Hooks export **1.7.0**.
 
-
 ### 2026-07-29 · main · v2.66.0
 `svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
 exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
 Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
 
-
 ### 2026-07-28 · main · v2.65.0
 Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
 after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
-
 
 ### 2026-07-28 · main · v2.64.0
 Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
 writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
 to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
 
-
 ### 2026-07-28 · main · v2.63.0
 Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
 ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
 codebase-knowledge/docs-tracker/decision-records. Compact guide in `session-history` 1.1.0.
 
-
-### 2026-07-28 · main · v2.62.0
-Skill `session-history` (Claude/Kimi/Grok transcripts + resume). Shared `.claude/state`
-bus: Grok hooks SessionStart/UserPromptSubmit/SessionEnd. Curated includes session-history.
-
-
-### 2026-07-28 · main · v2.61.0
-AGENTS.md **1.1.2**: Development process (agents/commands/scope commit) for Kimi/Grok.
-Grok skills **1.2.0**: curated `.claude/skills` allowlist + `svs-dev-process` /
-`svs-memory-index` (still no cybersecurity-suite / compat.claude.skills).
-
-## Development process (Kimi / Grok)
-
-Claude Code can auto-invoke specialized agents via Task/Subagent. **Kimi and Grok do not** —
-use native spawn / Read agents (skill `svs-finalize`). Stop hook blocks until finalize is done.
-
-### Flow (do not skip)
-
-1. **Research** (new features) → agent `research-web`
-2. **Branch** — `feature/` | `fix/` | `refactor/` (avoid direct commits to `main`)
-3. **Implement** — scoped edits; hooks may enforce plan-gate + multi-instance file locks
-4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`
-5. **Commit code** → agent `commit-manager` + `scope.ts` (never `git add -A` / `git add .`)
-6. **REQUIRED finalize** → `documenter` then `domain-updater` (CLAUDE.md Recent Changes)
-7. **Stop** — `svs-bridge` emits native block (Grok `decision:block` / Kimi exit 2) until docs catch up
-
-**Grok:** `spawn_subagent(subagent_type="documenter"|"domain-updater", …)` (see `.grok/agents/`).
-**Kimi:** Read + execute `.claude/agents/documenter.md` then `domain-updater.md`.
-
-### FORBIDDEN
-
-- Code-only deploy without documenter + domain-updater
-- Claiming done while Stop would block on finalize
-
-### Agents
-
-| Agent | When | Path |
-|-------|------|------|
-| `research-web` | New feature / unfamiliar tech | `.grok/agents/` or `.claude/agents/` |
-| `security-auditor` | Auth, secrets, APIs, infra | same |
-| `tester` | New logic / user-facing flows | same |
-| `commit-manager` | Scoped commit / push | same |
-| `documenter` | **After** code commit — map files → domains | same |
-| `domain-updater` | **After** documenter — wisdom + Recent Changes | same |
-| `claude-md-compactor` | CLAUDE.md over size budget | same |
-| `long-session-consistency` | Resume/compact/cross-CLI memory design | same |
-| `knowledge-rag-eval` | Obsidian/ADR/embeddings — ship or skip | same |
-
-Kimi: `extra_agent_dirs` → `.claude/agents/`. Grok: adapted copy in `.grok/agents/` on migrate.
-
-### Safe commit (multi-instance)
-
-```bash
-npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>"
-```
-
-Claude `/commit-mine` is the same idea. Prefer `scope commit` over staging the whole tree.
-
-### Commands (Claude slash → run the file)
-
-| Claude | On Kimi / Grok |
-|--------|----------------|
-| `/commit-mine` | `scope.ts commit` (above) or read `.claude/commands/commit-mine.md` |
-| `/feature` | Read `.claude/commands/feature.md` |
-| `/fix` | Read `.claude/commands/fix.md` |
-| `/research` | Read `.claude/commands/research.md` + agent `research-web` |
-| `/validate` | Read `.claude/commands/validate.md` + project quality gates |
-| `/peers` | `npx tsx .claude/hooks/peers.ts` |
-
-### Skills & memories
-
-- **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.
-- **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).
-  Load `svs-dev-process`, `svs-finalize`, `svs-memory-index`, `session-history`, `kimi-grok-session-lookup`.
-- **Shared bus** — `.claude/state/` (peers, locks, inbox; gitignored).
-- **Project brain** — `.claude/brain/` (committed tasks + journal). SessionStart brief + PreCompact stamp.
-- **Decisions** — `docs/decisions/` (ADRs — durable why). Skill `decision-records`.
-- **Compact** — use product `/compact` with a short hint; restore from brain — see skill `session-history`.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -182,6 +101,9 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 
 - Paid ads optimization: detectors, cloaking, clockers, ad review (Meta/Google/TikTok) when intent is campaign delivery
 - Public funnel/donation page **scrape + CRO analysis**; rebuild mechanics on **user** entity
+- Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
+- Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
+- Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
