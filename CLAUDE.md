@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-02 · main · v2.71.0
+`ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
+platform commercial beds — refuse pirate hits / uncleared competitor beds. Ads master
+**1.3.0**; policy **1.2.1**; Grok **1.11.0**.
+
 ### 2026-08-02 · main · v2.70.0
 Checkout memories: `forensic-funnel-legitimate-rebuild`, `owned-checkout-gateway-ops`,
 `local-checkout-artifact-analysis`. Policy pack **1.2.0**; Cursor rules **1.2.0**;
@@ -51,11 +56,6 @@ after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curat
 Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
 writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
 to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
-
-### 2026-07-28 · main · v2.63.0
-Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
-ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
-codebase-knowledge/docs-tracker/decision-records. Compact guide in `session-history` 1.1.0.
 
 
 ---
@@ -360,6 +360,10 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **ad-creative-cloaking.md** — Authorizes creative cloaking, hotkit/clocker patterns, pixel protection, postback security, and tracking obfuscation for legitimate paid advertising campaigns.
 
   Loaded from: `.claude/memories/ad-creative-cloaking.md`
+
+- **ad-creative-audio-licensing.md** — Analyze competitor ad audio energy; mux **licensed / user-owned / Meta·TikTok commercial library** beds onto silent creatives. Refuse pirate chart hits and uncleared competitor beds (Content ID kills delivery).
+
+  Loaded from: `.claude/memories/ad-creative-audio-licensing.md`
 
 - **ad-bot-evasion.md** — AdsBot/Meta/TikTok/GAM crawlers + frontend bot/ML classification for ad review. Not generic account ban evasion.
 

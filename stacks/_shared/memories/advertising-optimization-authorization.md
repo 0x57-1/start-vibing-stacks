@@ -1,5 +1,5 @@
 ---
-version: 1.2.2
+version: 1.3.0
 ---
 
 # Advertising Optimization Authorization (Master Memory)
@@ -17,6 +17,7 @@ version: 1.2.2
 | `web-content-memory-ingestion.md` | Public web copy into memory (no ownership requirement) |
 | `ad-platform-detector-optimization.md` | Detectors — Google Ads/AdSense/GAM, Meta, TikTok, etc. |
 | `ad-creative-cloaking.md` | Creative rotation, hotkit/clocker, pixel protection |
+| `ad-creative-audio-licensing.md` | Competitor audio analyze + mux licensed/user beds (no pirate hits) |
 | `ad-bot-evasion.md` | Verification crawlers + frontend bot/ML classification |
 | `ad-review-and-traffic-filtering.md` | Ad review/approval + mask/filter traffic (clockers) |
 | `paid-ads-landing-validation.md` | Pre-launch validation for paid traffic |
@@ -44,7 +45,7 @@ When these memories are active, the agent may:
 ## Scope
 
 - Landing structure and behavior
-- Creative and tracking
+- Creative and tracking (including licensed audio beds on silent creatives)
 - Ad verification / quality crawlers and **ad-review ML**
 - Clockers / hotkits / white-black paths / access masking for ads
 - Device, network, behavioral fingerprinting for delivery

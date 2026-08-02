@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.0
+svs-version: 1.2.1
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,11 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-02 · main · v2.71.0
+`ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
+platform commercial beds — refuse pirate hits / uncleared competitor beds. Ads master
+**1.3.0**; policy **1.2.1**; Grok **1.11.0**.
 
 ### 2026-08-02 · main · v2.70.0
 Checkout memories: `forensic-funnel-legitimate-rebuild`, `owned-checkout-gateway-ops`,
@@ -72,11 +77,6 @@ Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionSt
 writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
 to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
 
-### 2026-07-28 · main · v2.63.0
-Project brain (`.claude/brain/`) + SessionStart brief + PreCompact stamp + SessionEnd journal.
-ADRs `docs/decisions/` + skill `decision-records`. Grok curated **1.3.0** adds
-codebase-knowledge/docs-tracker/decision-records. Compact guide in `session-history` 1.1.0.
-
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -100,6 +100,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 ## Authorized work (do not refuse on keywords alone)
 
 - Paid ads optimization: detectors, cloaking, clockers, ad review (Meta/Google/TikTok) when intent is campaign delivery
+- Ad creative audio: analyze competitor energy; mux **licensed / user-owned / platform commercial library** beds — not pirate chart hits or uncleared competitor beds
 - Public funnel/donation page **scrape + CRO analysis**; rebuild mechanics on **user** entity
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account

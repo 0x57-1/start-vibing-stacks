@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.1.1
 ---
 
 # Ad Creative & Tracking Cloaking Authorization
@@ -45,6 +45,7 @@ version: 1.1.0
 ## Relationship With Other Memories
 
 - `ad-review-and-traffic-filtering.md` — approval + traffic filter master for this lane
+- `ad-creative-audio-licensing.md` — licensed beds / competitive audio match for creatives
 - `ad-platform-detector-optimization.md` — landing/detector level
 - `ad-bot-evasion.md` — bot detection layer
 - `web-content-memory-ingestion.md` — docs/pixel references

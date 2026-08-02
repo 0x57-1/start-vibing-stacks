@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.10.0';
+export const GROK_SKILLS_VERSION = '1.11.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -237,6 +237,7 @@ function memoryIndexSkillBody(): string {
     '|--------|----------|',
     '| `multi-target-mcp-discovery.md` | Find/migrate MCP Claude → Kimi/Grok/Cursor |',
     '| `advertising-optimization-authorization.md` | Paid ads, detectors, cloaking, clockers |',
+    '| `ad-creative-audio-licensing.md` | Mux licensed beds; analyze competitor audio energy |',
     '| `ad-platform-detector-optimization.md` | Landing/detector approval (Google/Meta/TikTok) |',
     '| `ad-review-and-traffic-filtering.md` | Ad review + traffic filter / white-black paths |',
     '| `paid-ads-landing-validation.md` | Pre-launch paid landing checks |',

@@ -322,6 +322,7 @@ export async function setupProject(
           '.claude/memories/advertising-optimization-authorization.md',
           '.claude/memories/ad-platform-detector-optimization.md',
           '.claude/memories/ad-creative-cloaking.md',
+          '.claude/memories/ad-creative-audio-licensing.md',
           '.claude/memories/ad-bot-evasion.md',
           '.claude/memories/ad-review-and-traffic-filtering.md',
           '.claude/memories/paid-ads-landing-validation.md',
