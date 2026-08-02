@@ -196,7 +196,7 @@ Permissive memories for legitimate **paid advertising optimization** work:
 | `advertising-optimization-authorization.md` | Master memory — activates all advertising-related permissions |
 | `ad-platform-detector-optimization.md` | Landing page techniques to pass Google AdX, Meta, TikTok, Microsoft detectors |
 | `ad-creative-cloaking.md` | Hotkit/clocker patterns, pixel protection, tracking obfuscation |
-| `ad-creative-audio-licensing.md` | Competitor audio energy match + mux licensed/user beds (no pirate hits) |
+| `ad-creative-audio-licensing.md` | Mine free/CML beds (Grok/Kimi OK); viral vibe match; mux cleared only |
 | `ad-bot-evasion.md` | Ad verification crawlers + frontend bot/ML classification (AdsBot, Meta, TikTok, GAM) |
 | `ad-review-and-traffic-filtering.md` | Ad review/approval + clockers / traffic filter / access masking |
 | `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |

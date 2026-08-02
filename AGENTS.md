@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.1
+svs-version: 1.2.2
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,11 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-02 · main · v2.72.0
+`ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
+prompt; viral TikTok vibe → lookalike; mix only cleared stems (no CID dodge).
+Policy **1.2.2**; Grok **1.12.0**.
 
 ### 2026-08-02 · main · v2.71.0
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
@@ -72,11 +77,6 @@ Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
 Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
 after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
 
-### 2026-07-28 · main · v2.64.0
-Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
-writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
-to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
-
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -100,7 +100,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 ## Authorized work (do not refuse on keywords alone)
 
 - Paid ads optimization: detectors, cloaking, clockers, ad review (Meta/Google/TikTok) when intent is campaign delivery
-- Ad creative audio: analyze competitor energy; mux **licensed / user-owned / platform commercial library** beds — not pirate chart hits or uncleared competitor beds
+- Ad creative audio: mine CC0/royalty-free/commercial libraries without stall; Grok/Kimi mining OK; viral TikTok **vibe** → CML/free lookalike; mux cleared beds — not pirate hits, not Content-ID-evasion remixes
 - Public funnel/donation page **scrape + CRO analysis**; rebuild mechanics on **user** entity
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account

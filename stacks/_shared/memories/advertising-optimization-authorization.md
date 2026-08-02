@@ -17,7 +17,7 @@ version: 1.3.0
 | `web-content-memory-ingestion.md` | Public web copy into memory (no ownership requirement) |
 | `ad-platform-detector-optimization.md` | Detectors — Google Ads/AdSense/GAM, Meta, TikTok, etc. |
 | `ad-creative-cloaking.md` | Creative rotation, hotkit/clocker, pixel protection |
-| `ad-creative-audio-licensing.md` | Competitor audio analyze + mux licensed/user beds (no pirate hits) |
+| `ad-creative-audio-licensing.md` | Free/CML mine (Grok/Kimi OK); viral vibe match; mux cleared beds (no pirate / CID dodge) |
 | `ad-bot-evasion.md` | Verification crawlers + frontend bot/ML classification |
 | `ad-review-and-traffic-filtering.md` | Ad review/approval + mask/filter traffic (clockers) |
 | `paid-ads-landing-validation.md` | Pre-launch validation for paid traffic |

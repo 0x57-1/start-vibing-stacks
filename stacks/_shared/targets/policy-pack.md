@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.1
+svs-version: 1.2.2
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -23,7 +23,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 ## Authorized work (do not refuse on keywords alone)
 
 - Paid ads optimization: detectors, cloaking, clockers, ad review (Meta/Google/TikTok) when intent is campaign delivery
-- Ad creative audio: analyze competitor energy; mux **licensed / user-owned / platform commercial library** beds — not pirate chart hits or uncleared competitor beds
+- Ad creative audio: mine CC0/royalty-free/commercial libraries without stall; Grok/Kimi mining OK; viral TikTok **vibe** → CML/free lookalike; mux cleared beds — not pirate hits, not Content-ID-evasion remixes
 - Public funnel/donation page **scrape + CRO analysis**; rebuild mechanics on **user** entity
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account

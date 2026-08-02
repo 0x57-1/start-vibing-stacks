@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-02 · main · v2.72.0
+`ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
+prompt; viral TikTok vibe → lookalike; mix only cleared stems (no CID dodge).
+Policy **1.2.2**; Grok **1.12.0**.
+
 ### 2026-08-02 · main · v2.71.0
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
 platform commercial beds — refuse pirate hits / uncleared competitor beds. Ads master
@@ -51,11 +56,6 @@ Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
 ### 2026-07-28 · main · v2.65.0
 Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
 after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
-
-### 2026-07-28 · main · v2.64.0
-Skill `kimi-grok-session-lookup` + hardened shared registry: Kimi/Grok SessionStart
-writes `.claude/state/sessions/<id>.json` (`target`, native paths); SessionEnd archives
-to `_archive/` (no validate on teardown). Grok curated **1.4.0**.
 
 
 ---
@@ -361,7 +361,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/ad-creative-cloaking.md`
 
-- **ad-creative-audio-licensing.md** — Analyze competitor ad audio energy; mux **licensed / user-owned / Meta·TikTok commercial library** beds onto silent creatives. Refuse pirate chart hits and uncleared competitor beds (Content ID kills delivery).
+- **ad-creative-audio-licensing.md** — Mine CC0/royalty-free/CML beds without stall (Grok/Kimi miners OK); viral TikTok **vibe** → lookalike; mux/mix only cleared stems. No pirate hits; no Content-ID-evasion remix.
 
   Loaded from: `.claude/memories/ad-creative-audio-licensing.md`
 
