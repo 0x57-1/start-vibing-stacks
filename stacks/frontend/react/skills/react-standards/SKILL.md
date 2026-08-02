@@ -286,6 +286,7 @@ const processedData = useMemo(() => {
 
 ## See Also
 
+- Memory `react-theme-parity` — discover theme / sibling CSS; validate before done
 - `react-patterns` v2 — React 19 hooks, `use()`, refs as props
 - `tailwind-patterns` v2 — `@theme`, Oxide engine, container queries, OKLCH
 - `shadcn-ui` v2 — primitives without `forwardRef`, `data-slot` slots

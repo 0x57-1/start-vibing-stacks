@@ -1,10 +1,10 @@
 ---
 name: react-standards
-version: 2.0.0
+version: 2.1.0
 description: LEGACY — React 19 standards for Inertia.js projects (controller
   props, useForm, Inertia router). Use ONLY in pre-existing Inertia projects.
   For NEW projects use `react-api-standards` (Axios + TanStack Query + React
-  Router) instead.
+  Router) instead. Theme parity: memory `react-theme-parity` before/after UI.
 ---
 
 # React 19+ Standards with Inertia.js (LEGACY)
@@ -64,10 +64,22 @@ export default function Dashboard() {
 
 **Rule:** Never leave raw `console.log`. Always use controlled debug pattern.
 
+## Theme parity (MANDATORY — long sessions)
+
+Load memory `react-theme-parity`. Before new pages/components:
+
+1. Read `resources/css/themes/*` + `app.css` when present (semantic tokens).
+2. Else copy class families from 1–2 sibling pages in the same `Pages/…` area.
+3. Same layout shell (`CmsLayout` / project Layout); `STYLES` const or feature `styles.js`.
+4. Do not introduce shadcn/MUI/etc. unless already in `package.json`.
+5. Before Stop: checklist in the memory (primary button, forms, Common/*, dark/token).
+
+`user-prompt-submit` injects a THEME PARITY reminder when `.jsx`/`.tsx` work is in play.
+
 ## TailwindCSS Class Organization
 
 ```tsx
-// CORRECT: Classes as CONST — clean JSX
+// CORRECT: Classes as CONST — clean JSX (prefer project theme tokens over blue-600)
 const STYLES = {
     container: 'flex flex-col gap-4 p-6 bg-white rounded-lg shadow-sm',
     title: 'text-2xl font-bold text-gray-900',

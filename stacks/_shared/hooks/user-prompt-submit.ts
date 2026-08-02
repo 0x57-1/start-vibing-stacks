@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.7.0
+// @sv-version: 1.8.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,9 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.8.0: THEME PARITY nudge for React UI projects (memory react-theme-parity)
+ * when prompt/session involves .jsx/.tsx — discover theme or sibling CSS; validate
+ * before done (long-session design drift).
  * v1.7.0: when filesTouched includes source, inject FINALIZE CHAIN (svs-finalize)
  * so Kimi/Grok cannot “forget” documenter → domain-updater.
  * v1.6.0: re-tag `target` + native session paths on heartbeat (Kimi/Grok parity).
@@ -158,6 +161,63 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
   return parts.join('\n');
 }
 
+const UI_PROMPT_RE =
+  /\b(page|pages|layout|component|ui|ux|theme|tailwind|css|jsx|tsx|inertia|react|frontend|modal|sidebar|dashboard|STYLES|dark\s*mode|preline|shadcn)\b/i;
+const REACT_UI_FILE_RE = /\.(jsx|tsx)$/i;
+
+function projectHasReactUi(projectDir: string): boolean {
+  const markers = [
+    join(projectDir, 'resources', 'js'),
+    join(projectDir, 'resources', 'css', 'themes'),
+    join(projectDir, 'resources', 'css', 'app.css'),
+  ];
+  if (markers.some((p) => existsSync(p))) return true;
+  try {
+    const pkgPath = join(projectDir, 'package.json');
+    if (!existsSync(pkgPath)) return false;
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as {
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+    };
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+    const hasReact = Boolean(deps['react']);
+    const hasUiStack = Boolean(
+      deps['@inertiajs/react'] ||
+        deps['@inertiajs/vue3'] ||
+        deps['vite'] ||
+        deps['next'] ||
+        deps['tailwindcss']
+    );
+    return hasReact && hasUiStack;
+  } catch {
+    return false;
+  }
+}
+
+function buildThemeParityBlock(
+  projectDir: string,
+  prompt: string,
+  touched: string[]
+): string {
+  if (!projectHasReactUi(projectDir)) return '';
+  const touchedUi = touched.some((f) => REACT_UI_FILE_RE.test(f));
+  const promptUi = UI_PROMPT_RE.test(prompt);
+  if (!touchedUi && !promptUi) return '';
+
+  const themeHint = existsSync(join(projectDir, 'resources', 'css', 'themes'))
+    ? 'Read `resources/css/themes/*` + `app.css` first.'
+    : 'No themes/ folder — copy CSS/class patterns from 1–2 sibling pages in the same area.';
+
+  return (
+    `\n\nTHEME PARITY REQUIRED (memory: react-theme-parity) — long sessions drift off the house UI:\n` +
+    `  1. BEFORE UI edits: discover theme tokens OR sibling-page class patterns. ${themeHint}\n` +
+    `  2. Same layout shell + STYLES const (or feature styles.js); no new UI lib (shadcn/MUI) unless already in package.json.\n` +
+    `  3. Prefer semantic tokens (bg-primary, text-foreground, …) when the project has them; do not mix with random gray-/dark: soup.\n` +
+    `  4. BEFORE done: run the checklist in \`.claude/memories/react-theme-parity.md\` (buttons, forms, Common/*, dark/token flip).\n` +
+    `  5. Re-read theme + one sibling page before each new UI chunk in this session.`
+  );
+}
+
 async function main(): Promise<void> {
   const hookInput = await readStdinJson(1500);
   const prompt: string =
@@ -170,14 +230,23 @@ async function main(): Promise<void> {
   const today = new Date().toISOString().split('T')[0];
 
   let peersBlock = '';
+  let touchedFiles: string[] = [];
   const sessionId: string | undefined = hookInput.session_id || hookInput.sessionId;
   if (sessionId) {
     const stateDir = getStateDir(PROJECT_DIR);
     try {
       peersBlock = buildPeersBlock(stateDir, sessionId, prompt);
+      touchedFiles = readSession(stateDir, sessionId)?.filesTouched || [];
     } catch {
       peersBlock = '';
     }
+  }
+
+  let themeParityBlock = '';
+  try {
+    themeParityBlock = buildThemeParityBlock(PROJECT_DIR, prompt, touchedFiles);
+  } catch {
+    themeParityBlock = '';
   }
 
   const systemMessage = `TASK WORKFLOW (Stack: ${stackName}):
@@ -207,7 +276,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${standardsContext}${peersBlock}`;
+7. Run stop-validator before finishing.${standardsContext}${peersBlock}${themeParityBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

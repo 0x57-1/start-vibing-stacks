@@ -341,6 +341,7 @@ export async function setupProject(
           '.claude/memories/forensic-funnel-legitimate-rebuild.md',
           '.claude/memories/owned-checkout-gateway-ops.md',
           '.claude/memories/local-checkout-artifact-analysis.md',
+          '.claude/memories/react-theme-parity.md',
         ],
       },
 

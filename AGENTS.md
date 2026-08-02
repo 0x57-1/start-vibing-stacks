@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.2
+svs-version: 1.2.3
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-02 · main · v2.73.0
+`react-theme-parity` memory + UPS hook **1.8.0** THEME PARITY nudge (Laravel/React
+long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok **1.13.0**.
 
 ### 2026-08-02 · main · v2.72.0
 `ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
@@ -73,10 +77,6 @@ Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
 exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
 Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
 
-### 2026-07-28 · main · v2.65.0
-Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
-after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
-
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -105,6 +105,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
+- React/Laravel UI: match project theme tokens or sibling-page CSS (memory `react-theme-parity`) — no mid-session design-system drift
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only

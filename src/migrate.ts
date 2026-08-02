@@ -585,6 +585,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/forensic-funnel-legitimate-rebuild.md',
     '.claude/memories/owned-checkout-gateway-ops.md',
     '.claude/memories/local-checkout-artifact-analysis.md',
+    '.claude/memories/react-theme-parity.md',
   ];
 
   if (!settings.context) settings.context = {};

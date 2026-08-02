@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-02 · main · v2.73.0
+`react-theme-parity` memory + UPS hook **1.8.0** THEME PARITY nudge (Laravel/React
+long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok **1.13.0**.
+
 ### 2026-08-02 · main · v2.72.0
 `ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
 prompt; viral TikTok vibe → lookalike; mix only cleared stems (no CID dodge).
@@ -52,10 +56,6 @@ Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
 `svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
 exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
 Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
-
-### 2026-07-28 · main · v2.65.0
-Kimi/Grok finalize chain: skill `svs-finalize`; Stop blocks stale CLAUDE/`_index.json`
-after source edits; UPS nudge; Grok agents **1.1.0** (inline-exec banner); curated **1.5.0**.
 
 
 ---
@@ -425,14 +425,8 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/multi-target-mcp-discovery.md`
 
-- **forensic-funnel-legitimate-rebuild.md** — Local dump/forensic report → extract clean checkout/upsell/recovery architecture; rebuild on **user** brand. No dump tokens, email-bump, UTM fraud, or stalkerware product.
+- **react-theme-parity.md** — Before/after React UI edits: discover `resources/css/themes/*` or sibling-page CSS; validate checklist (layout, STYLES, tokens, Common/*, no new UI lib). UPS injects THEME PARITY on jsx/tsx work.
 
-  Loaded from: `.claude/memories/forensic-funnel-legitimate-rebuild.md`
+  Loaded from: `.claude/memories/react-theme-parity.md`
 
-- **owned-checkout-gateway-ops.md** — Use **user** PerfectPay/Hotmart/Stripe/etc. tokens from `.env` to fetch that merchant’s orders/webhooks/refunds. Not third-party dump keys.
-
-  Loaded from: `.claude/memories/owned-checkout-gateway-ops.md`
-
-- **local-checkout-artifact-analysis.md** — Analyze checkout HTML/JS/HAR/webhook fixtures already on disk for integration mapping.
-
-  Loaded from: `.claude/memories/local-checkout-artifact-analysis.md`
+-
