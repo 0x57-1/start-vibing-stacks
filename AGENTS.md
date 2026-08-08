@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.4
+svs-version: 1.2.5
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-08 · main · v2.76.0
+README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
+documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
 
 ### 2026-08-08 · main · v2.75.0
 Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
@@ -71,10 +75,6 @@ Missing companions → outdated. Grok curated **1.8.0**.
 ### 2026-07-29 · main · v2.68.0
 `mcp-server-builder` **1.1.0**: `reference/safe-upgrade.md` — inventory house MCPs,
 bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrade`).
-
-### 2026-07-29 · main · v2.67.0
-Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
-`reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
 
 
 <!-- SVS:POLICY-PACK:START -->

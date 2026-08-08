@@ -12,7 +12,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
-export const GROK_AGENTS_VERSION = '1.1.0';
+export const GROK_AGENTS_VERSION = '1.2.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 
 export interface GrokAgentsResult {
@@ -22,10 +22,11 @@ export interface GrokAgentsResult {
 }
 
 const GROK_BANNER =
-  '> **Kimi / Grok:** Claude Task/Subagent auto-invoke is unavailable. ' +
-  '**Read this entire agent file and execute every step inline** before continuing. ' +
-  'Do not skip to git commit/push. After source edits, skill `svs-finalize` is mandatory ' +
-  '(documenter → domain-updater → CLAUDE.md Recent Changes).\n';
+  '> **Kimi / Grok:** Claude Task auto-invoke is unavailable. ' +
+  '**Read this entire agent file and execute every step inline** (or `spawn_subagent` on Grok). ' +
+  'After source edits, skill `svs-finalize` — **same order as Claude**: ' +
+  '`commit-manager`/`scope.ts commit` (code) → `documenter` → `domain-updater` (CLAUDE.md Recent Changes) → docs commit. ' +
+  'Never `git add -A`. Stop blocks until docs catch up.\n';
 
 function listClaudeAgentFiles(projectDir: string): string[] {
   const dir = join(projectDir, '.claude', 'agents');

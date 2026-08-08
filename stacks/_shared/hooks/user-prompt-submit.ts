@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.8.1
+// @sv-version: 1.8.2
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.8.2: FINALIZE order = scope commit → documenter → domain-updater → docs commit
+ * (was inverted; matches Claude + skill svs-finalize).
  * v1.8.1: peer coordination points at /svs-peers (Claude native /peers = ListAgents).
  * v1.8.0: THEME PARITY nudge for React UI projects (memory react-theme-parity)
  * when prompt/session involves .jsx/.tsx — discover theme or sibling CSS; validate
@@ -153,10 +155,13 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
   );
   if (hasSource) {
     parts.push('');
-    parts.push('FINALIZE CHAIN REQUIRED (source edits in this session — skill svs-finalize):');
-    parts.push('  Before claiming done: documenter → domain-updater (CLAUDE.md Recent Changes) → scope commit.');
-    parts.push('  Kimi/Grok: Read .grok/agents/<name>.md (or .claude/agents/) and execute steps inline — no Task auto-invoke.');
-    parts.push('  FORBIDDEN: code-only push without docs. Stop will BLOCK if CLAUDE/_index.json are stale.');
+    parts.push('FINALIZE CHAIN REQUIRED (source edits — skill svs-finalize; same order as Claude):');
+    parts.push('  1. commit-manager → scope.ts commit "<type>: <code>"  (never git add -A)');
+    parts.push('  2. documenter → domains + _index.json');
+    parts.push('  3. domain-updater → PREPEND CLAUDE.md ## Recent Changes');
+    parts.push('  4. If docs dirty → scope.ts commit "docs: …"');
+    parts.push('  Kimi/Grok: spawn_subagent or Read .grok/agents/<name>.md / .claude/agents/ — execute inline.');
+    parts.push('  FORBIDDEN: code-only push; documenter before code commit; skip domain-updater. Stop BLOCKS if stale.');
   }
 
   return parts.join('\n');

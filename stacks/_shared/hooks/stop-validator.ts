@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.8.0
+// @sv-version: 1.8.1
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -87,27 +87,29 @@ const FINALIZE_SOURCE_RE =
 
 function finalizeHint(): string {
   const target = (process.env['SVS_TARGET'] || '').toLowerCase();
+  const prefix =
+    `\n\nFINALIZE CHAIN (required — skill svs-finalize; same order as Claude):\n` +
+    `0. If code still uncommitted: commit-manager → scope.ts commit "<type>: <code>" (never git add -A)\n`;
   if (target === 'grok') {
     return (
-      `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
-      `1. spawn_subagent(subagent_type="documenter", prompt="Map edited files → domains; update _index.json")\n` +
-      `2. spawn_subagent(subagent_type="domain-updater", prompt="PREPEND CLAUDE.md ## Recent Changes; sync domains")\n` +
-      `   (fallback: Read .grok/agents/documenter.md + domain-updater.md and execute inline)\n` +
-      `3. npx tsx .claude/hooks/scope.ts commit "docs: …" if docs dirty\n` +
+      prefix +
+      `1. spawn_subagent(subagent_type="documenter", …)  (or Read .grok/agents/documenter.md)\n` +
+      `2. spawn_subagent(subagent_type="domain-updater", …)  (PREPEND CLAUDE.md ## Recent Changes)\n` +
+      `3. scope.ts commit "docs: …" if docs dirty\n` +
       `4. Continue until Stop approves (do not claim done while blocked)`
     );
   }
   if (target === 'kimi') {
     return (
-      `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
-      `1. Read + execute .claude/agents/documenter.md (or spawn that agent)\n` +
-      `2. Read + execute .claude/agents/domain-updater.md (PREPEND CLAUDE.md ## Recent Changes)\n` +
-      `3. npx tsx .claude/hooks/scope.ts commit "docs: …" if docs dirty\n` +
+      prefix +
+      `1. Read + execute .claude/agents/documenter.md\n` +
+      `2. Read + execute .claude/agents/domain-updater.md (PREPEND ## Recent Changes)\n` +
+      `3. scope.ts commit "docs: …" if docs dirty\n` +
       `4. Continue until Stop approves (do not claim done while blocked)`
     );
   }
   return (
-    `\n\nFINALIZE CHAIN (required — skill svs-finalize):\n` +
+    prefix +
     `1. Run documenter agent (Task / spawn)\n` +
     `2. Run domain-updater (PREPEND CLAUDE.md ## Recent Changes)\n` +
     `3. scope.ts commit "docs: …" if docs dirty\n` +

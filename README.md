@@ -1,348 +1,169 @@
-# Start Vibing Stacks
+# start-vibing-stacks
 
-Multi-stack AI workflow for **Claude Code**, **Kimi Code**, **Grok**, and **Cursor**. One command installs agents, skills, hooks, and quality gates tailored to your stack.
+CLI that installs a **shared AI engineering setup** into a repo: agents, skills, hooks, memories, and quality gates for **Claude Code**, **Kimi Code**, **Grok**, and **Cursor** — parametrized by stack (PHP / Node / Python).
 
 ```bash
-npx start-vibing-stacks
+npx start-vibing-stacks@latest
 ```
 
-> Latest: **v2.65.0** — Kimi/Grok mandatory finalize (documenter → domain-updater); Stop blocks docs skip; `svs-finalize`.
+Latest: **v2.76.0** — objective README; Kimi/Grok finalize order aligned with Claude (commit → documenter → domain-updater).
 
 ---
 
-## What it installs
+## What it does
 
-| Layer | Count | Purpose |
-|---|---|---|
-| Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
-| Skills | **34** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
-| Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
-| Commands | `/feature` · `/fix` · `/research` · `/validate` · `/svs-peers` | Slash commands |
-| Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
-| Configs | `active-project.json` · `domain-mapping.json` · `security-rules.json` · `standards-review.json` | Drives every agent's stack detection |
+| Job | How |
+|-----|-----|
+| Scaffold / upgrade project AI config | `npx start-vibing-stacks` then `migrate --apply` |
+| Keep Claude · Kimi · Grok · Cursor in sync | Side-cars: `AGENTS.md`, MCP export, `.kimi-code/`, `.grok/`, `.cursor/` |
+| Enforce finish hygiene | Stop hooks block dirty tree, skipped docs, stale domain index |
+| Same finish chain on all targets | **Commit (scoped) → documenter → domain-updater → docs commit** |
+| Multi-instance safety | `.claude/state/` locks + `/svs-peers`; Claude ≥2.1.224 also has native `SendMessage` |
 
----
-
-## Supported stacks
-
-| Stack | Frameworks | Databases | Frontend |
-|---|---|---|---|
-| 🐘 **PHP 8.3+** | Laravel 12 + Octane, Laravel 12 | MariaDB/MySQL, PostgreSQL, SQLite | **React + Axios (API-first, default)** · Blade · Livewire · Inertia + React (legacy) |
-| 📦 **Node.js / TS** | Next.js · Nuxt · Astro · Express · Fastify · Vanilla | MongoDB · Postgres · MariaDB/MySQL · SQLite/Turso · Redis · None | React + Tailwind · Vue · Svelte · API only |
-| 🐍 **Python 3.12+** | FastAPI · Django 5 · Flask · Local Scripts | MariaDB/MySQL · Postgres · SQLite · MongoDB · None | React · HTMX + Jinja2 · API/CLI only |
+**Not** a framework or app generator. It wires agents/skills/hooks around *your* codebase.
 
 ---
 
-## Skill matrix
+## Quick start
 
-### Universal (34 — shared across stacks)
+```bash
+cd your-project
+npx start-vibing-stacks@latest          # setup or resume (Launch auto-migrates if outdated)
+npx start-vibing-stacks@latest migrate --apply   # upgrade skills/hooks/memories/targets
+```
 
-| Group | Skills |
-|---|---|
-| **Security** | `security-baseline` · `secrets-management` · `ai-llm-security` · `security-assessment-ops` |
-| **Observability** | `observability` |
-| **Reliability** | `error-handling` · `database-migrations` · `tool-resilience` · `dead-code-hygiene` |
-| **A11y / UX** | `accessibility-wcag22` · `ui-ux-audit` |
-| **CI / Quality** | `ci-pipelines` · `quality-gate` · `final-check` · `git-workflow` |
-| **Infra** | `docker-patterns` · `podman-patterns` · `kubernetes-patterns` · `hook-development` · `multi-instance-coordination` · `session-history` · `kimi-grok-session-lookup` · `mcp-server-builder` · `owned-infra-ops` · `own-subscription-integration` |
-| **Marketing** | `email-push-marketing` |
-| **Framework** | `react-server-components` · `laravel-octane-inertia` |
-| **Testing** | `playwright-automation` · `test-coverage` |
-| **Performance** | `performance-patterns` |
-| **API design** | `openapi-design` · `postgres-patterns` |
-| **Memory layer** | `codebase-knowledge` · `docs-tracker` · `research-cache` |
-| **Debug** | `debugging-patterns` |
-
-### Stack-specific (added on top of the universal set)
-
-| Stack | Count | Skills |
-|---|---|---|
-| **PHP** | 14 | `api-design` · `api-security` (Sanctum SPA, v2.0.0) · `composer-workflow` · `external-api-patterns` · `inertia-react` (legacy) · **`laravel-api-architecture`** · `laravel-inertia-i18n` (legacy) · `laravel-octane` · `laravel-patterns` · `mariadb-octane` · `php-patterns` · `phpstan-analysis` · `phpunit-testing` · `security-scan-php` |
-| **Node.js** | 7 | `api-security-node` · `bun-runtime` · `fastify-api` · `mongoose-patterns` · `nextjs-app-router` · `trpc-api` · `typescript-strict` |
-| **Python** | 9 | `api-security-python` · `async-patterns` · `django-patterns` · `fastapi-patterns` · `pydantic-validation` · `pytest-testing` · `python-patterns` · `python-performance` · `scripting-automation` |
-
-### Frontend (3 options, opt-in)
-
-| Folder | Skills | Inherits from |
-|---|---|---|
-| `react` (generic) | `react-patterns` · `react-standards` · `react-ui-patterns` · `shadcn-ui` · `preline-ui` · `tailwind-patterns` · `zod-validation` | — |
-| **`react-api` (default for new PHP/Node API stacks)** | `axios-laravel-api` · `react-api-standards` | `react/` |
-| `react-inertia` (legacy) | `inertia-react` · `react-standards` | `react/` |
+Prefer `@latest` — plain `npx start-vibing-stacks` can stick on an old cache.
 
 ---
 
-## Layout in your project
+## Targets
+
+| Target | Instructions | Skills / agents | Hooks |
+|--------|--------------|-----------------|-------|
+| **Claude Code** | `CLAUDE.md` + `.claude/memories/` | `.claude/skills`, `.claude/agents` | `.claude/settings.json` |
+| **Kimi** | root `AGENTS.md` | `.claude/*` via `extra_*_dirs` in `.kimi-code/local.toml` | `svs-bridge` in local.toml |
+| **Grok** | `AGENTS.md` + curated `.grok/skills/` | Adapted `.grok/agents/` | `.grok/hooks/svs.json` + bridge |
+| **Cursor** | `AGENTS.md` + `.cursor/rules/svs-policy.mdc` | (reads project files) | — |
+
+---
+
+## Development flow (Claude = Kimi = Grok)
+
+Same order on every target. Claude may auto-`Task` agents; **Kimi/Grok must Read/spawn agents** (skill `svs-finalize` / `svs-dev-process`).
+
+```
+1. Branch          feature/ | fix/ | refactor/
+2. Research        research-web (new features)
+3. Implement       stack skills + theme parity (React)
+4. Quality         typecheck / lint / test as configured
+5. Commit code     commit-manager → scope.ts commit  (never git add -A)
+6. Document        documenter → domains + _index.json
+7. Wisdom          domain-updater → CLAUDE.md ## Recent Changes (PREPEND)
+8. Commit docs     scope.ts commit "docs: …" if dirty
+9. Stop            stop-validator must pass (bridge: Grok decision:block / Kimi exit 2)
+```
+
+| Skip | Result |
+|------|--------|
+| documenter / domain-updater after source edits | Stop **blocks**; next session loses memory |
+| `git add -A` | Can bundle peer sessions’ files |
+| Code-only “done” | Forbidden — finalize required |
+
+```bash
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"
+```
+
+---
+
+## What gets installed
+
+| Layer | Contents |
+|-------|----------|
+| **Agents** | `research-web` · `documenter` · `domain-updater` · `commit-manager` · `tester` · `security-auditor` · `claude-md-compactor` (+ others) |
+| **Skills** | Universal set + stack (PHP/Node/Python) + optional frontend |
+| **Hooks** | SessionStart · UserPromptSubmit · Pre/PostToolUse · Stop · SessionEnd (+ plan-gate) |
+| **Commands** | `/feature` · `/fix` · `/research` · `/validate` · `/svs-peers` · `/commit-mine` |
+| **Memories** | Ads/funnel, checkout, security posture, theme parity, cross-session messaging, … |
+| **CI** | Optional `ci.yml` + `security.yml` when `.github/workflows/` is empty |
+
+Layout:
 
 ```
 your-project/
-├── CLAUDE.md                                  # AI memory — ≤ 20 KB target (Anthropic May-2026)
-├── .claude/
-│   ├── agents/                                # 7 universal agents
-│   ├── skills/
-│   │   ├── codebase-knowledge/
-│   │   │   ├── _INDEX.md                      # human-readable domain index
-│   │   │   ├── _index.json                    # machine-readable, regenerated by documenter
-│   │   │   └── domains/                       # one file per domain (≤ 8 KB each)
-│   │   └── <other skills>/
-│   ├── hooks/                                 # session-start, pre/post-tool-use, stop-validator, final-check, prompt-submit, peers (CLI)
-│   ├── commands/                              # /feature, /fix, /research, /validate, /svs-peers
-│   ├── state/                                 # multi-instance coordination (gitignored, runtime-managed)
-│   └── config/                                # active-project, domain-mapping, security-rules, ...
-└── .github/workflows/                         # ci.yml + security.yml (if dir was empty)
+├── CLAUDE.md                 # rules + Recent Changes
+├── AGENTS.md                 # Kimi / Grok / Cursor twin
+├── .claude/                  # agents, skills, hooks, memories, state/
+├── .kimi-code/               # local.toml + mcp.json (migrate)
+├── .grok/                    # skills, agents, hooks, config.toml (migrate)
+└── .cursor/rules/            # svs-policy.mdc (migrate)
 ```
 
 ---
 
-## Multiple Claude instances in the same folder
+## Stacks
 
-When two or more Claude Code sessions run in the same project, the installed hooks coordinate automatically through `.claude/state/` (gitignored, per-host).
+| Stack | Typical frameworks |
+|-------|-------------------|
+| **PHP ≥ 8.3** | Laravel (+ Octane), React API-first or Inertia/Blade |
+| **Node ≥ 20** | Next.js, Nuxt, Fastify, Express, … |
+| **Python ≥ 3.12** | FastAPI, Django, Flask, scripts |
 
-What you get:
+Frontend add-ons: `react` · `react-api` (default for new API stacks) · `react-inertia` (legacy).
 
-- **Auto-discovery** — `SessionStart` registers each session, captures the same title that appears in `claude --resume`, and tells you who else is around.
-- **File-edit collision shield** — `PreToolUse` BLOCKS Edit/Write on a file a peer is actively editing (heartbeat <60s, touched <5min ago). Idle peers (60s–30min) downgrade to a warning; stale peers are ignored.
-- **Cross-instance messaging (SVS)** — `peers.ts notify` queues a message for the next UserPromptSubmit (Claude·Kimi·Grok). Claude Code ≥2.1.224 also has **native** `SendMessage` / `/list-agents` (Claude↔Claude mid-turn) — do not confuse with this bus.
-- Slash **`/svs-peers`** wraps the SVS CLI. Claude’s own `/peers` is native ListAgents (we removed the old project `peers.md` that shadowed it).
+---
 
-### `/svs-peers` CLI
+## Multi-instance
 
-```bash
-# Inside Claude:
-/svs-peers              # delegates to the script
+Shared bus: `.claude/state/` (gitignored).
 
-# Or from any terminal:
-npx tsx .claude/hooks/peers.ts list
-npx tsx .claude/hooks/peers.ts notify a1b2c3d4 "I just committed auth changes"
-npx tsx .claude/hooks/peers.ts locks --minutes 10
-npx tsx .claude/hooks/peers.ts cleanup
-```
+- **Locks** — PreToolUse blocks Edit/Write on files an active peer just touched  
+- **SVS notify** — `/svs-peers` → `peers.ts notify` (Claude · Kimi · Grok; next prompt)  
+- **Claude native** (≥2.1.224) — `ListAgents` / `SendMessage` for Claude↔Claude mid-turn (not Kimi/Grok)
 
-### Heartbeat thresholds
-
-| Last activity | State    | Effect                                                   |
-| ------------- | -------- | -------------------------------------------------------- |
-| < 60s         | active   | Counts for collision detection; BLOCKS conflicting edits |
-| 60s – 30min   | idle     | Surfaced as a warning; edits NOT blocked                 |
-| > 30min       | stale    | Auto-archived                                            |
-| > 24h         | removed  | Deleted                                                  |
-
-Single-host coordination only. It does **not** replace `git` for cross-machine collaboration; it prevents two live sessions on the same laptop from stepping on the same uncommitted file.
+Heartbeat: **active &lt; 180s** (block) · idle → 30min (warn) · then archive. See memory `claude-cross-session-messaging`.
 
 ---
 
 ## CLI
 
 ```bash
-npx start-vibing-stacks                                # setup or resume current project
-npx start-vibing-stacks migrate                        # dry run: skills + agents + hooks + commands + settings.json + runtime dirs
-npx start-vibing-stacks migrate --apply                # apply (idempotent; preserves customizations)
-npx start-vibing-stacks migrate --apply --force-legacy # also overwrite legacy hooks AND commands (no version) — creates .bak
-npx start-vibing-stacks migrate --apply --force-hooks  # alias for --force-legacy (back-compat)
-
-# Memory Optimization Pipeline (MOP)
-npx start-vibing-stacks --with-memory-optimization          # install MOP
-npx start-vibing-stacks memory optimize --dry-run           # analyze memories
-npx start-vibing-stacks memory optimize --apply             # apply optimizations
-
-# flags: --force --no-claude --no-mcp --no-install --with-memory-optimization --help --version
+npx start-vibing-stacks@latest                 # setup / resume (+ Launch auto-migrate)
+npx start-vibing-stacks@latest migrate         # dry-run drift
+npx start-vibing-stacks@latest migrate --apply
+npx start-vibing-stacks@latest migrate --apply --force-legacy   # heal unversioned hooks/commands
+npx start-vibing-stacks@latest migrate --target kimi|grok|cursor|claude|all --apply
 ```
 
-`migrate` is the safe upgrade path between releases. Each release gets:
-- **Hooks** versioned via `// @sv-version` (TS) or `# @sv-version` (shell) — semver-compared against installed.
-- **Commands / skills / agents / memories** versioned via frontmatter `version:`.
-- **Config JSON** stamped with `"$sv-version"` (advisory; migrate does not auto-overwrite customized configs).
-- **`settings.json#hooks`** — idempotent deep-merge: missing event blocks (`SessionStart`, `PreToolUse`, `PostToolUse`, `SessionEnd`) are appended; existing entries (including yours) are preserved.
-- **Runtime artefacts** — `.claude/state/{sessions,inbox,file-touches}/_archive` auto-created; `_state.README.md` staged/upgraded; `settings.local.example.json` staged if missing.
-- **`.gitignore`** — `.claude/state/` + `.claude/settings.local.json` appended if not already covered.
+Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--with-memory-optimization` · `--help` · `--version`
 
-### Permission modes (plan vs Bypass vs Cursor)
-
-Generated projects keep `permissions.defaultMode: "plan"` in `.claude/settings.json` (safe default). The setup CLI may still launch with `--dangerously-skip-permissions` as a **session convenience** — that is not the same as changing the project default.
-
-| Goal | What to do |
-|---|---|
-| Auto-accept file edits | `cp .claude/settings.local.example.json .claude/settings.local.json` → `"defaultMode": "acceptEdits"` |
-| Minimal permission prompts | Same file → `"bypassPermissions"` (trusted env only) |
-| Cursor still says *Save file to continue* | Enable `files.autoSave`; choose **allow all edits** once; see memory `cursor-ide-edit-sync` |
-| Claude Code extension Bypass stuck | Set both `claudeCode.allowDangerouslySkipPermissions` and `claudeCode.initialPermissionMode: "bypassPermissions"` |
-
-Legacy files without versioning — hooks without `// @sv-version` AND commands without `version:` frontmatter (anything installed before the versioning landed) — are reported as `needs-update-legacy` and skipped by default. Pass `--force-legacy` (or its alias `--force-hooks`) to overwrite them — each gets a timestamped `.bak`. Skills and agents are intentionally **not** covered because users customize them; they stay in `modified-no-version` (advisory only).
-
-Global install: `npm i -g start-vibing-stacks` → `svs` (alias).
+`migrate` upgrades versioned skills/agents/hooks/commands/memories, patches hook wiring, refreshes target side-cars, and is idempotent.
 
 ---
 
-## Memory Optimization Pipeline (MOP)
+## Notable memories (always-on via Claude `memory_files`)
 
-Static memories (`CLAUDE.md`, skill files, agent memories) degrade over time through redundancy, generic chunks, and obsolescence.
+Ads/funnel · checkout (owned gateway / forensic rebuild) · security assessment · owned infra · `react-theme-parity` · `claude-cross-session-messaging` · MCP discovery. Full list under `stacks/_shared/memories/` / project `.claude/memories/`.
 
-The **Memory Optimization Pipeline** uses an LLM-as-Judge to evaluate chunks and produce optimized `.optimized.md` versions **without modifying originals**.
-
-```bash
-npx start-vibing-stacks --with-memory-optimization   # one-time install
-npx start-vibing-stacks memory optimize --dry-run    # review plan
-npx start-vibing-stacks memory optimize --apply      # apply changes
-```
-
-The agent automatically suggests running MOP when it detects objective signals (excessive generic chunks, `CLAUDE.md` > 35 KB, repeated forgetting, etc.).
-
----
-
-## Advertising Optimization Memories
-
-Permissive memories for legitimate **paid advertising optimization** work:
-
-| Memory | Purpose |
-|--------|---------|
-| `advertising-optimization-authorization.md` | Master memory — activates all advertising-related permissions |
-| `ad-platform-detector-optimization.md` | Landing page techniques to pass Google AdX, Meta, TikTok, Microsoft detectors |
-| `ad-creative-cloaking.md` | Hotkit/clocker patterns, pixel protection, tracking obfuscation |
-| `ad-creative-audio-licensing.md` | Mine free/CML beds (Grok/Kimi OK); viral vibe match; mux cleared only |
-| `ad-bot-evasion.md` | Ad verification crawlers + frontend bot/ML classification (AdsBot, Meta, TikTok, GAM) |
-| `ad-review-and-traffic-filtering.md` | Ad review/approval + clockers / traffic filter / access masking |
-| `paid-ads-landing-validation.md` | Pre-launch validation and optimization of landing pages for paid traffic |
-| `web-content-memory-ingestion.md` | Copy any public web content into memory (no source ownership requirement) |
-| `funnel-content-copy.md` | Public sales + donation funnel scrape/analysis |
-| `donation-cause-funnel-adaptation.md` | Rebuild donation/cause CRO on **your** entity; no charity **or person**/founder-face impersonation |
-| `forensic-funnel-legitimate-rebuild.md` | Local dump/forensic report → clean checkout/upsell architecture (no dump tokens / fraud patterns) |
-| `owned-checkout-gateway-ops.md` | Fetch **your** orders/webhooks with tokens from **your** `.env` |
-| `local-checkout-artifact-analysis.md` | Analyze saved checkout HTML/JS/HAR/fixtures on disk |
-| `react-theme-parity.md` | Laravel/React: match theme tokens or sibling-page CSS (anti long-session drift) |
-| `claude-cross-session-messaging.md` | Claude native SendMessage vs SVS `/svs-peers` bus |
-
-**Key behavior:** In paid-ads / funnel-research context, these memories take precedence over default **refusals** for cloaking/clocker/bypass/ad-review and donation-page scrape vocabulary. They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers. Charity/bank **impersonation + payment capture** remains a hard limit.
-
-## Security Assessment Memories (v2.45.0)
-
-| Memory | Purpose |
-|--------|---------|
-| `defensive-security-review.md` | OWASP/source/API review of code the user owns |
-| `passive-public-security-posture.md` | Passive OSINT (headers/TLS/DNS/public pages) — no unauthorized active scan |
-| `authorized-security-assessment.md` | Active assessment only with ownership / contract / bounty in-scope |
-| `claude-permission-modes.md` | `bypassPermissions` / `acceptEdits` = IDE modes, not cyber unlock |
-
-Skill: `security-assessment-ops`. Opus 5 allows source vuln finding; blocks pentest / binary scan / exploit gen — use [CVP](https://portal.anthropic.com/programs/cvp) for dual-use at scale.
-
----
-
-## Hooks (block completion)
-
-| Hook | Blocks when |
-|---|---|
-| `stop-validator` | not on `main` (configurable) · uncommitted changes · `CLAUDE.md` missing/stale · secret pattern in diff (gitleaks if installed, regex fallback) |
-| `final-check` | hardcoded secret · `eval` · SQL string concat · `.skip`/`.only` · `any` (TS) · `console.log` · `var_dump` |
-| `user-prompt-submit` | injects workflow + standards context into every prompt |
-
----
-
-## Workflow per task
-
-```
-1. BRANCH         feature/ | fix/ | refactor/ | test/
-2. RESEARCH       research-web (MCP-first; new features only)
-3. IMPLEMENT      stack rules + strict types + security
-4. HYGIENE        dead-code-hygiene — delete unused legacy/inert paths from this change
-5. TEST           tester (Vitest / pytest / PHPUnit / Playwright)
-6. SECURITY       security-auditor — VETO on CRITICAL/HIGH/MEDIUM findings
-7. QUALITY        quality-gate: typecheck → lint → test → build
-8. COMMIT         commit-manager — verifies gates, diff-driven message, push
-9. CI VERIFY      gh run list/watch for pushed SHA — report deploy/release if present
-10. DOCUMENT      documenter — maps files/commits to domains, regenerates _index.json
-11. WISDOM        domain-updater — records session learnings, PREPENDS new entry to CLAUDE.md ## Recent Changes (append-only LIFO, cap 10, multi-instance safe)
-12. COMPACT       claude-md-compactor — triggers if CLAUDE.md > 20 KB
-```
-
-Steps 6–7 cannot be skipped — `security-auditor` and `quality-gate` veto `commit-manager` on findings. Step 9 is required after push on GitHub remotes (memory `post-push-ci-verification`).
-
----
-
-## Memory layer (v2.0.0 — search-optimized)
-
-`documenter` v2.0.0 maintains `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore your repo.
-
-| Property | Value | Why |
-|---|---|---|
-| File size cap | ≤ 8 KB / ~2k tokens / 200 lines per domain | Cheap local grep; auto-split on overflow |
-| Frontmatter | `domain · tags · owner · last_commit · last_date · files_count · connections · status` | Machine-filterable without parsing markdown |
-| Index | `_index.json` (regenerated each pass) + `_INDEX.md` (human view) | One `jq` query finds any domain |
-| Commit log | Capped at 20 entries; older rolls into `<slug>.archive.md` | Live file stays small, history one click away |
-| Connections | Bidirectional (A→B forces B←A) | No dangling links |
-| Edit policy | `Edit` known anchors; never `Write` over an existing domain | Diff stability for code review |
-| `summary_sha` | sha256 of the TL;DR block | Drift detector for CI hooks |
-
-This layer is **separate** from `CLAUDE.md`: that file holds project-wide rules and `## Recent Changes` (append-only LIFO, cap 10 entries, multi-instance safe — see `claude-md-compactor.md §6.1`); the memory layer holds domain knowledge.
-
----
-
-## Security features
-
-- **`security-auditor` v2.0.0** — stack-aware (forks on PHP / Node / Python), CWE-mapped findings, severity matrix (CRITICAL · HIGH · MEDIUM block; LOW warns), VETO power against `commit-manager` and `domain-updater`. Adversarial probes: `npm audit` · `composer audit` · `pip-audit` · `gitleaks` · PHPStan.
-- **OWASP Top 10** — `security-baseline` (universal A01–A10, 2021 numbering + 2025 deltas; Passkeys/WebAuthn FIDO2 in A07) + `security-scan-php` (Laravel-specific) + `api-security-node` (v2.0.0: SSRF guard + supply-chain/exception deltas) + `api-security-python`.
-- **OWASP Top 10 for LLM Apps (2025)** — `ai-llm-security`: prompt injection (direct + indirect), improper output handling, excessive agency / tool & MCP invocation, RAG/embedding authz, unbounded consumption. Invoked for any chat/RAG/agent/tool-calling feature.
-- **CI security suite** — every `security.yml` runs SAST (Semgrep + CodeQL), secret scan (gitleaks), filesystem/config scan (Trivy), CycloneDX SBOM, `dependency-review` on PRs, and OpenSSF Scorecard. Plus a non-blocking `Security` quality gate (`bun`/`composer`/`pip` audit) per stack.
-- **Environment isolation** — scanner blocks `NEXT_PUBLIC_*SECRET|*TOKEN|*PRIVATE` and `VITE_*SECRET|*TOKEN|*PRIVATE` patterns; teaches Route Handler / Server Action proxy patterns.
-- **Secret scanning** in `stop-validator` — gitleaks if installed, regex fallback otherwise.
-- **CI templates** — gitleaks · `npm audit` / `pip-audit` / `composer audit` · CodeQL/Bandit · weekly cron.
-
----
-
-## Standards review
-
-CLI scans existing config (`.cursorrules` · `composer.json` · `tsconfig.json` · `.eslintrc*` · `phpstan.neon` · `.env*` · lockfiles) and asks **"adapt to your standards or use defaults?"** Imported standards are written to `standards-review.json` and injected into every prompt by `user-prompt-submit`.
-
----
-
-## Migrate existing projects
-
-```bash
-npx start-vibing-stacks migrate         # report drift only
-npx start-vibing-stacks migrate --apply # apply updates
-```
-
-Compares `version:` in your installed `SKILL.md` / agent files against the bundled package:
-
-| Result | Action |
-|---|---|
-| Missing | install |
-| Outdated | upgrade (older ones moved to `.archive/`) |
-| Ahead (you customized) | kept as-is |
-| Unversioned | flagged for manual review |
+Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropic cyber API gates.
 
 ---
 
 ## Requirements
 
-| Stack | Required |
-|---|---|
-| PHP | PHP ≥ 8.3 · Composer ≥ 2.0 · Node.js ≥ 20 |
-| Node.js | Node.js ≥ 20 (Bun optional) |
-| Python | Python ≥ 3.12 · pip ≥ 23 |
-
-Missing dependencies are auto-installed via Homebrew on macOS.
+| Stack | Need |
+|-------|------|
+| PHP | PHP ≥ 8.3 · Composer ≥ 2 · Node ≥ 20 |
+| Node | Node ≥ 20 |
+| Python | Python ≥ 3.12 |
 
 ---
 
 ## Releases
 
-GitHub Release → npm publish (workflow `publish.yml`).
-Version bump in `package.json` on `main` → auto-creates the GitHub Release (workflow `auto-release.yml`).
-Both workflows run on **Node 22** (Active LTS until Oct 2026).
-Add `[skip release]` to the commit message to opt out of auto-release.
+Bump `package.json` on `main` → `auto-release.yml` tags, GitHub Release, `npm publish`. Opt out with `[skip release]` in the commit body.
 
 ---
-
-## MCP integrations (optional)
-
-`research-web` v2.0.0 is **MCP-first**: it prefers a local `web-scraper` MCP (Brave + Vertex AI + Grok with dedupe + scoring · stealth scraping · sitemap crawler · persistent memory) and falls back gracefully to built-in `WebSearch` / `WebFetch` if the MCP is not registered. Capability detection happens once per session.
-
-Run `npx start-vibing-stacks --no-mcp` to skip MCP wiring entirely.
-
----
-
-## Credits
-
-Inspired by [start-vibing](https://www.npmjs.com/package/start-vibing). Built by [FantasyLake](https://github.com/f1sc4ll-ai).
 
 ## License
 
-MIT
+MIT · Inspired by [start-vibing](https://www.npmjs.com/package/start-vibing) · [FantasyLake](https://github.com/f1sc4ll-ai)

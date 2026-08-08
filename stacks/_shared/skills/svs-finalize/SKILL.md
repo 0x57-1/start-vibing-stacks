@@ -1,12 +1,11 @@
 ---
 name: svs-finalize
-version: 1.2.0
+version: 1.2.1
 description: >
-  Mandatory finalize chain for Kimi/Grok (and Claude when Task is skipped): after
-  source edits, run documenter → domain-updater → CLAUDE.md Recent Changes →
-  scoped commit. Verify stamps before claiming done. Use when Stop blocks on
-  stale docs (Grok decision:block / Kimi exit 2). FORBIDDEN: skip, touch-theatre,
-  disable hooks, or trust subagent "done" without verification.
+  Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
+  edits — scope commit (code) → documenter → domain-updater → docs commit. Same
+  order as Claude. Verify stamps before claiming done. Stop blocks on stale docs
+  (Grok decision:block / Kimi exit 2). FORBIDDEN: skip, reverse order, touch-theatre.
 ---
 
 # SVS finalize chain (do not skip)
