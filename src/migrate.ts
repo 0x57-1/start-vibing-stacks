@@ -78,7 +78,10 @@ export interface MigrateOptions {
 
 interface ProjectConfig {
   stack: string;
+  frontend?: string;
   frontendSkillsDir?: string;
+  /** Copied before frontendSkillsDir in setup; migrate must scan it too. */
+  frontendBaseSkillsDir?: string;
 }
 
 function parseFrontmatterVersion(file: string): string | null {
@@ -200,18 +203,33 @@ function listFiles(dir: string, suffixes: string[]): string[] {
   }
 }
 
-function listSkillSources(stack: string, frontendSkillsDir?: string): Array<{ source: string; name: string }> {
+function listSkillSources(
+  stack: string,
+  frontendSkillsDir?: string,
+  frontendBaseSkillsDir?: string,
+  frontendId?: string
+): Array<{ source: string; name: string }> {
   const out: Array<{ source: string; name: string }> = [];
+  const seen = new Set<string>();
   const sharedDir = join(CLI_ROOT, 'stacks', '_shared', 'skills');
   const stackDir = join(CLI_ROOT, 'stacks', stack, 'skills');
-  const frontendDir = frontendSkillsDir
-    ? join(CLI_ROOT, 'stacks', 'frontend', frontendSkillsDir, 'skills')
-    : null;
+  // Match setup.ts: base frontend skills first, then specific frontend folder.
+  const feDirs = [
+    frontendBaseSkillsDir,
+    frontendSkillsDir || frontendId,
+  ]
+    .filter((d): d is string => Boolean(d))
+    .map((d) => join(CLI_ROOT, 'stacks', 'frontend', d, 'skills'));
 
-  for (const dir of [sharedDir, stackDir, frontendDir].filter(Boolean) as string[]) {
+  for (const dir of [sharedDir, stackDir, ...feDirs]) {
+    if (!existsSync(dir)) continue;
     for (const entry of listSubdirs(dir)) {
+      if (seen.has(entry)) continue;
       const skillPath = join(dir, entry, 'SKILL.md');
-      if (existsSync(skillPath)) out.push({ source: skillPath, name: entry });
+      if (existsSync(skillPath)) {
+        seen.add(entry);
+        out.push({ source: skillPath, name: entry });
+      }
     }
   }
   return out;
@@ -259,7 +277,15 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
   const scope = opts.scope ?? 'all';
 
   if (scope === 'all' || scope === 'skills') {
-    for (const { source, name } of listSkillSources(config.stack, config.frontendSkillsDir)) {
+    for (const {
+      source,
+      name,
+    } of listSkillSources(
+      config.stack,
+      config.frontendSkillsDir,
+      config.frontendBaseSkillsDir,
+      config.frontend
+    )) {
       const target = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
       const bundledVersion = parseFrontmatterVersion(source);
       if (!bundledVersion) continue;

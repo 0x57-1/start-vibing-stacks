@@ -69,7 +69,8 @@
       "id": "react-inertia",
       "name": "ReactJS 19 + Inertia.js (LEGACY)",
       "icon": "🪦",
-      "frameworks": ["laravel", "laravel-octane"]
+      "frameworks": ["laravel", "laravel-octane"],
+      "baseSkillsDir": "react"
     },
     {
       "id": "blade",

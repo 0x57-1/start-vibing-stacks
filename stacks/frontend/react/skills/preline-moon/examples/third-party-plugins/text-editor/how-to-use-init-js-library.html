@@ -1,0 +1,18 @@
+const editor = new Editor({
+  element: document.querySelector('#hs-editor-tiptap [data-hs-editor-field]'),
+  extensions: [
+    StarterKit,
+    Placeholder.configure({
+      placeholder: 'Add a message, if you\'d like.',
+      emptyNodeClass: 'text-foreground'
+    }),
+    OrderedList.configure({
+      HTMLAttributes: {
+        class: 'list-decimal list-inside text-foreground'
+      }
+    })
+  ]
+});
+const action = document.querySelector('#hs-editor-tiptap [data-hs-editor-ol]')
+
+action.addEventListener('click', () => editor.chain().focus().toggleOrderedList().run());

@@ -1,0 +1,44 @@
+<select id="dynamic-select-options" data-hs-select='{
+  "placeholder": "Select option...",
+  ...
+}' class="hidden --prevent-on-load-init"></select>
+<button type="button" id="load-options">Load Options</button>
+
+<script>
+  document.getElementById("load-options").addEventListener("click", function() {
+    loadOptions();
+  });
+
+  function loadOptions() {
+    const xhr = new XMLHttpRequest();
+    
+    xhr.onreadystatechange = function() {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          const options = JSON.parse(this.responseText);
+          populateOptions(options);
+        } else {
+          console.error("Failed to load options:", this.status, this.statusText);
+        }
+      }
+    };
+
+    xhr.open("GET", "https://some-api.com/options", true);
+    xhr.send();
+  }
+
+  function populateOptions(options) {
+    const selectElement = document.getElementById("dynamic-select-options");
+    selectElement.innerHTML = "";
+    
+    options.forEach(function(option) {
+      const optionElement = document.createElement("option");
+      optionElement.value = option.value;
+      optionElement.textContent = option.text;
+
+      selectElement.appendChild(optionElement);
+    });
+
+    window.HSStaticMethods.autoInit(['select']);
+  }
+</script>

@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.16.0';
+export const GROK_SKILLS_VERSION = '1.17.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -53,6 +53,9 @@ export const GROK_CURATED_SKILL_NAMES = [
   'owned-infra-ops',
   'own-subscription-integration',
   'email-push-marketing',
+  // Frontend theme corpus (large; only mirrored when present in project .claude/skills)
+  'preline-moon',
+  'preline-ui',
 ] as const;
 
 const GENERATED_SKILL_NAMES = ['svs-policy', 'svs-dev-process', 'svs-memory-index'] as const;
