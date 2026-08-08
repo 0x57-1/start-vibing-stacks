@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.1
+// @sv-version: 1.3.0
 /**
  * SessionStart Hook — Multi-Instance Coordination + project brain brief
  *
@@ -9,6 +9,7 @@
  *  3. Inject a capped PROJECT BRAIN brief (branch, Recent Change, Next step).
  *  4. Extract title from transcript / product state when present.
  *  5. Scan peers; drain inbox.
+ *  6. Rehydrate filesTouched/startedAt after SessionEnd archive (Grok 1.0 resume).
  */
 
 import {
@@ -26,8 +27,10 @@ import {
   listPeerSessions,
   readSession,
   readStdinJson,
+  rehydrateSessionTouches,
   resolveNativeSessionMeta,
   shortId,
+  unarchiveSession,
   type InboxMessage,
 } from './_state.js';
 import { buildResumeBrief } from './_brain.js';
@@ -51,25 +54,42 @@ async function main(): Promise<void> {
 
   ensureStateDirs(stateDir);
 
+  // Grok Build 1.0 / idle archive: SessionEnd moves the JSON to _archive before
+  // resume SessionStart — restore it so scope.ts + stop-validator keep touches.
+  if (!readSession(stateDir, sessionId)) {
+    unarchiveSession(stateDir, sessionId);
+  }
+
   const native = resolveNativeSessionMeta(projectDir, sessionId, target);
   const transcriptPath = transcriptPathIn || native.transcriptPath;
 
   const existing = readSession(stateDir, sessionId);
+  const hydrated = rehydrateSessionTouches(stateDir, sessionId, existing);
   const title =
-    existing?.title && existing.title !== '(untitled)'
+    (existing?.title && existing.title !== '(untitled)'
       ? existing.title
-      : native.title || extractTitle(transcriptPath);
+      : hydrated.title && hydrated.title !== '(untitled)'
+        ? hydrated.title
+        : native.title || extractTitle(transcriptPath)) || '(untitled)';
 
   const branch = getGitBranch(projectDir);
 
-  heartbeat(stateDir, sessionId, 'SessionStart', {
+  const hbPatch: Parameters<typeof heartbeat>[3] = {
     transcriptPath,
     nativeSessionDir: native.nativeSessionDir,
     title,
     cwd: projectDir,
     gitBranch: branch,
-    target,
-  });
+    target: target || hydrated.target,
+  };
+  if (hydrated.filesTouched.length > 0) {
+    hbPatch.filesTouched = hydrated.filesTouched;
+  }
+  if (hydrated.startedAt) {
+    hbPatch.startedAt = hydrated.startedAt;
+  }
+
+  heartbeat(stateDir, sessionId, 'SessionStart', hbPatch);
 
   const peers = listPeerSessions(stateDir, sessionId);
   const inbox = drainInbox(stateDir, sessionId);
@@ -97,6 +117,13 @@ async function main(): Promise<void> {
       ` · target=${target}` +
       `. State at .claude/state/sessions/ (archive on SessionEnd or >30min idle).`
   );
+  if (hydrated.source === 'archive' || hydrated.source === 'log') {
+    messageParts.push(
+      `REHYDRATED filesTouched=${hydrated.filesTouched.length} from ${hydrated.source}` +
+        (hydrated.startedAt ? ` · startedAt=${hydrated.startedAt}` : '') +
+        ' (resume after SessionEnd/idle — scope.ts + finalize stay scoped).'
+    );
+  }
 
   if (peers.length > 0) {
     messageParts.push('');

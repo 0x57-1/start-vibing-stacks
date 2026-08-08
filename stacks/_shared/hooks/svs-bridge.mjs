@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.3.0
+// @sv-version: 1.4.0
 /**
  * SVS hook bridge — normalize Kimi/Grok stdin → Claude hook shape, translate stdout.
  *
@@ -16,6 +16,9 @@
  * v1.3.0 — Stop/SubagentStop native emit:
  *   Grok: {"decision":"block","reason"} | allow = exit 0 empty (docs § Stop Decision Control)
  *   Kimi: exit 2 + stderr + hookSpecificOutput.deny (docs: Stop block → model continues)
+ *
+ * v1.4.0 — Grok Build 1.0.0: longer Stop spawn timeout; pass reason through payload
+ * (observe-only channel_closed|shutdown handled in stop-validator).
  */
 
 import { spawnSync } from 'node:child_process';
@@ -151,7 +154,10 @@ function toClaudePayload(raw, forcedEvent) {
     transcript_path: raw.transcript_path || raw.transcriptPath,
     prompt: raw.prompt || raw.user_prompt || raw.userPrompt,
     stop_hook_active: raw.stop_hook_active ?? raw.stopHookActive,
-    source: raw.source || raw.reason || raw.trigger,
+    stopHookActive: raw.stop_hook_active ?? raw.stopHookActive,
+    // Keep Grok Stop `reason` (end_turn | channel_closed | shutdown) distinct from SessionStart source.
+    reason: raw.reason,
+    source: raw.source || raw.trigger,
   };
 }
 
@@ -368,12 +374,15 @@ async function main() {
   }
 
   const input = JSON.stringify(payload);
+  // Grok Build 1.0 defaults Stop gates to 600s; keep bridge under that but
+  // above our exported hook timeout (90s) so the child can finish.
+  const spawnTimeout = /stop-validator/i.test(hookBase) ? 100_000 : 55_000;
   const result = spawnSync('npx', ['tsx', hookPath], {
     cwd: projectDir,
     env: { ...process.env, CLAUDE_PROJECT_DIR: projectDir, SVS_TARGET: target },
     input,
     encoding: 'utf8',
-    timeout: 55_000,
+    timeout: spawnTimeout,
     maxBuffer: 4 * 1024 * 1024,
   });
 

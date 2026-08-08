@@ -7,15 +7,15 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-export const HOOKS_EXPORT_VERSION = '1.7.0';
+export const HOOKS_EXPORT_VERSION = '1.8.0';
 export const GROK_HOOKS_REL = '.grok/hooks/svs.json';
 
 const KIMI_HOOKS_BLOCK_RE = /# SVS:HOOKS:START[\s\S]*?# SVS:HOOKS:END\n?/;
 const GROK_COMPAT_BLOCK_RE = /# SVS:COMPAT:START[\s\S]*?# SVS:COMPAT:END\n?/;
 
-/** Edit-class tools across Claude / Kimi / Grok naming. */
+/** Edit-class tools across Claude / Kimi / Grok naming (Grok Build 1.0 real names). */
 const EDIT_MATCHER =
-  'Edit|Write|MultiEdit|NotebookEdit|WriteFile|StrReplaceFile|StrReplace|search_replace|write_file';
+  'Edit|Write|MultiEdit|NotebookEdit|WriteFile|StrReplaceFile|StrReplace|search_replace|write_file|write';
 
 interface HookSpec {
   event: string;
@@ -32,7 +32,8 @@ const HOOK_SPECS: HookSpec[] = [
   { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'plan-gate', timeout: 10 },
   { event: 'PostToolUse', matcher: EDIT_MATCHER, hook: 'post-tool-use', timeout: 10 },
   { event: 'PreCompact', hook: 'pre-compact', timeout: 10 },
-  { event: 'Stop', hook: 'stop-validator', timeout: 45 },
+  // Grok Build 1.0 defaults Stop gates to 600s; 90s covers validate + hint I/O.
+  { event: 'Stop', hook: 'stop-validator', timeout: 90 },
   { event: 'SessionEnd', hook: 'stop-validator', timeout: 15 },
 ];
 
@@ -40,6 +41,8 @@ const HOOK_SPECS: HookSpec[] = [
  * Grok native `.grok/hooks/svs.json` — shared `.claude/state` + brain parity.
  * PreCompact stamps brain before product /compact (when the event is emitted).
  * Keep compat.claude.hooks=false so hooks do not double-fire.
+ * Grok 1.0: Stop supports decision:block (max 8 continuations/turn); trust via
+ * `/hooks-trust` or `grok --trust`.
  */
 const GROK_HOOK_SPECS: HookSpec[] = [
   { event: 'SessionStart', hook: 'session-start', timeout: 15 },
@@ -48,7 +51,7 @@ const GROK_HOOK_SPECS: HookSpec[] = [
   { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'plan-gate', timeout: 10 },
   { event: 'PostToolUse', matcher: EDIT_MATCHER, hook: 'post-tool-use', timeout: 10 },
   { event: 'PreCompact', hook: 'pre-compact', timeout: 10 },
-  { event: 'Stop', hook: 'stop-validator', timeout: 45 },
+  { event: 'Stop', hook: 'stop-validator', timeout: 90 },
   { event: 'SessionEnd', hook: 'stop-validator', timeout: 15 },
 ];
 

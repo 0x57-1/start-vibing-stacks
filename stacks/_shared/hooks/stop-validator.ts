@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.8.1
+// @sv-version: 1.8.2
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -38,6 +38,9 @@
  * Bridge v1.3.0 emits native Stop block for Grok/Kimi so the reason is fed back.
  *
  * v1.8.0: unscoped commitGuide no longer recommends `git add -A` — always scope.ts.
+ *
+ * v1.8.2: Grok Build 1.0 — honor stopHookActive camelCase; skip validate on
+ * observe-only session-end Stop (`reason` channel_closed|shutdown).
  */
 
 import { execSync } from 'child_process';
@@ -48,6 +51,9 @@ import {
   ageMs,
   archiveSession,
   clearInbox,
+  heartbeat,
+  rehydrateSessionTouches,
+  unarchiveSession,
   ensureStateDirs,
   formatPeer,
   getStateDir,
@@ -160,7 +166,17 @@ function getScopedDirtyFiles(sessionId: string | undefined): {
   }
   try {
     const stateDir = getStateDir(PROJECT_DIR);
-    const sess = readSession(stateDir, sessionId);
+    if (!readSession(stateDir, sessionId)) unarchiveSession(stateDir, sessionId);
+    let sess = readSession(stateDir, sessionId);
+    if (!sess?.filesTouched?.length) {
+      const hydrated = rehydrateSessionTouches(stateDir, sessionId, sess);
+      if (hydrated.filesTouched.length > 0) {
+        sess = heartbeat(stateDir, sessionId, 'Stop:rehydrate', {
+          filesTouched: hydrated.filesTouched,
+          startedAt: hydrated.startedAt,
+        });
+      }
+    }
     if (!sess || !Array.isArray(sess.filesTouched) || sess.filesTouched.length === 0) {
       // No reliable session record — do NOT block on dirty files.
       return { scoped: [], perInstance: false, totalDirty: allDirty.length };
@@ -383,7 +399,18 @@ function checkFinalizeChain(sessionId: string | undefined, claudeMd: string): Ho
   if (!sessionId) return null;
   let sess;
   try {
-    sess = readSession(getStateDir(PROJECT_DIR), sessionId);
+    const stateDir = getStateDir(PROJECT_DIR);
+    if (!readSession(stateDir, sessionId)) unarchiveSession(stateDir, sessionId);
+    sess = readSession(stateDir, sessionId);
+    if (!sess?.filesTouched?.length) {
+      const hydrated = rehydrateSessionTouches(stateDir, sessionId, sess);
+      if (hydrated.filesTouched.length > 0) {
+        sess = heartbeat(stateDir, sessionId, 'Stop:rehydrate', {
+          filesTouched: hydrated.filesTouched,
+          startedAt: hydrated.startedAt,
+        });
+      }
+    }
   } catch {
     return null;
   }
@@ -462,8 +489,9 @@ async function main(): Promise<void> {
     hookInput = JSON.parse(chunks.join('') || '{}');
   } catch {}
 
-  // Prevent loop
-  if (hookInput.stop_hook_active) {
+  // Prevent loop (Claude snake_case + Grok Build 1.0 camelCase)
+  const stopHookActive = Boolean(hookInput.stop_hook_active || hookInput.stopHookActive);
+  if (stopHookActive) {
     console.log(JSON.stringify({ continue: false, decision: 'approve', reason: 'Cycle detected' }));
     process.exit(0);
   }
@@ -471,6 +499,21 @@ async function main(): Promise<void> {
   const sessionId: string | undefined =
     hookInput.session_id || hookInput.sessionId || hookInput.id;
   const eventName: string = hookInput.hook_event_name || hookInput.hookEventName || '';
+  const stopReason = String(hookInput.reason || hookInput.source || '');
+  // Grok fires an extra observe-only Stop at session end — do not run gates.
+  if (
+    /Stop/i.test(eventName) &&
+    (stopReason === 'channel_closed' || stopReason === 'shutdown')
+  ) {
+    console.log(
+      JSON.stringify({
+        continue: false,
+        decision: 'approve',
+        reason: `Stop observe-only (${stopReason}) — skipped validate`,
+      })
+    );
+    process.exit(0);
+  }
   const isSessionEnd = /SessionEnd/i.test(eventName);
 
   // SessionEnd = move registry JSON → _archive (Claude / Kimi / Grok). No validate.

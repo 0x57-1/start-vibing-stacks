@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
  * `scope` — Per-Instance Commit Scoping CLI
  *
@@ -10,6 +10,9 @@
  * Source of truth for "what did THIS session edit?":
  *   `.claude/state/sessions/<id>.json#filesTouched`
  * which is maintained by `post-tool-use.ts` (capped at 200, dedup-keep-last).
+ *
+ * v1.2.0: if filesTouched is empty (Grok resume after SessionEnd archive),
+ * rehydrate from `_archive/` + `file-touches.jsonl` before status/stage/commit.
  *
  * Concurrency model (v1.1.0): two instances in the SAME working directory share
  * ONE `.git/index`. A `git reset` + `git add` + `git commit` sequence is therefore
@@ -50,14 +53,33 @@ import {
   ageMs,
   getProjectDir,
   getStateDir,
+  heartbeat,
   listSessionFiles,
   readJsonSafe,
   readSession,
+  rehydrateSessionTouches,
   shortId,
   tailFileTouches,
+  unarchiveSession,
   type FileTouch,
   type SessionRecord,
 } from './_state.js';
+
+/** Restore filesTouched after Grok SessionEnd wipe so commit/status stay scoped. */
+function ensureSessionTouches(stateDir: string, sessionId: string): SessionRecord | null {
+  if (!readSession(stateDir, sessionId)) {
+    unarchiveSession(stateDir, sessionId);
+  }
+  let session = readSession(stateDir, sessionId);
+  if (!session) return null;
+  if (session.filesTouched?.length) return session;
+  const hydrated = rehydrateSessionTouches(stateDir, sessionId, session);
+  if (hydrated.filesTouched.length === 0) return session;
+  return heartbeat(stateDir, sessionId, 'scope:rehydrate', {
+    filesTouched: hydrated.filesTouched,
+    startedAt: hydrated.startedAt,
+  });
+}
 
 interface GitStatus {
   modified: Set<string>;
@@ -134,7 +156,7 @@ function gitDirty(projectDir: string): GitStatus {
 }
 
 function classify(stateDir: string, sessionId: string, projectDir: string): ScopeReport {
-  const session = readSession(stateDir, sessionId);
+  const session = ensureSessionTouches(stateDir, sessionId) || readSession(stateDir, sessionId);
   const tracked = new Set(session?.filesTouched || []);
   const status = gitDirty(projectDir);
   const dirty = new Set<string>([...status.modified, ...status.untracked]);
@@ -180,7 +202,7 @@ function cmdStatus(stateDir: string, projectDir: string, args: string[]): number
     console.error('Tip: run `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" list`.');
     return 1;
   }
-  const session = readSession(stateDir, sessionId);
+  const session = ensureSessionTouches(stateDir, sessionId);
   if (!session) {
     console.error(`Session ${shortId(sessionId)} not registered. Has the SessionStart hook run?`);
     return 1;
@@ -236,7 +258,7 @@ function cmdStage(stateDir: string, projectDir: string, args: string[]): number 
     console.error('Cannot resolve session ID. Set CLAUDE_SESSION_ID or pass --session <id>.');
     return 1;
   }
-  const session = readSession(stateDir, sessionId);
+  const session = ensureSessionTouches(stateDir, sessionId);
   if (!session) {
     console.error(`Session ${shortId(sessionId)} not registered.`);
     return 1;
@@ -319,7 +341,7 @@ function cmdDiff(stateDir: string, projectDir: string, args: string[]): number {
     console.error('Cannot resolve session ID. Set CLAUDE_SESSION_ID or pass --session <id>.');
     return 1;
   }
-  const session = readSession(stateDir, sessionId);
+  const session = ensureSessionTouches(stateDir, sessionId);
   if (!session) {
     console.error(`Session ${shortId(sessionId)} not registered.`);
     return 1;
@@ -364,7 +386,7 @@ function cmdCommit(stateDir: string, projectDir: string, args: string[]): number
     console.error('Tip: run `npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" list`.');
     return 1;
   }
-  const session = readSession(stateDir, sessionId);
+  const session = ensureSessionTouches(stateDir, sessionId);
   if (!session) {
     console.error(`Session ${shortId(sessionId)} not registered.`);
     return 1;

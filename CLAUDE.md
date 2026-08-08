@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-08 · main · v2.77.0
+Grok Build **1.0.0**: SessionStart/scope/Stop **rehydrate** `filesTouched` after SessionEnd
+archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); Launch
+`grok --always-approve --trust`; skip observe-only Stop `channel_closed|shutdown`.
+
 ### 2026-08-08 · main · v2.76.0
 README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
 documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
@@ -51,11 +56,6 @@ Opus-5 skill pass: `git-workflow` 2.2 (scope.ts §0), `svs-finalize` 1.2 (verify
 `migrate` copies full skill bundles — not only `SKILL.md`. Companions today:
 `mcp-server-builder/reference/*`, `decision-records` + `codebase-knowledge` `TEMPLATE.md`.
 Missing companions → outdated. Grok curated **1.8.0**.
-
-### 2026-07-29 · main · v2.68.0
-`mcp-server-builder` **1.1.0**: `reference/safe-upgrade.md` — inventory house MCPs,
-bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrade`).
-
 
 ---
 

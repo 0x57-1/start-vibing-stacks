@@ -73,8 +73,9 @@ export const LAUNCH_SPECS: TargetLaunchSpec[] = [
     label: 'Grok',
     bin: 'grok',
     // Parity with Claude Launch bypass (--always-approve; alias --yolo).
-    // Folder trust: `/hooks-trust` in TUI (or trusted_folders.toml) — not a CLI flag in 0.2.x.
-    args: ['--always-approve'],
+    // Grok Build 1.0.0: `--trust` grants project hooks/MCP/LSP (same as `/hooks-trust`).
+    // Remote resume restores chat only unless `--restore-code` (do not add by default).
+    args: ['--always-approve', '--trust'],
   },
 ];
 

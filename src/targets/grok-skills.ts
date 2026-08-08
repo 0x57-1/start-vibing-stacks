@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.15.0';
+export const GROK_SKILLS_VERSION = '1.16.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -151,6 +151,14 @@ function devProcessSkillBody(): string {
     'Claude Code may auto-invoke agents via Task. **Grok:** prefer `spawn_subagent`',
     'with `subagent_type` = agent name. **Kimi:** Read agent md and execute inline.',
     'Stop blocks via `svs-bridge` until finalize completes (`decision:block` / exit 2).',
+    '',
+    '## Grok Build 1.0.0 (Aug 2026) — SVS notes',
+    '',
+    '- Project hooks need trust: `/hooks-trust` or launch with `--trust` (SVS Launch adds it).',
+    '- Stop gate: `{"decision":"block","reason"}` works; **max 8 continuations/turn** then Grok force-stops — finish finalize in that window.',
+    '- Remote resume restores **chat only** unless `--restore-code` (do not pass by default).',
+    '- MCP: `grok mcp enable|disable <name>` / `grok mcp doctor` when OAuth hang (e.g. vercel).',
+    '- SessionEnd archives `.claude/state/sessions/<id>.json`; SessionStart **rehydrates** `filesTouched` from archive + `file-touches.jsonl`.',
     '',
     '## Flow (do not reorder / skip)',
     '',

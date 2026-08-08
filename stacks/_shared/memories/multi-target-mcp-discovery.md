@@ -1,5 +1,5 @@
 ---
-version: 1.7.0
+version: 1.7.1
 ---
 
 # Memory: Multi-Target MCP Discovery & Migration
@@ -112,7 +112,7 @@ If project side-cars are empty but `~/.claude.json` (or Claude settings) has ser
    - **Kimi / Cursor:** JSON `{ "mcpServers": { "<id>": { "command", "args"?, "env"?, "url"? } } }`. Merge with existing keys; do not wipe unrelated servers.
    - **Grok:** Prefer refreshing via migrate. If editing by hand, keep the `# SVS:MCP:START` … `# SVS:MCP:END` markers so the next migrate can replace the block safely.
 3. **Env vars:** if a server needs `BRAVE_API_KEY` etc., ensure `.env` / `.env.mcp.example` / shell env — never paste secret values into chat or commit them.
-4. **Tell the user** to restart Kimi/Grok/Cursor (and Grok: `/hooks-trust` or `--trust` if project MCP is gated).
+4. **Tell the user** to restart Kimi/Grok/Cursor (and Grok Build 1.0: `/hooks-trust` or `grok --trust`; diagnose with `grok mcp doctor` / `grok mcp enable|disable <name>`).
 5. **Verify:** list configured server ids; probe one tool if the harness exposes MCP tools.
 
 ---

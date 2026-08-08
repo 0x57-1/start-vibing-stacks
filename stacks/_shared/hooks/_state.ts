@@ -1,4 +1,4 @@
-// @sv-version: 1.3.0
+// @sv-version: 1.4.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -32,6 +32,11 @@
  *
  * v1.3.0: `target` + `nativeSessionDir` on SessionRecord; resolve Kimi/Grok
  * on-disk session folders for transcriptPath/title enrichment.
+ *
+ * v1.4.0: SessionStart/resume rehydrates `filesTouched` (+ `startedAt`) from
+ * `_archive/<id>.json` and/or `file-touches.jsonl`. Grok Build 1.0 often fires
+ * SessionEnd then SessionStart on the same UUID — without rehydrate, scope.ts /
+ * stop-validator / UPS finalize see an empty touch list and skip gates.
  */
 
 import {
@@ -157,6 +162,184 @@ export function readSession(stateDir: string, sessionId: string): SessionRecord 
   return readJsonSafe<SessionRecord>(getSessionPath(stateDir, sessionId));
 }
 
+export function getArchivedSessionPath(stateDir: string, sessionId: string): string {
+  return join(stateDir, 'sessions', '_archive', `${safeSessionFileId(sessionId)}.json`);
+}
+
+export function readArchivedSession(stateDir: string, sessionId: string): SessionRecord | null {
+  return readJsonSafe<SessionRecord>(getArchivedSessionPath(stateDir, sessionId));
+}
+
+/**
+ * Move `_archive/<id>.json` → `sessions/<id>.json` when active is missing.
+ * No-op if active already exists or archive is absent. Returns the restored record.
+ */
+export function unarchiveSession(stateDir: string, sessionId: string): SessionRecord | null {
+  const activePath = getSessionPath(stateDir, sessionId);
+  if (existsSync(activePath)) return readSession(stateDir, sessionId);
+  const archPath = getArchivedSessionPath(stateDir, sessionId);
+  if (!existsSync(archPath)) return null;
+  try {
+    ensureStateDirs(stateDir);
+    renameSync(archPath, activePath);
+    return readSession(stateDir, sessionId);
+  } catch {
+    return readArchivedSession(stateDir, sessionId);
+  }
+}
+
+function dedupeFilesTouched(files: string[]): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const f of files) {
+    if (!f || typeof f !== 'string') continue;
+    const n = f.replace(/\\/g, '/').replace(/^\.\//, '');
+    if (!n || seen.has(n)) continue;
+    seen.add(n);
+    out.push(n);
+    if (out.length >= FILES_TOUCHED_CAP) break;
+  }
+  return out;
+}
+
+/**
+ * Rebuild filesTouched for a sessionId from the append-only edit log (+ rotated tails).
+ * Order: oldest→newest; cap keeps the newest FILES_TOUCHED_CAP paths.
+ */
+export function filesTouchedFromLog(stateDir: string, sessionId: string): string[] {
+  const paths: string[] = [];
+  const main = join(stateDir, 'file-touches.jsonl');
+  if (existsSync(main)) paths.push(main);
+  const archDir = join(stateDir, 'file-touches', '_archive');
+  if (existsSync(archDir)) {
+    try {
+      const archived = readdirSync(archDir)
+        .filter((f) => f.endsWith('.jsonl'))
+        .sort()
+        .map((f) => join(archDir, f));
+      paths.unshift(...archived);
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const ordered: string[] = [];
+  let firstTs: string | undefined;
+  for (const path of paths) {
+    let text = '';
+    try {
+      text = readFileSync(path, 'utf8');
+    } catch {
+      continue;
+    }
+    for (const line of text.split('\n')) {
+      if (!line.includes(sessionId)) continue;
+      try {
+        const row = JSON.parse(line) as FileTouch;
+        if (row.sessionId !== sessionId || !row.file) continue;
+        if (!firstTs && row.ts) firstTs = row.ts;
+        ordered.push(row.file);
+      } catch {
+        /* skip bad line */
+      }
+    }
+  }
+  // Keep newest paths within cap (log is chronological).
+  const capped =
+    ordered.length > FILES_TOUCHED_CAP ? ordered.slice(-FILES_TOUCHED_CAP) : ordered;
+  return dedupeFilesTouched(capped);
+}
+
+export function firstTouchTsFromLog(stateDir: string, sessionId: string): string | undefined {
+  const main = join(stateDir, 'file-touches.jsonl');
+  const candidates = [main];
+  const archDir = join(stateDir, 'file-touches', '_archive');
+  if (existsSync(archDir)) {
+    try {
+      candidates.unshift(
+        ...readdirSync(archDir)
+          .filter((f) => f.endsWith('.jsonl'))
+          .sort()
+          .map((f) => join(archDir, f))
+      );
+    } catch {
+      /* ignore */
+    }
+  }
+  for (const path of candidates) {
+    if (!existsSync(path)) continue;
+    try {
+      for (const line of readFileSync(path, 'utf8').split('\n')) {
+        if (!line.includes(sessionId)) continue;
+        const row = JSON.parse(line) as FileTouch;
+        if (row.sessionId === sessionId && row.ts) return row.ts;
+      }
+    } catch {
+      /* continue */
+    }
+  }
+  return undefined;
+}
+
+export type RehydrateSource = 'active' | 'archive' | 'log' | 'none';
+
+export interface RehydrateResult {
+  /** Patch fields to merge into SessionStart heartbeat (never wipe non-empty active). */
+  filesTouched: string[];
+  startedAt?: string;
+  title?: string;
+  target?: SvsTarget;
+  source: RehydrateSource;
+}
+
+/**
+ * Recover session touch list after SessionEnd archive / idle archive / empty resume.
+ * Prefer active → archive → file-touches.jsonl. Does not write disk by itself
+ * (caller may unarchiveSession first).
+ */
+export function rehydrateSessionTouches(
+  stateDir: string,
+  sessionId: string,
+  active: SessionRecord | null = readSession(stateDir, sessionId)
+): RehydrateResult {
+  const archived = readArchivedSession(stateDir, sessionId);
+  const fromLog = filesTouchedFromLog(stateDir, sessionId);
+  const activeTouches = Array.isArray(active?.filesTouched) ? active!.filesTouched : [];
+  const archTouches = Array.isArray(archived?.filesTouched) ? archived!.filesTouched : [];
+
+  if (activeTouches.length > 0) {
+    const merged = dedupeFilesTouched([...activeTouches, ...fromLog]);
+    return {
+      filesTouched: merged,
+      startedAt: active?.startedAt,
+      title: active?.title,
+      target: active?.target,
+      source: 'active',
+    };
+  }
+
+  if (archTouches.length > 0 || archived) {
+    const merged = dedupeFilesTouched([...archTouches, ...fromLog]);
+    return {
+      filesTouched: merged,
+      startedAt: archived?.startedAt || firstTouchTsFromLog(stateDir, sessionId),
+      title: archived?.title,
+      target: archived?.target,
+      source: archTouches.length || archived ? 'archive' : 'log',
+    };
+  }
+
+  if (fromLog.length > 0) {
+    return {
+      filesTouched: fromLog,
+      startedAt: firstTouchTsFromLog(stateDir, sessionId),
+      source: 'log',
+    };
+  }
+
+  return { filesTouched: [], source: 'none' };
+}
+
 export function writeSession(stateDir: string, session: SessionRecord): void {
   ensureStateDirs(stateDir);
   writeFileAtomic(getSessionPath(stateDir, session.sessionId), JSON.stringify(session, null, 2));
@@ -225,6 +408,12 @@ export function heartbeat(
 ): SessionRecord {
   const existing = readSession(stateDir, sessionId);
   const now = nowIso();
+  const mergeTouches = (prev: string[] | undefined, next: string[] | undefined): string[] => {
+    if (!Array.isArray(next)) return prev || [];
+    // Never clobber a non-empty list with [] (SessionStart resume race).
+    if (next.length === 0 && prev && prev.length > 0) return prev;
+    return next;
+  };
   const merged: SessionRecord = existing
     ? {
         ...existing,
@@ -236,6 +425,8 @@ export function heartbeat(
         target: patch.target ?? existing.target,
         nativeSessionDir: patch.nativeSessionDir ?? existing.nativeSessionDir,
         transcriptPath: patch.transcriptPath ?? existing.transcriptPath,
+        startedAt: patch.startedAt || existing.startedAt,
+        filesTouched: mergeTouches(existing.filesTouched, patch.filesTouched),
       }
     : {
         sessionId,
@@ -246,7 +437,7 @@ export function heartbeat(
         transcriptPath: patch.transcriptPath,
         target: patch.target,
         nativeSessionDir: patch.nativeSessionDir,
-        startedAt: now,
+        startedAt: patch.startedAt || now,
         lastSeenAt: now,
         lastActivity: activity,
         filesTouched: patch.filesTouched || [],
