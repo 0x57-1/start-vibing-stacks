@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.2.1
 /**
  * SessionStart Hook — Multi-Instance Coordination + project brain brief
  *
@@ -107,7 +107,7 @@ async function main(): Promise<void> {
       messageParts.push('');
       messageParts.push(
         'WARNING: at least one peer is ACTIVE. Edit/Write of a file a peer just ' +
-          'touched will be BLOCKED. Coordinate via peers notify before shared files.'
+          'touched will be BLOCKED. Coordinate via /svs-peers (peers.ts notify) before shared files.'
       );
     } else {
       messageParts.push('');

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.8.0
+// @sv-version: 1.8.1
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,7 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.8.1: peer coordination points at /svs-peers (Claude native /peers = ListAgents).
  * v1.8.0: THEME PARITY nudge for React UI projects (memory react-theme-parity)
  * when prompt/session involves .jsx/.tsx — discover theme or sibling CSS; validate
  * before done (long-session design drift).
@@ -135,7 +136,7 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
     if (activeCount > 0) {
       parts.push(
         '  ! Edit/Write of files an active peer just touched will be BLOCKED. ' +
-          'Use `/peers notify <id> "message"` to coordinate.'
+          'Use `/svs-peers` → peers.ts notify (Claude native /peers is ListAgents/SendMessage).'
       );
     }
   }

@@ -1,17 +1,19 @@
 ---
-version: 1.3.0
+version: 1.4.0
 ---
 
 # `.claude/state/` — Multi-Instance Coordination
 
 > This directory is **gitignored** and managed automatically by hooks. Safe to delete; it will be recreated by the next Claude / Kimi / Grok session (via SVS hooks).
 
+**Claude Code ≥ 2.1.224** also has **native** cross-session messaging (`ListAgents` / `SendMessage`; slash `/list-agents` or Claude’s `/peers`). That is separate from this bus. SVS slash command: **`/svs-peers`**. See memory `claude-cross-session-messaging`.
+
 When two or more agent CLIs run in the same project folder, the hooks under `.claude/hooks/` use this directory to:
 
 1. announce themselves to each other (`sessions/<id>.json`) — **Claude, Kimi, and Grok**
 2. record file edits as they happen (`file-touches.jsonl`)
 3. prevent simultaneous writes to the same file (PreToolUse hook reads the touch log)
-4. exchange messages (`inbox/<id>.jsonl` — drained at next prompt)
+4. exchange messages (`inbox/<id>.jsonl` — drained at next prompt; slower than native SendMessage)
 
 ## Layout
 
@@ -51,10 +53,10 @@ Kimi/Grok join via `svs-bridge.mjs` + hooks export (`migrate --apply`). There is
 | > 30min       | stale    | Auto-archived on the next sweep.                                            |
 | > 24h         | removed  | Deleted entirely.                                                           |
 
-## Viewing peers
+## Viewing peers (SVS bus)
 
 ```
-/peers
+/svs-peers
 ```
 
 or:
@@ -65,6 +67,8 @@ npx tsx .claude/hooks/peers.ts notify <id-prefix> "message"
 npx tsx .claude/hooks/peers.ts locks --minutes 10
 npx tsx .claude/hooks/peers.ts cleanup
 ```
+
+Claude↔Claude mid-turn text: native `/list-agents` + `SendMessage` (not this inbox).
 
 ## Safety
 

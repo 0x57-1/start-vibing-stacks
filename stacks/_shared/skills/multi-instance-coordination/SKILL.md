@@ -1,12 +1,12 @@
 ---
 name: multi-instance-coordination
-version: 1.2.0
+version: 1.3.0
 description: >
   Coordination when multiple Claude / Kimi / Grok sessions share a project folder.
   Shared bus under `.claude/state/`, peer detection, file-edit collision avoidance,
-  `/peers` CLI. Use for parallel work, peers, file-touches.jsonl, or `.claude/state/`.
-  For reading past transcripts (/resume, Claude JSONL, Kimi wire, Grok updates), use
-  skill session-history.
+  `/svs-peers` CLI. Claude Code ≥2.1.224 also has native cross-session messaging
+  (ListAgents/SendMessage; native /peers) — use that for Claude↔Claude text; SVS for
+  locks + Kimi/Grok. Memory: claude-cross-session-messaging.
 ---
 
 # Multi-Instance Coordination
@@ -16,13 +16,26 @@ project folder, they auto-discover each other through **one** bus — `.claude/s
 and refuse to overwrite each other's uncommitted work. There is no separate
 `.kimi/state` or `.grok/state`; migrate wires hooks into that shared tree.
 
+## Claude native messaging (v2.1.224+) vs this bus
+
+| Need | Prefer |
+|------|--------|
+| Claude ↔ Claude text mid-task | Native `ListAgents` / `SendMessage` (`/list-agents` or Claude’s `/peers`) |
+| File Edit/Write collision shield | **This skill** (PreToolUse + `file-touches.jsonl`) |
+| Notify **Kimi** or **Grok** | **`/svs-peers`** → `peers.ts notify` |
+| List SVS heartbeats (all targets) | `peers.ts list` |
+
+**Slash name:** SVS command is **`/svs-peers`**. Do **not** install a project command named `/peers` — it shadows Claude’s native alias.
+
+Full matrix: memory `claude-cross-session-messaging`.
+
 ## Mental model
 
 ```
 .claude/state/
   sessions/<id>.json        registry  (heartbeat = lastSeenAt)
   sessions/_archive/        sessions ended or gone idle >30min
-  inbox/<id>.jsonl          messages queued FOR that session
+  inbox/<id>.jsonl          messages queued FOR that session (SVS notify)
   file-touches.jsonl        append-only log of every Edit/Write
   file-touches/_archive/    rotated logs (every 1000 lines)
 ```
@@ -55,7 +68,7 @@ Kimi and Grok reach the same hooks through `svs-bridge.mjs` (project `.kimi-code
 | any                                 | stale or gone    | any       | APPROVE silently                              |
 | no peer touched the file            | n/a              | n/a       | APPROVE silently                              |
 
-Override path: wait until the active peer's heartbeat goes idle (180s of no activity), then retry — the hook will downgrade to a warning. If the user explicitly tells you to override, ask them to run `peers notify <id> "I'm taking over <file>"` first so the other instance gets the heads-up.
+Override path: wait until the active peer's heartbeat goes idle (180s of no activity), then retry — the hook will downgrade to a warning. If the user explicitly tells you to override, ask them to run `peers.ts notify <id> "I'm taking over <file>"` first (or native SendMessage if the peer is Claude-only and mid-turn delivery matters).
 
 ## Committing under multi-instance (`scope.ts`)
 
@@ -84,32 +97,26 @@ echo '{"session_id":"smoke","cwd":"'$PWD'","hook_event_name":"SessionStart"}' \
 Correct form: `node .claude/hooks/svs-bridge.mjs <kimi|grok> <hook>`. Grok needs
 `/hooks-trust` and user `compat.claude.hooks=false`.
 
-## Talking to a peer
+## Talking to a peer (SVS bus)
 
-Always use the `peers` CLI. NEVER write to `.claude/state/inbox/` by hand.
+Always use the `peers.ts` CLI for the SVS inbox. NEVER write to `.claude/state/inbox/` by hand.
+Slash wrapper: **`/svs-peers`**.
 
 ```bash
-# See who is around
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" list
-
-# Send a message (id-prefix is the 8-char short id from `list`)
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" notify a1b2c3d4 "I just committed auth changes"
-
-# See recent file edits across instances
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" locks --minutes 10
-
-# Cleanup zombie sessions (>1h idle)
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/peers.ts" cleanup
 ```
 
-The `/peers` slash command wraps these.
+Claude↔Claude findings: prefer native SendMessage when available (memory `claude-cross-session-messaging`).
 
 ## Guardrails
 
 - The coordination layer is **single-host**. It does not replace `git pull` or PR review across machines.
 - All state writes are atomic (`.tmp` + `rename`); reads are tolerant of corruption — hooks never block Claude on a broken state file.
 - `.claude/state/` MUST stay gitignored. Committing it would leak per-host PIDs and transcript paths.
-- `peers` is the user-facing surface; the hooks are internal plumbing. Do not invoke `_state.ts` directly.
+- `/svs-peers` is the SVS user-facing surface; hooks are internal plumbing. Do not invoke `_state.ts` directly.
 
 ## Failure modes (and what to do)
 
@@ -117,14 +124,17 @@ The `/peers` slash command wraps these.
 | -------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------ |
 | `peers list` shows a phantom session                     | Crashed instance left a record       | `peers cleanup` (archives idle, removes >24h)          |
 | Edit blocked but the other instance is gone              | Stale heartbeat, peer never archived | Wait 30min, or run `peers cleanup`                     |
-| Inbox messages didn't arrive                             | Peer is paused / no `UserPromptSubmit` | They will appear on the next prompt the peer submits   |
-| Two edits hit the same file in the same second           | Race condition (rare)                | The append-only log captures both; review with `git diff` |
+| SVS inbox messages didn't arrive                         | Peer paused / no UserPromptSubmit    | Appear on the next prompt the peer submits             |
+| Native SendMessage didn't arrive                         | Inbound hold/refuse / no socket      | Check `/list-agents`, `crossSessionInbound`, Claude version ≥2.1.224 |
+| Project `/peers` overrides Claude native                 | Stale `commands/peers.md`            | `migrate --apply` removes it; use `/svs-peers`         |
 | Stop never blocks after source edits | Bridge path wrong / not trusted → fail-open | Bridge smoke-test above; `migrate --apply`; Grok `/hooks-trust` |
 | `scope` exits 1 | ≥2 sessions, no session id | `peers list` → `scope commit --session <id>` |
 | Empty `.claude/state/sessions/` while a peer is working | Their bridge fail-open | Smoke-test their side; do not conclude "no peers" |
 
 ## See Also
 
+- Memory: `claude-cross-session-messaging`
+- Command: `/svs-peers`
 - `session-history` — find Claude / Kimi / Grok transcripts and resume past chats.
 - `git-workflow` §0 — scoped commit; the coordination layer is an in-flight collision shield, not a replacement for branches.
 - `svs-finalize` — documenter → domain-updater after code commits.

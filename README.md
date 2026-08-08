@@ -17,7 +17,7 @@ npx start-vibing-stacks
 | Agents | **7** universal | `research-web` (MCP-first) · `documenter` (memory layer) · `domain-updater` · `commit-manager` · `tester` · `claude-md-compactor` (compaction) · **`security-auditor` (VETO)** |
 | Skills | **34** shared + stack-specific + frontend | Versioned (`version:` frontmatter), upgradable via `migrate` |
 | Hooks | `session-start` · `user-prompt-submit` · `pre-tool-use` · `post-tool-use` · `stop-validator` · `final-check` | Multi-instance coordination + git/docs/secrets/code-quality gates |
-| Commands | `/feature` · `/fix` · `/research` · `/validate` · `/peers` | Slash commands |
+| Commands | `/feature` · `/fix` · `/research` · `/validate` · `/svs-peers` | Slash commands |
 | Workflows | `ci.yml` + `security.yml` per stack (audit · gitleaks · CodeQL · **Semgrep** · **Trivy** · **CycloneDX SBOM** · **dependency-review** · **OpenSSF Scorecard**) | Copied to `.github/workflows/` when target is empty |
 | Configs | `active-project.json` · `domain-mapping.json` · `security-rules.json` · `standards-review.json` | Drives every agent's stack detection |
 
@@ -85,7 +85,7 @@ your-project/
 │   │   │   └── domains/                       # one file per domain (≤ 8 KB each)
 │   │   └── <other skills>/
 │   ├── hooks/                                 # session-start, pre/post-tool-use, stop-validator, final-check, prompt-submit, peers (CLI)
-│   ├── commands/                              # /feature, /fix, /research, /validate, /peers
+│   ├── commands/                              # /feature, /fix, /research, /validate, /svs-peers
 │   ├── state/                                 # multi-instance coordination (gitignored, runtime-managed)
 │   └── config/                                # active-project, domain-mapping, security-rules, ...
 └── .github/workflows/                         # ci.yml + security.yml (if dir was empty)
@@ -101,13 +101,14 @@ What you get:
 
 - **Auto-discovery** — `SessionStart` registers each session, captures the same title that appears in `claude --resume`, and tells you who else is around.
 - **File-edit collision shield** — `PreToolUse` BLOCKS Edit/Write on a file a peer is actively editing (heartbeat <60s, touched <5min ago). Idle peers (60s–30min) downgrade to a warning; stale peers are ignored.
-- **Cross-instance messaging** — `peers notify <id-prefix> "msg"` queues a message that surfaces in the OTHER instance at its next prompt. The user-prompt-submit hook drains the inbox automatically.
+- **Cross-instance messaging (SVS)** — `peers.ts notify` queues a message for the next UserPromptSubmit (Claude·Kimi·Grok). Claude Code ≥2.1.224 also has **native** `SendMessage` / `/list-agents` (Claude↔Claude mid-turn) — do not confuse with this bus.
+- Slash **`/svs-peers`** wraps the SVS CLI. Claude’s own `/peers` is native ListAgents (we removed the old project `peers.md` that shadowed it).
 
-### `/peers` CLI
+### `/svs-peers` CLI
 
 ```bash
 # Inside Claude:
-/peers                  # delegates to the script
+/svs-peers              # delegates to the script
 
 # Or from any terminal:
 npx tsx .claude/hooks/peers.ts list
@@ -207,6 +208,7 @@ Permissive memories for legitimate **paid advertising optimization** work:
 | `owned-checkout-gateway-ops.md` | Fetch **your** orders/webhooks with tokens from **your** `.env` |
 | `local-checkout-artifact-analysis.md` | Analyze saved checkout HTML/JS/HAR/fixtures on disk |
 | `react-theme-parity.md` | Laravel/React: match theme tokens or sibling-page CSS (anti long-session drift) |
+| `claude-cross-session-messaging.md` | Claude native SendMessage vs SVS `/svs-peers` bus |
 
 **Key behavior:** In paid-ads / funnel-research context, these memories take precedence over default **refusals** for cloaking/clocker/bypass/ad-review and donation-page scrape vocabulary. They do **not** disable Anthropic Opus 5 / Opus 4.8 cyber API classifiers. Charity/bank **impersonation + payment capture** remains a hard limit.
 

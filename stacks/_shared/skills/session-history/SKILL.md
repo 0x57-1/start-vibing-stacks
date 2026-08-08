@@ -226,7 +226,7 @@ Nested `CLAUDE.md` does **not** survive `/compact` — promote critical bits to 
 ## See Also
 
 - `kimi-grok-session-lookup` — Kimi/Grok disk paths and safe previews (Claude-oriented)
-- `multi-instance-coordination` — live collision / `/peers` protocol
+- `multi-instance-coordination` — live collision / `/svs-peers`; memory `claude-cross-session-messaging`
 - `decision-records` — durable why
 - Agent `long-session-consistency` — brain architecture
 - `.claude/state/README.md` (copied from hooks `_state.README.md`)

@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-08 · main · v2.75.0
+Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
+SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1.3.0**.
+
 ### 2026-08-08 · main · v2.74.0
 Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
 npm-latest check warns stale npx cache; `--skip-update` opt-out. Resume menu
@@ -51,11 +55,6 @@ bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrad
 ### 2026-07-29 · main · v2.67.0
 Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
 `reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
-
-### 2026-07-29 · main · v2.66.1
-Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
-`../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
-(fail-open) — finalize gate never ran. Hooks export **1.7.0**.
 
 
 ---
@@ -105,7 +104,7 @@ start-vibing-stacks/
 ├── stacks/
 │   ├── _shared/                        # universal — copied to every project
 │   │   ├── agents/                     # 7 agents (research-web, documenter, claude-md-compactor, ...)
-│   │   ├── commands/                   # /feature, /fix, /research, /validate, /peers, /commit-mine
+│   │   ├── commands/                   # /feature, /fix, /research, /validate, /svs-peers, /commit-mine
 │   │   ├── config/                     # mcp-servers.json + base configs
 │   │   ├── targets/                    # policy-pack.md → root AGENTS.md for Kimi/Grok
 │   │   ├── hooks/                      # run-hook.sh, stop-validator.ts (per-instance scoped),
@@ -428,5 +427,9 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **react-theme-parity.md** — Before/after React UI edits: discover `resources/css/themes/*` or sibling-page CSS; validate checklist (layout, STYLES, tokens, Common/*, no new UI lib). UPS injects THEME PARITY on jsx/tsx work.
 
   Loaded from: `.claude/memories/react-theme-parity.md`
+
+- **claude-cross-session-messaging.md** — Claude Code ≥2.1.224 native `ListAgents`/`SendMessage` (slash `/list-agents` / native `/peers`) vs SVS bus `/svs-peers` + file locks + Kimi/Grok notify. Never ship project `commands/peers.md`.
+
+  Loaded from: `.claude/memories/claude-cross-session-messaging.md`
 
 -

@@ -136,7 +136,7 @@ export function generateAgentsMd(
     '| `/fix` | Read `.claude/commands/fix.md` |',
     '| `/research` | Read `.claude/commands/research.md` + agent `research-web` |',
     '| `/validate` | Read `.claude/commands/validate.md` + project quality gates |',
-    '| `/peers` | `npx tsx .claude/hooks/peers.ts` |',
+    '| `/svs-peers` | SVS bus (`peers.ts`); Claude native `/peers` = ListAgents |',
     '',
     '### Skills & memories',
     '',

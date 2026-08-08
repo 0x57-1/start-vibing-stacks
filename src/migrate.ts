@@ -32,6 +32,7 @@ import {
   statSync,
   readdirSync,
   renameSync,
+  unlinkSync,
 } from 'fs';
 import { join, relative, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -586,6 +587,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/owned-checkout-gateway-ops.md',
     '.claude/memories/local-checkout-artifact-analysis.md',
     '.claude/memories/react-theme-parity.md',
+    '.claude/memories/claude-cross-session-messaging.md',
   ];
 
   if (!settings.context) settings.context = {};
@@ -662,6 +664,26 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
       if (!dryRun) mkdirSync(d, { recursive: true });
       report.created.push(relative(projectDir, d));
     }
+  }
+
+  // Claude Code ≥2.1.224 owns native `/peers` (ListAgents). Remove SVS command
+  // that shadowed it; replacement is `/svs-peers` (bundled commands/svs-peers.md).
+  const legacyPeersCmd = join(projectDir, '.claude', 'commands', 'peers.md');
+  if (existsSync(legacyPeersCmd)) {
+    if (!dryRun) {
+      try {
+        renameSync(legacyPeersCmd, `${legacyPeersCmd}.bak-${Date.now()}`);
+      } catch {
+        try {
+          unlinkSync(legacyPeersCmd);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+    report.created.push(
+      '.claude/commands/peers.md (removed — use /svs-peers; Claude native /peers)'
+    );
   }
 
   // Project brain (committed) — opposite of gitignored .claude/state/

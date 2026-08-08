@@ -210,7 +210,7 @@ function cmdStatus(stateDir: string, projectDir: string, args: string[]): number
         : '(unknown peer)';
       console.log(`  ! ${c.file}  ←  ${who}, ${c.ageSec}s ago`);
     }
-    console.log('  Coordinate via `/peers notify <id> "..."`, OR re-run with --include-conflicted.');
+    console.log('  Coordinate via `/svs-peers` → peers.ts notify, OR re-run with --include-conflicted.');
   }
 
   if (otherDirty.length > 0) {

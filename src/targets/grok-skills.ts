@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.13.0';
+export const GROK_SKILLS_VERSION = '1.14.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -205,7 +205,7 @@ function devProcessSkillBody(): string {
     '| `/fix` | Read `.claude/commands/fix.md` |',
     '| `/research` | Read `.claude/commands/research.md` + agent `research-web` |',
     '| `/validate` | Read `.claude/commands/validate.md`; run project quality gates |',
-    '| `/peers` | `npx tsx .claude/hooks/peers.ts` |',
+    '| `/svs-peers` | SVS bus (`peers.ts`); Claude native `/peers` = ListAgents |',
     '',
     '## Skills on Grok',
     '',
@@ -256,6 +256,7 @@ function memoryIndexSkillBody(): string {
     '| `post-push-ci-verification.md` | After `git push` — verify Actions for the SHA |',
     '| `cursor-ide-edit-sync.md` | Cursor buffer sync / Save file to continue |',
     '| `react-theme-parity.md` | Laravel/React UI: match theme or sibling CSS before done |',
+    '| `claude-cross-session-messaging.md` | Native Claude SendMessage vs SVS /svs-peers bus |',
     '',
     'All paths are under `.claude/memories/`.',
     '',

@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.3
+svs-version: 1.2.4
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -29,6 +29,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - React/Laravel UI: match project theme tokens or sibling-page CSS (memory `react-theme-parity`) — no mid-session design-system drift
+- Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only

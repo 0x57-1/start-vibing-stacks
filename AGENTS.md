@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.3
+svs-version: 1.2.4
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-08 · main · v2.75.0
+Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
+SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1.3.0**.
 
 ### 2026-08-08 · main · v2.74.0
 Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
@@ -72,11 +76,6 @@ bound `mcp[cli]>=1.27,<2`, one-server upgrade/rollback (avoid fleet `uv --upgrad
 Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
 `reference/evaluation.md`). Ships in `_shared/skills`; Grok curated **1.7.0**.
 
-### 2026-07-29 · main · v2.66.1
-Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
-`../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
-(fail-open) — finalize gate never ran. Hooks export **1.7.0**.
-
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -106,6 +105,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - React/Laravel UI: match project theme tokens or sibling-page CSS (memory `react-theme-parity`) — no mid-session design-system drift
+- Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
