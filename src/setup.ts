@@ -343,6 +343,7 @@ export async function setupProject(
           '.claude/memories/local-checkout-artifact-analysis.md',
           '.claude/memories/react-theme-parity.md',
           '.claude/memories/claude-cross-session-messaging.md',
+          '.claude/memories/verify-before-claim.md',
         ],
       },
 

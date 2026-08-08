@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.8.2
+// @sv-version: 1.9.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,9 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.9.0: VERIFY-EVIDENCE + MULTI-PART EXECUTE nudges (memory verify-before-claim)
+ * when prompt asks for review/security/audit or lists multiple || parts — block
+ * memory-only answers and “which first?” evasion.
  * v1.8.2: FINALIZE order = scope commit → documenter → domain-updater → docs commit
  * (was inverted; matches Claude + skill svs-finalize).
  * v1.8.1: peer coordination points at /svs-peers (Claude native /peers = ListAgents).
@@ -224,6 +227,57 @@ function buildThemeParityBlock(
   );
 }
 
+/** Review / audit / “is it correct?” — must re-open code this turn. */
+const VERIFY_PROMPT_RE =
+  /\b(revis[aã]o|revisar|review|audit|auditoria|verif(?:y|ique|icar)|adversarial|seguran[cç]a|security|owasp|deep\s*dive|an[aá]lise\s+profunda|est[aá]\s+tudo\s+correto|n[aã]o\s+passar\s+nada|confirme|validate)\b/i;
+
+/** Multi-part user asks — execute all; do not pick one and ask which first. */
+const MULTI_PART_RE =
+  /\|\||outra\s+coisa|e\s+tamb[eé]m|fa[cç]a\s+o\s+que\s+pedi|voc[eê]\s+(s[oó]\s+)?ignorou|al[eé]m\s+diss[oa]/i;
+
+const CHANGE_VERB_RE =
+  /\b(renomear|rename|mudar|alterar|implementar|ligar|ativar|criar|remover|fix|deploy)\b/i;
+
+function buildVerifyEvidenceBlock(prompt: string): string {
+  if (!VERIFY_PROMPT_RE.test(prompt)) return '';
+
+  const securityAsked =
+    /\b(seguran[cç]a|security|adversarial|owasp|n[aã]o\s+passar\s+nada)\b/i.test(prompt);
+
+  const lines = [
+    '',
+    'VERIFY-EVIDENCE REQUIRED (memory: verify-before-claim) — do NOT answer from prior-turn memory:',
+    '  1. BEFORE any ✅/❌ table: fresh Read/Grep/Bash on the LIVE tree for each claim.',
+    '  2. Cite file paths (line ranges when useful). No open this turn → no ✅ for that step.',
+    '  3. FORBIDDEN: memory-only reviews, “sólido” without paths, skipping tools to save tokens.',
+  ];
+  if (securityAsked) {
+    lines.push(
+      '  4. SECURITY/ADVERSARIAL: walk trust boundaries (tenant, authz, artifact create/update/DELETE/orphan,',
+      '     injection, secret exposure). Severity + fix. Load defensive-security-review + security-assessment-ops.',
+      '     Do NOT soft-pass with a short “sólido” paragraph.'
+    );
+  }
+  return lines.join('\n');
+}
+
+function buildMultiPartExecuteBlock(prompt: string): string {
+  const hasPipeParts = /\|\|/.test(prompt);
+  const hasMultiSignal = MULTI_PART_RE.test(prompt);
+  if (!hasPipeParts && !hasMultiSignal) return '';
+
+  const changeHint = CHANGE_VERB_RE.test(prompt)
+    ? `\n  - Analysis-only is incomplete when the user also asked to rename/change/implement.`
+    : '';
+
+  return (
+    `\n\nMULTI-PART EXECUTE (memory: verify-before-claim):\n` +
+    `  - Parse EVERY part of this prompt into todos (analysis AND change verbs).\n` +
+    `  - Execute all parts this session — FORBIDDEN: “renderer first or rename?” when both were ordered.` +
+    changeHint
+  );
+}
+
 async function main(): Promise<void> {
   const hookInput = await readStdinJson(1500);
   const prompt: string =
@@ -255,6 +309,16 @@ async function main(): Promise<void> {
     themeParityBlock = '';
   }
 
+  let verifyBlock = '';
+  let multiPartBlock = '';
+  try {
+    verifyBlock = buildVerifyEvidenceBlock(prompt);
+    multiPartBlock = buildMultiPartExecuteBlock(prompt);
+  } catch {
+    verifyBlock = '';
+    multiPartBlock = '';
+  }
+
   const systemMessage = `TASK WORKFLOW (Stack: ${stackName}):
 
 0. READ both CLAUDE.md and .claude/config/active-project.json before changes.
@@ -282,7 +346,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${standardsContext}${peersBlock}${themeParityBlock}`;
+7. Run stop-validator before finishing.${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

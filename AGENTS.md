@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-08 · main · v2.79.0
+Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
+Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
+
 ### 2026-08-08 · main · v2.78.2
 README refresh: Preline moon skill pair, Grok 1.0 trust/rehydrate, targets/skills table,
 frontend defaults, migrate `frontendBaseSkillsDir`.
@@ -68,11 +72,6 @@ long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok
 `ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
 prompt; viral TikTok vibe → lookalike; mix only cleared stems (no CID dodge).
 Policy **1.2.2**; Grok **1.12.0**.
-
-### 2026-08-02 · main · v2.71.0
-`ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
-platform commercial beds — refuse pirate hits / uncleared competitor beds. Ads master
-**1.3.0**; policy **1.2.1**; Grok **1.11.0**.
 
 
 <!-- SVS:POLICY-PACK:START -->

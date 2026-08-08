@@ -157,7 +157,7 @@ Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-inst
 
 ## Notable memories (always-on via Claude `memory_files`)
 
-Ads/funnel · checkout (owned gateway / forensic rebuild) · security assessment · owned infra · `react-theme-parity` · `claude-cross-session-messaging` · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/` / project `.claude/memories/`.
+Ads/funnel · checkout (owned gateway / forensic rebuild) · security assessment · owned infra · `verify-before-claim` · `react-theme-parity` · `claude-cross-session-messaging` · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/` / project `.claude/memories/`.
 
 Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropic cyber API gates.
 

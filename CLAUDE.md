@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-08 · main · v2.79.0
+Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
+Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
+
 ### 2026-08-08 · main · v2.78.2
 README refresh: Preline moon skill pair, Grok 1.0 trust/rehydrate, targets/skills table,
 frontend defaults, migrate `frontendBaseSkillsDir`.
@@ -43,11 +47,6 @@ puts Update first when pending.
 ### 2026-08-02 · main · v2.73.0
 `react-theme-parity` memory + UPS hook **1.8.0** THEME PARITY nudge (Laravel/React
 long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok **1.13.0**.
-
-### 2026-08-02 · main · v2.72.0
-`ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
-prompt; viral TikTok vibe → lookalike; mix only cleared stems (no CID dodge).
-Policy **1.2.2**; Grok **1.12.0**.
 
 ### 2026-08-02 · main · v2.71.0
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
@@ -430,4 +429,6 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/claude-cross-session-messaging.md`
 
--
+- **verify-before-claim.md** — Review/security/multi-part prompts: fresh Read/Grep before ✅/❌; no memory-only answers; execute every `||` part (no “which first?”). UPS **1.9.0** injects VERIFY-EVIDENCE / MULTI-PART.
+
+  Loaded from: `.claude/memories/verify-before-claim.md`

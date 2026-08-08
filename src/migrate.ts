@@ -614,6 +614,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/local-checkout-artifact-analysis.md',
     '.claude/memories/react-theme-parity.md',
     '.claude/memories/claude-cross-session-messaging.md',
+    '.claude/memories/verify-before-claim.md',
   ];
 
   if (!settings.context) settings.context = {};

@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.17.0';
+export const GROK_SKILLS_VERSION = '1.18.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -273,6 +273,7 @@ function memoryIndexSkillBody(): string {
     '| `local-cli-auth-capture.md` | Observe own CLI for OAuth refresh integration |',
     '| `email-push-marketing-authorization.md` | Owned-list email/push (any niche; no phishing) |',
     '| `defensive-security-review.md` | OWASP/source review of owned code |',
+    '| `verify-before-claim.md` | Review/security: fresh tools; no memory-only; execute all || parts |',
     '| `authorized-security-assessment.md` | Active assessment only with ownership/scope |',
     '| `passive-public-security-posture.md` | Passive public OSINT only |',
     '| `post-push-ci-verification.md` | After `git push` — verify Actions for the SHA |',
