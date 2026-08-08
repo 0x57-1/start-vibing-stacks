@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-08 · main · v2.78.2
+README refresh: Preline moon skill pair, Grok 1.0 trust/rehydrate, targets/skills table,
+frontend defaults, migrate `frontendBaseSkillsDir`.
+
 ### 2026-08-08 · main · v2.78.1
 `preline-ui` **2.2.0** = summary; `preline-moon` **1.0.1** = source of truth — explicit
 cross-refs so agents load moon corpus for markup/tokens, not invent from overview.
@@ -69,11 +73,6 @@ Policy **1.2.2**; Grok **1.12.0**.
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
 platform commercial beds — refuse pirate hits / uncleared competitor beds. Ads master
 **1.3.0**; policy **1.2.1**; Grok **1.11.0**.
-
-### 2026-08-02 · main · v2.70.0
-Checkout memories: `forensic-funnel-legitimate-rebuild`, `owned-checkout-gateway-ops`,
-`local-checkout-artifact-analysis`. Policy pack **1.2.0**; Cursor rules **1.2.0**;
-AGENTS gen **1.2.0**; Grok curated **1.10.0**.
 
 
 <!-- SVS:POLICY-PACK:START -->
