@@ -1,16 +1,19 @@
 ---
 name: preline-moon
-version: 1.0.0
+version: 1.0.1
 description: >-
-  Offline corpus for Preline UI 4.x under the moon theme — real component markup,
-  semantic Tailwind tokens (bg-card, text-muted-foreground), light/dark values,
-  data-hs-* / HS* JS wiring, dark-mode and React re-render re-init. Use when the
-  task touches hs-* / data-hs-*, moon theme, data-theme / .dark, or "what markup
-  for a modal / drawer / data table / stepper / combobox". Complements preline-ui
-  (install/overview); this skill is the offline look-up corpus.
+  SOURCE OF TRUTH for Preline UI under the moon theme — offline corpus of
+  component schemes, 800+ examples, moon token tables, data-hs-* / HS* wiring.
+  Skill preline-ui is only the short install/summary; always use THIS skill for
+  markup and tokens. Invoke on hs-*, data-hs-*, theme-moon, data-theme/.dark,
+  or any "what markup for modal/drawer/table" question.
 ---
 
-# Preline `moon` — offline skill
+# Preline `moon` — offline corpus (source of truth)
+
+**Companion:** skill `preline-ui` = short install / `autoInit()` summary.
+**This skill** = the full look-up corpus. Prefer this file’s tree over inventing
+markup or fetching preline.co.
 
 Everything here is mined to local disk from the Preline 4.2.0 docs plus the
 pubweb-saas CSS fork (theme reference). **Never fetch the network for Preline
@@ -203,6 +206,6 @@ grep -n 'data-hs-overlay' reference/javascript.md
 
 ## See Also
 
-- `preline-ui` — install, CSS import order, `HSStaticMethods.autoInit()`, theme generator overview
+- **`preline-ui`** — short summary only (install, CSS order, `autoInit()`). Defer all component/token look-ups back here.
 - `tailwind-patterns` — Tailwind v4 `@theme` / Oxide
 - `react-standards` / `inertia-react` — React / Inertia component conventions

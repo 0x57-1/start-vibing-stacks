@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-08 · main · v2.78.1
+`preline-ui` **2.2.0** = summary; `preline-moon` **1.0.1** = source of truth — explicit
+cross-refs so agents load moon corpus for markup/tokens, not invent from overview.
+
 ### 2026-08-08 · main · v2.78.0
 Ship `preline-moon` (offline Preline moon theme corpus) as default React frontend skill;
 `preline-ui` **2.1.0**; migrate scans `frontendBaseSkillsDir`; Grok curated + inertia baseSkills.
@@ -51,10 +55,6 @@ Checkout memories: `forensic-funnel-legitimate-rebuild`, `owned-checkout-gateway
 `local-checkout-artifact-analysis`. Policy pack **1.2.0**; Cursor rules **1.2.0**;
 AGENTS gen **1.2.0**; Grok curated **1.10.0**.
 
-### 2026-07-29 · main · v2.69.0
-Opus-5 skill pass: `git-workflow` 2.2 (scope.ts §0), `svs-finalize` 1.2 (verify),
-`multi-instance` 1.2 + `tool-resilience` 1.2, `secrets-management` 2.2 (contain-before-revoke),
-`mcp-server-builder` 1.2 (`>=1.29,<2`), stop-validator 1.8 (no `git add -A`). Grok **1.9.0**.
 
 ---
 

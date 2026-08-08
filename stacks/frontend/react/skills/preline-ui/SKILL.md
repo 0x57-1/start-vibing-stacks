@@ -1,15 +1,51 @@
 ---
 name: preline-ui
-version: 2.1.0
-description: "Preline UI — semantic-token component system on top of Tailwind v4 (stable Jan 2025). 220+ design tokens covering background/foreground/primary/secondary/muted/destructive/border/surface/layer + per-component groups (navbar, sidebar, card, dropdown, select, overlay, tooltip, popover, scrollbar). 840+ free copy-paste blocks (hero, testimonials, pricing, dashboards, forms). Mandatory `HSStaticMethods.autoInit()` after client-side navigation in Next.js — without it, dropdowns/modals/accordions break. Theme generator CLI, custom palettes via `@theme inline { … }`, light + dark via `data-theme` + `.dark`. Chart tokens require HEX (no oklch in -hex). Pairs with React 19 (refs as props, document metadata). Invoke when using Preline components, creating themes, or customising tokens. For moon theme offline corpus (markup/examples/tokens), load skill preline-moon."
+version: 2.2.0
+description: >-
+  Preline UI overview — install, CSS import order, HSStaticMethods.autoInit(),
+  semantic tokens, theme activation (data-theme + .dark). This skill is the SHORT
+  SUMMARY. For real moon-theme markup, component schemes, 800+ examples, and
+  resolved light/dark token values, ALWAYS load and follow skill preline-moon
+  (offline corpus). Invoke for Preline install/setup; defer component look-ups
+  to preline-moon. Do not invent markup from this file alone.
 ---
 
-# Preline UI — Component & Theme System for Tailwind v4 (2026)
+# Preline UI — overview (summary)
 
-**ALWAYS invoke when using Preline components, creating themes, or customising design tokens.**
+**This skill is the short install / conventions guide.** The full offline
+corpus for the **moon** theme lives in skill **`preline-moon`**.
 
-> Pairs with `tailwind-patterns` v2 (Tailwind v4 `@theme`, Oxide engine, OKLCH) and `react-standards` v2 (LABELS/STYLES const pattern). For shadcn-style primitives with Radix/Base UI underneath, see `shadcn-ui` v2 — pick **one** component system per project, don't mix Preline and shadcn.
-> **Moon theme / offline component corpus:** skill `preline-moon` (INDEX + 87 schemes + examples) — use that when writing moon markup, not this overview alone.
+| Need | Skill |
+|------|--------|
+| `npm install`, CSS `@import` order, `autoInit()`, theme generator CLI | **this file** (`preline-ui`) |
+| “What markup for modal / drawer / table / select?”, moon tokens, `hs-*` / `data-hs-*`, dark mode | **`preline-moon`** — `INDEX.md` → `components/*.md` → `examples/**` |
+
+**Rule:** when writing or editing Preline UI under moon, open `preline-moon` first.
+Do not compose components from memory using only this summary. Copy from
+`preline-moon/examples/`. Never fetch preline.co if the corpus is installed.
+
+> Pairs with `tailwind-patterns` and `react-standards`. Pick **one** component
+> system per project — do not mix Preline and `shadcn-ui`.
+
+## Relationship: `preline-ui` ↔ `preline-moon`
+
+```
+preline-ui     = summary (install, init, high-level rules)
+preline-moon   = source of truth (schemes, examples, moon token tables, JS refs)
+```
+
+Path after migrate/setup:
+
+```
+$CLAUDE_PROJECT_DIR/.claude/skills/preline-moon/
+```
+
+Start every component task with:
+
+```bash
+cd "$CLAUDE_PROJECT_DIR/.claude/skills/preline-moon"
+grep -i '<intent>' INDEX.md
+```
 
 ## What is Preline
 
@@ -18,6 +54,9 @@ Preline is a **semantic token-based design system** built on TailwindCSS. It pro
 - Pre-built components (navbar, sidebar, card, dropdown, overlay, etc.)
 - Theme generator for custom color schemes
 - Light + dark mode via `data-theme` + `.dark`
+
+Default theme corpus shipped by start-vibing-stacks: **moon** (`data-theme="theme-moon"`)
+— details only in `preline-moon`.
 
 ## Installation
 
@@ -70,14 +109,15 @@ export function PrelineInit() {
 
 **Rule:** Without `HSStaticMethods.autoInit()`, dropdowns, modals, and accordions will NOT work after client-side navigation.
 
-## Templates & Components (840+ free)
+## Templates & Components
 
-### Where to Find
+### Where to Find (prefer offline)
 
-| Source | URL | What |
+| Source | Where | What |
 |---|---|---|
-| **Docs (components)** | https://preline.co/docs | Buttons, modals, forms, tables, navs |
-| **Examples (blocks)** | https://preline.co/examples.html | 220+ UI blocks (hero, testimonials, pricing, etc.) |
+| **Moon corpus (default)** | skill `preline-moon` → `INDEX.md` / `examples/` | Verbatim component markup + moon tokens — **use this** |
+| **Docs (components)** | https://preline.co/docs | Only if corpus missing / non-moon theme |
+| **Examples (blocks)** | https://preline.co/examples.html | Marketing blocks; moon UI still from `preline-moon` |
 | **Pro templates** | https://preline.co/pro/templates.html | 21 dashboard/app templates (paid) |
 | **GitHub** | https://github.com/htmlstreamofficial/preline | Source + examples |
 
@@ -368,6 +408,6 @@ npx preline-theme-generator /tmp/config.json ./src/styles/themes/brand.css
 
 ## See Also
 
-- `preline-moon` — offline moon-theme corpus (components, examples, token tables)
+- **`preline-moon` (required companion)** — full offline moon corpus; this skill is only the summary of that stack’s install rules
 - `tailwind-patterns` — Tailwind v4 `@theme` / Oxide
 - `react-standards` — React component conventions
