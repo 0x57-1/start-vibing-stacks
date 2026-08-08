@@ -48,6 +48,7 @@ const FLAGS = {
   apply: args.includes('--apply'),
   forceHooks: args.includes('--force-hooks') || args.includes('--force-legacy'),
   withMemoryOptimization: args.includes('--with-memory-optimization'),
+  skipUpdate: args.includes('--skip-update'),
   target: parseFlagValue('--target'),
 };
 
@@ -64,8 +65,8 @@ if (FLAGS.help) {
 
   ${chalk.bold('Commands:')}
     (default)         Setup or resume current project
-                      Resume: Launch Claude/Kimi/Grok · Update (migrate --apply)
-                      · Regenerate AGENTS.md / Cursor rules
+                      Resume: Launch auto-migrates when outdated; prefer
+                      npx start-vibing-stacks@latest (stale npx cache = old skills)
     migrate           Compare installed vs bundled skill/agent/memory versions
                       Syncs AGENTS.md + MCP + .cursor/rules (Kimi/Grok/Cursor)
                       Add --apply to update outdated/missing items
@@ -76,6 +77,7 @@ if (FLAGS.help) {
     --apply           Apply updates (migrate command)
     --target <id>     migrate only: claude | kimi | grok | cursor | all (default: all)
                       (migrate always prints TARGET STATUS)
+    --skip-update     Launch without auto migrate --apply (not recommended)
     --force-legacy    Overwrite legacy hooks (no @sv-version) AND legacy commands
                       (no version: frontmatter) — each gets a timestamped .bak
     --force-hooks     Alias for --force-legacy (kept for back-compat)
@@ -202,13 +204,24 @@ async function main(): Promise<void> {
           : '📦  Update from package (migrate --apply)';
       if (pendingTotal > 0) {
         ui.warn(
-          `${pendingTotal} bundled artefact(s) newer than this project — choose Update, or: npx start-vibing-stacks migrate --apply`
+          `${pendingTotal} bundled artefact(s) newer than this project — Launch will auto-migrate, or: npx start-vibing-stacks@latest migrate --apply`
         );
+      }
+
+      const { checkCliFreshness } = await import('./version-check.js');
+      const cliFresh = await checkCliFreshness(PKG_VERSION);
+      if (cliFresh.stale && cliFresh.latest) {
+        ui.warn(
+          `CLI running ${PKG_VERSION} but npm latest is ${cliFresh.latest} — npx cache is stale.`
+        );
+        ui.warn(`Re-run: npx start-vibing-stacks@latest`);
       }
 
       const launchChoices = availableLaunchTargets().map((t) => {
         const icon = t.id === 'claude' ? '🚀' : t.id === 'kimi' ? '🌙' : '⚡';
-        return { name: `${icon}  Launch ${t.label}`, value: `launch:${t.id}` };
+        const suffix =
+          pendingTotal > 0 && !FLAGS.skipUpdate ? ' (auto-update first)' : '';
+        return { name: `${icon}  Launch ${t.label}${suffix}`, value: `launch:${t.id}` };
       });
       if (launchChoices.length === 0) {
         launchChoices.push({
@@ -219,14 +232,17 @@ async function main(): Promise<void> {
 
       console.log('');
 
+      const updateChoice = { name: pendingLabel, value: 'migrate' };
       const { action } = await inquirer.prompt([
         {
           type: 'list',
           name: 'action',
           message: 'What do you want to do?',
           choices: [
+            // Prefer Update when project artefacts lag (common Kimi/Grok skip path)
+            ...(pendingTotal > 0 ? [updateChoice] : []),
             ...launchChoices,
-            { name: pendingLabel, value: 'migrate' },
+            ...(pendingTotal > 0 ? [] : [updateChoice]),
             { name: '📄  Regenerate AGENTS.md (Kimi/Grok/Cursor)', value: 'sync-agents' },
             { name: '🧩  Sync Cursor rules + MCP (.cursor/)', value: 'sync-cursor' },
             { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
@@ -310,10 +326,71 @@ async function main(): Promise<void> {
         if (targetId === 'claude' && FLAGS.noClaude) {
           process.exit(0);
         }
-        // Ensure AGENTS.md exists before launching Kimi/Grok
-        if (targetId === 'kimi' || targetId === 'grok') {
-          syncTargets(projectDir, { updateIfNeeded: true });
+
+        // Stale npx CLI cannot refresh memories/skills to npm latest — stop early.
+        if (cliFresh.stale && cliFresh.latest && !FLAGS.skipUpdate) {
+          const { proceedStale } = await inquirer.prompt([
+            {
+              type: 'confirm',
+              name: 'proceedStale',
+              message: `CLI ${PKG_VERSION} < npm ${cliFresh.latest}. Launch anyway? (prefer npx start-vibing-stacks@latest)`,
+              default: false,
+            },
+          ]);
+          if (!proceedStale) {
+            ui.info('Aborted. Run: npx start-vibing-stacks@latest');
+            process.exit(1);
+          }
         }
+
+        // Auto migrate before Launch — Kimi/Grok previously only synced side-cars
+        // and skipped .claude skills/memories/hooks, so versions stayed old.
+        if (!FLAGS.skipUpdate && pendingTotal > 0) {
+          ui.info(`Applying ${pendingTotal} pending update(s) before launch…`);
+          const { runMigrate } = await import('./migrate.js');
+          await runMigrate(projectDir, {
+            apply: true,
+            forceHooks: FLAGS.forceHooks,
+            // kimi/grok read .claude/skills via extra_*_dirs — always refresh Claude artefacts too
+            target: 'all',
+          });
+        } else if (targetId === 'kimi' || targetId === 'grok') {
+          syncTargets(projectDir, {
+            updateIfNeeded: true,
+            migrateTarget: targetId,
+            forceHooksExport: true,
+            forceKimiLocal: targetId === 'kimi',
+            forceGrokSkills: targetId === 'grok',
+            forceGrokAgents: targetId === 'grok',
+          });
+        }
+
+        // After migrate, force target side-cars once more (hooks/skills/local.toml).
+        if (targetId === 'kimi' || targetId === 'grok') {
+          const sync = syncTargets(projectDir, {
+            updateIfNeeded: true,
+            migrateTarget: targetId,
+            forceHooksExport: true,
+            forceKimiLocal: targetId === 'kimi',
+            forceGrokSkills: targetId === 'grok',
+            forceGrokAgents: targetId === 'grok',
+            forceMcp: true,
+          });
+          if (sync.kimiLocal.localUpdated || sync.kimiLocal.localWritten) {
+            ui.success('Kimi local.toml refreshed');
+          }
+          if (
+            sync.grokSkills.nativeSkillWritten ||
+            sync.grokSkills.curatedCopied > 0 ||
+            sync.grokSkills.generatedWritten > 0
+          ) {
+            ui.success(`Grok skills refreshed (svs-version ${sync.grokSkills.version})`);
+          }
+          if (sync.hooksExport.grokHooksWritten || sync.hooksExport.kimiLocalUpdated) {
+            ui.success(`Hooks bridge refreshed (svs-version ${sync.hooksExport.version})`);
+          }
+        }
+
         console.log(chalk.dim(`\n  Launching ${targetId}...\n`));
         const result = launchTarget(projectDir, targetId);
         if (!result.ok) {

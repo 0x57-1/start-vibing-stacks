@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-08 · main · v2.74.0
+Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
+npm-latest check warns stale npx cache; `--skip-update` opt-out. Resume menu
+puts Update first when pending.
+
 ### 2026-08-02 · main · v2.73.0
 `react-theme-parity` memory + UPS hook **1.8.0** THEME PARITY nudge (Laravel/React
 long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok **1.13.0**.
@@ -51,11 +56,6 @@ Default skill `mcp-server-builder` (protocol 2026-07-28 + pins + house pattern +
 Grok hooks path fix: `node .claude/hooks/svs-bridge.mjs` (project cwd), not
 `../../.claude/…` from `.grok/hooks/`. pubweb `019faa63` had 17/17 Stop exit 1
 (fail-open) — finalize gate never ran. Hooks export **1.7.0**.
-
-### 2026-07-29 · main · v2.66.0
-`svs-bridge` **1.3.0**: Grok Stop → `{decision:block,reason}` (allow=empty); Kimi Stop
-exit 2 + deny JSON. Finalize hints use `spawn_subagent`. Hooks export **1.6.0**;
-Grok skills **1.6.0**; `svs-finalize` **1.1.0**.
 
 
 ---
