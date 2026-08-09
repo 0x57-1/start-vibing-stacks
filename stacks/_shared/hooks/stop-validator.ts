@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.8.2
+// @sv-version: 1.9.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -41,6 +41,9 @@
  *
  * v1.8.2: Grok Build 1.0 — honor stopHookActive camelCase; skip validate on
  * observe-only session-end Stop (`reason` channel_closed|shutdown).
+ *
+ * v1.9.0: when session `lastPromptKind === 'status'`, finalize-chain failures
+ * become WARN (approve) — “foi publicado?” must not force documenter mid-check.
  */
 
 import { execSync } from 'child_process';
@@ -345,8 +348,21 @@ function validate(sessionId: string | undefined): HookResult {
   }
 
   // 6. Finalize chain — source edits this session require docs (Kimi/Grok skip Task).
+  //    Status-check turns (UPS lastPromptKind=status) soft-pass so CI/deploy
+  //    questions are not stuck behind documenter debt.
   const finalizeBlock = checkFinalizeChain(sessionId, content);
-  if (finalizeBlock) return finalizeBlock;
+  if (finalizeBlock) {
+    if (isStatusPromptTurn(sessionId)) {
+      // Fall through to approve with a warning appended below.
+    } else {
+      return finalizeBlock;
+    }
+  }
+  const finalizeWarn =
+    finalizeBlock && isStatusPromptTurn(sessionId)
+      ? `\n\nWARN (status turn — finalize soft-pass): ${finalizeBlock.reason.split('\n')[0]}\n` +
+        `Finish documenter → domain-updater on the next work/ship turn.`
+      : '';
 
   // All good. If per-instance scoping hid orphan dirty files (dirty, but not in
   // THIS session's filesTouched), surface them — they may be your own Bash/codegen
@@ -365,8 +381,21 @@ function validate(sessionId: string | undefined): HookResult {
   return {
     continue: false,
     decision: 'approve',
-    reason: `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean (this-session scope)\nSecrets: clean\nFinalize: docs current${orphanNote}`,
+    reason:
+      `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean (this-session scope)\nSecrets: clean\nFinalize: docs current` +
+      finalizeWarn +
+      orphanNote,
   };
+}
+
+function isStatusPromptTurn(sessionId: string | undefined): boolean {
+  if (!sessionId) return false;
+  try {
+    const sess = readSession(getStateDir(PROJECT_DIR), sessionId);
+    return sess?.lastPromptKind === 'status';
+  } catch {
+    return false;
+  }
 }
 
 function isFinalizeSourcePath(file: string): boolean {

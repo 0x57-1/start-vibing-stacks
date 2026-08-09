@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.9.0
+// @sv-version: 1.10.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,9 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.10.0: Prompt kind `status`|`ship`|`work` — light UPS for status checks
+ * (no full workflow / finalize); SHIP NOW for urgent push/deploy; persist
+ * lastPromptKind for Stop soft-pass (memory execute-ship-ops).
  * v1.9.0: VERIFY-EVIDENCE + MULTI-PART EXECUTE nudges (memory verify-before-claim)
  * when prompt asks for review/security/audit or lists multiple || parts — block
  * memory-only answers and “which first?” evasion.
@@ -54,6 +57,7 @@ import {
   shortId,
   truncate,
   type InboxMessage,
+  type PromptKind,
   type SessionRecord,
 } from './_state.js';
 
@@ -106,7 +110,12 @@ function formatInbox(m: InboxMessage): string {
   return `  [${m.ts}] from ${from}: ${m.message}`;
 }
 
-function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): string {
+function buildPeersBlock(
+  stateDir: string,
+  sessionId: string,
+  prompt: string,
+  promptKind: PromptKind
+): string {
   ensureStateDirs(stateDir);
 
   // Heartbeat + capture title on first prompt of the session.
@@ -127,6 +136,7 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
     target: existing?.target || target,
     nativeSessionDir: existing?.nativeSessionDir || native.nativeSessionDir,
     transcriptPath: existing?.transcriptPath || native.transcriptPath,
+    lastPromptKind: promptKind,
   });
 
   const peers: SessionRecord[] = listPeerSessions(stateDir, sessionId);
@@ -151,6 +161,9 @@ function buildPeersBlock(stateDir: string, sessionId: string, prompt: string): s
     parts.push(`INBOX (${inbox.length} message${inbox.length === 1 ? '' : 's'} from peers — surface to the user):`);
     for (const m of inbox) parts.push(formatInbox(m));
   }
+
+  // Status checks must stay light — do not pile finalize onto "foi publicado?".
+  if (promptKind === 'status') return parts.join('\n');
 
   const touched = readSession(stateDir, sessionId)?.filesTouched || existing?.filesTouched || [];
   const hasSource = touched.some((f) =>
@@ -238,6 +251,42 @@ const MULTI_PART_RE =
 const CHANGE_VERB_RE =
   /\b(renomear|rename|mudar|alterar|implementar|ligar|ativar|criar|remover|fix|deploy)\b/i;
 
+/** Status / CI / “was it published?” — keep UPS light. */
+const STATUS_PROMPT_RE =
+  /\b(veja\s+se|foi\s+publicado|was\s+it\s+(published|deployed)|check\s+(if|whether|deploy|ci|prod|status)|est[aá]\s+(no|em|na)\s+(prod|produção|cdn|origin)|acompanhe|watch\s+(ci|deploy|actions)|gh\s+run|j[aá]\s+(subi|publicou|deploy)|ainda\s+n[aã]o\s+(subiu|publicou)|local\s+vs\s+origin)\b/i;
+
+/** Urgent ship / push / republish — execute, do not wait. */
+const SHIP_PROMPT_RE =
+  /\b(git\s+push|push\s+origin|publique|publicar|urgente|produ[cç][aã]o|republish|republique|deploy\s+agora|ship\s+it|mande\s+(pro|para)\s+(prod|main)|commite,?\s+acompanhe|problema\s+urgente)\b/i;
+
+function classifyPrompt(prompt: string): PromptKind {
+  if (SHIP_PROMPT_RE.test(prompt)) return 'ship';
+  if (STATUS_PROMPT_RE.test(prompt) && !CHANGE_VERB_RE.test(prompt)) return 'status';
+  if (STATUS_PROMPT_RE.test(prompt) && prompt.trim().length < 100) return 'status';
+  return 'work';
+}
+
+function buildShipNowBlock(prompt: string): string {
+  if (!SHIP_PROMPT_RE.test(prompt)) return '';
+  return (
+    `\n\nSHIP NOW (memory: execute-ship-ops) — production urgency:\n` +
+    `  1. Push scoped commits: \`git push origin <branch>\` — FORBIDDEN: “push is your job” / waiting for a second ask.\n` +
+    `  2. \`gh run list/watch\` for the SHA (post-push-ci-verification).\n` +
+    `  3. Run republish/deploy ops the user named (artisan, jobs, CDN curl checks).\n` +
+    `  4. Report live evidence. Do not stop at “pushed” without CI/deploy status.`
+  );
+}
+
+function buildStatusOnlyMessage(peersBlock: string): string {
+  return (
+    `STATUS CHECK (memory: execute-ship-ops) — light turn:\n` +
+    `  - Answer with git/gh/curl only. Do NOT start finalize, CLAUDE.md updates, UI agents, or Playwright.\n` +
+    `  - If local is ahead of origin, say so with SHAs — do not invent “waiting for you” when the user asked to ship.\n` +
+    `  - Stop soft-passes finalize debt on status turns; finish documenter later on a work/ship turn.` +
+    peersBlock
+  );
+}
+
 function buildVerifyEvidenceBlock(prompt: string): string {
   if (!VERIFY_PROMPT_RE.test(prompt)) return '';
 
@@ -288,6 +337,7 @@ async function main(): Promise<void> {
   }
 
   const today = new Date().toISOString().split('T')[0];
+  const promptKind = classifyPrompt(prompt);
 
   let peersBlock = '';
   let touchedFiles: string[] = [];
@@ -295,11 +345,19 @@ async function main(): Promise<void> {
   if (sessionId) {
     const stateDir = getStateDir(PROJECT_DIR);
     try {
-      peersBlock = buildPeersBlock(stateDir, sessionId, prompt);
+      peersBlock = buildPeersBlock(stateDir, sessionId, prompt, promptKind);
       touchedFiles = readSession(stateDir, sessionId)?.filesTouched || [];
     } catch {
       peersBlock = '';
     }
+  }
+
+  // Status turns: skip heavy TASK WORKFLOW (agents freeze on CI/deploy checks otherwise).
+  if (promptKind === 'status') {
+    console.log(
+      JSON.stringify({ continue: true, systemMessage: buildStatusOnlyMessage(peersBlock) })
+    );
+    process.exit(0);
   }
 
   let themeParityBlock = '';
@@ -311,12 +369,15 @@ async function main(): Promise<void> {
 
   let verifyBlock = '';
   let multiPartBlock = '';
+  let shipBlock = '';
   try {
     verifyBlock = buildVerifyEvidenceBlock(prompt);
     multiPartBlock = buildMultiPartExecuteBlock(prompt);
+    shipBlock = buildShipNowBlock(prompt);
   } catch {
     verifyBlock = '';
     multiPartBlock = '';
+    shipBlock = '';
   }
 
   const systemMessage = `TASK WORKFLOW (Stack: ${stackName}):
@@ -334,7 +395,7 @@ async function main(): Promise<void> {
 
 4. Run quality gates: ${qualityCmd}
 
-5. COMMIT using conventional commits via commit-manager agent (v3.2.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled). After push, VERIFY GitHub Actions for the SHA (gh run list/watch) — do not claim deploy success without checking (memory: post-push-ci-verification).
+5. COMMIT using conventional commits via commit-manager agent (v3.2.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled). After push, VERIFY GitHub Actions for the SHA (gh run list/watch) — do not claim deploy success without checking (memory: post-push-ci-verification). When the user asks to ship/push/urgent/production, push immediately (memory: execute-ship-ops) — do not leave commits local and wait.
 
 5b. IDE SYNC — if Cursor shows "Opened changes / Save file to continue" during edits, that is buffer sync (not Bypass failure). Ask user to save or allow-all once; re-Read; see memory cursor-ide-edit-sync + .claude/settings.local.example.json.
 
@@ -346,7 +407,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}`;
+7. Run stop-validator before finishing.${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

@@ -615,6 +615,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/react-theme-parity.md',
     '.claude/memories/claude-cross-session-messaging.md',
     '.claude/memories/verify-before-claim.md',
+    '.claude/memories/execute-ship-ops.md',
   ];
 
   if (!settings.context) settings.context = {};

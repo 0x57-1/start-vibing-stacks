@@ -344,6 +344,7 @@ export async function setupProject(
           '.claude/memories/react-theme-parity.md',
           '.claude/memories/claude-cross-session-messaging.md',
           '.claude/memories/verify-before-claim.md',
+          '.claude/memories/execute-ship-ops.md',
         ],
       },
 

@@ -1,4 +1,4 @@
-// @sv-version: 1.4.0
+// @sv-version: 1.5.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -37,6 +37,10 @@
  * `_archive/<id>.json` and/or `file-touches.jsonl`. Grok Build 1.0 often fires
  * SessionEnd then SessionStart on the same UUID — without rehydrate, scope.ts /
  * stop-validator / UPS finalize see an empty touch list and skip gates.
+ *
+ * v1.5.0: optional `lastPromptKind` (`status`|`ship`|`work`) — UPS classifies
+ * the user prompt; Stop soft-passes finalize on status checks so deploy/CI
+ * questions are not blocked by documenter debt.
  */
 
 import {
@@ -69,6 +73,9 @@ export const FILES_TOUCHED_CAP = 200;
 
 export type SvsTarget = 'claude' | 'kimi' | 'grok';
 
+/** Last UserPromptSubmit classification (UPS → Stop soft-pass). */
+export type PromptKind = 'status' | 'ship' | 'work';
+
 export interface SessionRecord {
   sessionId: string;
   transcriptPath?: string;
@@ -86,6 +93,8 @@ export interface SessionRecord {
   target?: SvsTarget;
   /** Product session folder (Kimi sessionDir or Grok session dir). */
   nativeSessionDir?: string;
+  /** Set by UPS each turn — Stop skips finalize hard-block when `status`. */
+  lastPromptKind?: PromptKind;
 }
 
 export interface NativeSessionMeta {

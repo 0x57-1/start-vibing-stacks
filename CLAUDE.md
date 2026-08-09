@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-09 · main · v2.80.0
+UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK (no finalize dump); SHIP NOW on
+urgent push; soft-pass finalize on status; memory `execute-ship-ops`; global UPS
+no-op template (fixes double English-only + Stack injection).
+
 ### 2026-08-08 · main · v2.79.0
 Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
 Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
@@ -43,10 +48,6 @@ SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1
 Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
 npm-latest check warns stale npx cache; `--skip-update` opt-out. Resume menu
 puts Update first when pending.
-
-### 2026-08-02 · main · v2.73.0
-`react-theme-parity` memory + UPS hook **1.8.0** THEME PARITY nudge (Laravel/React
-long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok **1.13.0**.
 
 ### 2026-08-02 · main · v2.71.0
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
@@ -432,3 +433,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **verify-before-claim.md** — Review/security/multi-part prompts: fresh Read/Grep before ✅/❌; no memory-only answers; execute every `||` part (no “which first?”). UPS **1.9.0** injects VERIFY-EVIDENCE / MULTI-PART.
 
   Loaded from: `.claude/memories/verify-before-claim.md`
+
+- **execute-ship-ops.md** — Status checks stay light; urgent push/deploy = SHIP NOW (no “push is yours”); fix double global+project UPS. UPS **1.10.0** / Stop **1.9.0**.
+
+  Loaded from: `.claude/memories/execute-ship-ops.md`

@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-09 · main · v2.80.0
+UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK; SHIP NOW on urgent push;
+finalize soft-pass on status; memory `execute-ship-ops`; global UPS no-op template.
+
 ### 2026-08-08 · main · v2.79.0
 Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
 Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
@@ -63,15 +67,6 @@ SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1
 Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
 npm-latest check warns stale npx cache; `--skip-update` opt-out. Resume menu
 puts Update first when pending.
-
-### 2026-08-02 · main · v2.73.0
-`react-theme-parity` memory + UPS hook **1.8.0** THEME PARITY nudge (Laravel/React
-long-session drift). `react-standards` Inertia **2.1.0**. Policy **1.2.3**; Grok **1.13.0**.
-
-### 2026-08-02 · main · v2.72.0
-`ad-creative-audio-licensing` **1.1.0**: unlimited free/CML mining; Grok/Kimi miner
-prompt; viral TikTok vibe → lookalike; mix only cleared stems (no CID dodge).
-Policy **1.2.2**; Grok **1.12.0**.
 
 
 <!-- SVS:POLICY-PACK:START -->
