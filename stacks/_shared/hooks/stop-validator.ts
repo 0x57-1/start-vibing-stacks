@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.9.1
+// @sv-version: 1.10.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -14,39 +14,13 @@
  * 6. Secret pattern detected in committed/staged files (uses gitleaks if present, fallback to regex)
  * 7. Domain `_index.json#last_commit` stale vs HEAD after source edits (documenter skipped)
  *
- * v1.2.0: per-instance scoping for the dirty-tree check + accept `## Recent Changes`
- * (append-only LIFO) as a valid changelog section. Source of truth for "what did
- * THIS session edit?" is `.claude/state/sessions/<id>.json#filesTouched`, maintained
- * by `post-tool-use.ts`.
+ * v1.10.0: record `lastStopKind` for UPS COMMIT-FIRST / FINALIZE-NOW / COMPACT-NOW;
+ * finalize anti-thrash (soft-pass after 2 identical hard-blocks); warn when
+ * CLAUDE.md > 36k (soft cap) before hard 40k block.
  *
- * v1.3.0: on APPROVE, surface "orphan" dirty files — files dirty in the worktree
- * that are NOT in this session's filesTouched (e.g. changed via Bash, codegen, or
- * formatters, which post-tool-use cannot capture). These are scoped OUT of the
- * blocking check (so a peer's work never blocks you), but silently leaving them
- * behind is exactly what makes the NEXT instance "see files and hesitate to
- * deploy". We never block on them; we WARN so the agent can verify/own them.
- *
- * v1.5.0: SessionEnd is teardown-only (journal + archive + clearInbox) — skip
- * quality validate so Kimi/Grok closing a session cannot get blocked mid-exit.
- * Stop (end of turn) still runs the full validator.
- *
- * v1.6.0: after source filesTouched, require CLAUDE.md update since startedAt and
- * (when present) codebase-knowledge `_index.json` last_commit === HEAD — forces
- * Kimi/Grok documenter → domain-updater chain (skill svs-finalize).
- *
- * v1.7.0: FINALIZE_HINT is SVS_TARGET-aware (Grok spawn_subagent / Kimi Read agents).
- * Bridge v1.3.0 emits native Stop block for Grok/Kimi so the reason is fed back.
- *
- * v1.8.0: unscoped commitGuide no longer recommends `git add -A` — always scope.ts.
- *
- * v1.8.2: Grok Build 1.0 — honor stopHookActive camelCase; skip validate on
- * observe-only session-end Stop (`reason` channel_closed|shutdown).
- *
- * v1.9.0: when session `lastPromptKind === 'status'`, finalize-chain failures
- * become WARN (approve) — “foi publicado?” must not force documenter mid-check.
- *
- * v1.9.1: finalize only counts in-project filesTouched (ignore Claude scratchpads
- * under /tmp/claude-* and ~/.claude paths that used to trip source-edit gates).
+ * v1.9.1: finalize only counts in-project filesTouched (ignore Claude scratchpads).
+ * v1.9.0: status-turn finalize soft-pass.
+ * v1.8.2: Grok observe-only Stop skip; stopHookActive camelCase.
  */
 
 import { execSync } from 'child_process';
@@ -65,7 +39,9 @@ import {
   formatPeer,
   getStateDir,
   listPeerSessions,
+  nowIso,
   readSession,
+  type StopKind,
 } from './_state.js';
 import { appendJournalEntry } from './_brain.js';
 
@@ -73,6 +49,10 @@ const PROJECT_DIR = process.env['CLAUDE_PROJECT_DIR'] || process.cwd();
 const CLAUDE_MD = join(PROJECT_DIR, 'CLAUDE.md');
 const ACTIVE_PROJECT = join(PROJECT_DIR, '.claude', 'config', 'active-project.json');
 const MAX_CHARS = 40000;
+/** Soft cap — UPS/Stop warn + compact before domain-updater prepends more. */
+const SOFT_CHARS = 36000;
+/** After this many consecutive finalize hard-blocks, soft-pass (anti-thrash). */
+const FINALIZE_THRASH_LIMIT = 2;
 
 // Load stack info
 let stackId = 'unknown';
@@ -295,8 +275,8 @@ function validate(sessionId: string | undefined): HookResult {
 
   if (!isClean) {
     const stageHint = perInstance
-      ? `\n\nThese files were edited by THIS session. Commit only your scope:\n  npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<message>"`
-      : `\n\nCommit or stash before completing.`;
+      ? `\n\nCOMMIT-FIRST (do this before answering further):\n  npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"\nThen re-Stop. Do NOT narrate — run the commit.`
+      : `\n\nCOMMIT-FIRST: commit or stash before completing.`;
     return {
       continue: true,
       decision: 'block',
@@ -315,14 +295,21 @@ function validate(sessionId: string | undefined): HookResult {
 
   const content = readFileSync(CLAUDE_MD, 'utf8');
 
-  // 3. Size check
+  // 3. Size check (hard 40k; soft 36k warn on approve)
   if (content.length > MAX_CHARS) {
     return {
       continue: true,
       decision: 'block',
-      reason: `BLOCKED: CLAUDE.md is ${content.length} chars (max ${MAX_CHARS}). Run claude-md-compactor agent.`,
+      reason:
+        `BLOCKED: CLAUDE.md is ${content.length} chars (max ${MAX_CHARS}). ` +
+        `COMPACT-NOW: run claude-md-compactor agent (drop oldest Recent Changes; keep ≤ ${SOFT_CHARS}).`,
     };
   }
+  const sizeWarn =
+    content.length > SOFT_CHARS
+      ? `\n\nWARN: CLAUDE.md is ${content.length} chars (soft cap ${SOFT_CHARS}). ` +
+        `Run claude-md-compactor BEFORE domain-updater prepends another Recent Changes entry.`
+      : '';
 
   // 4. Required sections — `## Last Change` (single, overwritten) OR `## Recent Changes`
   //    (append-only LIFO, multi-instance safe) both satisfy the changelog slot.
@@ -352,21 +339,27 @@ function validate(sessionId: string | undefined): HookResult {
   }
 
   // 6. Finalize chain — source edits this session require docs (Kimi/Grok skip Task).
-  //    Status-check turns (UPS lastPromptKind=status) soft-pass so CI/deploy
-  //    questions are not stuck behind documenter debt.
+  //    Soft-pass: status turns OR finalize thrash (≥ FINALIZE_THRASH_LIMIT hard blocks).
   const finalizeBlock = checkFinalizeChain(sessionId, content);
+  const thrashSoft = Boolean(finalizeBlock) && shouldSoftPassFinalize(sessionId);
   if (finalizeBlock) {
-    if (isStatusPromptTurn(sessionId)) {
-      // Fall through to approve with a warning appended below.
+    if (isStatusPromptTurn(sessionId) || thrashSoft) {
+      // Fall through to approve with a warning.
     } else {
       return finalizeBlock;
     }
   }
-  const finalizeWarn =
-    finalizeBlock && isStatusPromptTurn(sessionId)
-      ? `\n\nWARN (status turn — finalize soft-pass): ${finalizeBlock.reason.split('\n')[0]}\n` +
-        `Finish documenter → domain-updater on the next work/ship turn.`
-      : '';
+  let finalizeWarn = '';
+  if (finalizeBlock && isStatusPromptTurn(sessionId)) {
+    finalizeWarn =
+      `\n\nWARN (status turn — finalize soft-pass): ${finalizeBlock.reason.split('\n')[0]}\n` +
+      `Finish documenter → domain-updater on the next work/ship turn.`;
+  } else if (finalizeBlock && thrashSoft) {
+    finalizeWarn =
+      `\n\nWARN (finalize anti-thrash — soft-pass after ${FINALIZE_THRASH_LIMIT} blocks): ` +
+      `${finalizeBlock.reason.split('\n')[0]}\n` +
+      `Do NOT claim the task fully done. NEXT turn MUST run documenter → domain-updater.`;
+  }
 
   // All good. If per-instance scoping hid orphan dirty files (dirty, but not in
   // THIS session's filesTouched), surface them — they may be your own Bash/codegen
@@ -387,9 +380,59 @@ function validate(sessionId: string | undefined): HookResult {
     decision: 'approve',
     reason:
       `ALL CHECKS PASSED ✅\nStack: ${stackId}\nBranch: ${branch}\nTree: Clean (this-session scope)\nSecrets: clean\nFinalize: docs current` +
+      sizeWarn +
       finalizeWarn +
       orphanNote,
   };
+}
+
+function shouldSoftPassFinalize(sessionId: string | undefined): boolean {
+  if (!sessionId) return false;
+  try {
+    const n = readSession(getStateDir(PROJECT_DIR), sessionId)?.finalizeBlockCount || 0;
+    return n >= FINALIZE_THRASH_LIMIT;
+  } catch {
+    return false;
+  }
+}
+
+function classifyStopKind(result: HookResult): StopKind {
+  if (result.decision === 'approve') {
+    if (/finalize anti-thrash|finalize soft-pass/i.test(result.reason)) return 'finalize';
+    return 'ok';
+  }
+  const r = result.reason;
+  if (/uncommitted files/i.test(r)) return 'dirty';
+  if (/CLAUDE\.md is \d+ chars/i.test(r)) return 'size';
+  if (/was not updated|documenter skipped|_index\.json last_commit/i.test(r)) return 'finalize';
+  if (/On branch/i.test(r)) return 'branch';
+  if (/secrets detected/i.test(r)) return 'secrets';
+  if (/CLAUDE\.md not found|missing sections/i.test(r)) return 'missing';
+  return 'other';
+}
+
+function recordStopOutcome(sessionId: string | undefined, result: HookResult): void {
+  if (!sessionId) return;
+  try {
+    const stateDir = getStateDir(PROJECT_DIR);
+    ensureStateDirs(stateDir);
+    const kind = classifyStopKind(result);
+    const prev = readSession(stateDir, sessionId);
+    let finalizeBlockCount = prev?.finalizeBlockCount || 0;
+    if (result.decision === 'block' && kind === 'finalize') {
+      finalizeBlockCount += 1;
+    } else if (result.decision === 'approve' && kind === 'ok') {
+      finalizeBlockCount = 0;
+    }
+    // Soft-pass finalize (status/thrash) keeps debt visible to UPS via lastStopKind.
+    heartbeat(stateDir, sessionId, `Stop:${kind}`, {
+      lastStopKind: kind,
+      finalizeBlockCount,
+      lastSeenAt: nowIso(),
+    });
+  } catch {
+    /* fail-open */
+  }
 }
 
 function isStatusPromptTurn(sessionId: string | undefined): boolean {
@@ -582,6 +625,7 @@ async function main(): Promise<void> {
   }
 
   const result = validate(sessionId);
+  recordStopOutcome(sessionId, result);
 
   try {
     const stateDir = getStateDir(PROJECT_DIR);

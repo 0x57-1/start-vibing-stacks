@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-09 · main · v2.82.0
+Stop/UPS recovery: COMMIT-FIRST, FINALIZE anti-thrash, CLAUDE.md soft 36k;
+memories quality-gate-before-push, cdn-asset-deploy-verify, oauth-preflight;
+commit-manager **3.4.0** test veto before push.
+
 ### 2026-08-09 · main · v2.81.0
 Ignore Claude scratchpads (`/tmp/claude-*`, `~/.claude/*`) in filesTouched —
 fixes false finalize/plan-gate/Stop on temp edits; prune on post-tool-use/scope.
@@ -43,10 +48,6 @@ archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); L
 ### 2026-08-08 · main · v2.76.0
 README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
 documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
-
-### 2026-08-08 · main · v2.75.0
-Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
-SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1.3.0**.
 
 ### 2026-08-02 · main · v2.71.0
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
@@ -433,6 +434,18 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/verify-before-claim.md`
 
-- **execute-ship-ops.md** — Status checks stay light; urgent push/deploy = SHIP NOW (no “push is yours”); fix double global+project UPS. UPS **1.10.0** / Stop **1.9.0**.
+- **execute-ship-ops.md** — Status checks stay light; urgent push/deploy = SHIP NOW; COMMIT-FIRST / FINALIZE-NOW recovery from `lastStopKind`. UPS **1.11** / Stop **1.10**.
 
   Loaded from: `.claude/memories/execute-ship-ops.md`
+
+- **quality-gate-before-push.md** — Local tests red → veto push (commit-manager 3.4+).
+
+  Loaded from: `.claude/memories/quality-gate-before-push.md`
+
+- **cdn-asset-deploy-verify.md** — Curl live CDN/launcher markers before claiming published.
+
+  Loaded from: `.claude/memories/cdn-asset-deploy-verify.md`
+
+- **oauth-integration-preflight.md** — Verify redirect_uri + secrets before OAuth “plan ready”.
+
+  Loaded from: `.claude/memories/oauth-integration-preflight.md`

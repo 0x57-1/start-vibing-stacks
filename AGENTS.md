@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-09 · main · v2.82.0
+Stop/UPS COMMIT-FIRST + finalize anti-thrash + CLAUDE.md soft 36k; test veto
+before push; CDN/OAuth memories; commit-manager **3.4.0**.
+
 ### 2026-08-09 · main · v2.81.0
 Ignore Claude scratchpads in filesTouched — fixes false finalize/plan-gate/Stop
 on `/tmp/claude-*` and `~/.claude/*` edits.

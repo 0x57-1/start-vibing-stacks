@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: Execute Ship Ops (No Hesitation on Push / Status)
@@ -38,8 +38,19 @@ After a production fix is committed, the user expects **push → CI watch → de
 ## Protocol
 
 1. **Status turn:** `git status -sb`, `git log origin..HEAD`, CDN/curl, `gh run` — answer. Do not Edit CLAUDE.md.
-2. **Ship turn:** push scoped commits → watch Actions → run republish commands the user named → report live proof.
-3. **Finalize debt:** documenter/domain-updater still required on the next **work** turn; Stop soft-passes finalize on **status** turns (UPS `lastPromptKind`).
+2. **Ship turn:** push scoped commits → watch Actions → run republish commands the user named → report live proof (`cdn-asset-deploy-verify`).
+3. **Finalize debt:** documenter/domain-updater still required on the next **work** turn; Stop soft-passes finalize on **status** turns and after finalize **anti-thrash** (2 hard blocks).
+4. **COMMIT-FIRST:** if UPS shows `STOP-RECOVERY — COMMIT-FIRST`, run `scope.ts commit` before any other answer. Dirty-tree Stop loops are the #1 session waste.
+
+---
+
+## Stop recovery (UPS 1.11+)
+
+| `lastStopKind` | Do this first |
+|----------------|---------------|
+| `dirty` | `scope.ts commit` then re-Stop |
+| `finalize` | documenter → domain-updater |
+| `size` | claude-md-compactor (soft 36k / hard 40k) |
 
 ---
 

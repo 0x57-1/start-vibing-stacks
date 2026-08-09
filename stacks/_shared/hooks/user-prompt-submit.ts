@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.10.1
+// @sv-version: 1.11.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,11 +10,11 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
- * v1.10.1: FINALIZE nudge only when in-project source was touched (scratchpads
- * under /tmp/claude-* no longer force finalize spam).
- * v1.10.0: Prompt kind `status`|`ship`|`work` — light UPS for status checks
- * (no full workflow / finalize); SHIP NOW for urgent push/deploy; persist
- * lastPromptKind for Stop soft-pass (memory execute-ship-ops).
+ * v1.11.0: STOP-RECOVERY nudges from lastStopKind (COMMIT-FIRST / FINALIZE-NOW /
+ * COMPACT-NOW); CLAUDE.md soft-cap 36k warn; memories quality-gate-before-push,
+ * cdn-asset-deploy-verify, oauth-integration-preflight.
+ * v1.10.1: FINALIZE nudge only when in-project source was touched.
+ * v1.10.0: Prompt kind `status`|`ship`|`work` + SHIP NOW.
  * v1.9.0: VERIFY-EVIDENCE + MULTI-PART EXECUTE nudges (memory verify-before-claim)
  * when prompt asks for review/security/audit or lists multiple || parts — block
  * memory-only answers and “which first?” evasion.
@@ -62,7 +62,10 @@ import {
   type InboxMessage,
   type PromptKind,
   type SessionRecord,
+  type StopKind,
 } from './_state.js';
+
+const CLAUDE_MD_SOFT = 36000;
 
 const PROJECT_DIR = getProjectDir();
 const ACTIVE_PROJECT = join(PROJECT_DIR, '.claude', 'config', 'active-project.json');
@@ -283,14 +286,61 @@ function buildShipNowBlock(prompt: string): string {
   );
 }
 
-function buildStatusOnlyMessage(peersBlock: string): string {
+function buildStatusOnlyMessage(peersBlock: string, recoveryBlock: string): string {
   return (
     `STATUS CHECK (memory: execute-ship-ops) — light turn:\n` +
     `  - Answer with git/gh/curl only. Do NOT start finalize, CLAUDE.md updates, UI agents, or Playwright.\n` +
     `  - If local is ahead of origin, say so with SHAs — do not invent “waiting for you” when the user asked to ship.\n` +
     `  - Stop soft-passes finalize debt on status turns; finish documenter later on a work/ship turn.` +
+    recoveryBlock +
     peersBlock
   );
+}
+
+function buildStopRecoveryBlock(
+  lastStopKind: StopKind | undefined,
+  claudeChars: number
+): string {
+  const parts: string[] = [];
+  if (lastStopKind === 'dirty') {
+    parts.push(
+      '',
+      'STOP-RECOVERY — COMMIT-FIRST (memory: execute-ship-ops):',
+      '  Last Stop BLOCKED on uncommitted session files. BEFORE anything else:',
+      '  1. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status',
+      '  2. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"',
+      '  3. Re-Stop. FORBIDDEN: answering the user while session files stay dirty.'
+    );
+  } else if (lastStopKind === 'finalize') {
+    parts.push(
+      '',
+      'STOP-RECOVERY — FINALIZE-NOW (skill: svs-finalize):',
+      '  Last Stop found source edits without documenter → domain-updater.',
+      '  Run that chain THIS turn (or after commit if still dirty). Do not re-Stop hoping it passes.'
+    );
+  } else if (lastStopKind === 'size' || claudeChars > CLAUDE_MD_SOFT) {
+    parts.push(
+      '',
+      `STOP-RECOVERY — COMPACT-NOW: CLAUDE.md is ${claudeChars || '?'} chars (soft ${CLAUDE_MD_SOFT} / hard 40000).`,
+      '  Run claude-md-compactor BEFORE domain-updater prepends another Recent Changes entry.'
+    );
+  } else if (lastStopKind === 'branch') {
+    parts.push(
+      '',
+      'STOP-RECOVERY — merge feature branch to main, then push (never leave Stop blocked on branch).'
+    );
+  }
+  return parts.join('\n');
+}
+
+function claudeMdCharCount(projectDir: string): number {
+  try {
+    const p = join(projectDir, 'CLAUDE.md');
+    if (!existsSync(p)) return 0;
+    return readFileSync(p, 'utf8').length;
+  } catch {
+    return 0;
+  }
 }
 
 function buildVerifyEvidenceBlock(prompt: string): string {
@@ -344,24 +394,33 @@ async function main(): Promise<void> {
 
   const today = new Date().toISOString().split('T')[0];
   const promptKind = classifyPrompt(prompt);
+  const claudeChars = claudeMdCharCount(PROJECT_DIR);
 
   let peersBlock = '';
   let touchedFiles: string[] = [];
+  let lastStopKind: StopKind | undefined;
   const sessionId: string | undefined = hookInput.session_id || hookInput.sessionId;
   if (sessionId) {
     const stateDir = getStateDir(PROJECT_DIR);
     try {
       peersBlock = buildPeersBlock(stateDir, sessionId, prompt, promptKind);
-      touchedFiles = readSession(stateDir, sessionId)?.filesTouched || [];
+      const sess = readSession(stateDir, sessionId);
+      touchedFiles = sess?.filesTouched || [];
+      lastStopKind = sess?.lastStopKind;
     } catch {
       peersBlock = '';
     }
   }
 
-  // Status turns: skip heavy TASK WORKFLOW (agents freeze on CI/deploy checks otherwise).
-  if (promptKind === 'status') {
+  const recoveryBlock = buildStopRecoveryBlock(lastStopKind, claudeChars);
+
+  // Dirty recovery wins even on status prompts — commit before CI narration.
+  if (promptKind === 'status' && lastStopKind !== 'dirty') {
     console.log(
-      JSON.stringify({ continue: true, systemMessage: buildStatusOnlyMessage(peersBlock) })
+      JSON.stringify({
+        continue: true,
+        systemMessage: buildStatusOnlyMessage(peersBlock, recoveryBlock),
+      })
     );
     process.exit(0);
   }
@@ -401,19 +460,21 @@ async function main(): Promise<void> {
 
 4. Run quality gates: ${qualityCmd}
 
-5. COMMIT using conventional commits via commit-manager agent (v3.2.0+: stages only THIS session's files via scope.ts when .claude/state/ exists — peers' uncommitted files are never bundled). After push, VERIFY GitHub Actions for the SHA (gh run list/watch) — do not claim deploy success without checking (memory: post-push-ci-verification). When the user asks to ship/push/urgent/production, push immediately (memory: execute-ship-ops) — do not leave commits local and wait.
+5. COMMIT using conventional commits via commit-manager agent (v3.4.0+: stages only THIS session's files via scope.ts; run stack tests before push — veto if red; memory quality-gate-before-push). After push, VERIFY GitHub Actions + CDN/asset checks when applicable (post-push-ci-verification, cdn-asset-deploy-verify). Ship/urgent → push immediately (execute-ship-ops).
 
 5b. IDE SYNC — if Cursor shows "Opened changes / Save file to continue" during edits, that is buffer sync (not Bypass failure). Ask user to save or allow-all once; re-Read; see memory cursor-ide-edit-sync + .claude/settings.local.example.json.
+
+5c. OAuth / third-party redirect setup — verify redirect_uri + client secrets against the live console BEFORE claiming the plan is ready (memory: oauth-integration-preflight).
 
 6. UPDATE CLAUDE.md:
    a. PREPEND a new entry under "## Recent Changes" — heading exactly:
       "### ${today} · <branch> · <version-or-tag>" followed by 1-4 plain-text lines.
       Append-only LIFO; cap 10 (drop ONLY the oldest if exceeded). Multi-instance safe.
-      Triggered automatically by domain-updater v3.0.0; do it manually only if running outside the chain.
+      If CLAUDE.md > ${CLAUDE_MD_SOFT} chars, run claude-md-compactor FIRST.
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}`;
+7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

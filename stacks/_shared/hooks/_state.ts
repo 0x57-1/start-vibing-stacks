@@ -1,4 +1,4 @@
-// @sv-version: 1.6.0
+// @sv-version: 1.7.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -45,6 +45,10 @@
  * v1.6.0: `toProjectRelativePath` / `extractTargetFiles` DROP paths outside the
  * project (Claude scratchpads under `/private/tmp/claude-*`, `~/.claude/skills`,
  * other repos). Those were polluting filesTouched → false finalize + plan-gate.
+ *
+ * v1.7.0: `lastStopKind` + `finalizeBlockCount` — Stop records why it blocked;
+ * UPS injects COMMIT-FIRST / FINALIZE-NOW / COMPACT-NOW; finalize soft-passes
+ * after repeated identical blocks (anti-thrash).
  */
 
 import {
@@ -80,6 +84,17 @@ export type SvsTarget = 'claude' | 'kimi' | 'grok';
 /** Last UserPromptSubmit classification (UPS → Stop soft-pass). */
 export type PromptKind = 'status' | 'ship' | 'work';
 
+/** Why Stop last blocked (UPS recovery nudges). */
+export type StopKind =
+  | 'ok'
+  | 'dirty'
+  | 'branch'
+  | 'finalize'
+  | 'size'
+  | 'secrets'
+  | 'missing'
+  | 'other';
+
 export interface SessionRecord {
   sessionId: string;
   transcriptPath?: string;
@@ -99,6 +114,10 @@ export interface SessionRecord {
   nativeSessionDir?: string;
   /** Set by UPS each turn — Stop skips finalize hard-block when `status`. */
   lastPromptKind?: PromptKind;
+  /** Set by Stop — UPS injects COMMIT-FIRST / FINALIZE-NOW / COMPACT-NOW. */
+  lastStopKind?: StopKind;
+  /** Consecutive finalize hard-blocks; ≥2 → soft-pass (anti-thrash). */
+  finalizeBlockCount?: number;
 }
 
 export interface NativeSessionMeta {

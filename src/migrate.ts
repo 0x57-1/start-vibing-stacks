@@ -616,6 +616,9 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/claude-cross-session-messaging.md',
     '.claude/memories/verify-before-claim.md',
     '.claude/memories/execute-ship-ops.md',
+    '.claude/memories/quality-gate-before-push.md',
+    '.claude/memories/cdn-asset-deploy-verify.md',
+    '.claude/memories/oauth-integration-preflight.md',
   ];
 
   if (!settings.context) settings.context = {};
