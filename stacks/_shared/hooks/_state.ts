@@ -1,4 +1,4 @@
-// @sv-version: 1.5.0
+// @sv-version: 1.6.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
@@ -41,6 +41,10 @@
  * v1.5.0: optional `lastPromptKind` (`status`|`ship`|`work`) — UPS classifies
  * the user prompt; Stop soft-passes finalize on status checks so deploy/CI
  * questions are not blocked by documenter debt.
+ *
+ * v1.6.0: `toProjectRelativePath` / `extractTargetFiles` DROP paths outside the
+ * project (Claude scratchpads under `/private/tmp/claude-*`, `~/.claude/skills`,
+ * other repos). Those were polluting filesTouched → false finalize + plan-gate.
  */
 
 import {
@@ -734,8 +738,39 @@ export function classifyAge(ageMsec: number): 'active' | 'idle' | 'stale' {
 }
 
 /**
- * Inspect tool input and return a list of file paths that will be touched.
- * Returns paths relative to projectDir when possible, else absolute.
+ * Normalize a path to repo-relative form, or `null` if it is outside `projectDir`.
+ *
+ * Claude routinely Write()s session scratchpads under `/private/tmp/claude-<uid>/…`
+ * and edits `~/.claude/skills|projects/…`. Recording those into filesTouched made
+ * plan-gate fire early and Stop finalize treat scratch `.js`/`.php` as “source
+ * edits” — blocking the turn for CLAUDE.md debt that does not apply.
+ */
+export function toProjectRelativePath(p: string, projectDir: string): string | null {
+  if (typeof p !== 'string' || !p.trim()) return null;
+  const root = resolve(projectDir);
+  const abs = isAbsolute(p) ? resolve(p) : resolve(root, p);
+  const rel = relative(root, abs);
+  if (!rel || rel.startsWith('..') || isAbsolute(rel)) return null;
+  return rel.split('\\').join('/');
+}
+
+/** Keep only in-project paths (repo-relative). Drops absolute outsides as-is. */
+export function filterProjectPaths(paths: string[] | undefined, projectDir: string): string[] {
+  if (!Array.isArray(paths) || paths.length === 0) return [];
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const p of paths) {
+    const rel = toProjectRelativePath(p, projectDir);
+    if (!rel || seen.has(rel)) continue;
+    seen.add(rel);
+    out.push(rel);
+  }
+  return out;
+}
+
+/**
+ * Inspect tool input and return project-relative paths that will be touched.
+ * Paths outside the project are omitted (not recorded).
  */
 export function extractTargetFiles(toolName: string, toolInput: any, projectDir: string): string[] {
   if (!toolInput || typeof toolInput !== 'object') return [];
@@ -747,12 +782,9 @@ export function extractTargetFiles(toolName: string, toolInput: any, projectDir:
   // is NOT MINE" — the string simply fails to equal the git porcelain path.
   const push = (p: any) => {
     if (typeof p !== 'string' || !p) return;
-    const abs = isAbsolute(p) ? p : resolve(projectDir, p);
-    let rel = relative(projectDir, abs);
-    // Outside the project tree (rare): keep the original so we never crash; it
-    // simply will not match a git path, which is the correct, safe outcome.
-    if (!rel || rel.startsWith('..')) rel = p;
-    out.push(rel.split('\\').join('/'));
+    const rel = toProjectRelativePath(p, projectDir);
+    if (!rel) return; // outside project — ignore (scratchpads, ~/.claude, other repos)
+    out.push(rel);
   };
   // Claude + Kimi + Grok (post bridge alias) edit-class tools
   if (

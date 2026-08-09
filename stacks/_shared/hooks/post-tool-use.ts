@@ -1,21 +1,25 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * PostToolUse Hook — Multi-Instance Coordination
  *
  * Wired with matcher `Edit|Write|MultiEdit|NotebookEdit`. Runs AFTER a write
  * succeeds. Responsibilities:
  *  1. Append a `FileTouch` record to `.claude/state/file-touches.jsonl`.
- *  2. Update the session's heartbeat + `filesTouched` (capped at 50, deduped).
+ *  2. Update the session's heartbeat + `filesTouched` (capped, deduped).
+ *  3. Prune legacy out-of-project paths from filesTouched (scratchpads).
  *
  * On any internal error the hook exits silently — coordination must NEVER
  * disturb Claude after a successful tool call.
+ *
+ * v1.1.0: never record / keep paths outside the project; prune polluted lists.
  */
 
 import {
   FILES_TOUCHED_CAP,
   ensureStateDirs,
   extractTargetFiles,
+  filterProjectPaths,
   getProjectDir,
   getStateDir,
   heartbeat,
@@ -54,7 +58,8 @@ async function main(): Promise<void> {
   }
 
   const session = readSession(stateDir, sessionId);
-  const previous = session?.filesTouched || [];
+  // Always prune outsides even when this Write was a scratchpad (targets=[]).
+  const previous = filterProjectPaths(session?.filesTouched, projectDir);
   const merged = dedupeKeepLast([...previous, ...targets], FILES_TOUCHED_CAP);
   heartbeat(stateDir, sessionId, `PostToolUse:${toolName}`, { filesTouched: merged });
 

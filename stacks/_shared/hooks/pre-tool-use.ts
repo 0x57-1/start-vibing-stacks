@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.1
+// @sv-version: 1.2.0
 /**
  * PreToolUse Hook — Multi-Instance Coordination
  *
@@ -20,6 +20,8 @@
  *
  * On any internal error, the hook approves silently — coordination must NEVER
  * break Claude.
+ *
+ * v1.2.0: ignore out-of-project targets (scratchpads) — no collision checks there.
  */
 
 import {

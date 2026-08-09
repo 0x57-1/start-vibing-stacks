@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.10.0
+// @sv-version: 1.10.1
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.10.1: FINALIZE nudge only when in-project source was touched (scratchpads
+ * under /tmp/claude-* no longer force finalize spam).
  * v1.10.0: Prompt kind `status`|`ship`|`work` — light UPS for status checks
  * (no full workflow / finalize); SHIP NOW for urgent push/deploy; persist
  * lastPromptKind for Stop soft-pass (memory execute-ship-ops).
@@ -49,6 +51,7 @@ import {
   getGitBranch,
   getProjectDir,
   getStateDir,
+  filterProjectPaths,
   heartbeat,
   listPeerSessions,
   readSession,
@@ -165,7 +168,10 @@ function buildPeersBlock(
   // Status checks must stay light — do not pile finalize onto "foi publicado?".
   if (promptKind === 'status') return parts.join('\n');
 
-  const touched = readSession(stateDir, sessionId)?.filesTouched || existing?.filesTouched || [];
+  const touched = filterProjectPaths(
+    readSession(stateDir, sessionId)?.filesTouched || existing?.filesTouched || [],
+    PROJECT_DIR
+  );
   const hasSource = touched.some((f) =>
     /\.(ts|tsx|js|jsx|mjs|cjs|php|py|go|rs|vue|svelte)$/i.test(f)
   );

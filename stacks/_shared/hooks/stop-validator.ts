@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.9.0
+// @sv-version: 1.9.1
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -44,6 +44,9 @@
  *
  * v1.9.0: when session `lastPromptKind === 'status'`, finalize-chain failures
  * become WARN (approve) — “foi publicado?” must not force documenter mid-check.
+ *
+ * v1.9.1: finalize only counts in-project filesTouched (ignore Claude scratchpads
+ * under /tmp/claude-* and ~/.claude paths that used to trip source-edit gates).
  */
 
 import { execSync } from 'child_process';
@@ -54,6 +57,7 @@ import {
   ageMs,
   archiveSession,
   clearInbox,
+  filterProjectPaths,
   heartbeat,
   rehydrateSessionTouches,
   unarchiveSession,
@@ -445,7 +449,9 @@ function checkFinalizeChain(sessionId: string | undefined, claudeMd: string): Ho
   }
   if (!sess?.filesTouched?.length || !sess.startedAt) return null;
 
-  const sourceTouched = sess.filesTouched.filter(isFinalizeSourcePath);
+  // Scratchpads / ~/.claude edits must not trigger finalize (v1.9.1).
+  const inProject = filterProjectPaths(sess.filesTouched, PROJECT_DIR);
+  const sourceTouched = inProject.filter(isFinalizeSourcePath);
   if (sourceTouched.length === 0) return null;
 
   const startedMs = Date.parse(sess.startedAt);

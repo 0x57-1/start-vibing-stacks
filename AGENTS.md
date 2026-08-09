@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-09 · main · v2.81.0
+Ignore Claude scratchpads in filesTouched — fixes false finalize/plan-gate/Stop
+on `/tmp/claude-*` and `~/.claude/*` edits.
+
 ### 2026-08-09 · main · v2.80.0
 UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK; SHIP NOW on urgent push;
 finalize soft-pass on status; memory `execute-ship-ops`; global UPS no-op template.
@@ -62,11 +66,6 @@ documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok age
 ### 2026-08-08 · main · v2.75.0
 Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
 SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1.3.0**.
-
-### 2026-08-08 · main · v2.74.0
-Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
-npm-latest check warns stale npx cache; `--skip-update` opt-out. Resume menu
-puts Update first when pending.
 
 
 <!-- SVS:POLICY-PACK:START -->

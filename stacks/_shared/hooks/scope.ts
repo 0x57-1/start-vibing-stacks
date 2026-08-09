@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * `scope` — Per-Instance Commit Scoping CLI
  *
@@ -11,6 +11,7 @@
  *   `.claude/state/sessions/<id>.json#filesTouched`
  * which is maintained by `post-tool-use.ts` (capped at 200, dedup-keep-last).
  *
+ * v1.3.0: prune out-of-project paths from filesTouched (Claude scratchpads).
  * v1.2.0: if filesTouched is empty (Grok resume after SessionEnd archive),
  * rehydrate from `_archive/` + `file-touches.jsonl` before status/stage/commit.
  *
@@ -51,6 +52,7 @@ import {
   ACTIVE_MS,
   COLLISION_WINDOW_MS,
   ageMs,
+  filterProjectPaths,
   getProjectDir,
   getStateDir,
   heartbeat,
@@ -65,20 +67,27 @@ import {
   type SessionRecord,
 } from './_state.js';
 
-/** Restore filesTouched after Grok SessionEnd wipe so commit/status stay scoped. */
+/** Restore + prune filesTouched (Grok resume wipe; drop /tmp/claude-* scratchpads). */
 function ensureSessionTouches(stateDir: string, sessionId: string): SessionRecord | null {
+  const projectDir = getProjectDir();
   if (!readSession(stateDir, sessionId)) {
     unarchiveSession(stateDir, sessionId);
   }
   let session = readSession(stateDir, sessionId);
   if (!session) return null;
-  if (session.filesTouched?.length) return session;
-  const hydrated = rehydrateSessionTouches(stateDir, sessionId, session);
-  if (hydrated.filesTouched.length === 0) return session;
-  return heartbeat(stateDir, sessionId, 'scope:rehydrate', {
-    filesTouched: hydrated.filesTouched,
-    startedAt: hydrated.startedAt,
-  });
+  if (!session.filesTouched?.length) {
+    const hydrated = rehydrateSessionTouches(stateDir, sessionId, session);
+    if (hydrated.filesTouched.length === 0) return session;
+    session = heartbeat(stateDir, sessionId, 'scope:rehydrate', {
+      filesTouched: hydrated.filesTouched,
+      startedAt: hydrated.startedAt,
+    });
+  }
+  const pruned = filterProjectPaths(session.filesTouched, projectDir);
+  if (pruned.length !== (session.filesTouched || []).length) {
+    return heartbeat(stateDir, sessionId, 'scope:prune-outside', { filesTouched: pruned });
+  }
+  return session;
 }
 
 interface GitStatus {
@@ -347,7 +356,9 @@ function cmdDiff(stateDir: string, projectDir: string, args: string[]): number {
     return 1;
   }
 
-  const files = session.filesTouched.filter(f => existsSync(join(projectDir, f)));
+  const files = filterProjectPaths(session.filesTouched, projectDir).filter(f =>
+    existsSync(join(projectDir, f))
+  );
   if (files.length === 0) {
     console.error('This session has no tracked files (or none exist on disk).');
     return 1;

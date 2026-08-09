@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-09 · main · v2.81.0
+Ignore Claude scratchpads (`/tmp/claude-*`, `~/.claude/*`) in filesTouched —
+fixes false finalize/plan-gate/Stop on temp edits; prune on post-tool-use/scope.
+
 ### 2026-08-09 · main · v2.80.0
 UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK (no finalize dump); SHIP NOW on
 urgent push; soft-pass finalize on status; memory `execute-ship-ops`; global UPS
@@ -43,11 +47,6 @@ documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok age
 ### 2026-08-08 · main · v2.75.0
 Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
 SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1.3.0**.
-
-### 2026-08-08 · main · v2.74.0
-Launch Kimi/Grok/Claude auto-runs `migrate --apply` when artefacts outdated;
-npm-latest check warns stale npx cache; `--skip-update` opt-out. Resume menu
-puts Update first when pending.
 
 ### 2026-08-02 · main · v2.71.0
 `ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/

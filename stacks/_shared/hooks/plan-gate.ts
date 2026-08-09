@@ -1,13 +1,17 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * PreToolUse Hook — Plan Gate (high-reasoning nudge)
  *
  * Wired with matcher `Edit|Write|MultiEdit|NotebookEdit`, alongside pre-tool-use.ts.
  * When a SINGLE session is about to touch MORE THAN the threshold (default 4)
- * DISTINCT files, it fires ONCE per session: returns `permissionDecision: "ask"`
- * so Claude Code prompts the USER, recommending they cancel, run `/effort` and
- * select `ultracode`, then confirm a short plan before the large change proceeds.
+ * DISTINCT **in-project** files, it fires ONCE per session: returns
+ * `permissionDecision: "ask"` so Claude Code prompts the USER, recommending they
+ * cancel, run `/effort` and select `ultracode`, then confirm a short plan before
+ * the large change proceeds.
+ *
+ * v1.1.0: count only project-relative paths (scratchpads under /tmp/claude-* and
+ * ~/.claude edits no longer inflate the distinct-file counter).
  *
  * WHY ONLY A RECOMMENDATION (hard limitation, confirmed in the hooks docs):
  *   "Command hooks communicate through stdout, stderr, and exit codes only. They
@@ -36,6 +40,7 @@
 
 import {
   extractTargetFiles,
+  filterProjectPaths,
   getProjectDir,
   getStateDir,
   nowIso,
@@ -96,7 +101,7 @@ async function main(): Promise<void> {
   }
 
   const threshold = parseThreshold(process.env['PLAN_GATE_THRESHOLD']);
-  const distinct = new Set(session.filesTouched || []);
+  const distinct = new Set(filterProjectPaths(session.filesTouched, projectDir));
   for (const f of extractTargetFiles(toolName, toolInput, projectDir)) distinct.add(f);
 
   if (distinct.size <= threshold) {

@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: Execute Ship Ops (No Hesitation on Push / Status)
@@ -50,11 +50,27 @@ If Claude shows **two** `UserPromptSubmit says:` blocks (one “Stack: php”, o
 Fix once:
 
 ```bash
-cp "$(npm root -g 2>/dev/null)/start-vibing-stacks/stacks/_shared/config/user-prompt-submit.global.ts" \
-  ~/.claude/hooks/user-prompt-submit.ts
-# or from a clone:
 cp stacks/_shared/config/user-prompt-submit.global.ts ~/.claude/hooks/user-prompt-submit.ts
 ```
+
+## Out-of-project edits (scratchpads) — not finalize
+
+Claude Write()s under `/private/tmp/claude-<uid>/…/scratchpad/` and sometimes
+`~/.claude/skills|projects/…`. **SVS ≥ 2.81.0** does **not** record those in
+`filesTouched`. They must not trigger FINALIZE / plan-gate / Stop CLAUDE.md blocks.
+
+If you still see Stop blocked after only scratchpad work on an old session, prune:
+
+```bash
+# session json: drop absolute paths from filesTouched, or run any in-project Edit
+# (post-tool-use 1.1.0 prunes on the next write)
+```
+
+## Duplicate Stop (global + project)
+
+`~/.claude/settings.json` must **not** register a global `Stop` when projects use
+SVS `stop-validator` (global `stop-validator.ts` is often `.disabled` but still
+counts as “Ran N stop hooks”). Keep global UPS only; project owns Stop.
 
 ---
 
