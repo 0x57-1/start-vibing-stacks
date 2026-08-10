@@ -274,7 +274,7 @@ function memoryIndexSkillBody(): string {
     '| `email-push-marketing-authorization.md` | Owned-list email/push (any niche; no phishing) |',
     '| `defensive-security-review.md` | OWASP/source review of owned code |',
     '| `verify-before-claim.md` | Review/security: fresh tools; no memory-only; execute all || parts |',
-    '| `execute-ship-ops.md` | Status light; urgent push/deploy now; COMMIT-FIRST recovery |',
+    '| `execute-ship-ops.md` | SAFE SHIP vs ATTENTION GATE; push+deploy; COMMIT-FIRST |',
     '| `quality-gate-before-push.md` | Tests red → veto push |',
     '| `cdn-asset-deploy-verify.md` | Curl CDN/launcher markers before “published” |',
     '| `oauth-integration-preflight.md` | redirect_uri + secret check before OAuth plan |',

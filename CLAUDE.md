@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-10 · main · v2.83.0
+`execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy now) vs ATTENTION
+GATE (ask before commit with risk/evidence); workflow auth until loop closes;
+full artifact inventory (launchers + pw.js etc.).
+
 ### 2026-08-09 · main · v2.82.0
 Stop/UPS recovery: COMMIT-FIRST, FINALIZE anti-thrash, CLAUDE.md soft 36k;
 memories quality-gate-before-push, cdn-asset-deploy-verify, oauth-preflight;
@@ -48,12 +53,6 @@ archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); L
 ### 2026-08-08 · main · v2.76.0
 README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
 documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
-
-### 2026-08-02 · main · v2.71.0
-`ad-creative-audio-licensing`: analyze competitor audio energy; mux licensed/user/
-platform commercial beds — refuse pirate hits / uncleared competitor beds. Ads master
-**1.3.0**; policy **1.2.1**; Grok **1.11.0**.
-
 
 ---
 
@@ -434,7 +433,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/verify-before-claim.md`
 
-- **execute-ship-ops.md** — Status checks stay light; urgent push/deploy = SHIP NOW; COMMIT-FIRST / FINALIZE-NOW recovery from `lastStopKind`. UPS **1.11** / Stop **1.10**.
+- **execute-ship-ops.md** — SAFE SHIP → push+watch+republish; ATTENTION GATE → ask before commit (risk/evidence); status stays light; COMMIT-FIRST recovery. UPS **1.12** / Stop **1.10**.
 
   Loaded from: `.claude/memories/execute-ship-ops.md`
 

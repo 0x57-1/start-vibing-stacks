@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: CDN / Asset Deploy Verify
@@ -46,6 +46,7 @@ Users then paste curl/CDN output proving the gate string is missing.
 | “Push done = CDN updated” | Cache + async republish |
 | Claiming marker present without curl this turn | Memory-only |
 | Stopping at CI green when user asked about the **launcher URL** | Wrong layer |
+| “Republiquei todos os launchers” while skipping a sibling artifact (`pw.js`, etc.) | Incomplete inventory — see `execute-ship-ops` ATTENTION GATE |
 
 ---
 

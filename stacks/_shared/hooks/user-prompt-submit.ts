@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.11.0
+// @sv-version: 1.12.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.12.0: SHIP NOW = SAFE SHIP (push+deploy) vs ATTENTION GATE (ask before
+ * commit); workflow auth lasts until loop closes; full artifact inventory.
  * v1.11.0: STOP-RECOVERY nudges from lastStopKind (COMMIT-FIRST / FINALIZE-NOW /
  * COMPACT-NOW); CLAUDE.md soft-cap 36k warn; memories quality-gate-before-push,
  * cdn-asset-deploy-verify, oauth-integration-preflight.
@@ -278,11 +280,15 @@ function classifyPrompt(prompt: string): PromptKind {
 function buildShipNowBlock(prompt: string): string {
   if (!SHIP_PROMPT_RE.test(prompt)) return '';
   return (
-    `\n\nSHIP NOW (memory: execute-ship-ops) — production urgency:\n` +
-    `  1. Push scoped commits: \`git push origin <branch>\` — FORBIDDEN: “push is your job” / waiting for a second ask.\n` +
-    `  2. \`gh run list/watch\` for the SHA (post-push-ci-verification).\n` +
-    `  3. Run republish/deploy ops the user named (artisan, jobs, CDN curl checks).\n` +
-    `  4. Report live evidence. Do not stop at “pushed” without CI/deploy status.`
+    `\n\nSHIP NOW (memory: execute-ship-ops v1.3) — classify then act:\n` +
+    `  SAFE SHIP (scoped, no secrets, tests OK, deploy targets known, matches user ask):\n` +
+    `    1. Commit via scope.ts → \`git push\` immediately — FORBIDDEN: “push is your job” / re-asking.\n` +
+    `    2. \`gh run list/watch\` (post-push-ci-verification).\n` +
+    `    3. Run EVERY republish op for touched/named artifacts (launchers AND separate ones e.g. pw.js).\n` +
+    `    4. Live curl/marker proof (cdn-asset-deploy-verify). Workflow auth lasts until this loop closes.\n` +
+    `  ATTENTION GATE (secrets, destructive migration, peer file conflict, tests red, unclear blast, incomplete deploy inventory):\n` +
+    `    Do NOT commit/push. Ask the user with: Risk / Evidence / Options (proceed | fix first | abort).\n` +
+    `    FORBIDDEN: fake Attention for generic caution or multi-instance lore without a real conflict.`
   );
 }
 
@@ -460,7 +466,7 @@ async function main(): Promise<void> {
 
 4. Run quality gates: ${qualityCmd}
 
-5. COMMIT using conventional commits via commit-manager agent (v3.4.0+: stages only THIS session's files via scope.ts; run stack tests before push — veto if red; memory quality-gate-before-push). After push, VERIFY GitHub Actions + CDN/asset checks when applicable (post-push-ci-verification, cdn-asset-deploy-verify). Ship/urgent → push immediately (execute-ship-ops).
+5. COMMIT via commit-manager (v3.4.0+: scope.ts; tests before push — veto if red). Classify SAFE SHIP vs ATTENTION GATE (execute-ship-ops v1.3): SAFE → push+watch+every deploy artifact immediately; ATTENTION → ask before commit with risk/evidence. After push: post-push-ci-verification + cdn-asset-deploy-verify.
 
 5b. IDE SYNC — if Cursor shows "Opened changes / Save file to continue" during edits, that is buffer sync (not Bypass failure). Ask user to save or allow-all once; re-Read; see memory cursor-ide-edit-sync + .claude/settings.local.example.json.
 

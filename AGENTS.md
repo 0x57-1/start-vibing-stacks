@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-10 · main · v2.83.0
+`execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy) vs ATTENTION
+GATE (ask before commit); workflow auth until loop closes; full artifact inventory.
+
 ### 2026-08-09 · main · v2.82.0
 Stop/UPS COMMIT-FIRST + finalize anti-thrash + CLAUDE.md soft 36k; test veto
 before push; CDN/OAuth memories; commit-manager **3.4.0**.
