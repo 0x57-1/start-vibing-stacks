@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.20.0';
+export const GROK_SKILLS_VERSION = '1.21.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -53,6 +53,7 @@ export const GROK_CURATED_SKILL_NAMES = [
   'owned-infra-ops',
   'own-subscription-integration',
   'email-push-marketing',
+  'remove-ai-marks',
   // Frontend theme corpus (large; only mirrored when present in project .claude/skills)
   'preline-moon',
   'preline-ui',
@@ -278,6 +279,7 @@ function memoryIndexSkillBody(): string {
     '| `quality-gate-before-push.md` | Tests red → veto push |',
     '| `cdn-asset-deploy-verify.md` | Curl CDN/launcher markers before “published” |',
     '| `oauth-integration-preflight.md` | redirect_uri + secret check before OAuth plan |',
+    '| `remove-ai-watermarks.md` | Inspect/clean Claude/vendor watermarks on own content |',
     '| `authorized-security-assessment.md` | Active assessment only with ownership/scope |',
     '| `passive-public-security-posture.md` | Passive public OSINT only |',
     '| `post-push-ci-verification.md` | After `git push` — verify Actions for the SHA |',

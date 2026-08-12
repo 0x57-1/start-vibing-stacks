@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-12 · main · v2.84.0
+Skill `remove-ai-marks` (vendored watermarks-remover) + memory `remove-ai-watermarks`;
+UPS **1.13** step 3b — inspect/clean Layer A on user-facing prose before done.
+
 ### 2026-08-10 · main · v2.83.0
 `execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy now) vs ATTENTION
 GATE (ask before commit with risk/evidence); workflow auth until loop closes;
@@ -49,10 +53,6 @@ Ship `preline-moon` (offline Preline moon theme corpus) as default React fronten
 Grok Build **1.0.0**: SessionStart/scope/Stop **rehydrate** `filesTouched` after SessionEnd
 archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); Launch
 `grok --always-approve --trust`; skip observe-only Stop `channel_closed|shutdown`.
-
-### 2026-08-08 · main · v2.76.0
-README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
-documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
 
 ---
 
@@ -448,3 +448,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **oauth-integration-preflight.md** — Verify redirect_uri + secrets before OAuth “plan ready”.
 
   Loaded from: `.claude/memories/oauth-integration-preflight.md`
+
+- **remove-ai-watermarks.md** — Inspect/clean AI provenance (Unicode/C2PA) on own content before ship; skill `remove-ai-marks`. UPS **1.13**.
+
+  Loaded from: `.claude/memories/remove-ai-watermarks.md`

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.12.0
+// @sv-version: 1.13.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.13.0: WATERMARK HYGIENE step + CONTENT nudge (memory remove-ai-watermarks;
+ * skill remove-ai-marks) — inspect/clean Layer A when shipping user-facing prose.
  * v1.12.0: SHIP NOW = SAFE SHIP (push+deploy) vs ATTENTION GATE (ask before
  * commit); workflow auth lasts until loop closes; full artifact inventory.
  * v1.11.0: STOP-RECOVERY nudges from lastStopKind (COMMIT-FIRST / FINALIZE-NOW /
@@ -277,6 +279,21 @@ function classifyPrompt(prompt: string): PromptKind {
   return 'work';
 }
 
+/** User-facing content / watermark hygiene prompts. */
+const CONTENT_WATERMARK_RE =
+  /\b(artigo|article|landing|funil|funnel|copy|html|markdown|\.md\b|\.html\b|watermark|marca\s*d[\'']?\s*agua|claude\s*marks|c2pa|synthid|remove-ai-marks|publique\s+o\s+(artigo|texto)|escreva\s+(o\s+)?(artigo|texto|landing))\b/i;
+
+function buildWatermarkHygieneBlock(prompt: string): string {
+  if (!CONTENT_WATERMARK_RE.test(prompt)) return '';
+  return (
+    `\n\nWATERMARK HYGIENE (memory: remove-ai-watermarks + skill remove-ai-marks):\n` +
+    `  Before done: python3 "$CLAUDE_PROJECT_DIR/.claude/skills/remove-ai-marks/scripts/inspect_file.py" --json <artifact>\n` +
+    `  If suspicious_total > 0 or real C2PA/AI file metadata → clean_file/clean_text, re-inspect, report counts.\n` +
+    `  Ignore WordPress data-ai-* / ai-check-block ad-plugin false positives.\n` +
+    `  Offer Layer B rewrite for prose (non-origin model). Never claim “proves human-written”.`
+  );
+}
+
 function buildShipNowBlock(prompt: string): string {
   if (!SHIP_PROMPT_RE.test(prompt)) return '';
   return (
@@ -441,14 +458,17 @@ async function main(): Promise<void> {
   let verifyBlock = '';
   let multiPartBlock = '';
   let shipBlock = '';
+  let watermarkBlock = '';
   try {
     verifyBlock = buildVerifyEvidenceBlock(prompt);
     multiPartBlock = buildMultiPartExecuteBlock(prompt);
     shipBlock = buildShipNowBlock(prompt);
+    watermarkBlock = buildWatermarkHygieneBlock(prompt);
   } catch {
     verifyBlock = '';
     multiPartBlock = '';
     shipBlock = '';
+    watermarkBlock = '';
   }
 
   const systemMessage = `TASK WORKFLOW (Stack: ${stackName}):
@@ -463,6 +483,11 @@ async function main(): Promise<void> {
 3. DEAD-CODE HYGIENE — after replacements/refactors, delete unused legacy/inert paths
    in the same change (skill: dead-code-hygiene). Evidence via grep + typecheck/tests;
    do not leave // LEGACY stubs. On /fix: only code made unreachable by this fix.
+
+3b. AI WATERMARK HYGIENE — after writing/editing user-facing prose, articles, landings,
+   .md/.html (or when shipping AI-authored copy): run skill remove-ai-marks inspect;
+   if Layer A / real C2PA hits → clean before done (memory: remove-ai-watermarks).
+   Skip pure code-only changes. Ignore WordPress data-ai-* ad-plugin false positives.
 
 4. Run quality gates: ${qualityCmd}
 
@@ -480,7 +505,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}`;
+7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}${watermarkBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

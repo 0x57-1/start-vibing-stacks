@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-12 · main · v2.84.0
+Skill `remove-ai-marks` + memory `remove-ai-watermarks`; UPS **1.13** — inspect/clean
+Layer A watermarks on user-facing prose before done.
+
 ### 2026-08-10 · main · v2.83.0
 `execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy) vs ATTENTION
 GATE (ask before commit); workflow auth until loop closes; full artifact inventory.
