@@ -30,6 +30,9 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-12 · main · v2.84.1
+Drop `__pycache__` from vendored `remove-ai-marks`; gitignore Python bytecode.
+
 ### 2026-08-12 · main · v2.84.0
 Skill `remove-ai-marks` + memory `remove-ai-watermarks`; UPS **1.13** — inspect/clean
 Layer A watermarks on user-facing prose before done.

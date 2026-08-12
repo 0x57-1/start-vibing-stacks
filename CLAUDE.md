@@ -10,6 +10,9 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-12 · main · v2.84.1
+Drop accidental `__pycache__` from vendored `remove-ai-marks` scripts; gitignore Python bytecode.
+
 ### 2026-08-12 · main · v2.84.0
 Skill `remove-ai-marks` (vendored watermarks-remover) + memory `remove-ai-watermarks`;
 UPS **1.13** step 3b — inspect/clean Layer A on user-facing prose before done.
@@ -48,11 +51,6 @@ cross-refs so agents load moon corpus for markup/tokens, not invent from overvie
 ### 2026-08-08 · main · v2.78.0
 Ship `preline-moon` (offline Preline moon theme corpus) as default React frontend skill;
 `preline-ui` **2.1.0**; migrate scans `frontendBaseSkillsDir`; Grok curated + inertia baseSkills.
-
-### 2026-08-08 · main · v2.77.0
-Grok Build **1.0.0**: SessionStart/scope/Stop **rehydrate** `filesTouched` after SessionEnd
-archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); Launch
-`grok --always-approve --trust`; skip observe-only Stop `channel_closed|shutdown`.
 
 ---
 
