@@ -1,5 +1,5 @@
 ---
-version: 1.3.0
+version: 1.4.0
 ---
 
 # Memory: Execute Ship Ops (No Hesitation on Push / Status)
@@ -35,6 +35,7 @@ All of the following hold:
 | Check | Pass means |
 |-------|------------|
 | Scope | Only this session’s files (`scope.ts`); no peer conflict on same paths |
+| Branch | HEAD is `main` or `master` (memory `multi-instance-main-only`) — shared cwd peers share one HEAD |
 | Intent | Matches what the user already asked (fix/feature already authorized) |
 | Risk | No secrets/`.env`/credentials in the diff; no destructive migration / data wipe |
 | Quality | Stack tests green when source under test changed (`quality-gate-before-push`) |
@@ -52,6 +53,7 @@ If **any** of these apply, stop and present a short decision:
 | Trigger | Why not commit yet |
 |---------|-------------------|
 | Secrets / tokens / `.env` in diff | Leak risk |
+| Off `main`/`master` (or peer just ran `checkout -b` in shared cwd) | Deploy would hit the wrong branch — `multi-instance-main-only` |
 | Destructive DB / irreversible data change | Needs explicit OK |
 | Peer active on same files (multi-instance) | Stomp / wrong author |
 | Tests red or required suite not run | `quality-gate-before-push` veto |

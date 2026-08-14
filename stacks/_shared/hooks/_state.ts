@@ -1,9 +1,11 @@
-// @sv-version: 1.7.0
+// @sv-version: 1.8.0
 /**
  * Multi-Instance Coordination — Shared State Library
  *
  * Used by session-start.ts, user-prompt-submit.ts, pre-tool-use.ts,
  * post-tool-use.ts, stop-validator.ts, plan-gate.ts and peers.ts.
+ *
+ * v1.8.0: isDefaultShipBranch() for main/master ship/push gates.
  *
  * Layout (project-local, gitignored):
  *   .claude/state/
@@ -869,6 +871,11 @@ export function getGitBranch(projectDir: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+/** Default ship branch: main or master (case-sensitive as git reports). */
+export function isDefaultShipBranch(branch: string | undefined): boolean {
+  return branch === 'main' || branch === 'master';
 }
 
 /**

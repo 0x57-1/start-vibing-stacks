@@ -620,6 +620,7 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     '.claude/memories/cdn-asset-deploy-verify.md',
     '.claude/memories/oauth-integration-preflight.md',
     '.claude/memories/remove-ai-watermarks.md',
+    '.claude/memories/multi-instance-main-only.md',
   ];
 
   if (!settings.context) settings.context = {};

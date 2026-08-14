@@ -1,12 +1,14 @@
 ---
 name: multi-instance-coordination
-version: 1.3.0
+version: 1.4.0
 description: >
   Coordination when multiple Claude / Kimi / Grok sessions share a project folder.
   Shared bus under `.claude/state/`, peer detection, file-edit collision avoidance,
-  `/svs-peers` CLI. Claude Code ≥2.1.224 also has native cross-session messaging
-  (ListAgents/SendMessage; native /peers) — use that for Claude↔Claude text; SVS for
-  locks + Kimi/Grok. Memory: claude-cross-session-messaging.
+  `/svs-peers` CLI. Same cwd = one git HEAD — stay on main for ship/deploy (memory
+  multi-instance-main-only); use worktrees for parallel feature branches. Claude Code
+  ≥2.1.224 also has native cross-session messaging (ListAgents/SendMessage; native
+  /peers) — use that for Claude↔Claude text; SVS for locks + Kimi/Grok. Memory:
+  claude-cross-session-messaging.
 ---
 
 # Multi-Instance Coordination
@@ -15,6 +17,14 @@ When two or more agent sessions (Claude Code, Kimi, or Grok via SVS bridge) shar
 project folder, they auto-discover each other through **one** bus — `.claude/state/` —
 and refuse to overwrite each other's uncommitted work. There is no separate
 `.kimi/state` or `.grok/state`; migrate wires hooks into that shared tree.
+
+## Shared cwd = one git HEAD (critical)
+
+File locks do **not** isolate branches. `git checkout -b` in Session A moves Session B
+onto that branch. **Default:** stay on `main`, scoped commits, push/deploy from main
+only (memory `multi-instance-main-only`). `scope --push` refuses non-main.
+
+Need divergent long-lived branches? **`git worktree add`** so each session has its own cwd/HEAD.
 
 ## Claude native messaging (v2.1.224+) vs this bus
 
@@ -129,14 +139,16 @@ Claude↔Claude findings: prefer native SendMessage when available (memory `clau
 | Project `/peers` overrides Claude native                 | Stale `commands/peers.md`            | `migrate --apply` removes it; use `/svs-peers`         |
 | Stop never blocks after source edits | Bridge path wrong / not trusted → fail-open | Bridge smoke-test above; `migrate --apply`; Grok `/hooks-trust` |
 | `scope` exits 1 | ≥2 sessions, no session id | `peers list` → `scope commit --session <id>` |
+| `scope --push` exits 2 on feature branch | Main-only ship gate | `git checkout main` then push; or `--allow-non-main-push` |
 | Empty `.claude/state/sessions/` while a peer is working | Their bridge fail-open | Smoke-test their side; do not conclude "no peers" |
+| Peer deploy hit my feature branch | Shared cwd one HEAD | Memory `multi-instance-main-only`; stay on main or use worktree |
 
 ## See Also
 
-- Memory: `claude-cross-session-messaging`
+- Memory: `claude-cross-session-messaging`, `multi-instance-main-only`
 - Command: `/svs-peers`
 - `session-history` — find Claude / Kimi / Grok transcripts and resume past chats.
-- `git-workflow` §0 — scoped commit; the coordination layer is an in-flight collision shield, not a replacement for branches.
+- `git-workflow` §0 — scoped commit; same-cwd multi-instance → prefer main; worktrees for parallel branches.
 - `svs-finalize` — documenter → domain-updater after code commits.
 - `_state.ts` — shared TypeScript helpers used by every hook.
 - `.claude/state/` README at `.claude/hooks/_state.README.md`.

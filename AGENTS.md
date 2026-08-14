@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-14 · main · v2.85.0
+Multi-instance main-only: `scope --push` refuses non-main; UPS live branch +
+MAIN-ONLY nudge; memory `multi-instance-main-only`; commit-manager **3.5**.
+
 ### 2026-08-12 · main · v2.84.1
 Drop `__pycache__` from vendored `remove-ai-marks`; gitignore Python bytecode.
 

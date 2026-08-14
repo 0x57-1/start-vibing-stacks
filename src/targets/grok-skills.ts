@@ -280,6 +280,7 @@ function memoryIndexSkillBody(): string {
     '| `cdn-asset-deploy-verify.md` | Curl CDN/launcher markers before “published” |',
     '| `oauth-integration-preflight.md` | redirect_uri + secret check before OAuth plan |',
     '| `remove-ai-watermarks.md` | Inspect/clean Claude/vendor watermarks on own content |',
+    '| `multi-instance-main-only.md` | Same cwd = one HEAD; ship only from main |',
     '| `authorized-security-assessment.md` | Active assessment only with ownership/scope |',
     '| `passive-public-security-posture.md` | Passive public OSINT only |',
     '| `post-push-ci-verification.md` | After `git push` — verify Actions for the SHA |',

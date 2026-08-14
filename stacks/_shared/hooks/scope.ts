@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.3.0
+// @sv-version: 1.4.0
 /**
  * `scope` — Per-Instance Commit Scoping CLI
  *
@@ -11,6 +11,8 @@
  *   `.claude/state/sessions/<id>.json#filesTouched`
  * which is maintained by `post-tool-use.ts` (capped at 200, dedup-keep-last).
  *
+ * v1.4.0: `--push` refuses unless HEAD is main/master (shared-cwd multi-instance
+ * deploy trap). Override: `--allow-non-main-push`. Memory: multi-instance-main-only.
  * v1.3.0: prune out-of-project paths from filesTouched (Claude scratchpads).
  * v1.2.0: if filesTouched is empty (Grok resume after SessionEnd archive),
  * rehydrate from `_archive/` + `file-touches.jsonl` before status/stage/commit.
@@ -53,9 +55,11 @@ import {
   COLLISION_WINDOW_MS,
   ageMs,
   filterProjectPaths,
+  getGitBranch,
   getProjectDir,
   getStateDir,
   heartbeat,
+  isDefaultShipBranch,
   listSessionFiles,
   readJsonSafe,
   readSession,
@@ -452,7 +456,25 @@ function cmdCommit(stateDir: string, projectDir: string, args: string[]): number
   console.log(`Committed ${toCommit.length} file(s) from session ${shortId(sessionId)}.`);
 
   if (hasFlag(args, '--push')) {
-    const pushR = spawnSync('git', ['push'], { cwd: projectDir, stdio: 'inherit' });
+    const branch = getGitBranch(projectDir);
+    const allowNonMain = hasFlag(args, '--allow-non-main-push');
+    if (!isDefaultShipBranch(branch) && !allowNonMain) {
+      console.error(
+        `REFUSED --push: HEAD is '${branch || '(detached)'}', not main/master.\n` +
+          `Shared cwd: a peer's checkout -b moves YOUR HEAD too — pushing here deploys the wrong branch.\n` +
+          `Fix: git checkout main && git merge <feature> (or stay on main), then:\n` +
+          `  npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<msg>" --push\n` +
+          `Override (rare): add --allow-non-main-push\n` +
+          `Memory: multi-instance-main-only`
+      );
+      return 2;
+    }
+    const pushArgs = ['push'];
+    // Prefer explicit remote+branch when known
+    if (isDefaultShipBranch(branch) && branch) {
+      pushArgs.push('origin', branch);
+    }
+    const pushR = spawnSync('git', pushArgs, { cwd: projectDir, stdio: 'inherit' });
     return pushR.status ?? 1;
   }
   return 0;
@@ -466,13 +488,17 @@ Commands:
   scope stage    [--session <id>] [--include-conflicted]
   scope diff     [--session <id>]
   scope commit   "<message>" [--session <id>] [--include-conflicted] [--push]
+                 [--allow-non-main-push]
 
 Commits ONLY the files this Claude session edited (per
 \`.claude/state/sessions/<id>.json#filesTouched\`), via \`git commit -o\` so a
 peer's concurrently-staged files are never bundled in. Refuses files a peer
 session touched in the last 5 min unless --include-conflicted.
 
-Exit codes: 0=ok, 1=arg/state error, 2=conflict refusal.
+\`--push\` requires HEAD on main/master (shared-cwd deploy trap). Override with
+\`--allow-non-main-push\` only when intentionally pushing a feature branch.
+
+Exit codes: 0=ok, 1=arg/state error, 2=conflict/branch refusal.
 `);
 }
 

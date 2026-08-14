@@ -157,7 +157,7 @@ Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-inst
 
 ## Notable memories (always-on via Claude `memory_files`)
 
-Ads/funnel · checkout · security · owned infra · `verify-before-claim` · `execute-ship-ops` · `quality-gate-before-push` · `cdn-asset-deploy-verify` · `oauth-integration-preflight` · `remove-ai-watermarks` · `react-theme-parity` · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/`.
+Ads/funnel · checkout · security · owned infra · `verify-before-claim` · `execute-ship-ops` · `multi-instance-main-only` · `quality-gate-before-push` · `cdn-asset-deploy-verify` · `oauth-integration-preflight` · `remove-ai-watermarks` · `react-theme-parity` · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/`.
 
 Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropic cyber API gates.
 

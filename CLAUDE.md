@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-14 · main · v2.85.0
+Multi-instance main-only ship: shared cwd = one HEAD; `scope --push` refuses
+non-main; UPS refreshes live branch + MAIN-ONLY nudge; memory
+`multi-instance-main-only`; commit-manager **3.5** prefers main with peers.
+
 ### 2026-08-12 · main · v2.84.1
 Drop accidental `__pycache__` from vendored `remove-ai-marks` scripts; gitignore Python bytecode.
 
@@ -47,10 +52,6 @@ frontend defaults, migrate `frontendBaseSkillsDir`.
 ### 2026-08-08 · main · v2.78.1
 `preline-ui` **2.2.0** = summary; `preline-moon` **1.0.1** = source of truth — explicit
 cross-refs so agents load moon corpus for markup/tokens, not invent from overview.
-
-### 2026-08-08 · main · v2.78.0
-Ship `preline-moon` (offline Preline moon theme corpus) as default React frontend skill;
-`preline-ui` **2.1.0**; migrate scans `frontendBaseSkillsDir`; Grok curated + inertia baseSkills.
 
 ---
 
@@ -450,3 +451,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **remove-ai-watermarks.md** — Inspect/clean AI provenance (Unicode/C2PA) on own content before ship; skill `remove-ai-marks`. UPS **1.13**.
 
   Loaded from: `.claude/memories/remove-ai-watermarks.md`
+
+- **multi-instance-main-only.md** — Same cwd shares one HEAD; stay on main for ship/deploy; `scope --push` refuses feature branches. UPS **1.14** / scope **1.4**.
+
+  Loaded from: `.claude/memories/multi-instance-main-only.md`

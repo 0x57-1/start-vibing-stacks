@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.13.0
+// @sv-version: 1.14.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.14.0: Always refresh gitBranch from live HEAD; MAIN-ONLY ship nudge when
+ * peers active or off main (memory multi-instance-main-only). SHIP NOW requires main.
  * v1.13.0: WATERMARK HYGIENE step + CONTENT nudge (memory remove-ai-watermarks;
  * skill remove-ai-marks) — inspect/clean Layer A when shipping user-facing prose.
  * v1.12.0: SHIP NOW = SAFE SHIP (push+deploy) vs ATTENTION GATE (ask before
@@ -137,7 +139,8 @@ function buildPeersBlock(
     ? native.title || extractTitle(existing?.transcriptPath || native.transcriptPath, prompt)
     : existing!.title;
 
-  const branch = existing?.gitBranch ?? getGitBranch(PROJECT_DIR);
+  // Always refresh from live HEAD — cached gitBranch goes stale after peer checkout -b.
+  const branch = getGitBranch(PROJECT_DIR) || existing?.gitBranch;
 
   heartbeat(stateDir, sessionId, 'UserPromptSubmit', {
     title,
@@ -163,6 +166,23 @@ function buildPeersBlock(
         '  ! Edit/Write of files an active peer just touched will be BLOCKED. ' +
           'Use `/svs-peers` → peers.ts notify (Claude native /peers is ListAgents/SendMessage).'
       );
+      parts.push(
+        '  ! SHARED CWD = ONE HEAD (memory: multi-instance-main-only): do NOT `git checkout -b` — ' +
+          'it moves every peer. Stay on main; commit+push versioned deploys from main only. ' +
+          'Parallel long features → `git worktree add` (separate cwd).'
+      );
+    }
+  }
+
+  // Live branch gate (Stop already blocks off-main; ship must not push feature branches).
+  {
+    const live = getGitBranch(PROJECT_DIR);
+    if (live && live !== 'main' && live !== 'master') {
+      parts.push('');
+      parts.push(`MAIN-ONLY SHIP (memory: multi-instance-main-only) — HEAD is '${live}', not main:`);
+      parts.push('  - FORBIDDEN: git push / scope --push / deploy / republish from this branch.');
+      parts.push('  - Fix: git checkout main (merge feature first if yours), then ship from main.');
+      parts.push('  - scope --push hard-refuses non-main unless --allow-non-main-push.');
     }
   }
 
@@ -298,13 +318,14 @@ function buildShipNowBlock(prompt: string): string {
   if (!SHIP_PROMPT_RE.test(prompt)) return '';
   return (
     `\n\nSHIP NOW (memory: execute-ship-ops v1.3) — classify then act:\n` +
-    `  SAFE SHIP (scoped, no secrets, tests OK, deploy targets known, matches user ask):\n` +
-    `    1. Commit via scope.ts → \`git push\` immediately — FORBIDDEN: “push is your job” / re-asking.\n` +
+    `  SAFE SHIP (on main/master, scoped, no secrets, tests OK, deploy targets known, matches user ask):\n` +
+    `    1. Commit via scope.ts → \`git push origin main\` immediately — FORBIDDEN: “push is your job” / re-asking.\n` +
     `    2. \`gh run list/watch\` (post-push-ci-verification).\n` +
     `    3. Run EVERY republish op for touched/named artifacts (launchers AND separate ones e.g. pw.js).\n` +
     `    4. Live curl/marker proof (cdn-asset-deploy-verify). Workflow auth lasts until this loop closes.\n` +
-    `  ATTENTION GATE (secrets, destructive migration, peer file conflict, tests red, unclear blast, incomplete deploy inventory):\n` +
+    `  ATTENTION GATE (off main, secrets, destructive migration, peer file conflict, tests red, unclear blast, incomplete deploy inventory):\n` +
     `    Do NOT commit/push. Ask the user with: Risk / Evidence / Options (proceed | fix first | abort).\n` +
+    `    Off main / peer created a feature branch in shared cwd → checkout main first (memory multi-instance-main-only).\n` +
     `    FORBIDDEN: fake Attention for generic caution or multi-instance lore without a real conflict.`
   );
 }
@@ -491,7 +512,7 @@ async function main(): Promise<void> {
 
 4. Run quality gates: ${qualityCmd}
 
-5. COMMIT via commit-manager (v3.4.0+: scope.ts; tests before push — veto if red). Classify SAFE SHIP vs ATTENTION GATE (execute-ship-ops v1.3): SAFE → push+watch+every deploy artifact immediately; ATTENTION → ask before commit with risk/evidence. After push: post-push-ci-verification + cdn-asset-deploy-verify.
+5. COMMIT via commit-manager (v3.4.0+: scope.ts; tests before push — veto if red). Classify SAFE SHIP vs ATTENTION GATE (execute-ship-ops v1.3 + multi-instance-main-only): SAFE only on main/master → push+watch+every deploy artifact; ATTENTION if off main / peer checkout risk / other risks. scope --push refuses non-main. After push: post-push-ci-verification + cdn-asset-deploy-verify.
 
 5b. IDE SYNC — if Cursor shows "Opened changes / Save file to continue" during edits, that is buffer sync (not Bypass failure). Ask user to save or allow-all once; re-Read; see memory cursor-ide-edit-sync + .claude/settings.local.example.json.
 
