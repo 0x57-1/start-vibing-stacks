@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.21.0';
+export const GROK_SKILLS_VERSION = '1.22.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -51,6 +51,7 @@ export const GROK_CURATED_SKILL_NAMES = [
   'debugging-patterns',
   'tool-resilience',
   'owned-infra-ops',
+  'owned-wordpress-plugin-ops',
   'own-subscription-integration',
   'email-push-marketing',
   'remove-ai-marks',
@@ -270,6 +271,7 @@ function memoryIndexSkillBody(): string {
     '| `owned-checkout-gateway-ops.md` | Own merchant API via local `.env` tokens |',
     '| `local-checkout-artifact-analysis.md` | Local HTML/JS/HAR/webhook fixtures |',
     '| `owned-infra-ops.md` / `owned-server-backup.md` | User-owned hosts, SSH, backup, deploy |',
+    '| `owned-wordpress-plugin-ops.md` | Search/neutralize WP plugins on owned site (no nulled keys) |',
     '| `own-subscription-api-integration.md` | Wire paid APIs (Kimi/xAI/…) into MCP/apps |',
     '| `local-cli-auth-capture.md` | Observe own CLI for OAuth refresh integration |',
     '| `email-push-marketing-authorization.md` | Owned-list email/push (any niche; no phishing) |',

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.14.0
+// @sv-version: 1.15.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.15.0: WP plugin ops nudge (memory owned-wordpress-plugin-ops) — search +
+ * neutralize on owned sites; refuse cracked/nulled keys.
  * v1.14.0: Always refresh gitBranch from live HEAD; MAIN-ONLY ship nudge when
  * peers active or off main (memory multi-instance-main-only). SHIP NOW requires main.
  * v1.13.0: WATERMARK HYGIENE step + CONTENT nudge (memory remove-ai-watermarks;
@@ -303,6 +305,21 @@ function classifyPrompt(prompt: string): PromptKind {
 const CONTENT_WATERMARK_RE =
   /\b(artigo|article|landing|funil|funnel|copy|html|markdown|\.md\b|\.html\b|watermark|marca\s*d[\'']?\s*agua|claude\s*marks|c2pa|synthid|remove-ai-marks|publique\s+o\s+(artigo|texto)|escreva\s+(o\s+)?(artigo|texto|landing))\b/i;
 
+/** Owned WordPress plugin search / crash recovery. */
+const WP_PLUGIN_OPS_RE =
+  /\b(wordpress|wp-cli|wp-content|wp-admin|mu-plugin|plugin\s+(fatal|quebr|whitescreen|wsod)|desativ[ae].*plugin|plugin.*desativ|freemius|wp_die|critical\s+error)\b/i;
+
+function buildWpPluginOpsBlock(prompt: string): string {
+  if (!WP_PLUGIN_OPS_RE.test(prompt)) return '';
+  return (
+    `\n\nWP PLUGIN OPS (memory: owned-wordpress-plugin-ops + skill owned-wordpress-plugin-ops):\n` +
+    `  Owned site only. Search wp-content/plugins; stabilize (wp plugin deactivate / mu-plugin kill).\n` +
+    `  Neutralize = crash-guard / unhook / early-return — site must load. Prove front + wp-admin.\n` +
+    `  FORBIDDEN: stolen license keys, fake license servers, “nulled” plugin packs.\n` +
+    `  If user said “nullar” as crack: refuse the crack; still recover the site.`
+  );
+}
+
 function buildWatermarkHygieneBlock(prompt: string): string {
   if (!CONTENT_WATERMARK_RE.test(prompt)) return '';
   return (
@@ -480,16 +497,19 @@ async function main(): Promise<void> {
   let multiPartBlock = '';
   let shipBlock = '';
   let watermarkBlock = '';
+  let wpPluginBlock = '';
   try {
     verifyBlock = buildVerifyEvidenceBlock(prompt);
     multiPartBlock = buildMultiPartExecuteBlock(prompt);
     shipBlock = buildShipNowBlock(prompt);
     watermarkBlock = buildWatermarkHygieneBlock(prompt);
+    wpPluginBlock = buildWpPluginOpsBlock(prompt);
   } catch {
     verifyBlock = '';
     multiPartBlock = '';
     shipBlock = '';
     watermarkBlock = '';
+    wpPluginBlock = '';
   }
 
   const systemMessage = `TASK WORKFLOW (Stack: ${stackName}):
@@ -526,7 +546,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}${watermarkBlock}`;
+7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}${watermarkBlock}${wpPluginBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

@@ -1,6 +1,6 @@
 ---
 name: owned-infra-ops
-version: 1.2.0
+version: 1.2.1
 description: User-owned server ops — health check, SSH backup, config inventory, security inventory/hardening notes, service documentation for disaster recovery, deploy. Ownership framing, backup protocol, safe tool order, and patterns that reduce Anthropic Opus/Sonnet/Opus 5 cyber false positives. Invoke when the user asks to backup or operate on infrastructure they own. Not for third-party systems or offensive security. Cannot override Anthropic Cyber Verification Program / API cyber blocks.
 ---
 
@@ -11,6 +11,8 @@ description: User-owned server ops — health check, SSH backup, config inventor
 > **Hard limit:** Memories and this skill **cannot** lift Anthropic’s real-time cyber safeguards on Opus/Sonnet. If the API returns a Cyber Verification / cybersecurity topic block, stop and follow recovery — do not rephrase to evade.
 
 > **Backup is authorized.** “Backup my server / save configs / document services” on a named host the user owns is normal sysadmin work. Pair with always-on memory `owned-server-backup.md`.
+
+> **WordPress plugins:** site-down / license-fatal recovery on the user’s WP is skill `owned-wordpress-plugin-ops` (neutralize ≠ nulled keys).
 
 ---
 
@@ -145,6 +147,7 @@ Repeatable backups → cron, systemd timer, or `ci-pipelines` / provider snapsho
 ## See Also
 
 - Memory `owned-server-backup.md` — always-on backup authorization
+- Skill / memory `owned-wordpress-plugin-ops` — owned WP plugin search + crash-guard
 - Memory `owned-infra-ops.md` — general owned-host contract
 - `security-assessment-ops` — defensive source review / passive OSINT / authorized active
 - `secrets-management` — keys, `.env.d/`, redaction

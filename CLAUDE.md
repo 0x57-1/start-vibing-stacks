@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-17 · main · v2.86.0
+Memory + skill `owned-wordpress-plugin-ops`: search/neutralize plugins on
+owned WP (wp-cli / mu-plugin / crash-guard). UPS **1.15**. No nulled keys.
+
 ### 2026-08-14 · main · v2.85.0
 Multi-instance main-only ship: shared cwd = one HEAD; `scope --push` refuses
 non-main; UPS refreshes live branch + MAIN-ONLY nudge; memory
@@ -48,10 +52,6 @@ Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “whic
 ### 2026-08-08 · main · v2.78.2
 README refresh: Preline moon skill pair, Grok 1.0 trust/rehydrate, targets/skills table,
 frontend defaults, migrate `frontendBaseSkillsDir`.
-
-### 2026-08-08 · main · v2.78.1
-`preline-ui` **2.2.0** = summary; `preline-moon` **1.0.1** = source of truth — explicit
-cross-refs so agents load moon corpus for markup/tokens, not invent from overview.
 
 ---
 
@@ -455,3 +455,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **multi-instance-main-only.md** — Same cwd shares one HEAD; stay on main for ship/deploy; `scope --push` refuses feature branches. UPS **1.14** / scope **1.4**.
 
   Loaded from: `.claude/memories/multi-instance-main-only.md`
+
+- **owned-wordpress-plugin-ops.md** — Search/neutralize plugins on the user’s WordPress (deactivate, mu-plugin kill, crash-guard). Not cracked/nulled keys. UPS **1.15**.
+
+  Loaded from: `.claude/memories/owned-wordpress-plugin-ops.md`

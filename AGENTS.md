@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.5
+svs-version: 1.2.6
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-17 · main · v2.86.0
+Memory + skill `owned-wordpress-plugin-ops`: owned-site plugin search/neutralize
+(wp-cli / mu-plugin / crash-guard). UPS **1.15**. No nulled keys.
 
 ### 2026-08-14 · main · v2.85.0
 Multi-instance main-only: `scope --push` refuses non-main; UPS live branch +
@@ -118,6 +122,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
+- Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 

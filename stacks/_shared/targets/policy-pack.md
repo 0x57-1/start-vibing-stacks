@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.4
+svs-version: 1.2.6
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -32,6 +32,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
+- Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 

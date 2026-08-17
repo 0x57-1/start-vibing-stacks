@@ -350,6 +350,7 @@ export async function setupProject(
           '.claude/memories/oauth-integration-preflight.md',
           '.claude/memories/remove-ai-watermarks.md',
           '.claude/memories/multi-instance-main-only.md',
+          '.claude/memories/owned-wordpress-plugin-ops.md',
         ],
       },
 

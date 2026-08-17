@@ -61,5 +61,6 @@ If the API returns a cybersecurity / Cyber Verification block:
 - Memory: `owned-server-backup.md` (backup + config inventory authorization)
 - Memory: `authorized-security-assessment.md` / `defensive-security-review.md`
 - Skill: `owned-infra-ops` (backup + security inventory protocols)
+- Memory / skill: `owned-wordpress-plugin-ops` (owned WP plugin crash recovery)
 - Skill: `security-assessment-ops`
 - Skill: `secrets-management` (keys, `.env.d/`)
