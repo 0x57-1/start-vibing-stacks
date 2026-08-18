@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-18 · main · v2.88.0
+`migrate --apply` installs MOP with `--with-memory-optimization` and opens the
+launcher (TTY). `--no-launch` = update-and-exit.
+
 ### 2026-08-18 · main · v2.87.0
 React theme apply: `react-theme-parity` **1.1**, skill `react-theme-apply`,
 `check-theme-tokens.mjs`, UPS **1.16**, `svs-finalize` **1.2.2**.
@@ -85,10 +89,6 @@ Ship `preline-moon` (offline Preline moon theme corpus) as default React fronten
 Grok Build **1.0.0**: SessionStart/scope/Stop **rehydrate** `filesTouched` after SessionEnd
 archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); Launch
 `grok --always-approve --trust`; skip observe-only Stop `channel_closed|shutdown`.
-
-### 2026-08-08 · main · v2.76.0
-README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
-documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
 
 
 <!-- SVS:POLICY-PACK:START -->

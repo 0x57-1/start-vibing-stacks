@@ -49,6 +49,7 @@ const FLAGS = {
   forceHooks: args.includes('--force-hooks') || args.includes('--force-legacy'),
   withMemoryOptimization: args.includes('--with-memory-optimization'),
   skipUpdate: args.includes('--skip-update'),
+  noLaunch: args.includes('--no-launch'),
   target: parseFlagValue('--target'),
 };
 
@@ -69,7 +70,7 @@ if (FLAGS.help) {
                       npx start-vibing-stacks@latest (stale npx cache = old skills)
     migrate           Compare installed vs bundled skill/agent/memory versions
                       Syncs AGENTS.md + MCP + .cursor/rules (Kimi/Grok/Cursor)
-                      Add --apply to update outdated/missing items
+                      --apply updates, then opens the launcher (TTY).
                       (npm publish alone does NOT update project .claude/)
 
   ${chalk.bold('Options:')}
@@ -85,7 +86,8 @@ if (FLAGS.help) {
     --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
     --with-memory-optimization
-                      Install the Memory Optimization Pipeline (MOP) for static memory maintenance
+                      Install/refresh Memory Optimization Pipeline (setup AND migrate --apply)
+    --no-launch       After migrate --apply, exit instead of opening the launcher
     --help, -h        Show this help
     --version, -v     Show version
 
@@ -97,16 +99,25 @@ if (FLAGS.help) {
   process.exit(0);
 }
 
-// Subcommand: migrate
+// Subcommand: migrate — apply then fall through to main() launcher (TTY)
 if (SUBCOMMAND === 'migrate') {
   const { runMigrate } = await import('./migrate.js');
   const { parseMigrateTarget } = await import('./targets/index.js');
-  await runMigrate(process.cwd(), {
+  const migrateDir = process.cwd();
+  await runMigrate(migrateDir, {
     apply: FLAGS.apply,
     forceHooks: FLAGS.forceHooks,
     target: parseMigrateTarget(FLAGS.target),
+    withMemoryOptimization: FLAGS.withMemoryOptimization,
   });
-  process.exit(0);
+  const configured = existsSync(join(migrateDir, '.claude', 'config', 'active-project.json'));
+  const interactive =
+    Boolean(process.stdin.isTTY) && process.env['CI'] !== 'true' && process.env['CI'] !== '1';
+  const resumeAfter = FLAGS.apply && configured && interactive && !FLAGS.noLaunch;
+  if (!resumeAfter) {
+    process.exit(0);
+  }
+  ui.info('Opening launcher…');
 }
 
 // =============================================================================

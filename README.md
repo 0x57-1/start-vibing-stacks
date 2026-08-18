@@ -6,7 +6,7 @@ CLI that installs a **shared AI engineering setup** into a repo: agents, skills,
 npx start-vibing-stacks@latest
 ```
 
-Latest: **v2.87.0** — React theme apply (`react-theme-parity` 1.1 + skill `react-theme-apply` + `scripts/check-theme-tokens.mjs`); UPS THEME APPLY; Preline moon fork-specificity.
+Latest: **v2.88.0** — `migrate --apply` installs MOP with `--with-memory-optimization` and opens the launcher (TTY).
 
 ---
 
@@ -145,12 +145,14 @@ Heartbeat: **active &lt; 180s** (block) · idle → 30min (warn) · then archive
 ```bash
 npx start-vibing-stacks@latest                 # setup / resume (+ Launch auto-migrate)
 npx start-vibing-stacks@latest migrate         # dry-run drift
-npx start-vibing-stacks@latest migrate --apply
+npx start-vibing-stacks@latest migrate --apply # update, then open launcher (TTY)
+npx start-vibing-stacks@latest migrate --apply --with-memory-optimization
+npx start-vibing-stacks@latest migrate --apply --no-launch   # CI: update and exit
 npx start-vibing-stacks@latest migrate --apply --force-legacy   # heal unversioned hooks/commands
 npx start-vibing-stacks@latest migrate --target kimi|grok|cursor|claude|all --apply
 ```
 
-Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--with-memory-optimization` · `--help` · `--version`
+Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--with-memory-optimization` · `--no-launch` · `--help` · `--version`
 
 `migrate` upgrades versioned skills/agents/hooks/commands/memories (including `frontendBaseSkillsDir`), patches hook wiring, refreshes target side-cars, and is idempotent.
 

@@ -39,6 +39,7 @@ import { fileURLToPath } from 'url';
 import { randomBytes } from 'crypto';
 import * as semver from 'semver';
 import * as ui from './ui.js';
+import { installMemoryOptimization } from './setup.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
 const __m_dirname = dirname(__m_filename);
@@ -74,6 +75,8 @@ export interface MigrateOptions {
   forceHooks?: boolean;
   /** Multi-target: claude | kimi | grok | cursor | all (default all) */
   target?: 'claude' | 'kimi' | 'grok' | 'cursor' | 'all';
+  /** Copy/refresh `.claude/memory-optimization/` (MOP) */
+  withMemoryOptimization?: boolean;
 }
 
 interface ProjectConfig {
@@ -1003,6 +1006,9 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     console.log('\n  RUNTIME — will copy:');
     for (const f of runtimePreview.copied) console.log(`    + ${f}`);
   }
+  if (opts.withMemoryOptimization) {
+    console.log('\n  MOP — will install/refresh `.claude/memory-optimization/`');
+  }
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
   }
@@ -1071,6 +1077,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const nothingSettings = settingsPreview.added.length === 0;
   const nothingRuntime =
     runtimePreview.created.length === 0 && runtimePreview.copied.length === 0 && !runtimePreview.gitignoreUpdated;
+  const mopPending = Boolean(opts.withMemoryOptimization);
 
   if (
     nothingFile &&
@@ -1081,7 +1088,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     !cursorPending &&
     !kimiPending &&
     !grokSkillsPending &&
-    !hooksPending
+    !hooksPending &&
+    !mopPending
   ) {
     console.log('');
     ui.success('Everything up to date.');
@@ -1100,6 +1108,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (kimiPending) todo.push('.kimi-code/local.toml');
     if (grokSkillsPending) todo.push('Grok skills bridge');
     if (hooksPending) todo.push('Kimi/Grok hooks bridge');
+    if (mopPending) todo.push('Memory Optimization Pipeline');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -1146,6 +1155,16 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     ui.info(
       'Optional: cp .claude/settings.local.example.json .claude/settings.local.json  # acceptEdits or bypassPermissions'
     );
+  }
+
+  let mopCopied = 0;
+  if (opts.withMemoryOptimization) {
+    mopCopied = installMemoryOptimization(projectDir, true);
+    if (mopCopied > 0) {
+      ui.success(`MOP: installed/refreshed ${mopCopied} file(s) → .claude/memory-optimization/`);
+    } else {
+      ui.warn('MOP: bundled memory-optimization/ missing from this package');
+    }
   }
 
   // Multi-target: AGENTS.md + MCP + Cursor rules + Kimi local + Grok skills + manifest
@@ -1285,7 +1304,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
       sync.hooksExport.kimiUserUpdated ||
       sync.hooksExport.grokHooksWritten
         ? ', hooks'
-        : '')
+        : '') +
+      (mopCopied > 0 ? ', MOP' : '')
   );
 
   if (grouped['modified-no-version'].length > 0) {

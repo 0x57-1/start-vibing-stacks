@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-18 · main · v2.88.0
+`migrate --apply` copies MOP when `--with-memory-optimization` and opens the
+launcher (TTY). `--no-launch` keeps update-and-exit for CI.
+
 ### 2026-08-18 · main · v2.87.0
 React theme apply: memory `react-theme-parity` **1.1**, skill `react-theme-apply`,
 `scripts/check-theme-tokens.mjs`, UPS **1.16** THEME APPLY, `svs-finalize` **1.2.2**.
@@ -48,10 +52,6 @@ fixes false finalize/plan-gate/Stop on temp edits; prune on post-tool-use/scope.
 UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK (no finalize dump); SHIP NOW on
 urgent push; soft-pass finalize on status; memory `execute-ship-ops`; global UPS
 no-op template (fixes double English-only + Stack injection).
-
-### 2026-08-08 · main · v2.79.0
-Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
-Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
 
 ---
 
