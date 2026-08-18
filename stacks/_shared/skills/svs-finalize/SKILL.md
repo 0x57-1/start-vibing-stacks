@@ -1,6 +1,6 @@
 ---
 name: svs-finalize
-version: 1.2.1
+version: 1.2.2
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
   edits — scope commit (code) → documenter → domain-updater → docs commit. Same
@@ -25,6 +25,9 @@ via Edit/Write (recorded in `.claude/state/sessions/<id>.json#filesTouched`).
 
 ```
 1. Quality / security as needed (tester, security-auditor)
+1b. Theme touch (themes/*.css, .jsx/.tsx, style-guide) →
+    `node scripts/check-theme-tokens.mjs` BEFORE documenter
+    (memory react-theme-parity + skill react-theme-apply)
 2. scope status — confirm filesTouched
 3. commit-manager steps → scope.ts commit (code) — never git add -A
 4. documenter (Grok spawn_subagent OR Read agent md)
@@ -129,3 +132,4 @@ If Stop never blocks after source edits: bridge path must be
 - `svs-dev-process` — full Kimi/Grok workflow
 - `docs-tracker` / `codebase-knowledge` — what documenter writes
 - Agents `commit-manager`, `documenter`, `domain-updater`
+- `react-theme-apply` / memory `react-theme-parity` — theme-touch guard before documenter

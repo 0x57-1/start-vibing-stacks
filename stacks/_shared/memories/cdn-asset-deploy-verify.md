@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.1.1
 ---
 
 # Memory: CDN / Asset Deploy Verify
@@ -29,7 +29,9 @@ Users then paste curl/CDN output proving the gate string is missing.
 1. **Identify the live URL** (project docs, env, or last deploy message).
 2. **Wait for the deploy path**: Actions success → app deploy → optional
    staleness/republish job (note cron intervals, e.g. */20).
-3. **Probe with curl** (UA if needed):
+3. **Probe with curl** — use a **browser User-Agent** for HTML/app URLs
+   (`Mozilla/5.0 …`). Cloudflare often returns **520** for `curl/*`; that is
+   not “site down”.
    - HTTP 200 + byte size sanity
    - `grep -c` for a **commit-specific marker** (function name, version banner, gate string)
    - Expected count > 0; `0` = **not live**
@@ -47,6 +49,7 @@ Users then paste curl/CDN output proving the gate string is missing.
 | Claiming marker present without curl this turn | Memory-only |
 | Stopping at CI green when user asked about the **launcher URL** | Wrong layer |
 | “Republiquei todos os launchers” while skipping a sibling artifact (`pw.js`, etc.) | Incomplete inventory — see `execute-ship-ops` ATTENTION GATE |
+| Claiming the site is down from `curl/*` 520 | Bot UA; retry with a browser UA |
 
 ---
 
@@ -54,3 +57,4 @@ Users then paste curl/CDN output proving the gate string is missing.
 
 - `post-push-ci-verification.md` — Actions for the SHA
 - `execute-ship-ops.md` — push + watch + ops in one loop
+- `react-theme-parity.md` — same UA rule when proving live theme HTML

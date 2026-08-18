@@ -1,7 +1,7 @@
 ---
 name: react-standards
-version: 2.0.0
-description: "Project conventions for React 19 + Tailwind v4 codebases. Mandates the LABELS / STYLES const pattern (defined at file top, before hooks, with `as const` for stable references — prevents re-renders, centralises styles, supports i18n drop-in), controlled debug logging (no raw console.log), semantic Tailwind tokens (no raw colours), separate-file SVG icons, mandatory loading/empty states, modal data-flow contract (`onUpdated` callback), and third-party chart integration (no useRef DOM mutation). Pairs with `tailwind-patterns` v2 for tokens and `react-ui-patterns` v2 for state choreography. Invoke at the start of any new React project or component file."
+version: 2.1.1
+description: "Project conventions for React 19 + Tailwind v4 codebases. Mandates the LABELS / STYLES const pattern (defined at file top, before hooks, with `as const` for stable references — prevents re-renders, centralises styles, supports i18n drop-in), controlled debug logging (no raw console.log), semantic Tailwind tokens (no raw colours, no dark: on those tokens), separate-file SVG icons, mandatory loading/empty states, modal data-flow contract (`onUpdated` callback), and third-party chart integration (no useRef DOM mutation). Pairs with `tailwind-patterns` v2, `react-theme-apply`, and `react-ui-patterns` v2. Invoke at the start of any new React project or component file."
 ---
 
 # React 19 + Tailwind v4 — Project Standards
@@ -114,9 +114,9 @@ const STYLES = {
     fieldError: 'mt-1 text-sm text-destructive',
 
     // Status badges
-    badgeSuccess: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    badgeWarning: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
-    badgeDanger: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    badgeSuccess: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-soft text-success-soft-foreground',
+    badgeWarning: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-warning-soft text-warning-soft-foreground',
+    badgeDanger: 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-destructive-soft text-destructive-soft-foreground',
 
     // Typography
     heading: 'text-2xl font-bold text-foreground',
@@ -286,7 +286,7 @@ const processedData = useMemo(() => {
 
 ## See Also
 
-- Memory `react-theme-parity` — discover theme / sibling CSS; validate before done
+- Memory `react-theme-parity` + skill `react-theme-apply` — CSS-first; `node scripts/check-theme-tokens.mjs` before done
 - `react-patterns` v2 — React 19 hooks, `use()`, refs as props
 - `tailwind-patterns` v2 — `@theme`, Oxide engine, container queries, OKLCH
 - `shadcn-ui` v2 — primitives without `forwardRef`, `data-slot` slots

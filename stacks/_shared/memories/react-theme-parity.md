@@ -1,109 +1,122 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: React Theme Parity (Laravel / Inertia / SPA)
 
-> **ALWAYS LOAD** — Before and after editing React UI (`.jsx` / `.tsx` pages or components), the agent MUST discover the project’s existing theme (or sibling-page CSS patterns) and validate that new UI matches it. Stops long-session drift: purple-default shadcn, random `gray-*`, `text-white` on primary, new UI libraries, one-off hex colors.
+> **ALWAYS LOAD** — Before and after editing React UI (`.jsx` / `.tsx`) or theme
+> CSS, discover the house theme and **validate mechanically**. Stops long-session
+> drift: purple shadcn, `gray-*`, `text-white` on primary, `dark:` on tokens,
+> invented utilities, extract-refactors that drop identifiers.
+
+Evidence: pubweb-saas session `8a0abd61` (style-guide + crash `labelColor` +
+transparent tables + hover ΔL*=0). Skill `react-theme-apply` is the playbook.
 
 ---
 
 ## Declared purpose
 
-Laravel + React (Inertia or SPA) projects usually already have:
-
-- CSS theme tokens (`resources/css/themes/*.css`, `@theme`, `data-theme`, `.dark`)
-- Shared layouts (`CmsLayout`, `AppLayout`, `AuthLayout`, …)
-- Shared Common components (`Spinner`, `Modal`, `EmptyState`, …)
-- A house UI kit (Preline, custom, etc.) — **not** whatever the model defaults to
-
-In long sessions Claude forgets and invents a second design system. This memory forces **discover → copy → validate**.
+Projects usually already have CSS tokens, layouts, Common components, and a kit
+(Preline moon, custom). Agents invent a second system mid-session. This memory
+forces **CSS truth → copy → grep/guard → both modes**.
 
 ---
 
-## Discovery protocol (run BEFORE writing UI)
+## CSS-first gate (before any token migrate in JSX)
 
-Execute in order until you have a styling source of truth:
+If `resources/css/themes/` exists:
 
-1. **Theme files** — Read if present:
-   - `resources/css/themes/theme.css`, `*.css` under `resources/css/themes/`
-   - `resources/css/app.css` (`@theme`, `.input-primary`, Preline imports)
-   - `src/app/globals.css` / `app/globals.css` (Next-style)
-   - `tailwind.config.*` only as fallback (v4 tokens often live in CSS)
-2. **Theme runtime** — `ThemeContext`, `data-theme=`, `HSThemeAppearance`, `dark` class on `<html>`
-3. **Layouts** — `resources/js/Layouts/*` or `src/components/layout/*`
-4. **Sibling pages** — Open 1–2 pages in the **same area** (e.g. other `Pages/User/*`) and copy their class strategy
-5. **Feature styles** — local `styles.js` / `STYLES` const / `_components/shared.jsx`
-6. **CLAUDE.md / .cursorrules** — FORBIDDEN UI rules for this repo
+1. Read `theme.css` (`@theme inline`) + the active theme file (`moon.css`, …).
+2. Confirm each token you will use exists in **@theme inline** AND **both**
+   light and dark theme blocks. A name only in light **freezes** when the theme
+   selector out-specifies `.dark` (moon fork: `:root[data-theme]` is (0,2,0)).
+3. Fork vs upstream spelling (`-border` vs `-line`) — fix the **map**, do not
+   invent a third name.
+4. **No mass JSX migrate** onto a lying token. CSS patches first.
 
-If **no** dedicated theme tokens exist → **sibling-page parity** is mandatory (same layout wrapper, spacing tier, border/bg/text class families, button recipe). Do not invent a new palette.
+If no themes folder → sibling-page parity only. Do not invent a palette.
+
+Then: ThemeContext / `data-theme` / `.dark` → layouts → 1–2 sibling pages →
+`STYLES` / `uiStyles.js` → CLAUDE.md FORBIDDEN UI.
 
 ---
 
-## Two valid modes (pick one per feature — do not mix)
+## Two valid modes (do not mix on one screen)
 
 | Mode | When | Rules |
 |------|------|--------|
-| **A. Semantic tokens** | Project has `bg-primary`, `text-foreground`, `border-line-*`, `bg-card`, … | Use tokens; **avoid** `dark:` on those color utilities (tokens already flip) |
-| **B. Explicit gray + `dark:`** | Legacy pages use `bg-white dark:bg-neutral-800` | Stay in that family for that feature; copy from sibling `styles.js` |
-
-Mixing A and B on the same screen is the #1 “looks off” failure.
+| **A. Semantic tokens** | `bg-primary`, `text-foreground`, `border-line-*` exist | **No `dark:` on those colors** (tokens flip). |
+| **B. Explicit gray + `dark:`** | Legacy sibling already uses `bg-white dark:bg-neutral-800` | Copy that family only. |
 
 ---
 
-## Validation checklist (BEFORE claiming done / Stop)
+## Hard laws (reject on sight)
 
-For every new or heavily edited page/component:
+| Law | Fail |
+|-----|------|
+| 1 | `dark:bg-*` / `dark:text-*` next to a semantic token (`bg-card`, …) |
+| 2 | `text-white` on `bg-primary` / `bg-secondary` when those invert in dark |
+| 3 | Invented token (`bg-neutral-soft`, …) — compiles to **nothing**, no error |
+| 4 | Hover/focus color ≡ parent surface (ΔL* 0) — e.g. `hover:bg-dropdown-item-hover` on `bg-card` when both resolve to the same hex |
+| 5 | Transparent table on a busy page — tables need an **opaque** surface (`bg-sidebar` / `bg-card`) + thead token, **both** modes |
+| 6 | Extract shared JS (`chartTheme.js`, `uiStyles.js`) without `rg` of **every old identifier** at every call site |
+| 7 | `focus:outline-none` without `focus-visible:` / `focus:ring` in the **same** class string |
+| 8 | New UI library (shadcn/MUI) not already in `package.json` |
+| 9 | Probe files under `node_modules/` |
+| 10 | “Looks fine” in one mode only |
 
-- [ ] Wrapped in the **same layout** siblings use (`CmsLayout` / project equivalent)
-- [ ] Classes in a **`STYLES` const** (or shared `styles.js`) — not Tailwind soup inline on every node
-- [ ] Colors from theme tokens **or** sibling gray/`dark:` set — no one-off hex / random `blue-600`
-- [ ] Primary buttons use project recipe (often `bg-primary text-primary-foreground`) — **not** `text-white` if moon/inverted themes break it
-- [ ] Forms use project field class (e.g. `.input-primary`) when it exists
-- [ ] Reused `Components/Common/*` (Spinner, Modal, EmptyState, …) — no new spinner/modal
-- [ ] **No new UI library** (shadcn/MUI/Chakra/Radix) unless already a dependency
-- [ ] Icons: project default (often `lucide-react` named imports)
-- [ ] Spacing tier matches siblings (`p-4 sm:p-6` vs dense `p-3 sm:p-4`)
-- [ ] Mobile: divided lists over card grids when that is the house rule
-- [ ] Dark mode spot-check: toggle or reason about `.dark` / token flip
-
-If any box fails → fix before finalize. In long sessions, **re-read** the theme file + one sibling page before the next UI chunk.
-
----
-
-## Typical drift (reject on sight)
-
-| Drift | Fix |
-|-------|-----|
-| Default “AI purple / indigo” palette | Revert to project primary tokens |
-| Added shadcn/ui from muscle memory | Remove; use house components |
-| `text-white` on primary CTA | Use `primary-foreground` or sibling button classes |
-| `dark:` on semantic token colors | Drop `dark:`; let CSS variables flip |
-| New card/modal primitive | Use `Components/Common` |
-| Inline class novels | Extract `STYLES` |
-| Wrong layout shell | Wrap like Quizzes / sibling Index page |
+**Four `dark:` exceptions only:** numeric ramp (`primary-50…950`), status hue with no token, dataviz categorical hex, **alpha of the same token** (`bg-primary/5 dark:bg-primary/10`).
 
 ---
 
-## Hook companion
+## Extract / shared helper (P0)
 
-`user-prompt-submit` injects a **THEME PARITY** reminder when the project has React UI and the prompt/session involves `.jsx`/`.tsx`. Treat it as mandatory, not optional flavor text.
+When you move colors into a helper:
+
+```bash
+# old names that used to live in the file
+rg -n "labelColor|axisColor|gridColor" resources/js
+```
+
+Every former identifier must exist on the export **or** every call site must be
+updated **in the same commit**. Missing binding = whitescreen (session `labelColor`).
+
+ATTENTION GATE if the extract is incomplete — do not push.
 
 ---
 
-## Scope
+## Validation (before done / Stop)
 
-| Action | Status |
-|--------|--------|
-| Discover theme + sibling CSS before UI edits | Required |
-| Validate checklist before done | Required |
-| Introduce unrelated design system mid-feature | Forbidden |
-| “Looks fine in light only” without dark/token check | Forbidden |
+- [ ] CSS-first gate passed (or no themes/)
+- [ ] Same layout shell as siblings
+- [ ] `STYLES` const / shared styles — not class novels
+- [ ] Laws 1–7: run the guard
+- [ ] Common/* reused
+- [ ] **Both modes**: toggle or two computed styles — not “should flip”
+- [ ] Live curl uses a **browser UA** (Cloudflare 520 on `curl/*` is not “site down”)
+
+```bash
+node scripts/check-theme-tokens.mjs
+# if the project has it:
+php artisan test --filter=DesignSystemGuard
+```
+
+If `docs/design/style-guide/` exists, that guide **wins** over inventing markup.
+If the guide number ≠ today’s grep, fix the **number**, not the recipe.
 
 ---
 
-## See Also
+## UPS
 
-- Skills: `react-standards` (Inertia), `react-api-standards`, `tailwind-patterns`, `preline-ui` / `shadcn-ui` (only if project already uses them)
-- Memory: `cursor-ide-edit-sync.md` (IDE buffer vs real file when restyling)
-- Skill: `svs-finalize` — theme parity before documenter/commit
+`user-prompt-submit` injects **THEME APPLY** (1.16+) on theme/table/hover prompts
+or when `themes/*.css` / `.jsx` are in `filesTouched`. Not optional flavor.
+
+---
+
+## See also
+
+- Skill `react-theme-apply` — order of work
+- Skills `preline-moon`, `react-standards`, `tailwind-patterns`
+- `cdn-asset-deploy-verify.md` — browser UA for live HTML
+- `execute-ship-ops.md` — ATTENTION if extract incomplete
+- `svs-finalize` — run the guard before documenter on theme touches

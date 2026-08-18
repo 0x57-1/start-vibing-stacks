@@ -27,7 +27,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.22.0';
+export const GROK_SKILLS_VERSION = '1.23.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -58,6 +58,7 @@ export const GROK_CURATED_SKILL_NAMES = [
   // Frontend theme corpus (large; only mirrored when present in project .claude/skills)
   'preline-moon',
   'preline-ui',
+  'react-theme-apply',
 ] as const;
 
 const GENERATED_SKILL_NAMES = ['svs-policy', 'svs-dev-process', 'svs-memory-index'] as const;
@@ -279,7 +280,7 @@ function memoryIndexSkillBody(): string {
     '| `verify-before-claim.md` | Review/security: fresh tools; no memory-only; execute all || parts |',
     '| `execute-ship-ops.md` | SAFE SHIP vs ATTENTION GATE; push+deploy; COMMIT-FIRST |',
     '| `quality-gate-before-push.md` | Tests red → veto push |',
-    '| `cdn-asset-deploy-verify.md` | Curl CDN/launcher markers before “published” |',
+    '| `cdn-asset-deploy-verify.md` | Curl CDN/launcher markers (browser UA for HTML) |',
     '| `oauth-integration-preflight.md` | redirect_uri + secret check before OAuth plan |',
     '| `remove-ai-watermarks.md` | Inspect/clean Claude/vendor watermarks on own content |',
     '| `multi-instance-main-only.md` | Same cwd = one HEAD; ship only from main |',
@@ -287,7 +288,7 @@ function memoryIndexSkillBody(): string {
     '| `passive-public-security-posture.md` | Passive public OSINT only |',
     '| `post-push-ci-verification.md` | After `git push` — verify Actions for the SHA |',
     '| `cursor-ide-edit-sync.md` | Cursor buffer sync / Save file to continue |',
-    '| `react-theme-parity.md` | Laravel/React UI: match theme or sibling CSS before done |',
+    '| `react-theme-parity.md` | React UI: CSS-first tokens + check-theme-tokens + both modes |',
     '| `claude-cross-session-messaging.md` | Native Claude SendMessage vs SVS /svs-peers bus |',
     '',
     'All paths are under `.claude/memories/`.',
@@ -305,6 +306,8 @@ function curatedSkillSource(projectDir: string, name: string): string | null {
   // Fallback: bundled _shared skill (so Grok migrate works before Claude skill scan)
   const bundled = join(PACKAGE_ROOT, 'stacks', '_shared', 'skills', name, 'SKILL.md');
   if (existsSync(bundled)) return bundled;
+  const frontendReact = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
+  if (existsSync(frontendReact)) return frontendReact;
   return null;
 }
 

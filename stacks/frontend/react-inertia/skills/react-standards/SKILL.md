@@ -1,10 +1,10 @@
 ---
 name: react-standards
-version: 2.1.0
+version: 2.1.1
 description: LEGACY — React 19 standards for Inertia.js projects (controller
   props, useForm, Inertia router). Use ONLY in pre-existing Inertia projects.
   For NEW projects use `react-api-standards` (Axios + TanStack Query + React
-  Router) instead. Theme parity: memory `react-theme-parity` before/after UI.
+  Router) instead. Theme: memory react-theme-parity + skill react-theme-apply.
 ---
 
 # React 19+ Standards with Inertia.js (LEGACY)
@@ -66,15 +66,15 @@ export default function Dashboard() {
 
 ## Theme parity (MANDATORY — long sessions)
 
-Load memory `react-theme-parity`. Before new pages/components:
+Load memory `react-theme-parity` and skill `react-theme-apply`. Before new pages/components:
 
-1. Read `resources/css/themes/*` + `app.css` when present (semantic tokens).
+1. CSS-first: `resources/css/themes/*` + `@theme inline` (both light/dark blocks) when present.
 2. Else copy class families from 1–2 sibling pages in the same `Pages/…` area.
 3. Same layout shell (`CmsLayout` / project Layout); `STYLES` const or feature `styles.js`.
-4. Do not introduce shadcn/MUI/etc. unless already in `package.json`.
-5. Before Stop: checklist in the memory (primary button, forms, Common/*, dark/token).
+4. Do not introduce shadcn/MUI/etc. unless already in `package.json`. Do not put `dark:` on semantic tokens.
+5. Before Stop: `node scripts/check-theme-tokens.mjs` + both modes.
 
-`user-prompt-submit` injects a THEME PARITY reminder when `.jsx`/`.tsx` work is in play.
+`user-prompt-submit` injects THEME APPLY when `.jsx`/`.tsx` or theme CSS work is in play.
 
 ## TailwindCSS Class Organization
 

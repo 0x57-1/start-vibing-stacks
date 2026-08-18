@@ -822,6 +822,37 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
     report.copied.push(relative(projectDir, localExampleDest));
   }
 
+  // Shared helper scripts (check-theme-tokens.mjs, …) — missing or outdated
+  const sharedScriptsDir = join(CLI_ROOT, 'stacks', '_shared', 'scripts');
+  if (existsSync(sharedScriptsDir)) {
+    const projectScriptsDir = join(projectDir, 'scripts');
+    for (const name of readdirSync(sharedScriptsDir)) {
+      if (name.startsWith('.') || name.endsWith('.bak')) continue;
+      const src = join(sharedScriptsDir, name);
+      try {
+        if (!statSync(src).isFile()) continue;
+      } catch {
+        continue;
+      }
+      const dest = join(projectScriptsDir, name);
+      const bundledVer = parseHookVersion(src) ?? '0.0.0';
+      const installedVer = existsSync(dest) ? parseHookVersion(dest) : null;
+      const shouldCopy =
+        !existsSync(dest) ||
+        (installedVer !== null &&
+          semver.valid(installedVer) !== null &&
+          semver.lt(installedVer, bundledVer)) ||
+        (existsSync(dest) && installedVer === null);
+      if (shouldCopy) {
+        if (!dryRun) {
+          mkdirSync(projectScriptsDir, { recursive: true });
+          copyFileSync(src, dest);
+        }
+        report.copied.push(relative(projectDir, dest));
+      }
+    }
+  }
+
   const giPath = join(projectDir, '.gitignore');
   if (existsSync(giPath)) {
     let gi = readFileSync(giPath, 'utf8');

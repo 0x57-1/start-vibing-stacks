@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.15.0
+// @sv-version: 1.16.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.16.0: THEME APPLY (memory react-theme-parity 1.1 + skill react-theme-apply)
+ * — CSS-first, check-theme-tokens, both modes; style-guide path if present.
  * v1.15.0: WP plugin ops nudge (memory owned-wordpress-plugin-ops) — search +
  * neutralize on owned sites; refuse cracked/nulled keys.
  * v1.14.0: Always refresh gitBranch from live HEAD; MAIN-ONLY ship nudge when
@@ -219,8 +221,9 @@ function buildPeersBlock(
 }
 
 const UI_PROMPT_RE =
-  /\b(page|pages|layout|component|ui|ux|theme|tailwind|css|jsx|tsx|inertia|react|frontend|modal|sidebar|dashboard|STYLES|dark\s*mode|preline|shadcn)\b/i;
+  /\b(page|pages|layout|component|ui|ux|theme|tema|moon|tailwind|css|jsx|tsx|inertia|react|frontend|modal|sidebar|dashboard|STYLES|dark\s*mode|preline|shadcn|tabela|contraste|hover|style\s*guide)\b/i;
 const REACT_UI_FILE_RE = /\.(jsx|tsx)$/i;
+const THEME_CSS_FILE_RE = /(?:themes\/.+\.css|\.css)$/i;
 
 function projectHasReactUi(projectDir: string): boolean {
   const markers = [
@@ -257,21 +260,27 @@ function buildThemeParityBlock(
   touched: string[]
 ): string {
   if (!projectHasReactUi(projectDir)) return '';
-  const touchedUi = touched.some((f) => REACT_UI_FILE_RE.test(f));
+  const touchedUi = touched.some((f) => REACT_UI_FILE_RE.test(f) || THEME_CSS_FILE_RE.test(f));
   const promptUi = UI_PROMPT_RE.test(prompt);
   if (!touchedUi && !promptUi) return '';
 
-  const themeHint = existsSync(join(projectDir, 'resources', 'css', 'themes'))
-    ? 'Read `resources/css/themes/*` + `app.css` first.'
-    : 'No themes/ folder — copy CSS/class patterns from 1–2 sibling pages in the same area.';
+  const hasThemes = existsSync(join(projectDir, 'resources', 'css', 'themes'));
+  const hasGuide = existsSync(join(projectDir, 'docs', 'design', 'style-guide'));
+  const themeHint = hasThemes
+    ? 'CSS-FIRST: patch theme.css + moon (or active theme) BOTH blocks + @theme inline before any JSX token migrate.'
+    : 'No themes/ folder — copy class patterns from 1–2 sibling pages. Do not invent a palette.';
+  const guideHint = hasGuide
+    ? '\n  Style guide present: follow `docs/design/style-guide/` recipes (guide wins; grep wins on counts).'
+    : '';
 
   return (
-    `\n\nTHEME PARITY REQUIRED (memory: react-theme-parity) — long sessions drift off the house UI:\n` +
-    `  1. BEFORE UI edits: discover theme tokens OR sibling-page class patterns. ${themeHint}\n` +
-    `  2. Same layout shell + STYLES const (or feature styles.js); no new UI lib (shadcn/MUI) unless already in package.json.\n` +
-    `  3. Prefer semantic tokens (bg-primary, text-foreground, …) when the project has them; do not mix with random gray-/dark: soup.\n` +
-    `  4. BEFORE done: run the checklist in \`.claude/memories/react-theme-parity.md\` (buttons, forms, Common/*, dark/token flip).\n` +
-    `  5. Re-read theme + one sibling page before each new UI chunk in this session.`
+    `\n\nTHEME APPLY (memory: react-theme-parity 1.1 + skill react-theme-apply):\n` +
+    `  1. ${themeHint}${guideHint}\n` +
+    `  2. Order: CSS truth → Common/shell → pages → shared JS. Same layout + STYLES. No new UI lib.\n` +
+    `  3. LAWS: no dark: on semantic tokens; no text-white on bg-primary; no invented tokens;\n` +
+    `     hover must differ from parent surface; tables opaque; extract JS ⇒ rg every old ident.\n` +
+    `  4. BEFORE done: \`node scripts/check-theme-tokens.mjs\` (and DesignSystemGuard if the project has it).\n` +
+    `  5. Prove LIGHT and DARK (toggle or computed style). curl UA must be a browser (CF 520 ≠ down).`
   );
 }
 

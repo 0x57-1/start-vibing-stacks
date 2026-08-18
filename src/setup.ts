@@ -273,6 +273,16 @@ export async function setupProject(
       }
     }
 
+    // 11f. Shared helpers (theme-token guard, …) — all stacks / frontends
+    const sharedScriptsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'scripts');
+    if (existsSync(sharedScriptsDir)) {
+      const projectScriptsDir = join(projectDir, 'scripts');
+      const copied = copyDirRecursive(sharedScriptsDir, projectScriptsDir, options.force);
+      if (copied > 0) {
+        spinner.text = `Installed ${copied} shared helper script(s) to scripts/`;
+      }
+    }
+
     // 12. Copy commands
     const sharedCommandsDir = join(PACKAGE_ROOT, 'stacks', '_shared', 'commands');
     if (existsSync(sharedCommandsDir)) {

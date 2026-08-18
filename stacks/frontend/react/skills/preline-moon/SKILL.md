@@ -1,6 +1,6 @@
 ---
 name: preline-moon
-version: 1.0.1
+version: 1.0.2
 description: >-
   SOURCE OF TRUTH for Preline UI under the moon theme — offline corpus of
   component schemes, 800+ examples, moon token tables, data-hs-* / HS* wiring.
@@ -64,6 +64,15 @@ will be wrong and no tool will tell you. Same for the other eight: `theme-harves
 | In **pubweb-saas** this is already done twice — `resources/views/app.blade.php:2` and `Context/ThemeContext.jsx:23-25`, dark by default, key `pw_theme`. Do not add a second theme key. | `reference/project-integration.md` §2 |
 
 Tokens flip on their own. `dark:bg-neutral-800` next to `bg-card` is not a refinement, it is a bug.
+
+**Fork specificity (CSS-first).** The pubweb-saas / `assets/css/project-moon.css`
+selectors (`:root[data-theme="theme-moon"]`) are **(0,2,0)**. A bare `.dark`
+block is **(0,1,0)** and **loses**. A custom property declared only in the light
+theme block **stays light** after toggle. Patch **both** theme blocks +
+`@theme inline` before any JSX token migrate. Skill `react-theme-apply`.
+
+If the project has `docs/design/style-guide/`, that guide wins for recipes.
+Grep vs guide: fix the **count** in the guide, not the token name.
 
 ## Lookup protocol
 
@@ -207,5 +216,6 @@ grep -n 'data-hs-overlay' reference/javascript.md
 ## See Also
 
 - **`preline-ui`** — short summary only (install, CSS order, `autoInit()`). Defer all component/token look-ups back here.
+- `react-theme-apply` + memory `react-theme-parity` — CSS-first apply + token guard
 - `tailwind-patterns` — Tailwind v4 `@theme` / Oxide
 - `react-standards` / `inertia-react` — React / Inertia component conventions

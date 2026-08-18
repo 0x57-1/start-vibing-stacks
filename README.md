@@ -6,7 +6,7 @@ CLI that installs a **shared AI engineering setup** into a repo: agents, skills,
 npx start-vibing-stacks@latest
 ```
 
-Latest: **v2.78.2** — Preline **moon** offline corpus as default React skill (`preline-moon` = source of truth, `preline-ui` = summary); Grok resume rehydrates `filesTouched`; Launch `grok --trust`.
+Latest: **v2.87.0** — React theme apply (`react-theme-parity` 1.1 + skill `react-theme-apply` + `scripts/check-theme-tokens.mjs`); UPS THEME APPLY; Preline moon fork-specificity.
 
 ---
 
@@ -19,7 +19,7 @@ Latest: **v2.78.2** — Preline **moon** offline corpus as default React skill (
 | Enforce finish hygiene | Stop hooks block dirty tree, skipped docs, stale domain index |
 | Same finish chain on all targets | **Commit (scoped) → documenter → domain-updater → docs commit** |
 | Multi-instance safety | `.claude/state/` locks + `/svs-peers`; Claude ≥2.1.224 also has native `SendMessage` |
-| Theme-aware React UI | Frontend skills include Preline moon corpus + `react-theme-parity` memory |
+| Theme-aware React UI | Preline moon corpus + `react-theme-apply` + `react-theme-parity` + `check-theme-tokens.mjs` |
 
 **Not** a framework or app generator. It wires agents/skills/hooks around *your* codebase.
 
@@ -97,6 +97,7 @@ On Grok Build 1.0+, SessionEnd archives session state; SessionStart **rehydrates
 |-------|------|
 | **`preline-moon`** | Source of truth — offline moon theme corpus (INDEX, 87 schemes, 800+ examples, tokens) |
 | **`preline-ui`** | Short summary — install, CSS order, `HSStaticMethods.autoInit()` |
+| **`react-theme-apply`** | CSS-first token apply + `scripts/check-theme-tokens.mjs` (memory `react-theme-parity`) |
 | Others | `tailwind-patterns`, `react-standards`, `shadcn-ui`, … |
 
 Shipped for `react` / `react-api` / `react-inertia` (`frontendBaseSkillsDir`). After migrate: `.claude/skills/preline-moon/`.
@@ -157,7 +158,7 @@ Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-inst
 
 ## Notable memories (always-on via Claude `memory_files`)
 
-Ads/funnel · checkout · security · owned infra · `owned-wordpress-plugin-ops` · `verify-before-claim` · `execute-ship-ops` · `multi-instance-main-only` · `quality-gate-before-push` · `cdn-asset-deploy-verify` · `oauth-integration-preflight` · `remove-ai-watermarks` · `react-theme-parity` · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/`.
+Ads/funnel · checkout · security · owned infra · `owned-wordpress-plugin-ops` · `verify-before-claim` · `execute-ship-ops` · `multi-instance-main-only` · `quality-gate-before-push` · `cdn-asset-deploy-verify` · `oauth-integration-preflight` · `remove-ai-watermarks` · `react-theme-parity` (CSS-first + token guard) · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/`.
 
 Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropic cyber API gates.
 

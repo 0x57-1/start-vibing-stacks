@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-18 · main · v2.87.0
+React theme apply: memory `react-theme-parity` **1.1**, skill `react-theme-apply`,
+`scripts/check-theme-tokens.mjs`, UPS **1.16** THEME APPLY, `svs-finalize` **1.2.2**.
+
 ### 2026-08-17 · main · v2.86.0
 Memory + skill `owned-wordpress-plugin-ops`: search/neutralize plugins on
 owned WP (wp-cli / mu-plugin / crash-guard). UPS **1.15**. No nulled keys.
@@ -48,10 +52,6 @@ no-op template (fixes double English-only + Stack injection).
 ### 2026-08-08 · main · v2.79.0
 Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
 Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
-
-### 2026-08-08 · main · v2.78.2
-README refresh: Preline moon skill pair, Grok 1.0 trust/rehydrate, targets/skills table,
-frontend defaults, migrate `frontendBaseSkillsDir`.
 
 ---
 
@@ -153,6 +153,7 @@ start-vibing-stacks/
 8. copy stacks/frontend/{fe}/skills/* → .claude/skills/      (frontend-specific)
 9. copy stacks/{stack}/workflows/*    → .github/workflows/   (if dir is empty)
 10. copy stacks/{stack}/scripts/*     → <project>/scripts/   (non-destructive merge)
+10b. copy stacks/_shared/scripts/*    → <project>/scripts/   (theme-token guard, …)
 11. copy stacks/_shared/commands/*    → .claude/commands/
 12. write .claude/settings.json       (hooks, MCP, agents, workflow, rules, quality_gates)
 13. write CLAUDE.md from templates/CLAUDE-{stack}.md (if missing)
@@ -420,7 +421,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/multi-target-mcp-discovery.md`
 
-- **react-theme-parity.md** — Before/after React UI edits: discover `resources/css/themes/*` or sibling-page CSS; validate checklist (layout, STYLES, tokens, Common/*, no new UI lib). UPS injects THEME PARITY on jsx/tsx work.
+- **react-theme-parity.md** — CSS-first React theme apply (1.1): both theme blocks + `@theme` before JSX; 10 hard laws; extract-grep; `node scripts/check-theme-tokens.mjs`; both modes. UPS **1.16** THEME APPLY. Skill `react-theme-apply`.
 
   Loaded from: `.claude/memories/react-theme-parity.md`
 

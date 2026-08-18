@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.6
+svs-version: 1.2.7
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-18 · main · v2.87.0
+React theme apply: `react-theme-parity` **1.1**, skill `react-theme-apply`,
+`check-theme-tokens.mjs`, UPS **1.16**, `svs-finalize` **1.2.2**.
 
 ### 2026-08-17 · main · v2.86.0
 Memory + skill `owned-wordpress-plugin-ops`: owned-site plugin search/neutralize
@@ -86,10 +90,6 @@ archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); L
 README rewritten (objective). Kimi/Grok finalize order = Claude: scope commit →
 documenter → domain-updater. UPS **1.8.2**, stop-validator **1.8.1**, Grok agents **1.2.0**.
 
-### 2026-08-08 · main · v2.75.0
-Claude native cross-session messaging (v2.1.224): memory `claude-cross-session-messaging`;
-SVS command `/svs-peers` (remove shadowing `peers.md`); multi-instance skill **1.3.0**.
-
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -118,7 +118,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
-- React/Laravel UI: match project theme tokens or sibling-page CSS (memory `react-theme-parity`) — no mid-session design-system drift
+- React/Laravel UI: CSS-first theme apply (memory `react-theme-parity` + skill `react-theme-apply`) — patch both theme blocks before JSX; `node scripts/check-theme-tokens.mjs`; no mid-session design-system drift
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
