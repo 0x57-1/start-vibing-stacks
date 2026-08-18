@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-08-18 · main · v2.88.1
+After `migrate --apply`, launch-only menu when current (no Update first).
+AGENTS.md generator = policy-pack **1.2.7** (stale-loop fix).
+
 ### 2026-08-18 · main · v2.88.0
 `migrate --apply` installs MOP with `--with-memory-optimization` and opens the
 launcher (TTY). `--no-launch` = update-and-exit.
@@ -84,11 +88,6 @@ cross-refs so agents load moon corpus for markup/tokens, not invent from overvie
 ### 2026-08-08 · main · v2.78.0
 Ship `preline-moon` (offline Preline moon theme corpus) as default React frontend skill;
 `preline-ui` **2.1.0**; migrate scans `frontendBaseSkillsDir`; Grok curated + inertia baseSkills.
-
-### 2026-08-08 · main · v2.77.0
-Grok Build **1.0.0**: SessionStart/scope/Stop **rehydrate** `filesTouched` after SessionEnd
-archive (resume wipe fix); hooks export **1.8.0** (`write` matcher, Stop 90s); Launch
-`grok --always-approve --trust`; skip observe-only Stop `channel_closed|shutdown`.
 
 
 <!-- SVS:POLICY-PACK:START -->

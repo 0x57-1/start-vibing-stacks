@@ -60,7 +60,6 @@ import {
 } from './grok-agents.js';
 import { recentChangesDrifted } from './status.js';
 import type { MigrateTarget } from './types.js';
-import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -362,7 +361,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
 
   const prev = readManifest(projectDir);
   const manifest = defaultManifest(packageVersion(), {
-    version: AGENTS_MD_GENERATOR_VERSION,
+    version: bundled,
     hash: hash || prev?.agentsMd?.hash,
     claudeRcHash: claudeRcHash || prev?.agentsMd?.claudeRcHash,
   });
@@ -478,7 +477,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
 
   return {
     agentsMdWritten,
-    agentsMdVersion: AGENTS_MD_GENERATOR_VERSION,
+    agentsMdVersion: bundled,
     agentsMdHash: hash,
     claudeRcHash,
     manifestWritten: true,

@@ -199,7 +199,7 @@ async function main(): Promise<void> {
         const m = mcpExportNeedsUpdate(projectDir);
         return m.missing || m.outdated;
       })();
-      const pendingTotal =
+      let pendingTotal =
         pending.length +
         (agentsPending ? 1 : 0) +
         (cursorPending ? 1 : 0) +
@@ -207,13 +207,46 @@ async function main(): Promise<void> {
         (grokSkillsPending ? 1 : 0) +
         (hooksPending ? 1 : 0) +
         (mcpPending ? 1 : 0);
-      console.log('\n' + formatTargetsStatus(projectDir));
+
+      const justMigrated = SUBCOMMAND === 'migrate' && FLAGS.apply;
+      if (justMigrated && pendingTotal > 0 && !FLAGS.skipUpdate) {
+        ui.info(`Applying ${pendingTotal} leftover update(s) after migrate…`);
+        const { runMigrate } = await import('./migrate.js');
+        await runMigrate(projectDir, {
+          apply: true,
+          forceHooks: FLAGS.forceHooks,
+          withMemoryOptimization: FLAGS.withMemoryOptimization,
+        });
+        const leftover = planMigration(projectDir, { apply: false }).filter(
+          (it) => it.status === 'outdated' || it.status === 'missing'
+        );
+        const agents2 = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
+        const cur2 = cursorRulesNeedsUpdate(projectDir);
+        const kimi2 = kimiLocalNeedsUpdate(projectDir);
+        const grok2 = grokSkillsNeedsUpdate(projectDir);
+        const hooks2 = hooksExportNeedsUpdate(projectDir);
+        const mcp2 = mcpExportNeedsUpdate(projectDir);
+        pendingTotal =
+          leftover.length +
+          (agents2.missing || agents2.outdated || recentChangesDrifted(projectDir) ? 1 : 0) +
+          (cur2.missing || cur2.outdated ? 1 : 0) +
+          (kimi2.localMissing || kimi2.blockMissing || kimi2.exampleMissing ? 1 : 0) +
+          (grok2.blockMissing || grok2.nativeMissing || grok2.outdated || grok2.curatedMissing > 0
+            ? 1
+            : 0) +
+          (hooks2.kimiMissing || hooks2.grokMissing || hooks2.outdated ? 1 : 0) +
+          (mcp2.missing || mcp2.outdated ? 1 : 0);
+      }
+
+      if (!justMigrated) {
+        console.log('\n' + formatTargetsStatus(projectDir));
+      }
 
       const pendingLabel =
         pendingTotal > 0
           ? `📦  Update from package (${pendingTotal} outdated/missing) — migrate --apply`
           : '📦  Update from package (migrate --apply)';
-      if (pendingTotal > 0) {
+      if (pendingTotal > 0 && !justMigrated) {
         ui.warn(
           `${pendingTotal} bundled artefact(s) newer than this project — Launch will auto-migrate, or: npx start-vibing-stacks@latest migrate --apply`
         );
@@ -243,22 +276,25 @@ async function main(): Promise<void> {
 
       console.log('');
 
+      const skipFullMenu = justMigrated && pendingTotal === 0;
       const updateChoice = { name: pendingLabel, value: 'migrate' };
       const { action } = await inquirer.prompt([
         {
           type: 'list',
           name: 'action',
-          message: 'What do you want to do?',
-          choices: [
-            // Prefer Update when project artefacts lag (common Kimi/Grok skip path)
-            ...(pendingTotal > 0 ? [updateChoice] : []),
-            ...launchChoices,
-            ...(pendingTotal > 0 ? [] : [updateChoice]),
-            { name: '📄  Regenerate AGENTS.md (Kimi/Grok/Cursor)', value: 'sync-agents' },
-            { name: '🧩  Sync Cursor rules + MCP (.cursor/)', value: 'sync-cursor' },
-            { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
-            { name: '❌  Exit', value: 'exit' },
-          ],
+          message: skipFullMenu ? 'Launch:' : 'What do you want to do?',
+          choices: skipFullMenu
+            ? [...launchChoices, { name: '❌  Exit', value: 'exit' }]
+            : [
+                // Prefer Update when project artefacts lag (common Kimi/Grok skip path)
+                ...(pendingTotal > 0 ? [updateChoice] : []),
+                ...launchChoices,
+                ...(pendingTotal > 0 ? [] : [updateChoice]),
+                { name: '📄  Regenerate AGENTS.md (Kimi/Grok/Cursor)', value: 'sync-agents' },
+                { name: '🧩  Sync Cursor rules + MCP (.cursor/)', value: 'sync-cursor' },
+                { name: '🔄  Reconfigure project (fresh setup)', value: 'reconfig' },
+                { name: '❌  Exit', value: 'exit' },
+              ],
         },
       ]);
 

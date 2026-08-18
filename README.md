@@ -6,7 +6,7 @@ CLI that installs a **shared AI engineering setup** into a repo: agents, skills,
 npx start-vibing-stacks@latest
 ```
 
-Latest: **v2.88.0** — `migrate --apply` installs MOP with `--with-memory-optimization` and opens the launcher (TTY).
+Latest: **v2.88.1** — after `migrate --apply`, launch-only when current (no fake Update leftover).
 
 ---
 

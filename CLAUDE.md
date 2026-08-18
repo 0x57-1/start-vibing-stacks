@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-18 · main · v2.88.1
+After `migrate --apply`, skip the full resume menu when artefacts are current
+(launch-only). Fix AGENTS.md stale-loop (generator 1.2.5 vs policy 1.2.7).
+
 ### 2026-08-18 · main · v2.88.0
 `migrate --apply` copies MOP when `--with-memory-optimization` and opens the
 launcher (TTY). `--no-launch` keeps update-and-exit for CI.
@@ -47,11 +51,6 @@ commit-manager **3.4.0** test veto before push.
 ### 2026-08-09 · main · v2.81.0
 Ignore Claude scratchpads (`/tmp/claude-*`, `~/.claude/*`) in filesTouched —
 fixes false finalize/plan-gate/Stop on temp edits; prune on post-tool-use/scope.
-
-### 2026-08-09 · main · v2.80.0
-UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK (no finalize dump); SHIP NOW on
-urgent push; soft-pass finalize on status; memory `execute-ship-ops`; global UPS
-no-op template (fixes double English-only + Stack injection).
 
 ---
 

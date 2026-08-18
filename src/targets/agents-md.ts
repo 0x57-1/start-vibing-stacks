@@ -46,6 +46,7 @@ export function generateAgentsMd(
   const recentLimit = opts.recentChangesLimit ?? 5;
 
   const policy = loadPolicyPack();
+  const version = bundledAgentsMdVersion();
   const claudePath = join(projectDir, 'CLAUDE.md');
   const claude = existsSync(claudePath) ? readFileSync(claudePath, 'utf8') : '';
 
@@ -57,7 +58,7 @@ export function generateAgentsMd(
 
   const body = [
     '---',
-    `svs-version: ${AGENTS_MD_GENERATOR_VERSION}`,
+    `svs-version: ${version}`,
     'generated-by: start-vibing-stacks',
     'targets: kimi, grok, cursor',
     '---',
@@ -173,7 +174,7 @@ export function generateAgentsMd(
     return {
       written: false,
       path: dest,
-      version: AGENTS_MD_GENERATOR_VERSION,
+      version,
       hash,
       claudeRcHash,
       skippedReason: 'exists (pass force to regenerate)',
@@ -185,7 +186,7 @@ export function generateAgentsMd(
   return {
     written: true,
     path: dest,
-    version: AGENTS_MD_GENERATOR_VERSION,
+    version,
     hash,
     claudeRcHash,
   };
