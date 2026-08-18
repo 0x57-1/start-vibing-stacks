@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.8
+svs-version: 1.2.10
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -35,7 +35,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
-- Grok finalize: `spawn_subagent` `general-purpose` (`isolation: none`; writers `capability_mode: all`) with a **short** prompt — child Reads `.grok/agents/<name>.md`. Do not paste the file into the parent (hangs). Do not use `explore`/`plan` as documenter.
+- Grok finalize: `spawn_subagent` type `documenter` / `domain-updater` (`capability_mode: all`, `reasoning_effort: "low"`) with a **short** prompt. Fallback `general-purpose` + Read. Do not paste the Claude copy. Do not restamp after a docs-only commit. Do not use `explore`/`plan` as documenter.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)
 

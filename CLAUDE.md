@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-18 · main · v2.90.0
+Grok-native documenter creates missing domains (template + Files + connections
++ index). Spawn custom type + `reasoning_effort: low` (parent xhigh no longer
+leaks). Stop accepts last_commit on the code SHA after a docs-only commit.
+
 ### 2026-08-18 · main · v2.89.0
 Launch Grok menu shows `--always-approve --trust` (persists folder trust).
 Grok spawn: child Reads `.grok/agents/<name>.md` (short parent prompt — no paste,
@@ -47,11 +52,6 @@ UPS **1.13** step 3b — inspect/clean Layer A on user-facing prose before done.
 `execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy now) vs ATTENTION
 GATE (ask before commit with risk/evidence); workflow auth until loop closes;
 full artifact inventory (launchers + pw.js etc.).
-
-### 2026-08-09 · main · v2.82.0
-Stop/UPS recovery: COMMIT-FIRST, FINALIZE anti-thrash, CLAUDE.md soft 36k;
-memories quality-gate-before-push, cdn-asset-deploy-verify, oauth-preflight;
-commit-manager **3.4.0** test veto before push.
 
 ---
 

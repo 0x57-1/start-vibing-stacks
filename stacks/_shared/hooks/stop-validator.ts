@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.10.0
+// @sv-version: 1.11.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -12,8 +12,10 @@
  * 4. CLAUDE.md missing required sections — accepts `## Last Change` OR `## Recent Changes`
  * 5. CLAUDE.md exceeds 40k chars
  * 6. Secret pattern detected in committed/staged files (uses gitleaks if present, fallback to regex)
- * 7. Domain `_index.json#last_commit` stale vs HEAD after source edits (documenter skipped)
+ * 7. Domain `_index.json#last_commit` stale vs HEAD after source edits (documenter skipped).
+ *    Docs-only HEAD (C2) may still stamp the parent code SHA (C1) — that is OK.
  *
+ * v1.11.0: last_commit may equal HEAD~1 when HEAD is docs-only (no restamp spawn).
  * v1.10.0: record `lastStopKind` for UPS COMMIT-FIRST / FINALIZE-NOW / COMPACT-NOW;
  * finalize anti-thrash (soft-pass after 2 identical hard-blocks); warn when
  * CLAUDE.md > 36k (soft cap) before hard 40k block.
@@ -122,6 +124,26 @@ function cmd(command: string): string {
   } catch {
     return '';
   }
+}
+
+/** True when stamp matches HEAD, or HEAD is a docs-only commit on top of the stamp (C2). */
+function indexLastCommitOk(last: string, head: string, headShort: string): boolean {
+  if (last === head || last === headShort || head.startsWith(last)) return true;
+  const parentShort = cmd('git rev-parse --short HEAD~1');
+  if (!parentShort) return false;
+  const parentMatch =
+    last === parentShort || last.startsWith(parentShort) || parentShort.startsWith(last);
+  if (!parentMatch) return false;
+  const names = cmd('git diff-tree --no-commit-id --name-only -r HEAD')
+    .split('\n')
+    .filter(Boolean);
+  if (names.length === 0) return false;
+  return names.every(
+    (f) =>
+      /\.md$/i.test(f) ||
+      f.includes('codebase-knowledge/') ||
+      /^CHANGELOG/i.test(f)
+  );
 }
 
 function getBranch(): string {
@@ -535,7 +557,7 @@ function checkFinalizeChain(sessionId: string | undefined, claudeMd: string): Ho
       const head = cmd('git rev-parse HEAD');
       const headShort = cmd('git rev-parse --short HEAD');
       const last = (idx.last_commit || '').trim();
-      if (last && head && last !== head && last !== headShort && !head.startsWith(last)) {
+      if (last && head && !indexLastCommitOk(last, head, headShort)) {
         return {
           continue: true,
           decision: 'block',

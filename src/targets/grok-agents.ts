@@ -5,12 +5,18 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.5.0: richer native agents (create-from-template, Files, connections,
+ * index upsert, wisdom structure). Spawn custom type (`documenter`) so the
+ * agent IS the child system prompt. Tiny personas set `reasoning_effort=low`
+ * (no instructions_file). Spawn recipe passes `reasoning_effort: "low"`.
+ * v1.4.0: write Grok-native lean agents (stacks/_shared/targets/grok-native-agents)
+ * for documenter / domain-updater / commit-manager. Other Claude agents become
+ * short stubs — do not copy 200–400 line Task manuals (session 01a00f26: 8 min
+ * finalize from reading those copies).
  * v1.3.1: Do **not** inline agent bodies into the parent spawn prompt (auto-compact
- * / session hang). Child Reads the file in its own window. Drop personas/roles
- * overlays — Grok cannot pass a persona on spawn, and `instructions_file` at
- * discovery bloats boot. Prefer `general-purpose` (failed custom types waste a
- * Stop continuation; max 8/turn).
- * v1.3.0: spawn recipe + overlays (reverted overlays in 1.3.1).
+ * / session hang). Child Reads the file in its own window. Drop fat personas/roles
+ * (`instructions_file` of Claude manuals).
+ * v1.3.0: spawn recipe + overlays (fat overlays reverted in 1.3.1).
  * v1.1.0: strip Claude-only `model: sonnet`, inject inline-exec banner.
  */
 
@@ -22,9 +28,19 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'fs';
-import { join } from 'path';
+import { dirname, join, resolve } from 'path';
+import { fileURLToPath } from 'url';
 
-export const GROK_AGENTS_VERSION = '1.3.1';
+const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const NATIVE_AGENTS_DIR = join(
+  PACKAGE_ROOT,
+  'stacks',
+  '_shared',
+  'targets',
+  'grok-native-agents'
+);
+
+export const GROK_AGENTS_VERSION = '1.5.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -39,46 +55,66 @@ export interface GrokAgentsResult {
 /** Injected at the top of every exported agent. Keep as one leading blockquote. */
 export const GROK_BANNER =
   '> **Kimi / Grok:** Claude Task auto-invoke is unavailable. ' +
-  '**Grok:** spawn `general-purpose` (`isolation: none`, writers `capability_mode: all`) with a **short** prompt: ' +
-  '`Read this file FIRST, then execute. HEAD + filesTouched + task.` ' +
+  '**Grok:** spawn `subagent_type: "<name>"` (`isolation: none`, `capability_mode: all`, `reasoning_effort: "low"`) ' +
+  'with a **short** prompt: `HEAD + filesTouched + what shipped.` ' +
   'The child has its own context — **do not paste this file into the parent prompt** (hangs / auto-compact). ' +
   'Do not spawn `explore`/`plan` as a writer. One finalize child at a time. ' +
   'After source edits: `svs-finalize` (`commit-manager` → `documenter` → `domain-updater`). Never `git add -A`. ' +
-  '**Kimi:** Read + execute every step inline.\n';
+  'These `.grok/agents/` files are **Grok-native**. Do not open `.claude/agents/` unless this file says to. ' +
+  '**Kimi:** Read + execute `.claude/agents/` inline.\n';
 
 /**
- * Parent-side spawn recipe (Grok Build 1.0.4).
- * Child window loads the agent; parent stays thin.
+ * Parent-side spawn recipe (Grok Build 1.0.4+).
+ * Custom type loads the lean agent as the child's system prompt.
+ * reasoning_effort low — children inherit the parent's xhigh unless overridden.
  */
 export const GROK_SPAWN_RECIPE_MD = [
-  '## Grok spawn (child Reads the agent — parent stays thin)',
+  '## Grok spawn (custom type + low effort — parent stays thin)',
   '',
-  'Grok 1.0.4: subagents have **their own** context. Setup cost that exceeds the',
-  'benefit hangs the parent (auto-compact, 8 Stop continuations/turn).',
+  'Grok 1.0.4+: subagents have **their own** context. `.grok/agents/documenter.md`',
+  'is a **Grok-native** checklist — not the Claude Task copy.',
+  'A parent on `xhigh` otherwise hands that effort to every child (minutes to stamp a SHA).',
   '',
-  '- **Do not** paste `.grok/agents/<name>.md` into the parent `prompt`.',
-  '- **Do not** install personas/roles that `instructions_file` those mds (not a spawn param; boot bloat).',
-  '- Prefer built-in `general-purpose` for writers. Failed custom types waste a turn.',
+  '- Spawn `subagent_type: "documenter"` / `"domain-updater"` so the agent **is** the child',
+  '  (full tools via `capability_mode: "all"`). Do not paste the file into `prompt`.',
+  '- Pass `reasoning_effort: "low"` (spawn-time override). Drop the key only if the',
+  '  schema rejects it, then retry. Tiny `.grok/personas/<name>.toml` also pin `low`.',
+  '- Fallback if the type is unknown: `general-purpose` + `Read .grok/agents/<name>.md FIRST`.',
   '- `explore` / `plan` cannot edit files — never as documenter.',
   '- One finalize child at a time, `background: false`. `background` only for `research-web`.',
   '- Skip spawn for `scope.ts commit` — one shell on the parent.',
   '',
   '```',
   'spawn_subagent({',
-  '  subagent_type: "general-purpose",',
+  '  subagent_type: "documenter",',
   '  isolation: "none",',
   '  capability_mode: "all",',
+  '  reasoning_effort: "low",',
   '  description: "SVS documenter",',
-  '  prompt: "Read .grok/agents/documenter.md FIRST. Execute every step. HEAD=… filesTouched=… Stamp domains + _index.json. Return files written."',
+  '  prompt: "HEAD=… filesTouched=… what shipped=… Execute the agent. Return files written."',
   '})',
   '```',
   '',
   'Parent verifies on disk (`jq` `last_commit`, `rg` Recent Changes). Child “done” without writes = miss.',
-  'If spawn fails: parent Reads the agent and executes — do not retry invented types.',
+  'If spawn fails on an unknown key or type: retry without `reasoning_effort` or with',
+  '`general-purpose` + Read — do not invent a third type.',
 ].join('\n');
 
 const CLAUDE_ONLY_FM = /^\s*(model|tools|skills):\s*/i;
 const SVS_OVERLAY_MARK = /start-vibing-stacks|# SVS (persona|role)/;
+const FAT_OVERLAY_RE = /instructions_file\s*=/;
+const LEAN_PERSONA_NAMES = ['documenter', 'domain-updater'] as const;
+
+function leanPersonaToml(name: string): string {
+  return [
+    '# start-vibing-stacks',
+    '# SVS persona — low effort, no instructions_file (boot-safe)',
+    'reasoning_effort = "low"',
+    `description = "SVS ${name} — tool-first, low reasoning"`,
+    'instructions = "Follow the matching .grok/agents file. Use tools immediately. No process essay. Write files, then stop."',
+    '',
+  ].join('\n');
+}
 
 function listClaudeAgentFiles(projectDir: string): string[] {
   const dir = join(projectDir, '.claude', 'agents');
@@ -86,6 +122,30 @@ function listClaudeAgentFiles(projectDir: string): string[] {
   return readdirSync(dir)
     .filter((n) => n.endsWith('.md') && !n.startsWith('_') && !n.startsWith('.'))
     .sort();
+}
+
+function listNativeAgentFiles(): string[] {
+  if (!existsSync(NATIVE_AGENTS_DIR)) return [];
+  return readdirSync(NATIVE_AGENTS_DIR)
+    .filter((n) => n.endsWith('.md') && !n.startsWith('.'))
+    .sort();
+}
+
+function grokStubAgent(name: string): string {
+  const stem = name.replace(/\.md$/i, '');
+  return [
+    '---',
+    `name: ${stem}`,
+    'description: >',
+    `  Grok stub. Read .claude/agents/${name} only if the parent task needs the full`,
+    '  Claude checklist. Otherwise do the minimum asked and return files written.',
+    '---',
+    '',
+    `# ${stem} (Grok stub)`,
+    '',
+    `Do not load the Claude agent unless you are stuck. Path: \`.claude/agents/${name}\`.`,
+    '',
+  ].join('\n');
 }
 
 /** Drop a leading SVS `> **Kimi / Grok:**` blockquote so we can rewrite it. */
@@ -107,31 +167,43 @@ export function adaptAgentForGrok(body: string): string {
   return `---\n${meta}\n---\n\n${GROK_BANNER}\n${rest}`;
 }
 
-/** 1.3.0 wrote these; they bloat Grok discovery and are not a spawn parameter. */
+/** 1.3.0 fat overlays (`instructions_file` of Claude manuals) bloat boot. Keep lean effort personas. */
 export function removeSvsGrokOverlays(projectDir: string): number {
   let removed = 0;
-  for (const rel of [GROK_PERSONAS_REL, GROK_ROLES_REL]) {
-    const dir = join(projectDir, rel);
-    if (!existsSync(dir)) continue;
-    for (const name of readdirSync(dir)) {
-      const p = join(dir, name);
-      if (name === '.svs-version') {
+  const rolesDir = join(projectDir, GROK_ROLES_REL);
+  if (existsSync(rolesDir)) {
+    for (const name of readdirSync(rolesDir)) {
+      const p = join(rolesDir, name);
+      if (name === '.svs-version' || name.endsWith('.toml')) {
+        let raw = '';
         try {
-          unlinkSync(p);
-          removed++;
+          raw = name.endsWith('.toml') ? readFileSync(p, 'utf8') : '# SVS role';
         } catch {
-          /* ignore */
+          continue;
         }
-        continue;
+        if (name === '.svs-version' || SVS_OVERLAY_MARK.test(raw) || FAT_OVERLAY_RE.test(raw)) {
+          try {
+            unlinkSync(p);
+            removed++;
+          } catch {
+            /* ignore */
+          }
+        }
       }
+    }
+  }
+  const personasDir = join(projectDir, GROK_PERSONAS_REL);
+  if (existsSync(personasDir)) {
+    for (const name of readdirSync(personasDir)) {
       if (!name.endsWith('.toml')) continue;
+      const p = join(personasDir, name);
       let raw = '';
       try {
         raw = readFileSync(p, 'utf8');
       } catch {
         continue;
       }
-      if (!SVS_OVERLAY_MARK.test(raw)) continue;
+      if (!FAT_OVERLAY_RE.test(raw)) continue;
       try {
         unlinkSync(p);
         removed++;
@@ -143,21 +215,63 @@ export function removeSvsGrokOverlays(projectDir: string): number {
   return removed;
 }
 
+function leanPersonasCurrent(projectDir: string): boolean {
+  const dir = join(projectDir, GROK_PERSONAS_REL);
+  const stamp = join(dir, '.svs-version');
+  if (!existsSync(stamp)) return false;
+  try {
+    if (!readFileSync(stamp, 'utf8').includes(GROK_AGENTS_VERSION)) return false;
+  } catch {
+    return false;
+  }
+  return LEAN_PERSONA_NAMES.every((n) => existsSync(join(dir, `${n}.toml`)));
+}
+
 export function hasStaleSvsGrokOverlays(projectDir: string): boolean {
-  for (const rel of [GROK_PERSONAS_REL, GROK_ROLES_REL]) {
-    const dir = join(projectDir, rel);
-    if (!existsSync(dir)) continue;
-    if (existsSync(join(dir, '.svs-version'))) return true;
-    for (const name of readdirSync(dir)) {
+  const rolesDir = join(projectDir, GROK_ROLES_REL);
+  if (existsSync(rolesDir)) {
+    for (const name of readdirSync(rolesDir)) {
+      if (name === '.svs-version') return true;
       if (!name.endsWith('.toml')) continue;
       try {
-        if (SVS_OVERLAY_MARK.test(readFileSync(join(dir, name), 'utf8'))) return true;
+        const raw = readFileSync(join(rolesDir, name), 'utf8');
+        if (SVS_OVERLAY_MARK.test(raw) || FAT_OVERLAY_RE.test(raw)) return true;
       } catch {
         /* ignore */
       }
     }
   }
-  return false;
+  const personasDir = join(projectDir, GROK_PERSONAS_REL);
+  if (existsSync(personasDir)) {
+    for (const name of readdirSync(personasDir)) {
+      if (!name.endsWith('.toml')) continue;
+      try {
+        if (FAT_OVERLAY_RE.test(readFileSync(join(personasDir, name), 'utf8'))) return true;
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+  return !leanPersonasCurrent(projectDir);
+}
+
+function writeLeanEffortPersonas(projectDir: string): number {
+  const dir = join(projectDir, GROK_PERSONAS_REL);
+  mkdirSync(dir, { recursive: true });
+  let written = 0;
+  for (const name of LEAN_PERSONA_NAMES) {
+    writeFileSync(join(dir, `${name}.toml`), leanPersonaToml(name));
+    written++;
+  }
+  writeFileSync(
+    join(dir, '.svs-version'),
+    `# svs-version: ${GROK_AGENTS_VERSION}\n# Lean effort personas (no instructions_file)\n`
+  );
+  return written;
+}
+
+function expectedGrokAgentNames(projectDir: string): string[] {
+  return [...new Set([...listClaudeAgentFiles(projectDir), ...listNativeAgentFiles()])].sort();
 }
 
 export function grokAgentsNeedsUpdate(projectDir: string): {
@@ -165,7 +279,7 @@ export function grokAgentsNeedsUpdate(projectDir: string): {
   outdated: boolean;
   claudeCount: number;
 } {
-  const names = listClaudeAgentFiles(projectDir);
+  const names = expectedGrokAgentNames(projectDir);
   const destDir = join(projectDir, GROK_AGENTS_REL);
   if (names.length === 0) {
     return {
@@ -208,7 +322,7 @@ export function exportGrokAgents(
       skippedReason:
         overlaysRemoved > 0
           ? `Removed ${overlaysRemoved} Grok persona/role overlay(s)`
-          : 'No .claude/agents/*.md to export',
+          : 'No Grok-native or .claude/agents to export',
     };
   }
   if (!opts.force && !need.missing && !need.outdated && overlaysRemoved === 0) {
@@ -220,20 +334,23 @@ export function exportGrokAgents(
     };
   }
 
-  const srcDir = join(projectDir, '.claude', 'agents');
   const destDir = join(projectDir, GROK_AGENTS_REL);
   mkdirSync(destDir, { recursive: true });
 
   let written = 0;
-  for (const name of listClaudeAgentFiles(projectDir)) {
-    const raw = readFileSync(join(srcDir, name), 'utf8');
-    writeFileSync(join(destDir, name), adaptAgentForGrok(raw));
+  for (const name of expectedGrokAgentNames(projectDir)) {
+    const nativePath = join(NATIVE_AGENTS_DIR, name);
+    const body = existsSync(nativePath)
+      ? readFileSync(nativePath, 'utf8')
+      : grokStubAgent(name);
+    writeFileSync(join(destDir, name), body);
     written++;
   }
   writeFileSync(
     join(destDir, '.svs-version'),
-    `# svs-version: ${GROK_AGENTS_VERSION}\n# Adapted from .claude/agents/ (thin spawn banner; no personas/roles)\n`
+    `# svs-version: ${GROK_AGENTS_VERSION}\n# Grok-native agents + stubs (not Claude Task copies)\n`
   );
+  writeLeanEffortPersonas(projectDir);
 
   return { written, overlaysRemoved, version: GROK_AGENTS_VERSION };
 }

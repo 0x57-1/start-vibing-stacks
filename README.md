@@ -52,7 +52,7 @@ Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). 
 
 ## Development flow (Claude = Kimi = Grok)
 
-Same order on every target. Claude may auto-`Task` agents; **Kimi must Read+execute agents**; **Grok must spawn `general-purpose` with a short prompt** so the child Reads `.grok/agents/<name>.md` (skill `svs-finalize` / `svs-dev-process`). Do not paste the agent file into the parent prompt.
+Same order on every target. Claude may auto-`Task` agents; **Kimi must Read+execute agents**; **Grok must spawn `documenter` / `domain-updater`** (`capability_mode: all`, `reasoning_effort: "low"`) with a short prompt (skill `svs-finalize` / `svs-dev-process`). Fallback: `general-purpose` + Read. Do not paste the agent file into the parent prompt.
 
 ```
 1. Branch          feature/ | fix/ | refactor/

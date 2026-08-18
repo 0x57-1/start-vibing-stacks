@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.24.1';
+export const GROK_SKILLS_VERSION = '1.26.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -155,9 +155,9 @@ function devProcessSkillBody(): string {
     '',
     '# Development process (Kimi / Grok)',
     '',
-    'Claude Code may auto-invoke agents via Task. **Grok:** spawn `general-purpose`',
-    'with a **short** prompt (`Read .grok/agents/<name>.md FIRST` + HEAD + filesTouched).',
-    'Child loads the agent — do not paste the file into the parent prompt.',
+    'Claude Code may auto-invoke agents via Task. **Grok:** spawn `documenter` /',
+    '`domain-updater` (`capability_mode: all`, `reasoning_effort: "low"`) with a short',
+    'prompt (HEAD + filesTouched + what shipped). Fallback: `general-purpose` + Read.',
     '**Kimi:** Read agent md and execute inline.',
     'Stop blocks via `svs-bridge` until finalize completes (`decision:block` / exit 2).',
     '',
@@ -167,8 +167,9 @@ function devProcessSkillBody(): string {
     '- Folder trust: `/hooks-trust` or `--trust` → `~/.grok/trusted_folders.toml` (hooks + project MCP/LSP).',
     '- Subagents **on by default** (`GROK_SUBAGENTS=1`; `--no-subagents` disables). Ask the user to enable if off.',
     '- Built-in types: `general-purpose` (writes), `explore` / `plan` (read+shell, **no edits**).',
-    '- Prefer built-in `general-purpose` for writers (custom types that fail waste a Stop turn).',
-    '- Child Reads `.grok/agents/<name>.md` — never paste the body into the parent prompt.',
+    '- Prefer custom type `documenter` / `domain-updater` (agent is the child). Fallback `general-purpose` + Read.',
+    '- Pass `reasoning_effort: "low"` so children do not inherit the parent\'s `xhigh`.',
+    '- Never paste the agent body into the parent prompt.',
     '- Spawn: `capability_mode` (`read-only`|`read-write`|`execute`|`all`), `isolation` (`none`|`worktree`), `background`, `resume_from` (same type only).',
     '- Stop gate: `{"decision":"block","reason"}`; **max 8 continuations/turn** — finish finalize in that window.',
     '- Remote resume restores **chat only** unless `--restore-code` (do not pass by default).',

@@ -1,6 +1,6 @@
 ---
 name: svs-finalize
-version: 1.3.1
+version: 1.5.0
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
   edits — scope commit (code) → documenter → domain-updater → docs commit. Same
@@ -11,8 +11,9 @@ description: >
 # SVS finalize chain (do not skip)
 
 Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
-Read+execute). **Grok:** short spawn — child Reads `.grok/agents/<name>.md` (do not
-paste the file into the parent prompt; that hangs / auto-compacts). Skipping
+Read+execute). **Grok:** spawn `subagent_type: "documenter"` / `"domain-updater"`
+(`capability_mode: all`, `reasoning_effort: "low"`) with a short prompt — the
+native agent **is** the child. Do not paste the file. Skipping
 documenter / domain-updater leaves the next session blind. Stop feeds the block reason back until fixed.
 
 ## When this is mandatory
@@ -70,27 +71,30 @@ create a third stamp-only commit.
 
 ## How to run agents
 
-### Grok (child Reads the agent — parent stays thin)
+### Grok (custom type + low effort — parent stays thin)
 
-Built-in types: `general-purpose` (writes) | `explore` / `plan` (no edits).
-The child has its **own** context. Pasting a 200-line agent into the parent
-`prompt` duplicates tokens and trips auto-compact. Personas/roles are **not**
-a spawn parameter — do not add them.
+Prefer `subagent_type: "documenter"` / `"domain-updater"` so the Grok-native
+agent is the child's system prompt (full tools via `capability_mode: all`).
+A parent on `xhigh` otherwise hands that effort to every child.
 
 ```
 spawn_subagent({
-  subagent_type: "general-purpose",
+  subagent_type: "documenter",
   isolation: "none",
   capability_mode: "all",
+  reasoning_effort: "low",
   description: "SVS documenter",
-  prompt: "Read .grok/agents/documenter.md FIRST. Execute every step. HEAD=… filesTouched=… Stamp domains + _index.json. Return files written."
+  prompt: "HEAD=… filesTouched=… what shipped=… Execute the agent. Return files written."
 })
 # Same pattern for domain-updater (sequential — do not resume_from / do not parallel writers)
 # Parent verifies on disk (jq last_commit + rg Recent Changes)
 ```
 
+If the type is unknown: `general-purpose` + `Read .grok/agents/<name>.md FIRST`.
+If `reasoning_effort` is rejected: retry without that key. Tiny
+`.grok/personas/<name>.toml` also pin `low` (no `instructions_file`).
 Skip spawn for `scope.ts commit` (one parent shell). One finalize child at a time.
-If spawn fails: parent Reads the agent and executes — do not retry invented types.
+Do **not** spawn a restamp after `docs:` — Stop accepts last_commit on the code SHA.
 
 ### Kimi
 
