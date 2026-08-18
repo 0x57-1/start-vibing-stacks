@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.16.0
+// @sv-version: 1.17.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.17.0: Grok spawn — short prompt, child Reads `.grok/agents/<name>.md`
+ * (`general-purpose`, isolation none; no explore writer; do not paste the file).
  * v1.16.0: THEME APPLY (memory react-theme-parity 1.1 + skill react-theme-apply)
  * — CSS-first, check-theme-tokens, both modes; style-guide path if present.
  * v1.15.0: WP plugin ops nudge (memory owned-wordpress-plugin-ops) — search +
@@ -213,8 +215,9 @@ function buildPeersBlock(
     parts.push('  2. documenter → domains + _index.json');
     parts.push('  3. domain-updater → PREPEND CLAUDE.md ## Recent Changes');
     parts.push('  4. If docs dirty → scope.ts commit "docs: …"');
-    parts.push('  Kimi/Grok: spawn_subagent or Read .grok/agents/<name>.md / .claude/agents/ — execute inline.');
-    parts.push('  FORBIDDEN: code-only push; documenter before code commit; skip domain-updater. Stop BLOCKS if stale.');
+    parts.push('  Grok: spawn general-purpose (isolation=none, capability_mode=all), SHORT prompt: child Reads .grok/agents/<name>.md FIRST + filesTouched. Do not paste the file. Not explore/plan as documenter. One child at a time.');
+    parts.push('  Kimi: Read .claude/agents/<name>.md and execute inline.');
+    parts.push('  FORBIDDEN: code-only push; documenter before code commit; skip domain-updater; trust child “done” without jq/rg verify. Stop BLOCKS if stale.');
   }
 
   return parts.join('\n');

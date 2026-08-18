@@ -21,13 +21,14 @@ import {
 } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import { GROK_SPAWN_RECIPE_MD } from './grok-agents.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.23.0';
+export const GROK_SKILLS_VERSION = '1.24.1';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -154,17 +155,28 @@ function devProcessSkillBody(): string {
     '',
     '# Development process (Kimi / Grok)',
     '',
-    'Claude Code may auto-invoke agents via Task. **Grok:** prefer `spawn_subagent`',
-    'with `subagent_type` = agent name. **Kimi:** Read agent md and execute inline.',
+    'Claude Code may auto-invoke agents via Task. **Grok:** spawn `general-purpose`',
+    'with a **short** prompt (`Read .grok/agents/<name>.md FIRST` + HEAD + filesTouched).',
+    'Child loads the agent — do not paste the file into the parent prompt.',
+    '**Kimi:** Read agent md and execute inline.',
     'Stop blocks via `svs-bridge` until finalize completes (`decision:block` / exit 2).',
     '',
-    '## Grok Build 1.0.0 (Aug 2026) — SVS notes',
+    '## Grok Build 1.0.4 (Aug 2026) — features SVS uses',
     '',
-    '- Project hooks need trust: `/hooks-trust` or launch with `--trust` (SVS Launch adds it).',
-    '- Stop gate: `{"decision":"block","reason"}` works; **max 8 continuations/turn** then Grok force-stops — finish finalize in that window.',
+    '- Launch: `grok --always-approve --trust` (SVS menu; `--trust` hidden in `--help` but valid).',
+    '- Folder trust: `/hooks-trust` or `--trust` → `~/.grok/trusted_folders.toml` (hooks + project MCP/LSP).',
+    '- Subagents **on by default** (`GROK_SUBAGENTS=1`; `--no-subagents` disables). Ask the user to enable if off.',
+    '- Built-in types: `general-purpose` (writes), `explore` / `plan` (read+shell, **no edits**).',
+    '- Prefer built-in `general-purpose` for writers (custom types that fail waste a Stop turn).',
+    '- Child Reads `.grok/agents/<name>.md` — never paste the body into the parent prompt.',
+    '- Spawn: `capability_mode` (`read-only`|`read-write`|`execute`|`all`), `isolation` (`none`|`worktree`), `background`, `resume_from` (same type only).',
+    '- Stop gate: `{"decision":"block","reason"}`; **max 8 continuations/turn** — finish finalize in that window.',
     '- Remote resume restores **chat only** unless `--restore-code` (do not pass by default).',
     '- MCP: `grok mcp enable|disable <name>` / `grok mcp doctor` when OAuth hang (e.g. vercel).',
-    '- SessionEnd archives `.claude/state/sessions/<id>.json`; SessionStart **rehydrates** `filesTouched` from archive + `file-touches.jsonl`.',
+    '- SessionEnd archives `.claude/state/sessions/<id>.json`; SessionStart **rehydrates** `filesTouched`.',
+    '- Do **not** use Plan Mode / design writer-reviewer as a finalize substitute.',
+    '',
+    GROK_SPAWN_RECIPE_MD,
     '',
     '## Flow (do not reorder / skip)',
     '',

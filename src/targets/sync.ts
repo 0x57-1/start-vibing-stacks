@@ -351,6 +351,7 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     ? exportGrokAgents(projectDir, { force: opts.forceGrokAgents === true })
     : {
         written: 0,
+        overlaysRemoved: 0,
         version: GROK_AGENTS_VERSION,
         skippedReason: syncGrokAgents
           ? agentsNeed.claudeCount === 0

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-18 · main · v2.89.0
+Launch Grok menu shows `--always-approve --trust` (persists folder trust).
+Grok spawn: child Reads `.grok/agents/<name>.md` (short parent prompt — no paste,
+no personas/roles). UPS **1.17**; `svs-finalize` **1.3.1**; grok-agents **1.3.1**.
+
 ### 2026-08-18 · main · v2.88.1
 After `migrate --apply`, skip the full resume menu when artefacts are current
 (launch-only). Fix AGENTS.md stale-loop (generator 1.2.5 vs policy 1.2.7).
@@ -47,10 +52,6 @@ full artifact inventory (launchers + pw.js etc.).
 Stop/UPS recovery: COMMIT-FIRST, FINALIZE anti-thrash, CLAUDE.md soft 36k;
 memories quality-gate-before-push, cdn-asset-deploy-verify, oauth-preflight;
 commit-manager **3.4.0** test veto before push.
-
-### 2026-08-09 · main · v2.81.0
-Ignore Claude scratchpads (`/tmp/claude-*`, `~/.claude/*`) in filesTouched —
-fixes false finalize/plan-gate/Stop on temp edits; prune on post-tool-use/scope.
 
 ---
 

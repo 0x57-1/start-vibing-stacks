@@ -1,6 +1,6 @@
 ---
 name: svs-finalize
-version: 1.2.2
+version: 1.3.1
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
   edits — scope commit (code) → documenter → domain-updater → docs commit. Same
@@ -11,8 +11,9 @@ description: >
 # SVS finalize chain (do not skip)
 
 Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
-Read+execute). Skipping documenter / domain-updater leaves the next session blind
-(code shipped, zero domain/CLAUDE updates). Stop feeds the block reason back until fixed.
+Read+execute). **Grok:** short spawn — child Reads `.grok/agents/<name>.md` (do not
+paste the file into the parent prompt; that hangs / auto-compacts). Skipping
+documenter / domain-updater leaves the next session blind. Stop feeds the block reason back until fixed.
 
 ## When this is mandatory
 
@@ -69,15 +70,27 @@ create a third stamp-only commit.
 
 ## How to run agents
 
-### Grok (preferred)
+### Grok (child Reads the agent — parent stays thin)
+
+Built-in types: `general-purpose` (writes) | `explore` / `plan` (no edits).
+The child has its **own** context. Pasting a 200-line agent into the parent
+`prompt` duplicates tokens and trips auto-compact. Personas/roles are **not**
+a spawn parameter — do not add them.
 
 ```
-spawn_subagent(subagent_type="documenter", prompt="Map this session's edits → domains; update _index.json")
-spawn_subagent(subagent_type="domain-updater", prompt="PREPEND CLAUDE.md Recent Changes; sync domains")
+spawn_subagent({
+  subagent_type: "general-purpose",
+  isolation: "none",
+  capability_mode: "all",
+  description: "SVS documenter",
+  prompt: "Read .grok/agents/documenter.md FIRST. Execute every step. HEAD=… filesTouched=… Stamp domains + _index.json. Return files written."
+})
+# Same pattern for domain-updater (sequential — do not resume_from / do not parallel writers)
+# Parent verifies on disk (jq last_commit + rg Recent Changes)
 ```
 
-Fallback: Read `.grok/agents/<name>.md` and execute every step inline.
-If `spawn_subagent` / `Task` errors, that is **not** permission to skip — Read + execute.
+Skip spawn for `scope.ts commit` (one parent shell). One finalize child at a time.
+If spawn fails: parent Reads the agent and executes — do not retry invented types.
 
 ### Kimi
 

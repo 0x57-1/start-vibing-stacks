@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.7
+svs-version: 1.2.8
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,11 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-18 · main · v2.89.0
+Launch Grok menu: `--always-approve --trust` + folder-trust persist.
+Grok spawn: child Reads agent md (short parent prompt; no paste / no overlays).
+UPS **1.17**; `svs-finalize` **1.3.1**.
 
 ### 2026-08-18 · main · v2.88.1
 After `migrate --apply`, launch-only menu when current (no Update first).
@@ -124,6 +129,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
+- Grok finalize: `spawn_subagent` `general-purpose` (`isolation: none`; writers `capability_mode: all`) with a **short** prompt — child Reads `.grok/agents/<name>.md`. Do not paste the file into the parent (hangs). Do not use `explore`/`plan` as documenter.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)
 

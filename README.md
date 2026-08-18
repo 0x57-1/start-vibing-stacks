@@ -43,7 +43,7 @@ Prefer `@latest` — plain `npx start-vibing-stacks` can stick on an old cache.
 |--------|--------------|-----------------|-------|
 | **Claude Code** | `CLAUDE.md` + `.claude/memories/` | `.claude/skills`, `.claude/agents` | `.claude/settings.json` |
 | **Kimi** | root `AGENTS.md` | Project `.claude/*` via `extra_*_dirs` in `.kimi-code/local.toml` | `svs-bridge` in local.toml / user config |
-| **Grok** | `AGENTS.md` + curated `.grok/skills/` | Adapted `.grok/agents/` (`compat.claude.skills=false` by default — no `~/.claude/skills` dump) | `.grok/hooks/svs.json` + bridge; trust with `/hooks-trust` or `grok --trust` |
+| **Grok** | `AGENTS.md` + curated `.grok/skills/` | Adapted `.grok/agents/` (`compat.claude.skills=false` — no `~/.claude/skills` dump) | `.grok/hooks/svs.json` + bridge; Launch `grok --always-approve --trust` |
 | **Cursor** | `AGENTS.md` + `.cursor/rules/svs-policy.mdc` | (reads project files) | — |
 
 Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). Project skills (including `preline-moon`) are installed under `.claude/skills/` and mirrored into `.grok/skills/` when curated.
@@ -52,7 +52,7 @@ Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). 
 
 ## Development flow (Claude = Kimi = Grok)
 
-Same order on every target. Claude may auto-`Task` agents; **Kimi/Grok must Read/spawn agents** (skill `svs-finalize` / `svs-dev-process`).
+Same order on every target. Claude may auto-`Task` agents; **Kimi must Read+execute agents**; **Grok must spawn `general-purpose` with a short prompt** so the child Reads `.grok/agents/<name>.md` (skill `svs-finalize` / `svs-dev-process`). Do not paste the agent file into the parent prompt.
 
 ```
 1. Branch          feature/ | fix/ | refactor/
@@ -174,7 +174,7 @@ Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropi
 | Node | Node ≥ 20 |
 | Python | Python ≥ 3.12 |
 
-Grok CLI: Build **1.0+** recommended (`grok --version`). Project hooks need folder trust (`/hooks-trust` or Launch `--trust`).
+Grok CLI: Build **1.0.4+** recommended (`grok --version`). SVS Launch runs `grok --always-approve --trust` (folder trust for hooks/MCP/LSP; `--trust` is hidden in `grok --help` but accepted). Subagents are on by default — the **child** Reads `.grok/agents/<name>.md`; keep the parent prompt short.
 
 ---
 

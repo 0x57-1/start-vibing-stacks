@@ -68,6 +68,7 @@ if (FLAGS.help) {
     (default)         Setup or resume current project
                       Resume: Launch auto-migrates when outdated; prefer
                       npx start-vibing-stacks@latest (stale npx cache = old skills)
+                      Launch Grok = grok --always-approve --trust
     migrate           Compare installed vs bundled skill/agent/memory versions
                       Syncs AGENTS.md + MCP + .cursor/rules (Kimi/Grok/Cursor)
                       --apply updates, then opens the launcher (TTY).
@@ -164,6 +165,9 @@ async function main(): Promise<void> {
       );
       const {
         availableLaunchTargets,
+        launchMenuLabel,
+        formatLaunchCommand,
+        resolveLaunchSpec,
         launchTarget,
         agentsMdNeedsUpdate,
         bundledAgentsMdVersion,
@@ -265,7 +269,7 @@ async function main(): Promise<void> {
         const icon = t.id === 'claude' ? '🚀' : t.id === 'kimi' ? '🌙' : '⚡';
         const suffix =
           pendingTotal > 0 && !FLAGS.skipUpdate ? ' (auto-update first)' : '';
-        return { name: `${icon}  Launch ${t.label}${suffix}`, value: `launch:${t.id}` };
+        return { name: `${icon}  ${launchMenuLabel(t)}${suffix}`, value: `launch:${t.id}` };
       });
       if (launchChoices.length === 0) {
         launchChoices.push({
@@ -438,7 +442,8 @@ async function main(): Promise<void> {
           }
         }
 
-        console.log(chalk.dim(`\n  Launching ${targetId}...\n`));
+        const launchSpec = resolveLaunchSpec(targetId);
+        console.log(chalk.dim(`\n  $ ${formatLaunchCommand(launchSpec)}\n`));
         const result = launchTarget(projectDir, targetId);
         if (!result.ok) {
           ui.warn(result.message || 'Launch failed');

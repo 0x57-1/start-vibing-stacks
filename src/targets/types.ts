@@ -51,7 +51,7 @@ export interface SvsManifest {
 }
 
 /** Keep ≥ policy-pack svs-version so bundledAgentsMdVersion() does not stale-loop. */
-export const AGENTS_MD_GENERATOR_VERSION = '1.2.7';
+export const AGENTS_MD_GENERATOR_VERSION = '1.2.8';
 
 export const LAUNCH_SPECS: TargetLaunchSpec[] = [
   {
@@ -73,8 +73,10 @@ export const LAUNCH_SPECS: TargetLaunchSpec[] = [
     label: 'Grok',
     bin: 'grok',
     // Parity with Claude Launch bypass (--always-approve; alias --yolo).
-    // Grok Build 1.0.0: `--trust` grants project hooks/MCP/LSP (same as `/hooks-trust`).
-    // Remote resume restores chat only unless `--restore-code` (do not add by default).
+    // Grok 1.0.4: `--trust` is hidden from `--help` but still accepted — same as
+    // `/hooks-trust`; writes ~/.grok/trusted_folders.toml (hooks + project MCP/LSP).
+    // Subagents are on by default (`--no-subagents` disables). Do not pass
+    // `--restore-code` on resume (chat-only unless the user asks).
     args: ['--always-approve', '--trust'],
   },
 ];

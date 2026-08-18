@@ -23,7 +23,15 @@ export {
   readClaudeRecentChangesHash,
 } from './agents-md.js';
 export type { GenerateAgentsMdOptions, GenerateAgentsMdResult } from './agents-md.js';
-export { isBinaryOnPath, availableLaunchTargets, launchTarget, resolveLaunchSpec } from './launch.js';
+export {
+  isBinaryOnPath,
+  availableLaunchTargets,
+  launchTarget,
+  resolveLaunchSpec,
+  launchMenuLabel,
+  formatLaunchCommand,
+  ensureGrokFolderTrust,
+} from './launch.js';
 export { syncTargets, packageVersion } from './sync.js';
 export type { SyncTargetsOptions, SyncTargetsResult } from './sync.js';
 export {
@@ -88,6 +96,9 @@ export {
   grokAgentsNeedsUpdate,
   GROK_AGENTS_VERSION,
   GROK_AGENTS_REL,
+  GROK_PERSONAS_REL,
+  GROK_ROLES_REL,
+  GROK_SPAWN_RECIPE_MD,
 } from './grok-agents.js';
 export type { GrokAgentsResult } from './grok-agents.js';
 export {
