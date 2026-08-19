@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.21.0
+// @sv-version: 1.22.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.22.0: Grok finalize — no svs-document first Read; background:true;
+ * HEREDOC commit body; --push after C2 (not C1).
  * v1.21.0: Grok writer roles pin low (4.6 floor). Child Reads svs-document.
  * v1.20.0: Grok spawn — do not pass reasoning_effort (schema omit). Role pin + type hook.
  * v1.19.0: Grok spawn custom type + reasoning_effort low; richer native agents.
@@ -215,13 +217,13 @@ function buildPeersBlock(
   if (hasSource) {
     parts.push('');
     parts.push('FINALIZE CHAIN REQUIRED (source edits — skill svs-finalize; same order as Claude):');
-    parts.push('  1. commit-manager → scope.ts commit "<type>: <code>"  (never git add -A)');
+    parts.push('  1. commit-manager → scope.ts commit HEREDOC "<type>: <code>"  (never git add -A; no --push yet)');
     parts.push('  2. documenter → domains + _index.json');
     parts.push('  3. domain-updater → PREPEND CLAUDE.md ## Recent Changes');
-    parts.push('  4. If docs dirty → scope.ts commit "docs: …"');
-    parts.push('  Grok: spawn subagent_type documenter|domain-updater, capability_mode all. Do NOT pass reasoning_effort. Writer roles pin low. Child Reads .grok/skills/svs-document first. Hook rewrites general-purpose. SHORT prompt. Do not paste. Do not restamp after docs:. Not explore/plan as documenter.');
+    parts.push('  4. If docs dirty → scope.ts commit HEREDOC "docs: …" --push on main');
+    parts.push('  Grok: spawn subagent_type documenter|domain-updater, capability_mode all, background true, isolation none. Do NOT pass reasoning_effort. Writer roles pin low. SHORT prompt (HEAD+files+what shipped). Do not paste. Do not tell child to Read svs-document/AGENTS.md first. Do not poll in the same turn if the user has a next question. Do not restamp after docs:. Not explore/plan as documenter.');
     parts.push('  Kimi: Read .claude/agents/<name>.md and execute inline.');
-    parts.push('  FORBIDDEN: code-only push; documenter before code commit; skip domain-updater; trust child “done” without jq/rg verify. Stop BLOCKS if stale.');
+    parts.push('  FORBIDDEN: push C1 before documenter; subject-only git message when why is non-obvious; claim done while ahead of origin; skip domain-updater; trust child “done” without jq/rg verify. Stop BLOCKS if stale.');
   }
 
   return parts.join('\n');

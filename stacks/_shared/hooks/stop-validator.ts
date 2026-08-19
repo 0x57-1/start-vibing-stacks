@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.11.0
+// @sv-version: 1.12.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -15,6 +15,7 @@
  * 7. Domain `_index.json#last_commit` stale vs HEAD after source edits (documenter skipped).
  *    Docs-only HEAD (C2) may still stamp the parent code SHA (C1) — that is OK.
  *
+ * v1.12.0: finalize hint — HEREDOC commit, background spawn, --push after C2.
  * v1.11.0: last_commit may equal HEAD~1 when HEAD is docs-only (no restamp spawn).
  * v1.10.0: record `lastStopKind` for UPS COMMIT-FIRST / FINALIZE-NOW / COMPACT-NOW;
  * finalize anti-thrash (soft-pass after 2 identical hard-blocks); warn when
@@ -84,14 +85,14 @@ function finalizeHint(): string {
   const target = (process.env['SVS_TARGET'] || '').toLowerCase();
   const prefix =
     `\n\nFINALIZE CHAIN (required — skill svs-finalize; same order as Claude):\n` +
-    `0. If code still uncommitted: commit-manager → scope.ts commit "<type>: <code>" (never git add -A)\n`;
+    `0. If code still uncommitted: commit-manager → scope.ts commit HEREDOC (never git add -A; no --push yet)\n`;
   if (target === 'grok') {
     return (
       prefix +
-      `1. spawn_subagent(subagent_type="documenter", …)  (or Read .grok/agents/documenter.md)\n` +
-      `2. spawn_subagent(subagent_type="domain-updater", …)  (PREPEND CLAUDE.md ## Recent Changes)\n` +
-      `3. scope.ts commit "docs: …" if docs dirty\n` +
-      `4. Continue until Stop approves (do not claim done while blocked)`
+      `1. spawn_subagent(subagent_type="documenter", background=true, isolation=none)  (or Read .grok/agents/documenter.md)\n` +
+      `2. spawn_subagent(subagent_type="domain-updater", background=true)  (PREPEND CLAUDE.md ## Recent Changes)\n` +
+      `3. scope.ts commit HEREDOC "docs: …" --push on main if docs dirty\n` +
+      `4. Continue until Stop approves (do not claim done while blocked or ahead of origin)`
     );
   }
   if (target === 'kimi') {
@@ -99,8 +100,8 @@ function finalizeHint(): string {
       prefix +
       `1. Read + execute .claude/agents/documenter.md\n` +
       `2. Read + execute .claude/agents/domain-updater.md (PREPEND ## Recent Changes)\n` +
-      `3. scope.ts commit "docs: …" if docs dirty\n` +
-      `4. Continue until Stop approves (do not claim done while blocked)`
+      `3. scope.ts commit HEREDOC "docs: …" --push on main if docs dirty\n` +
+      `4. Continue until Stop approves (do not claim done while blocked or ahead of origin)`
     );
   }
   return (

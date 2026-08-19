@@ -5,9 +5,11 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.8.0: agents_md false; no mandatory svs-document Read (2.90.2 bloated
+ * prompt 39k→56k). background:true; push after C2; HEREDOC commit body.
  * v1.7.0: grok-4.6 accepts only low|medium|high|xhigh — pin writers to `low`
  * (not `none`, API 400). Grok frontmatter (prompt_mode, permission_mode,
- * agents_md, tools). Child Reads `.grok/skills/svs-document` (no Claude skills:).
+ * agents_md, tools).
  * v1.6.0: spawn schema often omits `reasoning_effort` (session 01a00f26). Do
  * not pass that key (schema reject blocks spawn). Hook rewrites
  * general-purpose → type name.
@@ -42,7 +44,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.7.0';
+export const GROK_AGENTS_VERSION = '1.8.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -59,10 +61,11 @@ export const GROK_BANNER =
   '> **Kimi / Grok:** Claude Task auto-invoke is unavailable. ' +
   '**Grok:** spawn `subagent_type: "<name>"` (`isolation: none`, `capability_mode: all`). ' +
   'Do **not** pass `reasoning_effort` — the spawn schema often omits it and a reject inherits `xhigh`. ' +
-  'Writer roles pin `reasoning_effort = "low"` (grok-4.6: no `none`). Child Reads `.grok/skills/svs-document`. Short prompt: `HEAD + filesTouched + what shipped.` ' +
+  'Writer roles pin `reasoning_effort = "low"` (grok-4.6: no `none`). Short prompt: `HEAD + filesTouched + what shipped.` ' +
+  'Do **not** tell the child to Read svs-document / AGENTS.md first. `background: true`; do not poll in the same turn if the user has a next question. ' +
   'The child has its own context — **do not paste this file into the parent prompt** (hangs / auto-compact). ' +
   'Do not spawn `explore`/`plan` as a writer. One finalize child at a time. ' +
-  'After source edits: `svs-finalize` (`commit-manager` → `documenter` → `domain-updater`). Never `git add -A`. ' +
+  'After source edits: `svs-finalize` (`commit-manager` → `documenter` → `domain-updater` → docs `--push`). Never `git add -A`. ' +
   'These `.grok/agents/` files are **Grok-native**. Do not open `.claude/agents/` unless this file says to. ' +
   '**Kimi:** Read + execute `.claude/agents/` inline.\n';
 
@@ -82,17 +85,23 @@ export const GROK_SPAWN_RECIPE_MD = [
   '- Spawn `subagent_type: "documenter"` / `"domain-updater"` so the agent **and** role apply',
   '  (`capability_mode: "all"`). Do not paste the file into `prompt`.',
   '- Do **not** pass `reasoning_effort` on spawn. Role pins `low` (grok-4.6 floor).',
-  '- Child **Reads** `.grok/skills/svs-document/SKILL.md` first (Grok has no Claude `skills:`).',
+  '- Do **not** tell the child to Read `svs-document` / `AGENTS.md` (native agent is the protocol;',
+  '  `agents_md: false`). Optional Read only if a rule is missing.',
   '- A PreToolUse hook rewrites `general-purpose` → the matching type when the prompt',
   '  says documenter / domain-updater (so the role still attaches).',
   '- Fastest path (Claude parity): parent Reads the Grok-native agent and executes — no spawn.',
   '- `explore` / `plan` cannot edit files — never as documenter.',
-  '- One finalize child at a time, `background: false`. Skip spawn for `scope.ts commit`.',
+  '- One finalize child at a time. `background: true`, `isolation: "none"`.',
+  '  Do **not** `get_task_output` in the same turn if the user has a next question',
+  '  (queued prompt waits until this turn ends). Poll later, then spawn the next writer.',
+  '  Do not run documenter + domain-updater in parallel (same files).',
+  '  Skip spawn for `scope.ts commit`.',
   '',
   '```',
   'spawn_subagent({',
   '  subagent_type: "documenter",',
   '  isolation: "none",',
+  '  background: true,',
   '  capability_mode: "all",',
   '  description: "SVS documenter",',
   '  prompt: "HEAD=… filesTouched=… what shipped=… Execute the agent. Return files written."',

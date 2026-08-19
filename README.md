@@ -52,7 +52,7 @@ Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). 
 
 ## Development flow (Claude = Kimi = Grok)
 
-Same order on every target. Claude may auto-`Task` agents; **Kimi must Read+execute agents**; **Grok must spawn `documenter` / `domain-updater`** (`capability_mode: all`) with a short prompt (skill `svs-finalize` / `svs-dev-process`). Do **not** pass `reasoning_effort` — Grok 1.0.x often omits it from the spawn schema; writer roles pin `low` (`.grok/roles/<name>.toml`). Child Reads `.grok/skills/svs-document`. Fallback: parent Reads the Grok-native agent. Do not paste the agent file into the parent prompt.
+Same order on every target. Claude may auto-`Task` agents; **Kimi must Read+execute agents**; **Grok must spawn `documenter` / `domain-updater`** (`capability_mode: all`, `background: true`) with a short prompt (skill `svs-finalize` / `svs-dev-process`). Do **not** pass `reasoning_effort` — Grok 1.0.x often omits it from the spawn schema; writer roles pin `low` (`.grok/roles/<name>.toml`). Do not tell the child to Read `svs-document` first. Commit with a HEREDOC body; `--push` after the docs commit on main. Fallback: parent Reads the Grok-native agent. Do not paste the agent file into the parent prompt.
 
 ```
 1. Branch          feature/ | fix/ | refactor/

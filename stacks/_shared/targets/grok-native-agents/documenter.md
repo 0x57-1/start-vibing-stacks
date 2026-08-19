@@ -1,14 +1,14 @@
 ---
 name: documenter
-version: 1.2.0
+version: 1.3.0
 description: >
   AFTER the code commit — map HEAD files to domains, CREATE missing domain
-  files, stamp last_commit, update Files + _index.json. Load skill
-  svs-document first (docs-tracker write rules). Tool-first.
+  files, stamp last_commit, update Files + _index.json. Tool-first. This
+  file is the protocol (do not re-Read svs-document first).
 prompt_mode: full
 model: inherit
 permission_mode: default
-agents_md: true
+agents_md: false
 tools:
   - read_file
   - grep_search
@@ -25,16 +25,7 @@ disallowedTools:
 
 You keep project memory searchable. This file is the child system prompt.
 Do **not** re-Read it. Effort comes from `.grok/roles/documenter.toml` (`low`).
-
-## 0. Load the write skill (mandatory)
-
-Grok does **not** inject Claude `skills:` frontmatter. Before any domain edit:
-
-1. `read_file` `.grok/skills/svs-document/SKILL.md`
-2. If a domain file is missing: `read_file` `.claude/skills/codebase-knowledge/TEMPLATE.md`
-   (fallback `.grok/skills/codebase-knowledge/TEMPLATE.md`)
-
-Then execute. Skip = incomplete stamp.
+Do **not** start by reading `svs-document` or `AGENTS.md`.
 
 ## 1. Commit metadata
 
@@ -49,13 +40,19 @@ Do not restamp after a follow-up `docs:` commit — `last_commit` may stay on th
 
 ## 2. Map files → domains
 
-`.claude/config/domain-mapping.json` (unmatched → `general`). Apply the
-**action matrix** in `svs-document` (A/M/D/R). Path:
+`.claude/config/domain-mapping.json` (unmatched → `general`). Path:
 `.claude/skills/codebase-knowledge/domains/<slug>.md`
+
+| Status | Action |
+|---|---|
+| A | Add Files row + stamp |
+| M | Stamp + Files row if missing |
+| D | Strike `~~path~~` |
+| R | Strike old, add new |
 
 | Case | Action |
 |---|---|
-| Missing | `search_replace` cannot create — write the TEMPLATE, then fill |
+| Missing | Write TEMPLATE.md, then fill (Read TEMPLATE only then) |
 | Exists, under 8 KB | Edit known anchors only (frontmatter, Files, Connections, Recent Commits) |
 | Exists + ≥ 8 KB | Move oldest 5 Recent Commits rows to `<slug>.archive.md` first |
 
@@ -84,8 +81,10 @@ last_commit: <sha>
 
 ## Template (new domain only)
 
-Copy from TEMPLATE.md. Required: frontmatter (`domain` = filename), TL;DR ≤ 3 lines,
-Files, Connections, Recent Commits, Attention Points, Problems & Solutions, See Also.
+Copy from `.claude/skills/codebase-knowledge/TEMPLATE.md` (fallback
+`.grok/skills/codebase-knowledge/TEMPLATE.md`). Required: frontmatter
+(`domain` = filename), TL;DR ≤ 3 lines, Files, Connections, Recent Commits,
+Attention Points, Problems & Solutions, See Also.
 
 ## Do not
 
@@ -94,4 +93,4 @@ Files, Connections, Recent Commits, Attention Points, Problems & Solutions, See 
 - Dump source into domains.
 - Quote secrets / env values.
 - Spawn `explore` / `plan` / another documenter.
-- Read `.claude/agents/documenter.md` unless `svs-document` is missing a rule.
+- Read `.claude/agents/documenter.md` or `svs-document` unless a rule here is missing.

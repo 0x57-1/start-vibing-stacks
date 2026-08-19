@@ -1,20 +1,22 @@
 ---
 name: svs-finalize
-version: 1.7.0
+version: 1.8.0
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
-  edits — scope commit (code) → documenter → domain-updater → docs commit. Same
-  order as Claude. Verify stamps before claiming done. Stop blocks on stale docs
-  (Grok decision:block / Kimi exit 2). FORBIDDEN: skip, reverse order, touch-theatre.
+  edits — scope commit (code, HEREDOC body) → documenter → domain-updater → docs
+  commit --push. Same order as Claude. Verify stamps before claiming done. Stop
+  blocks on stale docs (Grok decision:block / Kimi exit 2). FORBIDDEN: skip,
+  reverse order, touch-theatre, subject-only GitHub text, done while unpushed.
 ---
 
 # SVS finalize chain (do not skip)
 
 Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
 Read+execute). **Grok:** spawn `subagent_type: "documenter"` / `"domain-updater"`
-(`capability_mode: all`). Do **not** pass `reasoning_effort` (schema often omits
-it — reject inherits parent `xhigh`). Writer roles pin `low` (`.grok/roles/<name>.toml`).
-Child Reads `.grok/skills/svs-document/SKILL.md` first.
+(`capability_mode: all`, `background: true`, `isolation: none`). Do **not** pass
+`reasoning_effort` (schema often omits it — reject inherits parent `xhigh`). Writer
+roles pin `low` (`.grok/roles/<name>.toml`). Do **not** tell the child to Read
+`svs-document` / `AGENTS.md` first (native agent is the protocol).
 Do not paste the file. Skipping documenter / domain-updater leaves the next
 session blind. Stop feeds the block reason back until fixed.
 
@@ -33,17 +35,37 @@ via Edit/Write (recorded in `.claude/state/sessions/<id>.json#filesTouched`).
     `node scripts/check-theme-tokens.mjs` BEFORE documenter
     (memory react-theme-parity + skill react-theme-apply)
 2. scope status — confirm filesTouched
-3. commit-manager steps → scope.ts commit (code) — never git add -A
-4. documenter (Grok spawn_subagent OR Read agent md)
+3. commit-manager → scope.ts commit HEREDOC (code, C1) — never git add -A
+   Do **not** --push C1 yet
+4. documenter (Grok spawn_subagent background:true OR Read agent md)
 5. domain-updater (PREPEND ## Recent Changes + wisdom into domains/)
-6. If docs dirty → scope.ts commit "docs: …" (or include in follow-up)
-7. Only then claim done / allow Stop approve
+6. If docs dirty → scope.ts commit HEREDOC "docs: …" (C2)
+7. On main / master (SAFE SHIP): C2 `--push` (sends C1+C2). Then
+   `gh run list --commit HEAD` when the repo has Actions
+8. Only then claim done / allow Stop approve
 ```
 
 ```bash
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status
-npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "$(cat <<'EOF'
+<type>(<scope>): <subject ≤72>
+
+<why — what broke or what we chose>
+<contract — what stayed / do not regress>
+<files or domain — bullets if ≥3 files>
+EOF
+)"
+# After C2 on main:
+# … commit "$(cat <<'EOF'
+# docs: …
+#
+# <why the stamp / what the next agent must know>
+# EOF
+# )" --push
 ```
+
+`git show` is how the next agent recovers. Subject-only = miss when why is
+non-obvious. No `Generated with` / `Co-Authored-By`.
 
 ## Verify — do not trust the agent's own report
 
@@ -52,20 +74,22 @@ A spawned documenter/domain-updater can return "done" without writing. After ste
 ```bash
 jq -r '.last_commit // "MISSING"' .claude/skills/codebase-knowledge/_index.json
 git rev-parse --short HEAD
+git status -sb
 rg -m1 -A3 '^## Recent Changes' CLAUDE.md
 npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status
 ```
 
 If `_index.json` has no `last_commit`, that is a gap — not a green light. Domains +
-today’s Recent Changes entry are the real proof.
+today’s Recent Changes entry are the real proof. `main...origin/main [ahead N]`
+after a product change = not published.
 
 Sanctioned order when the index gate compares to HEAD:
 
 ```
-1. scope commit "<type>: <code>"     → C1
+1. scope commit HEREDOC "<type>: <code>"     → C1  (no --push)
 2. documenter stamps last_commit=C1
 3. domain-updater → domains + CLAUDE Recent Changes
-4. scope commit "docs: …"            → C2
+4. scope commit HEREDOC "docs: …" --push     → C2 + origin
 ```
 
 After C2, stamp may still say C1 — expected. Do **not** hand-edit `last_commit` or
@@ -84,11 +108,14 @@ the tool schema; a reject leaves the child on the parent's `xhigh`.
 spawn_subagent({
   subagent_type: "documenter",
   isolation: "none",
+  background: true,
   capability_mode: "all",
   description: "SVS documenter",
   prompt: "HEAD=… filesTouched=… what shipped=… Execute the agent. Return files written."
 })
-# Same pattern for domain-updater (sequential — do not resume_from / do not parallel writers)
+# Sequential — do not resume_from / do not parallel writers
+# If the user has a next question: end the turn (do not get_task_output here)
+# Else poll, then the same pattern for domain-updater
 # Parent verifies on disk (jq last_commit + rg Recent Changes)
 ```
 
@@ -136,7 +163,9 @@ If Stop never blocks after source edits: bridge path must be
 
 | Action | Why |
 |--------|-----|
-| Code commit + push without documenter | Domains / `_index.json` go stale |
+| Push C1 before documenter | Domains / `_index.json` go stale **or** code ships undocumented |
+| Claim done while ahead of origin | Product change never published |
+| Subject-only commit when why is non-obvious | Next agent cannot recover from `git show` |
 | Skip domain-updater / Recent Changes | Next session loses “what changed” |
 | `git add -A` / `git add .` | Bundles peer files |
 | Claim “done” while Stop would block | Lies to the user |
