@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { homedir } from 'os';
 import { dirname, join } from 'path';
 
-export const HOOKS_EXPORT_VERSION = '1.8.0';
+export const HOOKS_EXPORT_VERSION = '1.9.0';
 export const GROK_HOOKS_REL = '.grok/hooks/svs.json';
 
 const KIMI_HOOKS_BLOCK_RE = /# SVS:HOOKS:START[\s\S]*?# SVS:HOOKS:END\n?/;
@@ -44,11 +44,14 @@ const HOOK_SPECS: HookSpec[] = [
  * Grok 1.0: Stop supports decision:block (max 8 continuations/turn); trust via
  * `/hooks-trust` or `grok --trust`.
  */
+const SPAWN_MATCHER = 'spawn_subagent|Task';
+
 const GROK_HOOK_SPECS: HookSpec[] = [
   { event: 'SessionStart', hook: 'session-start', timeout: 15 },
   { event: 'UserPromptSubmit', hook: 'user-prompt-submit', timeout: 15 },
   { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'pre-tool-use', timeout: 10 },
   { event: 'PreToolUse', matcher: EDIT_MATCHER, hook: 'plan-gate', timeout: 10 },
+  { event: 'PreToolUse', matcher: SPAWN_MATCHER, hook: 'grok-spawn-pin', timeout: 10 },
   { event: 'PostToolUse', matcher: EDIT_MATCHER, hook: 'post-tool-use', timeout: 10 },
   { event: 'PreCompact', hook: 'pre-compact', timeout: 10 },
   { event: 'Stop', hook: 'stop-validator', timeout: 90 },

@@ -1,7 +1,7 @@
 ---
 name: commit-manager
-version: 1.1.0
-effort: low
+version: 1.1.1
+reasoning_effort: none
 description: >
   Grok-native scoped commit. Run scope.ts. Never git add -A. Prefer parent
   shell over spawn for this agent.

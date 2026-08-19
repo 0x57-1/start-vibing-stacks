@@ -1,7 +1,7 @@
 ---
 name: domain-updater
-version: 1.1.0
-effort: low
+version: 1.1.1
+reasoning_effort: none
 description: >
   Grok-native domain-updater. AFTER documenter — PREPEND one CLAUDE.md Recent
   Changes entry. Record wisdom as Symptom / Cause / Fix when the parent gave a

@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.10
+svs-version: 1.2.11
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-19 · main · v2.90.1
+Grok spawn schema often omits `reasoning_effort` — do not pass it. Writer
+roles pin `none`. Hook rewrites `general-purpose` → type.
 
 ### 2026-08-18 · main · v2.90.0
 Grok-native documenter creates missing domains (template + Files + index).
@@ -133,7 +137,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
-- Grok finalize: `spawn_subagent` type `documenter` / `domain-updater` (`capability_mode: all`, `reasoning_effort: "low"`) with a **short** prompt. Fallback `general-purpose` + Read. Do not paste the Claude copy. Do not restamp after a docs-only commit. Do not use `explore`/`plan` as documenter.
+- Grok finalize: `spawn_subagent` type `documenter` / `domain-updater` (`capability_mode: all`). Do **not** pass `reasoning_effort` (schema often omits it). Writer roles pin `none` (no reasoning for file/template writes). Fallback: parent Reads the Grok-native agent. Do not restamp after a docs-only commit. Do not use `explore`/`plan` as documenter.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)
 

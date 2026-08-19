@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.26.0';
+export const GROK_SKILLS_VERSION = '1.27.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -156,9 +156,10 @@ function devProcessSkillBody(): string {
     '# Development process (Kimi / Grok)',
     '',
     'Claude Code may auto-invoke agents via Task. **Grok:** spawn `documenter` /',
-    '`domain-updater` (`capability_mode: all`, `reasoning_effort: "low"`) with a short',
-    'prompt (HEAD + filesTouched + what shipped). Fallback: `general-purpose` + Read.',
-    '**Kimi:** Read agent md and execute inline.',
+    '`domain-updater` (`capability_mode: all`). Do **not** pass `reasoning_effort`',
+    '(schema often omits it — reject inherits parent `xhigh`). Writer roles pin',
+    '`none` (`.grok/roles/<name>.toml`). Short prompt (HEAD + filesTouched + what shipped).',
+    'Fallback: parent Reads the Grok-native agent. **Kimi:** Read + execute inline.',
     'Stop blocks via `svs-bridge` until finalize completes (`decision:block` / exit 2).',
     '',
     '## Grok Build 1.0.4 (Aug 2026) — features SVS uses',
@@ -167,8 +168,8 @@ function devProcessSkillBody(): string {
     '- Folder trust: `/hooks-trust` or `--trust` → `~/.grok/trusted_folders.toml` (hooks + project MCP/LSP).',
     '- Subagents **on by default** (`GROK_SUBAGENTS=1`; `--no-subagents` disables). Ask the user to enable if off.',
     '- Built-in types: `general-purpose` (writes), `explore` / `plan` (read+shell, **no edits**).',
-    '- Prefer custom type `documenter` / `domain-updater` (agent is the child). Fallback `general-purpose` + Read.',
-    '- Pass `reasoning_effort: "low"` so children do not inherit the parent\'s `xhigh`.',
+    '- Prefer custom type `documenter` / `domain-updater` (agent + role apply). Fallback: parent Reads the native agent.',
+    '- Do **not** pass `reasoning_effort` on spawn (schema omit → inherit `xhigh`). Writer roles pin `none`.',
     '- Never paste the agent body into the parent prompt.',
     '- Spawn: `capability_mode` (`read-only`|`read-write`|`execute`|`all`), `isolation` (`none`|`worktree`), `background`, `resume_from` (same type only).',
     '- Stop gate: `{"decision":"block","reason"}`; **max 8 continuations/turn** — finish finalize in that window.',

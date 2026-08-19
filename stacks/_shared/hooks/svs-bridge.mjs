@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.4.0
+// @sv-version: 1.5.0
 /**
  * SVS hook bridge — normalize Kimi/Grok stdin → Claude hook shape, translate stdout.
  *
@@ -7,7 +7,7 @@
  *   node .claude/hooks/svs-bridge.mjs <kimi|grok> <hook-base>
  *
  * hook-base: session-start | user-prompt-submit | pre-tool-use | plan-gate |
- *            post-tool-use | stop-validator | pre-compact
+ *            post-tool-use | stop-validator | pre-compact | grok-spawn-pin
  *
  * Sets SVS_TARGET=kimi|grok so SessionStart writes `.claude/state/sessions/<id>.json`
  * with target tag; SessionEnd archives to `_archive/` (same bus as Claude).
@@ -19,6 +19,8 @@
  *
  * v1.4.0 — Grok Build 1.0.0: longer Stop spawn timeout; pass reason through payload
  * (observe-only channel_closed|shutdown handled in stop-validator).
+ * v1.5.0 — PreToolUse: pass hookSpecificOutput.updatedInput (grok-spawn-pin).
+ *          Previously Grok PreToolUse always emitted {decision:allow} and dropped rewrites.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -222,6 +224,18 @@ function emitForTarget(target, result, eventName) {
         );
         process.exit(2);
       }
+      const updated = result?.hookSpecificOutput?.updatedInput;
+      if (updated && typeof updated === 'object' && !Array.isArray(updated)) {
+        process.stdout.write(
+          JSON.stringify({
+            hookSpecificOutput: {
+              hookEventName: 'PreToolUse',
+              updatedInput: updated,
+            },
+          }) + '\n'
+        );
+        process.exit(0);
+      }
       process.stdout.write(JSON.stringify({ decision: 'allow' }) + '\n');
       process.exit(0);
     }
@@ -350,6 +364,7 @@ async function main() {
       'user-prompt-submit': 'UserPromptSubmit',
       'pre-tool-use': 'PreToolUse',
       'plan-gate': 'PreToolUse',
+      'grok-spawn-pin': 'PreToolUse',
       'post-tool-use': 'PostToolUse',
       'pre-compact': 'PreCompact',
       'stop-validator': raw.hook_event_name || raw.hookEventName || 'Stop',

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.1
+Grok spawn schema often omits `reasoning_effort` — do not pass it (reject
+inherits parent `xhigh`). Writer roles pin `none` (no reasoning for file
+writes). Hook rewrites `general-purpose` → type; bridge passes `updatedInput`.
+
 ### 2026-08-18 · main · v2.90.0
 Grok-native documenter creates missing domains (template + Files + connections
 + index). Spawn custom type + `reasoning_effort: low` (parent xhigh no longer
@@ -47,11 +52,6 @@ Drop accidental `__pycache__` from vendored `remove-ai-marks` scripts; gitignore
 ### 2026-08-12 · main · v2.84.0
 Skill `remove-ai-marks` (vendored watermarks-remover) + memory `remove-ai-watermarks`;
 UPS **1.13** step 3b — inspect/clean Layer A on user-facing prose before done.
-
-### 2026-08-10 · main · v2.83.0
-`execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy now) vs ATTENTION
-GATE (ask before commit with risk/evidence); workflow auth until loop closes;
-full artifact inventory (launchers + pw.js etc.).
 
 ---
 

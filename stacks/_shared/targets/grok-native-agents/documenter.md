@@ -1,7 +1,7 @@
 ---
 name: documenter
-version: 1.1.0
-effort: low
+version: 1.1.1
+reasoning_effort: none
 description: >
   Grok-native documenter. AFTER the code commit — map this commit's files to
   domains, CREATE missing domain files from the template, stamp last_commit,

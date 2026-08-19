@@ -12,7 +12,7 @@ const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
 /** Bump when .mdc frontmatter/shape changes. */
-export const CURSOR_RULES_VERSION = '1.2.10';
+export const CURSOR_RULES_VERSION = '1.2.11';
 
 export const CURSOR_RULES_REL = '.cursor/rules/svs-policy.mdc';
 
