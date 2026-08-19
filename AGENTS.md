@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.15
+svs-version: 1.2.16
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,11 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-19 · main · v2.90.6
+Grok-only light UPS (no Claude TASK WORKFLOW). Dirty may answer.
+Auditor VETO is CRIT/HIGH. No spawn banner on child agents.
+SVS package: always publish without asking (`execute-ship-ops` 1.5).
 
 ### 2026-08-19 · main · v2.90.5
 Named CVEs in `security-baseline/cve-watchlist.md` (Read on lockfile hit).
@@ -153,7 +158,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 - Grok finalize: `spawn_subagent` type `documenter` / `domain-updater` (`capability_mode: all`, `background: true`, `isolation: none`). Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; do **not** tell the child to Read `svs-document` / `AGENTS.md` first. HEREDOC commit body (`git show` must stand alone). Do **not** `--push` C1 before documenter; `--push` after C2 on main. Fallback: parent Reads the Grok-native agent. Do not restamp after a docs-only commit. Do not use `explore`/`plan` as documenter.
-- Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only.
+- Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)
 

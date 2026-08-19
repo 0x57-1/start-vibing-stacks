@@ -10,6 +10,12 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.6
+Grok-only: UPS work-turn is a one-liner (Claude TASK WORKFLOW untouched).
+Dirty may answer; claim-done still finalize. Auditor VETO is CRIT/HIGH.
+No spawn banner on child agents. SVS package: always publish without asking
+(`execute-ship-ops` 1.5).
+
 ### 2026-08-19 · main · v2.90.5
 Named CVEs live in `security-baseline/cve-watchlist.md` (Read on lockfile
 hit). Grok natives + Claude `security-auditor` stay protocol — never inline
@@ -49,10 +55,6 @@ After `migrate --apply`, skip the full resume menu when artefacts are current
 ### 2026-08-18 · main · v2.88.0
 `migrate --apply` copies MOP when `--with-memory-optimization` and opens the
 launcher (TTY). `--no-launch` keeps update-and-exit for CI.
-
-### 2026-08-18 · main · v2.87.0
-React theme apply: memory `react-theme-parity` **1.1**, skill `react-theme-apply`,
-`scripts/check-theme-tokens.mjs`, UPS **1.16** THEME APPLY, `svs-finalize` **1.2.2**.
 
 ---
 
@@ -219,7 +221,7 @@ Every `SKILL.md` MUST have `version:` in frontmatter. The `migrate` subcommand u
 1. Edit `src/`, `stacks/`, `templates/` as needed.
 2. Bump `package.json` `version` (semver: feat=minor, fix=patch, breaking=major).
 3. Single commit titled `<type>: <summary> — vX.Y.Z`. The auto-release workflow uses the title as the GitHub Release title.
-4. `git push origin main`.
+4. `git push origin main`. **Do not ask to commit/publish** after a versioned change (memory `execute-ship-ops` 1.5 — standing order 2026-08-19).
 5. `auto-release.yml` detects the version change, builds via `npm ci && npm run build`, creates the tag/release, and runs `npm publish`. Total runtime ~17–25s.
 6. Verify via `npm view start-vibing-stacks version` (may take a moment to propagate the local cache; `curl https://registry.npmjs.org/start-vibing-stacks/latest` is authoritative).
 
@@ -434,7 +436,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/verify-before-claim.md`
 
-- **execute-ship-ops.md** — SAFE SHIP → push+watch+republish; ATTENTION GATE → ask before commit (risk/evidence); status stays light; COMMIT-FIRST recovery. UPS **1.12** / Stop **1.10**.
+- **execute-ship-ops.md** — SAFE SHIP → push+watch+republish; ATTENTION GATE → ask before commit (risk/evidence); status stays light; COMMIT-FIRST recovery. **This package:** always commit+push after a version bump (no “quer publicar?”). UPS **1.12** / Stop **1.10**.
 
   Loaded from: `.claude/memories/execute-ship-ops.md`
 

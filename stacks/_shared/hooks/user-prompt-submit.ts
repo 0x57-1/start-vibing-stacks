@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.23.0
+// @sv-version: 1.24.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,8 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.24.0: Grok-only light work turn (no TASK WORKFLOW essay). Dirty may
+ * answer; claim-done still needs finalize. Claude/Kimi path unchanged.
  * v1.23.0: Grok natives tester/research-web/security-auditor/claude-md-compactor.
  * v1.22.0: Grok finalize — no svs-document first Read; background:true;
  * HEREDOC commit body; --push after C2 (not C1).
@@ -215,7 +217,7 @@ function buildPeersBlock(
   const hasSource = touched.some((f) =>
     /\.(ts|tsx|js|jsx|mjs|cjs|php|py|go|rs|vue|svelte)$/i.test(f)
   );
-  if (hasSource) {
+  if (hasSource && target !== 'grok') {
     parts.push('');
     parts.push('FINALIZE CHAIN REQUIRED (source edits — skill svs-finalize; same order as Claude):');
     parts.push('  1. commit-manager → scope.ts commit HEREDOC "<type>: <code>"  (never git add -A; no --push yet)');
@@ -379,25 +381,44 @@ function buildStatusOnlyMessage(peersBlock: string, recoveryBlock: string): stri
 
 function buildStopRecoveryBlock(
   lastStopKind: StopKind | undefined,
-  claudeChars: number
+  claudeChars: number,
+  target: string = 'claude'
 ): string {
   const parts: string[] = [];
   if (lastStopKind === 'dirty') {
-    parts.push(
-      '',
-      'STOP-RECOVERY — COMMIT-FIRST (memory: execute-ship-ops):',
-      '  Last Stop BLOCKED on uncommitted session files. BEFORE anything else:',
-      '  1. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status',
-      '  2. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"',
-      '  3. Re-Stop. FORBIDDEN: answering the user while session files stay dirty.'
-    );
+    if (target === 'grok') {
+      parts.push(
+        '',
+        'STOP-RECOVERY — dirty session files (Grok):',
+        '  You MAY answer the user while dirty. Do not claim done / ship / Stop-approve yet.',
+        '  When shipping: scope.ts status → commit HEREDOC (never git add -A).'
+      );
+    } else {
+      parts.push(
+        '',
+        'STOP-RECOVERY — COMMIT-FIRST (memory: execute-ship-ops):',
+        '  Last Stop BLOCKED on uncommitted session files. BEFORE anything else:',
+        '  1. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" status',
+        '  2. npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"',
+        '  3. Re-Stop. FORBIDDEN: answering the user while session files stay dirty.'
+      );
+    }
   } else if (lastStopKind === 'finalize') {
-    parts.push(
-      '',
-      'STOP-RECOVERY — FINALIZE-NOW (skill: svs-finalize):',
-      '  Last Stop found source edits without documenter → domain-updater.',
-      '  Run that chain THIS turn (or after commit if still dirty). Do not re-Stop hoping it passes.'
-    );
+    if (target === 'grok') {
+      parts.push(
+        '',
+        'STOP-RECOVERY — docs debt (Grok):',
+        '  Source edits still need documenter → domain-updater before claim-done.',
+        '  You MAY keep implementing / answering. Run the chain on ship, not mid-chat.'
+      );
+    } else {
+      parts.push(
+        '',
+        'STOP-RECOVERY — FINALIZE-NOW (skill: svs-finalize):',
+        '  Last Stop found source edits without documenter → domain-updater.',
+        '  Run that chain THIS turn (or after commit if still dirty). Do not re-Stop hoping it passes.'
+      );
+    }
   } else if (lastStopKind === 'size' || claudeChars > CLAUDE_MD_SOFT) {
     parts.push(
       '',
@@ -492,10 +513,12 @@ async function main(): Promise<void> {
     }
   }
 
-  const recoveryBlock = buildStopRecoveryBlock(lastStopKind, claudeChars);
+  const target = detectSvsTarget(hookInput);
+  const recoveryBlock = buildStopRecoveryBlock(lastStopKind, claudeChars, target);
 
   // Dirty recovery wins even on status prompts — commit before CI narration.
-  if (promptKind === 'status' && lastStopKind !== 'dirty') {
+  // Grok: status stays light even when dirty (answering is allowed).
+  if (promptKind === 'status' && (target === 'grok' || lastStopKind !== 'dirty')) {
     console.log(
       JSON.stringify({
         continue: true,
@@ -529,6 +552,26 @@ async function main(): Promise<void> {
     shipBlock = '';
     watermarkBlock = '';
     wpPluginBlock = '';
+  }
+
+  // Grok only — Claude/Kimi keep the TASK WORKFLOW essay below unchanged.
+  if (target === 'grok') {
+    const head =
+      promptKind === 'ship'
+        ? `GROK SHIP (Stack: ${stackName}): C1 HEREDOC (no --push) → stamp docs (parent-inline if ≤5 files / no new domain; else spawn documenter then domain-updater, not parallel) → C2 --push on main. Never git add -A. Do not pass reasoning_effort.`
+        : `GROK WORK (Stack: ${stackName}): do the asked work. No todo list. Do not Read CLAUDE.md/AGENTS.md first. Do not finalize unless asked to commit/ship. Dirty tree is OK — answer the user. Claim-done / Stop still need svs-finalize.`;
+    const systemMessage =
+      head +
+      recoveryBlock +
+      peersBlock +
+      themeParityBlock +
+      verifyBlock +
+      multiPartBlock +
+      shipBlock +
+      watermarkBlock +
+      wpPluginBlock;
+    console.log(JSON.stringify({ continue: true, systemMessage }));
+    process.exit(0);
   }
 
   const systemMessage = `TASK WORKFLOW (Stack: ${stackName}):

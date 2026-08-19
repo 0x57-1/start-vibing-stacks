@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.15
+svs-version: 1.2.16
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -36,7 +36,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 - Grok finalize: `spawn_subagent` type `documenter` / `domain-updater` (`capability_mode: all`, `background: true`, `isolation: none`). Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; do **not** tell the child to Read `svs-document` / `AGENTS.md` first. HEREDOC commit body (`git show` must stand alone). Do **not** `--push` C1 before documenter; `--push` after C2 on main. Fallback: parent Reads the Grok-native agent. Do not restamp after a docs-only commit. Do not use `explore`/`plan` as documenter.
-- Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only.
+- Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)
 

@@ -1,5 +1,5 @@
 ---
-version: 1.4.0
+version: 1.5.0
 ---
 
 # Memory: Execute Ship Ops (No Hesitation on Push / Status)
@@ -43,6 +43,14 @@ All of the following hold:
 | Git | Normal push; no force-push / history rewrite |
 
 When SAFE: **do not** re-ask “posso pushar?”. Multi-instance memories (`feedback_multiinstance_*`, GitHub Desktop autostash) mean **use scoped commit/push**, not **freeze**.
+
+### start-vibing-stacks package repo (standing order — 2026-08-19)
+
+When `package.json#name` is `start-vibing-stacks` (developing this npm package):
+
+After a versioned change (`package.json` bump + Recent Changes), **commit on main → push → watch auto-release → confirm npm**. Do **not** ask “quer commitar?” / “quer publicar?” / “posso pushar?”.
+
+ATTENTION GATE still wins (secrets, off-main, `npm run build` red). Not a consumer-project rule.
 
 User authorization for a **workflow** (`commit → push → acompanhar prod → republish X`) lasts until that loop closes — it is **not** one-commit permission.
 

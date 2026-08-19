@@ -51,7 +51,7 @@ export interface SvsManifest {
 }
 
 /** Keep ≥ policy-pack svs-version so bundledAgentsMdVersion() does not stale-loop. */
-export const AGENTS_MD_GENERATOR_VERSION = '1.2.15';
+export const AGENTS_MD_GENERATOR_VERSION = '1.2.16';
 
 export const LAUNCH_SPECS: TargetLaunchSpec[] = [
   {

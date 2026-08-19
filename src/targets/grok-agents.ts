@@ -5,6 +5,8 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.12.0: no GROK_BANNER in child files (parent spawn law stays in
+ * GROK_SPAWN_RECIPE_MD / svs-dev-process). Prefer parent-inline docs when small.
  * v1.11.0: named CVEs in security-baseline/cve-watchlist.md (Read on hit).
  * Agents stay protocol; skills are corpus. Never Read a skill first.
  * v1.10.0: security-auditor CWE matrix + stack forks + dependency CVE probes.
@@ -49,7 +51,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.11.0';
+export const GROK_AGENTS_VERSION = '1.12.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -61,18 +63,11 @@ export interface GrokAgentsResult {
   skippedReason?: string;
 }
 
-/** Injected at the top of every exported agent. Keep as one leading blockquote. */
-export const GROK_BANNER =
-  '> **Kimi / Grok:** Claude Task auto-invoke is unavailable. ' +
-  '**Grok:** spawn `subagent_type: "<name>"` (`isolation: none`, `capability_mode: all`). ' +
-  'Do **not** pass `reasoning_effort` — the spawn schema often omits it and a reject inherits `xhigh`. ' +
-  'Writer roles pin `reasoning_effort = "low"` (grok-4.6: no `none`). Short prompt: `HEAD + filesTouched + what shipped.` ' +
-  'Do **not** tell the child to Read svs-document / AGENTS.md first. `background: true`; do not poll in the same turn if the user has a next question. ' +
-  'The child has its own context — **do not paste this file into the parent prompt** (hangs / auto-compact). ' +
-  'Do not spawn `explore`/`plan` as a writer. One finalize child at a time. ' +
-  'After source edits: `svs-finalize` (`commit-manager` → `documenter` → `domain-updater` → docs `--push`). Never `git add -A`. ' +
-  'These `.grok/agents/` files are **Grok-native**. Do not open `.claude/agents/` unless this file says to. ' +
-  '**Kimi:** Read + execute `.claude/agents/` inline.\n';
+/**
+ * Parent spawn law — do **not** prepend this to child `.grok/agents/*.md`.
+ * Lives in GROK_SPAWN_RECIPE_MD / generated svs-dev-process only.
+ */
+export const GROK_BANNER = '';
 
 /**
  * Parent-side spawn recipe (Grok Build 1.0.4+).
@@ -99,12 +94,13 @@ export const GROK_SPAWN_RECIPE_MD = [
   '  `security-baseline/cve-watchlist.md` when the lockfile hits.',
   '- A PreToolUse hook rewrites `general-purpose` → the matching type when the prompt',
   '  names a native agent (so the role still attaches).',
-  '- Fastest path (Claude parity): parent Reads the Grok-native agent and executes — no spawn.',
+  '- Fastest path: parent Reads the Grok-native agent and executes — no spawn.',
+  '  Prefer inline when filesTouched ≤ 5 and no new domain. Spawn when parent context is fat.',
   '- `explore` / `plan` cannot edit files — never as documenter.',
-  '- One finalize child at a time. `background: true`, `isolation: "none"`.',
+  '- Serialize only documenter then domain-updater (same files). tester ∥ security-auditor OK.',
+  '  `background: true`, `isolation: "none"` for writers.',
   '  Do **not** `get_task_output` in the same turn if the user has a next question',
   '  (queued prompt waits until this turn ends). Poll later, then spawn the next writer.',
-  '  Do not run documenter + domain-updater in parallel (same files).',
   '  Skip spawn for `scope.ts commit`.',
   '',
   '```',
@@ -197,14 +193,14 @@ export function stripSvsGrokBanner(rest: string): string {
 export function adaptAgentForGrok(body: string): string {
   const fm = body.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
   if (!fm) {
-    return `${GROK_BANNER}\n${stripSvsGrokBanner(body)}`;
+    return stripSvsGrokBanner(body);
   }
   const meta = fm[1]!
     .split('\n')
     .filter((line) => !CLAUDE_ONLY_FM.test(line))
     .join('\n');
   const rest = stripSvsGrokBanner(fm[2]!.replace(/^\s*\n/, ''));
-  return `---\n${meta}\n---\n\n${GROK_BANNER}\n${rest}`;
+  return `---\n${meta}\n---\n\n${rest}`;
 }
 
 /** 1.3.0 fat overlays (`instructions_file` / `prompt_file`) bloat boot. Keep lean effort pins. */
