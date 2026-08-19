@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.16
+svs-version: 1.2.17
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-19 · main · v2.90.7
+Grok: one documenter spawn (`why=`/`slug=`). Hook strips Read-first
+svs-document + 40k compact. 01a00f26 tail was 254+394 s.
 
 ### 2026-08-19 · main · v2.90.6
 Grok-only light UPS (no Claude TASK WORKFLOW). Dirty may answer.
@@ -67,62 +71,6 @@ UPS **1.17**; `svs-finalize` **1.3.1**.
 After `migrate --apply`, launch-only menu when current (no Update first).
 AGENTS.md generator = policy-pack **1.2.7** (stale-loop fix).
 
-### 2026-08-18 · main · v2.88.0
-`migrate --apply` installs MOP with `--with-memory-optimization` and opens the
-launcher (TTY). `--no-launch` = update-and-exit.
-
-### 2026-08-18 · main · v2.87.0
-React theme apply: `react-theme-parity` **1.1**, skill `react-theme-apply`,
-`check-theme-tokens.mjs`, UPS **1.16**, `svs-finalize` **1.2.2**.
-
-### 2026-08-17 · main · v2.86.0
-Memory + skill `owned-wordpress-plugin-ops`: owned-site plugin search/neutralize
-(wp-cli / mu-plugin / crash-guard). UPS **1.15**. No nulled keys.
-
-### 2026-08-14 · main · v2.85.0
-Multi-instance main-only: `scope --push` refuses non-main; UPS live branch +
-MAIN-ONLY nudge; memory `multi-instance-main-only`; commit-manager **3.5**.
-
-### 2026-08-12 · main · v2.84.1
-Drop `__pycache__` from vendored `remove-ai-marks`; gitignore Python bytecode.
-
-### 2026-08-12 · main · v2.84.0
-Skill `remove-ai-marks` + memory `remove-ai-watermarks`; UPS **1.13** — inspect/clean
-Layer A watermarks on user-facing prose before done.
-
-### 2026-08-10 · main · v2.83.0
-`execute-ship-ops` **1.3** + UPS **1.12**: SAFE SHIP (push+deploy) vs ATTENTION
-GATE (ask before commit); workflow auth until loop closes; full artifact inventory.
-
-### 2026-08-09 · main · v2.82.0
-Stop/UPS COMMIT-FIRST + finalize anti-thrash + CLAUDE.md soft 36k; test veto
-before push; CDN/OAuth memories; commit-manager **3.4.0**.
-
-### 2026-08-09 · main · v2.81.0
-Ignore Claude scratchpads in filesTouched — fixes false finalize/plan-gate/Stop
-on `/tmp/claude-*` and `~/.claude/*` edits.
-
-### 2026-08-09 · main · v2.80.0
-UPS **1.10.0** / Stop **1.9.0**: light STATUS CHECK; SHIP NOW on urgent push;
-finalize soft-pass on status; memory `execute-ship-ops`; global UPS no-op template.
-
-### 2026-08-08 · main · v2.79.0
-Memory `verify-before-claim` + UPS **1.9.0**: block memory-only reviews; require fresh
-Read/Grep evidence; MULTI-PART EXECUTE when `||` / “outra coisa” (no “which first?”).
-
-### 2026-08-08 · main · v2.78.2
-README refresh: Preline moon skill pair, Grok 1.0 trust/rehydrate, targets/skills table,
-frontend defaults, migrate `frontendBaseSkillsDir`.
-
-### 2026-08-08 · main · v2.78.1
-`preline-ui` **2.2.0** = summary; `preline-moon` **1.0.1** = source of truth — explicit
-cross-refs so agents load moon corpus for markup/tokens, not invent from overview.
-
-### 2026-08-08 · main · v2.78.0
-Ship `preline-moon` (offline Preline moon theme corpus) as default React frontend skill;
-`preline-ui` **2.1.0**; migrate scans `frontendBaseSkillsDir`; Grok curated + inertia baseSkills.
-
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -157,7 +105,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
-- Grok finalize: `spawn_subagent` type `documenter` / `domain-updater` (`capability_mode: all`, `background: true`, `isolation: none`). Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; do **not** tell the child to Read `svs-document` / `AGENTS.md` first. HEREDOC commit body (`git show` must stand alone). Do **not** `--push` C1 before documenter; `--push` after C2 on main. Fallback: parent Reads the Grok-native agent. Do not restamp after a docs-only commit. Do not use `explore`/`plan` as documenter.
+- Grok finalize: one `documenter` spawn (`why=` `slug=` — child prepends Recent Changes). Do **not** spawn `domain-updater` after unless a gotcha remains. `capability_mode: all`, `background: true`, `isolation: none`. Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; never “Read first: svs-document”. HEREDOC commit body. Do **not** `--push` C1 before documenter; `--push` after C2 on main. Parent-inline if ≤5 files. Do not restamp after docs:. Do not use `explore`/`plan` as documenter.
 - Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)

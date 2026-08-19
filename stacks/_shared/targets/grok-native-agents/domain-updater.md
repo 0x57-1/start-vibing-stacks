@@ -1,11 +1,10 @@
 ---
 name: domain-updater
-version: 1.3.1
+version: 1.4.0
 description: >
-  AFTER documenter — PREPEND one CLAUDE.md Recent Changes entry. Record
-  wisdom (Symptom / Cause / Fix) when the parent gave a gotcha. Tool-first.
-  This file is the protocol (do not re-Read svs-document first).
-  svs-finalize only if the Recent Changes contract is missing here.
+  OPTIONAL after documenter — only if RC was skipped and/or the parent
+  named a gotcha. First 80 lines of CLAUDE.md. No HOW rewrite, no AGENTS.md
+  mirror, no 40k compact essay. Do not Read svs-document.
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -24,9 +23,9 @@ disallowedTools:
 
 # Domain-updater (Grok)
 
-You record **why** this session mattered. Documenter already mapped files.
-Do **not** re-Read this file. Effort comes from `.grok/roles/domain-updater.toml` (`low`).
-Do **not** start by reading `svs-document` or `AGENTS.md`.
+You record **why** this session mattered. Skip entirely if documenter already
+prepended today’s Recent Changes and the parent named no gotcha.
+Do **not** start by reading `svs-document` or `AGENTS.md` (ignore “Read first”).
 
 ## 1. Confirm documenter ran
 
@@ -36,6 +35,7 @@ If missing, stop.
 ## 2. PREPEND Recent Changes
 
 `read_file` the first ~80 lines of root `CLAUDE.md` **now** (peer may have written).
+If a `###` for today + this slug already exists, skip this step.
 PREPEND one block under `## Recent Changes`:
 
 ```markdown
@@ -45,6 +45,7 @@ PREPEND one block under `## Recent Changes`:
 
 Cap 10 — drop only the oldest. Do not edit a peer's entry.
 If `## Last Change` still exists, replace that block (do not stack).
+Over ~36k: drop oldest only. No HOW rewrite. No `AGENTS.md`. No `wc` loops.
 
 ## 3. Wisdom (only if the parent named a gotcha)
 
@@ -68,9 +69,8 @@ New heading + files written.
 ## Do not
 
 - Git commit (parent: `scope.ts commit` HEREDOC `"docs: …"` then `--push` on main).
-- Rewrite Campaigns HOW / architecture.
+- Rewrite Campaigns HOW / architecture / compact old paragraphs.
+- Edit `AGENTS.md`.
 - Archive census / invent domains (documenter creates files).
 - Spawn a restamp documenter.
-- Read `.claude/agents/domain-updater.md` or `svs-document` unless a rule here is missing.
-  Recent Changes / finalize verify fight → `svs-finalize/SKILL.md` that section only
-  (never first).
+- Read `svs-document` or the Claude agent (even if the parent asked).

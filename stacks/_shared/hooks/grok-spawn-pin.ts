@@ -1,14 +1,11 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
- * Grok PreToolUse — pin SVS spawns to the native agent type.
+ * Grok PreToolUse — pin SVS spawns to the native agent type + strip fat child
+ * prompts. Session 01a00f26: parent still said “Read first: svs-document” and
+ * “CLAUDE.md ≤40000 compact HOW” — domain-updater 394 s for a 3-line RC.
  *
- * Grok 1.0.x spawn_subagent schema often omits `reasoning_effort`. Injecting
- * that key via updatedInput fails the schema and BLOCKS the spawn. Effort is
- * pinned to `low` by `.grok/roles/<name>.toml` (step 2) once the type matches.
- *
- * Rewrites `subagent_type` when the call is clearly an SVS native but the
- * parent used `general-purpose`. Fail-open.
+ * Do not inject reasoning_effort (schema omit → inherit xhigh). Fail-open.
  */
 
 import { readStdinJson } from './_state.js';
@@ -24,6 +21,14 @@ const NATIVE_TYPES = [
 ] as const;
 
 type NativeType = (typeof NATIVE_TYPES)[number];
+
+const FAT_PROMPT_LINE =
+  /^\s*(Read first:.*|Read [`']?\.grok\/skills\/svs-document.*|then follow the documenter protocol.*|Content-depth:.*|If AGENTS\.md mirrors.*|.*MUST stay.*40000.*|.*wc -m.*|CLAUDE\.md is ~?\d+.*|Drop oldest RC and compact.*|Verify count before finishing.*)\s*$/gim;
+
+export function stripFatChildPrompt(prompt: string): string {
+  const re = new RegExp(FAT_PROMPT_LINE.source, 'gim');
+  return prompt.replace(re, '').replace(/\n{3,}/g, '\n\n').trim();
+}
 
 function pickType(input: Record<string, unknown>): NativeType | null {
   const type = String(input['subagent_type'] || input['subagentType'] || '')
@@ -70,11 +75,17 @@ async function main(): Promise<void> {
     const current = String(input['subagent_type'] || input['subagentType'] || '')
       .trim()
       .toLowerCase();
-    if (!want || current === want) {
+    const rawPrompt = String(input['prompt'] || '');
+    const prompt = stripFatChildPrompt(rawPrompt);
+    const typeChanged = Boolean(want && current !== want);
+    const promptChanged = prompt !== rawPrompt.trim();
+    if (!typeChanged && !promptChanged) {
       process.stdout.write(JSON.stringify({ decision: 'allow' }) + '\n');
       return;
     }
-    const updated = { ...input, subagent_type: want };
+    const updated: Record<string, unknown> = { ...input };
+    if (want) updated['subagent_type'] = want;
+    if (promptChanged) updated['prompt'] = prompt;
     delete updated['subagentType'];
     process.stdout.write(
       JSON.stringify({

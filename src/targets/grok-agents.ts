@@ -5,6 +5,8 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.13.0: one documenter spawn (why=/slug= includes RC). Hook strips
+ * Read-first svs-document + 40k compact essays (01a00f26 tail 254+394 s).
  * v1.12.0: no GROK_BANNER in child files (parent spawn law stays in
  * GROK_SPAWN_RECIPE_MD / svs-dev-process). Prefer parent-inline docs when small.
  * v1.11.0: named CVEs in security-baseline/cve-watchlist.md (Read on hit).
@@ -51,7 +53,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.12.0';
+export const GROK_AGENTS_VERSION = '1.13.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -97,11 +99,11 @@ export const GROK_SPAWN_RECIPE_MD = [
   '- Fastest path: parent Reads the Grok-native agent and executes — no spawn.',
   '  Prefer inline when filesTouched ≤ 5 and no new domain. Spawn when parent context is fat.',
   '- `explore` / `plan` cannot edit files — never as documenter.',
-  '- Serialize only documenter then domain-updater (same files). tester ∥ security-auditor OK.',
+  '- **One** documenter spawn (`why=` `slug=` so it prepends Recent Changes).',
+  '  Do **not** spawn domain-updater after unless a gotcha remains. tester ∥ auditor OK.',
   '  `background: true`, `isolation: "none"` for writers.',
-  '  Do **not** `get_task_output` in the same turn if the user has a next question',
-  '  (queued prompt waits until this turn ends). Poll later, then spawn the next writer.',
-  '  Skip spawn for `scope.ts commit`.',
+  '  Do **not** `get_task_output` in the same turn if the user has a next question.',
+  '  Skip spawn for `scope.ts commit`. Never tell the child to Read `svs-document`.',
   '',
   '```',
   'spawn_subagent({',
@@ -110,7 +112,7 @@ export const GROK_SPAWN_RECIPE_MD = [
   '  background: true,',
   '  capability_mode: "all",',
   '  description: "SVS documenter",',
-  '  prompt: "HEAD=… filesTouched=… what shipped=… Execute the agent. Return files written."',
+  '  prompt: "HEAD=… filesTouched=… what shipped=… why=… slug=… Execute. Return files written."',
   '})',
   '```',
   '',

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.7
+Grok finalize: one documenter (`why=`/`slug=` prepends RC). Hook strips
+Read-first svs-document + 40k HOW compact. Session 01a00f26 tail was
+254+394 s on a title-only hint.
+
 ### 2026-08-19 · main · v2.90.6
 Grok-only: UPS work-turn is a one-liner (Claude TASK WORKFLOW untouched).
 Dirty may answer; claim-done still finalize. Auditor VETO is CRIT/HIGH.
@@ -51,10 +56,6 @@ no personas/roles). UPS **1.17**; `svs-finalize` **1.3.1**; grok-agents **1.3.1*
 ### 2026-08-18 · main · v2.88.1
 After `migrate --apply`, skip the full resume menu when artefacts are current
 (launch-only). Fix AGENTS.md stale-loop (generator 1.2.5 vs policy 1.2.7).
-
-### 2026-08-18 · main · v2.88.0
-`migrate --apply` copies MOP when `--with-memory-optimization` and opens the
-launcher (TTY). `--no-launch` keeps update-and-exit for CI.
 
 ---
 

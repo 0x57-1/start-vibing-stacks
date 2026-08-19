@@ -1,24 +1,24 @@
 ---
 name: svs-finalize
-version: 1.8.0
+version: 1.9.0
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
-  edits — scope commit (code, HEREDOC body) → documenter → domain-updater → docs
-  commit --push. Same order as Claude. Verify stamps before claiming done. Stop
-  blocks on stale docs (Grok decision:block / Kimi exit 2). FORBIDDEN: skip,
-  reverse order, touch-theatre, subject-only GitHub text, done while unpushed.
+  edits — scope commit (code, HEREDOC body) → documenter → docs commit --push.
+  Grok: one documenter (`why=` + `slug=` prepends Recent Changes); skip
+  domain-updater unless a gotcha remains. Kimi/Claude: documenter then
+  domain-updater. Verify stamps before claiming done. Stop blocks on stale docs.
 ---
 
 # SVS finalize chain (do not skip)
 
 Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
-Read+execute). **Grok:** spawn `subagent_type: "documenter"` / `"domain-updater"`
+Read+execute). **Grok:** one `documenter` spawn (`why=` + `slug=` in the prompt — it prepends
+Recent Changes). Do **not** spawn `domain-updater` after unless a gotcha remains.
 (`capability_mode: all`, `background: true`, `isolation: none`). Do **not** pass
-`reasoning_effort` (schema often omits it — reject inherits parent `xhigh`). Writer
-roles pin `low` (`.grok/roles/<name>.toml`). Do **not** tell the child to Read
-`svs-document` / `AGENTS.md` first (native agent is the protocol).
-Do not paste the file. Skipping documenter / domain-updater leaves the next
-session blind. Stop feeds the block reason back until fixed.
+`reasoning_effort`. Writer roles pin `low`. Do **not** tell the child to Read
+`svs-document` / `AGENTS.md` first. Do not paste the file.
+**Kimi / Claude:** still documenter then domain-updater (checklist below).
+Stop feeds the block reason back until fixed.
 
 ## When this is mandatory
 
@@ -37,8 +37,10 @@ via Edit/Write (recorded in `.claude/state/sessions/<id>.json#filesTouched`).
 2. scope status — confirm filesTouched
 3. commit-manager → scope.ts commit HEREDOC (code, C1) — never git add -A
    Do **not** --push C1 yet
-4. documenter (Grok spawn_subagent background:true OR Read agent md)
-5. domain-updater (PREPEND ## Recent Changes + wisdom into domains/)
+4. documenter (Grok spawn_subagent background:true with why= slug= — it
+   prepends Recent Changes. Kimi/Claude: stamp domains)
+5. domain-updater (Kimi/Claude always. Grok: ONLY if a gotcha remains or
+   documenter skipped RC)
 6. If docs dirty → scope.ts commit HEREDOC "docs: …" (C2)
 7. On main / master (SAFE SHIP): C2 `--push` (sends C1+C2). Then
    `gh run list --commit HEAD` when the repo has Actions
@@ -69,7 +71,8 @@ non-obvious. No `Generated with` / `Co-Authored-By`.
 
 ## Verify — do not trust the agent's own report
 
-A spawned documenter/domain-updater can return "done" without writing. After step 5:
+A spawned documenter/domain-updater can return "done" without writing. After
+documenter (Grok) or after step 5 (Kimi/Claude):
 
 ```bash
 jq -r '.last_commit // "MISSING"' .claude/skills/codebase-knowledge/_index.json
@@ -88,8 +91,9 @@ Sanctioned order when the index gate compares to HEAD:
 ```
 1. scope commit HEREDOC "<type>: <code>"     → C1  (no --push)
 2. documenter stamps last_commit=C1
-3. domain-updater → domains + CLAUDE Recent Changes
-4. scope commit HEREDOC "docs: …" --push     → C2 + origin
+   Grok: same spawn prepends Recent Changes (why= slug=)
+   Kimi/Claude: then domain-updater → domains + CLAUDE Recent Changes
+3. scope commit HEREDOC "docs: …" --push     → C2 + origin
 ```
 
 After C2, stamp may still say C1 — expected. Do **not** hand-edit `last_commit` or
@@ -99,10 +103,9 @@ create a third stamp-only commit.
 
 ### Grok (type + role pin — parent stays thin)
 
-Prefer `subagent_type: "documenter"` / `"domain-updater"` so the Grok-native
-agent **and** `.grok/roles/<name>.toml` (`reasoning_effort = "low"`) apply.
-Do **not** pass `reasoning_effort` on spawn — Grok 1.0.x often omits it from
-the tool schema; a reject leaves the child on the parent's `xhigh`.
+Prefer `subagent_type: "documenter"` so the Grok-native agent **and**
+`.grok/roles/documenter.toml` (`reasoning_effort = "low"`) apply.
+Do **not** pass `reasoning_effort` on spawn.
 
 ```
 spawn_subagent({
@@ -111,11 +114,11 @@ spawn_subagent({
   background: true,
   capability_mode: "all",
   description: "SVS documenter",
-  prompt: "HEAD=… filesTouched=… what shipped=… Execute the agent. Return files written."
+  prompt: "HEAD=… filesTouched=… what shipped=… why=… slug=… Execute. Return files written."
 })
-# Sequential — do not resume_from / do not parallel writers
+# One child. Do not spawn domain-updater after (unless a gotcha remains).
+# Do not tell the child to Read svs-document. Do not ask it to compact HOW / AGENTS.md.
 # If the user has a next question: end the turn (do not get_task_output here)
-# Else poll, then the same pattern for domain-updater
 # Parent verifies on disk (jq last_commit + rg Recent Changes)
 ```
 
@@ -166,7 +169,7 @@ If Stop never blocks after source edits: bridge path must be
 | Push C1 before documenter | Domains / `_index.json` go stale **or** code ships undocumented |
 | Claim done while ahead of origin | Product change never published |
 | Subject-only commit when why is non-obvious | Next agent cannot recover from `git show` |
-| Skip domain-updater / Recent Changes | Next session loses “what changed” |
+| Skip Recent Changes (Grok: documenter why=/slug=; else domain-updater) | Next session loses “what changed” |
 | `git add -A` / `git add .` | Bundles peer files |
 | Claim “done” while Stop would block | Lies to the user |
 | `touch CLAUDE.md` / cosmetic mtime theatre | Gate pass without memory |
