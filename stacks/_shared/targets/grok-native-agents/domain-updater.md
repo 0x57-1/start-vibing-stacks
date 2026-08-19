@@ -1,10 +1,11 @@
 ---
 name: domain-updater
-version: 1.3.0
+version: 1.3.1
 description: >
   AFTER documenter — PREPEND one CLAUDE.md Recent Changes entry. Record
   wisdom (Symptom / Cause / Fix) when the parent gave a gotcha. Tool-first.
   This file is the protocol (do not re-Read svs-document first).
+  svs-finalize only if the Recent Changes contract is missing here.
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -71,3 +72,5 @@ New heading + files written.
 - Archive census / invent domains (documenter creates files).
 - Spawn a restamp documenter.
 - Read `.claude/agents/domain-updater.md` or `svs-document` unless a rule here is missing.
+  Recent Changes / finalize verify fight → `svs-finalize/SKILL.md` that section only
+  (never first).

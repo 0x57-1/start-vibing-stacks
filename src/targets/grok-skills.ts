@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.30.0';
+export const GROK_SKILLS_VERSION = '1.31.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -192,7 +192,7 @@ function devProcessSkillBody(): string {
     '1. **Research** (new features / unfamiliar tech) → agent `research-web`',
     '2. **Branch** — `feature/` | `fix/` | `refactor/` (avoid committing straight to `main`)',
     '3. **Implement** — keep edits scoped; hooks may run plan-gate + multi-instance locks',
-    '4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`',
+    '4. **Security-sensitive** → `security-auditor` + `security-baseline` (named CVEs: `cve-watchlist.md` on lockfile hit)',
     '5. **Commit code** → `commit-manager` → `scope.ts commit` HEREDOC (never `git add -A`; no `--push` yet)',
     '6. **Document** → `documenter` (domains + `_index.json#last_commit`)',
     '7. **Wisdom** → `domain-updater` (PREPEND `CLAUDE.md` ## Recent Changes)',
@@ -216,7 +216,7 @@ function devProcessSkillBody(): string {
     '| Agent | When |',
     '|-------|------|',
     '| `research-web` | New feature — Grok native (`search_tool`/`use_tool`, else `web_search`) |',
-    '| `security-auditor` | Auth/API — Grok native, CWE veto |',
+    '| `security-auditor` | Auth/API — CWE veto; `cve-watchlist.md` on lockfile hit |',
     '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest) |',
     '| `commit-manager` | Scoped HEREDOC commit / push after C2 |',
     '| `documenter` | **After** code commit — map files → domains |',

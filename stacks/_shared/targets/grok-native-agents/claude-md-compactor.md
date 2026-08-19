@@ -1,9 +1,10 @@
 ---
 name: claude-md-compactor
-version: 1.0.0
+version: 1.1.0
 description: >
   When root CLAUDE.md is over ~20 KB / ~280 lines. Offload HOW to domains,
   keep Recent Changes as append-only LIFO (cap 10). Grok Build tools only.
+  Do not Read a skill first — this file is the protocol.
 prompt_mode: full
 model: inherit
 permission_mode: default

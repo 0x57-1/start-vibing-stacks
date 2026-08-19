@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.5
+Named CVEs live in `security-baseline/cve-watchlist.md` (Read on lockfile
+hit). Grok natives + Claude `security-auditor` stay protocol — never inline
+the table; never Read a skill first.
+
 ### 2026-08-19 · main · v2.90.4
 Grok-native `tester`, `research-web`, `security-auditor`, `claude-md-compactor`
 — Grok Build tools only (`search_tool`/`use_tool`, no Claude `mcp__*`).
@@ -48,10 +53,6 @@ launcher (TTY). `--no-launch` keeps update-and-exit for CI.
 ### 2026-08-18 · main · v2.87.0
 React theme apply: memory `react-theme-parity` **1.1**, skill `react-theme-apply`,
 `scripts/check-theme-tokens.mjs`, UPS **1.16** THEME APPLY, `svs-finalize` **1.2.2**.
-
-### 2026-08-17 · main · v2.86.0
-Memory + skill `owned-wordpress-plugin-ops`: search/neutralize plugins on
-owned WP (wp-cli / mu-plugin / crash-guard). UPS **1.15**. No nulled keys.
 
 ---
 

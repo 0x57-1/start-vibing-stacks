@@ -1,7 +1,7 @@
 ---
 name: security-baseline
-version: 2.1.0
-description: "Universal OWASP Top 10 baseline with stack-aware examples. Covers BOTH OWASP 2021 (numbering kept stable for security-auditor §A01–§A10 cross-references) AND OWASP 2025 deltas (Software Supply Chain Failures new at A03, Mishandling Exceptional Conditions new at A10, SSRF demoted into Broken Access Control). A07 includes phishing-resistant Passkeys/WebAuthn (FIDO2). Invoke before designing or reviewing any feature that touches user data, auth, persistence, supply chain, or external IO."
+version: 2.2.0
+description: "Universal OWASP Top 10 baseline with stack-aware examples. Covers BOTH OWASP 2021 (numbering kept stable for security-auditor §A01–§A10 cross-references) AND OWASP 2025 deltas (Software Supply Chain Failures new at A03, Mishandling Exceptional Conditions new at A10, SSRF demoted into Broken Access Control). A07 includes phishing-resistant Passkeys/WebAuthn (FIDO2). Named CVEs live in companion cve-watchlist.md (Read on lockfile hit only — do not inline in agents). Invoke before designing or reviewing any feature that touches user data, auth, persistence, supply chain, or external IO."
 ---
 
 # Security Baseline — OWASP Top 10 (2021 + 2025 deltas)
@@ -319,6 +319,8 @@ No exceptions for "trusted" sources. Internal services drift, queues replay malf
 
 ## See Also
 
+- `cve-watchlist.md` (this folder) — named 2025–2026 CVEs (React2Shell, Next PPR,
+  Passport, Symfony, Shai-Hulud). Agents Read **only** on lockfile / worm hit.
 - `secrets-management` — env hygiene, gitleaks, OIDC federation
 - `observability` — log redaction, PII handling
 - `error-handling` — fail-closed patterns (2025-A10)

@@ -5,6 +5,9 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.11.0: named CVEs in security-baseline/cve-watchlist.md (Read on hit).
+ * Agents stay protocol; skills are corpus. Never Read a skill first.
+ * v1.10.0: security-auditor CWE matrix + stack forks + dependency CVE probes.
  * v1.9.0: native tester / research-web / security-auditor / claude-md-compactor
  * (Grok Build tools only — search_tool/use_tool, no Claude mcp__ / skills:).
  * v1.8.0: agents_md false; no mandatory svs-document Read (2.90.2 bloated
@@ -46,7 +49,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.9.0';
+export const GROK_AGENTS_VERSION = '1.11.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -92,7 +95,8 @@ export const GROK_SPAWN_RECIPE_MD = [
   '  No Claude `mcp__*` names. `model: inherit` (parent may be grok-code / grok-4.6).',
   '- Do **not** pass `reasoning_effort` on spawn. Role pins `low` (grok-4.6 floor).',
   '- Do **not** tell the child to Read `svs-document` / `AGENTS.md` (native agent is the protocol;',
-  '  `agents_md: false`). Optional Read only if a rule is missing.',
+  '  `agents_md: false`). Skill corpus on trigger only (never first) — e.g.',
+  '  `security-baseline/cve-watchlist.md` when the lockfile hits.',
   '- A PreToolUse hook rewrites `general-purpose` → the matching type when the prompt',
   '  names a native agent (so the role still attaches).',
   '- Fastest path (Claude parity): parent Reads the Grok-native agent and executes — no spawn.',

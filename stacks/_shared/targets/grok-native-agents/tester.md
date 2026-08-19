@@ -1,9 +1,10 @@
 ---
 name: tester
-version: 1.0.0
+version: 1.1.0
 description: >
   AFTER new logic — write isolated tests for the stack in active-project.json
   (PHPUnit / Vitest / pytest). Run them. Tool-first. Grok Build tools only.
+  Stack test skills on layout miss only (never Read first).
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -40,6 +41,11 @@ jq -r '.stack, .commands.test // empty' .claude/config/active-project.json
 
 Prefer `.commands.test` when set. Put files where this repo already puts them
 (`tests/Feature`, `tests/`, `*.test.ts`). Mirror a neighbour test — do not invent a second layout.
+
+If `.commands.test` is empty **or** there is no neighbour test: Read
+`.claude/skills/phpunit-testing/SKILL.md` | `pytest-testing/SKILL.md` |
+`test-coverage/SKILL.md` (stack match) for layout only. Grok copy under
+`.grok/skills/` if present. Never Read a test skill first.
 
 ## 2. Write
 

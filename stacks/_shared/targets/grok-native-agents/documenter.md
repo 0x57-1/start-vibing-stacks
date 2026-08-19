@@ -1,10 +1,11 @@
 ---
 name: documenter
-version: 1.3.0
+version: 1.3.1
 description: >
   AFTER the code commit — map HEAD files to domains, CREATE missing domain
   files, stamp last_commit, update Files + _index.json. Tool-first. This
-  file is the protocol (do not re-Read svs-document first).
+  file is the protocol (do not re-Read svs-document first). TEMPLATE only
+  when creating a domain.
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -85,6 +86,8 @@ Copy from `.claude/skills/codebase-knowledge/TEMPLATE.md` (fallback
 `.grok/skills/codebase-knowledge/TEMPLATE.md`). Required: frontmatter
 (`domain` = filename), TL;DR ≤ 3 lines, Files, Connections, Recent Commits,
 Attention Points, Problems & Solutions, See Also.
+Unknown `_index.json` keys → Read `codebase-knowledge/SKILL.md` that heading
+only. Never Read `svs-document` / the skill first.
 
 ## Do not
 

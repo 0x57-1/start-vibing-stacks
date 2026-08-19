@@ -1,10 +1,11 @@
 ---
 name: commit-manager
-version: 1.3.0
+version: 1.3.1
 description: >
   Scoped commit via scope.ts with a git body an agent can reuse. Never
   git add -A. Prefer the parent shell. After a code commit: documenter
   then domain-updater, then docs commit --push on main (svs-finalize).
+  git-workflow / svs-finalize Read only if a rule here is missing.
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -59,3 +60,5 @@ After a **code** commit: spawn `documenter` then `domain-updater`
 - Documenter before this commit
 - Push C1 before documenter
 - Claim done while `main` is ahead of `origin`
+- Read `git-workflow` / `svs-finalize` / `quality-gate` first. If `scope.ts`
+  or the C1/C2 push rule is missing here, Read that skill section only.

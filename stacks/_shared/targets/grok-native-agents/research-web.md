@@ -1,10 +1,11 @@
 ---
 name: research-web
-version: 1.0.0
+version: 1.1.0
 description: >
   BEFORE a new feature / library / architecture choice. Cache, then MCP
   web-scraper via search_tool/use_tool, else web_search + web_fetch.
   Cite URLs. Grok Build tools only (no Claude mcp__ names).
+  research-cache skill only when writing a cache entry.
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -38,7 +39,9 @@ jq -r '.stack // "unknown"' .claude/config/active-project.json
 ```
 
 If `.claude/skills/research-cache/` has a fresh entry for this topic+stack+year,
-return it. Do not search.
+return it. Do not search. Writing a new cache file → Read
+`.grok/skills/research-cache/SKILL.md` (fallback `.claude/skills/research-cache/SKILL.md`)
+for the file format only — not before the cache probe.
 
 ## 2. Capability (once)
 

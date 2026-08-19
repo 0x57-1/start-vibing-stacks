@@ -91,7 +91,7 @@ export function generateAgentsMd(
     '1. **Research** (new features) → agent `research-web`',
     '2. **Branch** — `feature/` | `fix/` | `refactor/` (avoid direct commits to `main`)',
     '3. **Implement** — scoped edits; hooks may enforce plan-gate + multi-instance file locks',
-    '4. **Security-sensitive** → agent `security-auditor` + skill `security-baseline`',
+    '4. **Security-sensitive** → `security-auditor` + `security-baseline` (named CVEs: `cve-watchlist.md` on lockfile hit)',
     '5. **Commit code** → `commit-manager` + `scope.ts commit` HEREDOC (never `git add -A`; no `--push` yet)',
     '6. **documenter** → domains + `_index.json`',
     '7. **domain-updater** → PREPEND `CLAUDE.md` ## Recent Changes',
