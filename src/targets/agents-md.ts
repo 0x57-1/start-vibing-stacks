@@ -114,7 +114,7 @@ export function generateAgentsMd(
     '',
     '| Agent | When | Path |',
     '|-------|------|------|',
-    '| `research-web` | New feature / unfamiliar tech | `.grok/agents/` or `.claude/agents/` |',
+    '| `research-web` | New feature / unfamiliar tech (Grok: `search_tool`/`use_tool`) | `.grok/agents/` or `.claude/agents/` |',
     '| `security-auditor` | Auth, secrets, APIs, infra | same |',
     '| `tester` | New logic / user-facing flows | same |',
     '| `commit-manager` | Scoped commit / push (**before** documenter) | same |',

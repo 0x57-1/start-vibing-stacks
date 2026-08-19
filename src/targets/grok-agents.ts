@@ -5,6 +5,8 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.9.0: native tester / research-web / security-auditor / claude-md-compactor
+ * (Grok Build tools only — search_tool/use_tool, no Claude mcp__ / skills:).
  * v1.8.0: agents_md false; no mandatory svs-document Read (2.90.2 bloated
  * prompt 39k→56k). background:true; push after C2; HEREDOC commit body.
  * v1.7.0: grok-4.6 accepts only low|medium|high|xhigh — pin writers to `low`
@@ -44,7 +46,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.8.0';
+export const GROK_AGENTS_VERSION = '1.9.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -80,15 +82,19 @@ export const GROK_SPAWN_RECIPE_MD = [
   'Grok 1.0.x: `spawn_subagent` often has **no** `reasoning_effort` in the tool schema.',
   'Passing that key fails the schema and the child inherits the parent (`xhigh`).',
   'Resolution order: spawn override → **role** → persona → parent.',
-  'SVS pins `low` on `.grok/roles/documenter.toml` + `domain-updater.toml` (grok-4.6 floor; no prompt_file).',
+  'SVS pins `low` on `.grok/roles/<name>.toml` (grok-4.6 floor; no prompt_file).',
   '',
-  '- Spawn `subagent_type: "documenter"` / `"domain-updater"` so the agent **and** role apply',
-  '  (`capability_mode: "all"`). Do not paste the file into `prompt`.',
+  '- Spawn `subagent_type` = native name so the agent **and** role apply',
+  '  (`documenter` | `domain-updater` | `commit-manager` | `tester` |',
+  '  `research-web` | `security-auditor` | `claude-md-compactor`).',
+  '  `capability_mode: "all"`. Do not paste the file into `prompt`.',
+  '- Grok Build tools only (`read_file`, `grep_search`, `web_search`, `search_tool`/`use_tool`).',
+  '  No Claude `mcp__*` names. `model: inherit` (parent may be grok-code / grok-4.6).',
   '- Do **not** pass `reasoning_effort` on spawn. Role pins `low` (grok-4.6 floor).',
   '- Do **not** tell the child to Read `svs-document` / `AGENTS.md` (native agent is the protocol;',
   '  `agents_md: false`). Optional Read only if a rule is missing.',
   '- A PreToolUse hook rewrites `general-purpose` → the matching type when the prompt',
-  '  says documenter / domain-updater (so the role still attaches).',
+  '  names a native agent (so the role still attaches).',
   '- Fastest path (Claude parity): parent Reads the Grok-native agent and executes — no spawn.',
   '- `explore` / `plan` cannot edit files — never as documenter.',
   '- One finalize child at a time. `background: true`, `isolation: "none"`.',
@@ -114,7 +120,15 @@ export const GROK_SPAWN_RECIPE_MD = [
 
 const CLAUDE_ONLY_FM = /^\s*(model|tools|skills):\s*/i;
 const FAT_OVERLAY_RE = /instructions_file\s*=|prompt_file\s*=/;
-const LEAN_OVERLAY_NAMES = ['documenter', 'domain-updater', 'commit-manager'] as const;
+const LEAN_OVERLAY_NAMES = [
+  'documenter',
+  'domain-updater',
+  'commit-manager',
+  'tester',
+  'research-web',
+  'security-auditor',
+  'claude-md-compactor',
+] as const;
 
 function leanPersonaToml(name: string): string {
   return [

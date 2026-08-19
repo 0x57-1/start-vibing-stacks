@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.29.0';
+export const GROK_SKILLS_VERSION = '1.30.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -215,13 +215,13 @@ function devProcessSkillBody(): string {
     '',
     '| Agent | When |',
     '|-------|------|',
-    '| `research-web` | New feature, library choice, unfamiliar domain |',
-    '| `security-auditor` | Auth, secrets, APIs, infra, user data |',
-    '| `tester` | New logic / user-facing flows |',
-    '| `commit-manager` | Scoped commit / push (**before** documenter) |',
+    '| `research-web` | New feature — Grok native (`search_tool`/`use_tool`, else `web_search`) |',
+    '| `security-auditor` | Auth/API — Grok native, CWE veto |',
+    '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest) |',
+    '| `commit-manager` | Scoped HEREDOC commit / push after C2 |',
     '| `documenter` | **After** code commit — map files → domains |',
     '| `domain-updater` | **After** documenter — wisdom + Recent Changes |',
-    '| `claude-md-compactor` | CLAUDE.md over size budget |',
+    '| `claude-md-compactor` | CLAUDE.md over ~20 KB — Grok native |',
     '',
     'Paths: `.grok/agents/<name>.md` (Grok) and/or `.claude/agents/<name>.md` (Kimi).',
     '',

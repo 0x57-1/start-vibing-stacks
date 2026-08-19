@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.22.0
+// @sv-version: 1.23.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,7 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.23.0: Grok natives tester/research-web/security-auditor/claude-md-compactor.
  * v1.22.0: Grok finalize — no svs-document first Read; background:true;
  * HEREDOC commit body; --push after C2 (not C1).
  * v1.21.0: Grok writer roles pin low (4.6 floor). Child Reads svs-document.

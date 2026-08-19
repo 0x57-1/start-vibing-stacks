@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.4
+Grok-native `tester`, `research-web`, `security-auditor`, `claude-md-compactor`
+— Grok Build tools only (`search_tool`/`use_tool`, no Claude `mcp__*`).
+
 ### 2026-08-19 · main · v2.90.3
 Grok finalize thins the child (no `svs-document` first Read, `agents_md`
 false, `background: true`) and ships: HEREDOC git body + `--push` after C2.
@@ -48,11 +52,6 @@ React theme apply: memory `react-theme-parity` **1.1**, skill `react-theme-apply
 ### 2026-08-17 · main · v2.86.0
 Memory + skill `owned-wordpress-plugin-ops`: search/neutralize plugins on
 owned WP (wp-cli / mu-plugin / crash-guard). UPS **1.15**. No nulled keys.
-
-### 2026-08-14 · main · v2.85.0
-Multi-instance main-only ship: shared cwd = one HEAD; `scope --push` refuses
-non-main; UPS refreshes live branch + MAIN-ONLY nudge; memory
-`multi-instance-main-only`; commit-manager **3.5** prefers main with peers.
 
 ---
 
