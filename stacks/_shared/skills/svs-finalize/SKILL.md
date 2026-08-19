@@ -1,6 +1,6 @@
 ---
 name: svs-finalize
-version: 1.6.0
+version: 1.7.0
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
   edits — scope commit (code) → documenter → domain-updater → docs commit. Same
@@ -13,7 +13,8 @@ description: >
 Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
 Read+execute). **Grok:** spawn `subagent_type: "documenter"` / `"domain-updater"`
 (`capability_mode: all`). Do **not** pass `reasoning_effort` (schema often omits
-it — reject inherits parent `xhigh`). Writer roles pin `none` (`.grok/roles/<name>.toml`).
+it — reject inherits parent `xhigh`). Writer roles pin `low` (`.grok/roles/<name>.toml`).
+Child Reads `.grok/skills/svs-document/SKILL.md` first.
 Do not paste the file. Skipping documenter / domain-updater leaves the next
 session blind. Stop feeds the block reason back until fixed.
 
@@ -75,7 +76,7 @@ create a third stamp-only commit.
 ### Grok (type + role pin — parent stays thin)
 
 Prefer `subagent_type: "documenter"` / `"domain-updater"` so the Grok-native
-agent **and** `.grok/roles/<name>.toml` (`reasoning_effort = "none"`) apply.
+agent **and** `.grok/roles/<name>.toml` (`reasoning_effort = "low"`) apply.
 Do **not** pass `reasoning_effort` on spawn — Grok 1.0.x often omits it from
 the tool schema; a reject leaves the child on the parent's `xhigh`.
 

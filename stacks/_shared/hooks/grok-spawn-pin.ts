@@ -5,7 +5,7 @@
  *
  * Grok 1.0.x spawn_subagent schema often omits `reasoning_effort`. Injecting
  * that key via updatedInput fails the schema and BLOCKS the spawn. Effort is
- * pinned to `none` by `.grok/roles/<name>.toml` (step 2) once the type matches.
+ * pinned to `low` by `.grok/roles/<name>.toml` (step 2) once the type matches.
  *
  * This hook only rewrites `subagent_type` when the call is clearly documenter
  * or domain-updater but the parent used `general-purpose`. Fail-open.

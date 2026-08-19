@@ -5,14 +5,12 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.7.0: grok-4.6 accepts only low|medium|high|xhigh — pin writers to `low`
+ * (not `none`, API 400). Grok frontmatter (prompt_mode, permission_mode,
+ * agents_md, tools). Child Reads `.grok/skills/svs-document` (no Claude skills:).
  * v1.6.0: spawn schema often omits `reasoning_effort` (session 01a00f26). Do
- * not pass that key (schema reject blocks spawn). Pin writers to `none` via
- * lean roles (step 2) — no reasoning for template/file writes. Hook rewrites
+ * not pass that key (schema reject blocks spawn). Hook rewrites
  * general-purpose → type name.
- * v1.5.0: richer native agents (create-from-template, Files, connections,
- * index upsert, wisdom structure). Spawn custom type (`documenter`) so the
- * agent IS the child system prompt. Tiny personas set `reasoning_effort=none`
- * (no instructions_file).
  * v1.4.0: write Grok-native lean agents (stacks/_shared/targets/grok-native-agents)
  * for documenter / domain-updater / commit-manager. Other Claude agents become
  * short stubs — do not copy 200–400 line Task manuals (session 01a00f26: 8 min
@@ -44,7 +42,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.6.0';
+export const GROK_AGENTS_VERSION = '1.7.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -61,7 +59,7 @@ export const GROK_BANNER =
   '> **Kimi / Grok:** Claude Task auto-invoke is unavailable. ' +
   '**Grok:** spawn `subagent_type: "<name>"` (`isolation: none`, `capability_mode: all`). ' +
   'Do **not** pass `reasoning_effort` — the spawn schema often omits it and a reject inherits `xhigh`. ' +
-  'Writer roles pin `reasoning_effort = "none"` (`.grok/roles/<name>.toml`). Short prompt: `HEAD + filesTouched + what shipped.` ' +
+  'Writer roles pin `reasoning_effort = "low"` (grok-4.6: no `none`). Child Reads `.grok/skills/svs-document`. Short prompt: `HEAD + filesTouched + what shipped.` ' +
   'The child has its own context — **do not paste this file into the parent prompt** (hangs / auto-compact). ' +
   'Do not spawn `explore`/`plan` as a writer. One finalize child at a time. ' +
   'After source edits: `svs-finalize` (`commit-manager` → `documenter` → `domain-updater`). Never `git add -A`. ' +
@@ -70,7 +68,7 @@ export const GROK_BANNER =
 
 /**
  * Parent-side spawn recipe (Grok Build 1.0.4+).
- * Custom type loads the lean agent + matching role (reasoning_effort=none).
+ * Custom type loads the lean agent + matching role (reasoning_effort=low).
  * Do not pass reasoning_effort on spawn — schema often omits the key.
  */
 export const GROK_SPAWN_RECIPE_MD = [
@@ -79,11 +77,12 @@ export const GROK_SPAWN_RECIPE_MD = [
   'Grok 1.0.x: `spawn_subagent` often has **no** `reasoning_effort` in the tool schema.',
   'Passing that key fails the schema and the child inherits the parent (`xhigh`).',
   'Resolution order: spawn override → **role** → persona → parent.',
-  'SVS pins `none` on `.grok/roles/documenter.toml` + `domain-updater.toml` (writers; no prompt_file).',
+  'SVS pins `low` on `.grok/roles/documenter.toml` + `domain-updater.toml` (grok-4.6 floor; no prompt_file).',
   '',
   '- Spawn `subagent_type: "documenter"` / `"domain-updater"` so the agent **and** role apply',
   '  (`capability_mode: "all"`). Do not paste the file into `prompt`.',
-  '- Do **not** pass `reasoning_effort` on spawn.',
+  '- Do **not** pass `reasoning_effort` on spawn. Role pins `low` (grok-4.6 floor).',
+  '- Child **Reads** `.grok/skills/svs-document/SKILL.md` first (Grok has no Claude `skills:`).',
   '- A PreToolUse hook rewrites `general-purpose` → the matching type when the prompt',
   '  says documenter / domain-updater (so the role still attaches).',
   '- Fastest path (Claude parity): parent Reads the Grok-native agent and executes — no spawn.',
@@ -106,14 +105,14 @@ export const GROK_SPAWN_RECIPE_MD = [
 
 const CLAUDE_ONLY_FM = /^\s*(model|tools|skills):\s*/i;
 const FAT_OVERLAY_RE = /instructions_file\s*=|prompt_file\s*=/;
-const LEAN_OVERLAY_NAMES = ['documenter', 'domain-updater'] as const;
+const LEAN_OVERLAY_NAMES = ['documenter', 'domain-updater', 'commit-manager'] as const;
 
 function leanPersonaToml(name: string): string {
   return [
     '# start-vibing-stacks',
-    '# SVS persona — writers: none (no reasoning for file/template writes)',
-    'reasoning_effort = "none"',
-    `description = "SVS ${name} — tool-first, no extra reasoning"`,
+    '# SVS persona — writers: low (grok-4.6 does not accept none)',
+    'reasoning_effort = "low"',
+    `description = "SVS ${name} — tool-first, low reasoning"`,
     'instructions = "Follow the matching .grok/agents file. Use tools immediately. No process essay. Write files, then stop."',
     '',
   ].join('\n');
@@ -123,9 +122,9 @@ function leanRoleToml(name: string): string {
   return [
     '# start-vibing-stacks',
     '# SVS role — resolution step 2 (spawn schema often omits reasoning_effort)',
-    'reasoning_effort = "none"',
+    'reasoning_effort = "low"',
     'default_capability_mode = "all"',
-    `description = "SVS ${name} — tool-first, no extra reasoning"`,
+    `description = "SVS ${name} — tool-first, low reasoning"`,
     '',
   ].join('\n');
 }

@@ -99,7 +99,7 @@ export function generateAgentsMd(
     '9. **Stop** — bridge blocks (Grok `decision:block` / Kimi exit 2) until docs catch up',
     '',
     'Skill `svs-finalize`. **Grok:** spawn `documenter` / `domain-updater` (`capability_mode: all`).',
-    'Do **not** pass `reasoning_effort` (schema often omits it). Writer roles pin `none`.',
+    'Do **not** pass `reasoning_effort`. Writer roles pin `low`. Child Reads `svs-document`.',
     'Fallback: parent Reads the Grok-native agent. Do not restamp after `docs:`. Not `explore`/`plan`.',
     '**Kimi:** Read + execute `.claude/agents/<name>.md`.',
     '',

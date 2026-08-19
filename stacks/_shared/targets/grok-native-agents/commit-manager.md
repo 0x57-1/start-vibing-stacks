@@ -1,10 +1,22 @@
 ---
 name: commit-manager
-version: 1.1.1
-reasoning_effort: none
+version: 1.2.0
 description: >
-  Grok-native scoped commit. Run scope.ts. Never git add -A. Prefer parent
-  shell over spawn for this agent.
+  Scoped commit via scope.ts. Never git add -A. Prefer the parent shell.
+  After a code commit: spawn documenter then domain-updater (svs-finalize).
+prompt_mode: full
+model: inherit
+permission_mode: default
+agents_md: true
+tools:
+  - read_file
+  - grep_search
+  - list_dir
+  - bash
+disallowedTools:
+  - web_search
+  - web_fetch
+  - task
 ---
 
 # Commit-manager (Grok)
@@ -18,15 +30,14 @@ npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"
 ```
 
 `type` = `feat` | `fix` | `refactor` | `docs` | `chore`. Summary from the
-diff, not a generic "updates".
+diff. If about to **push** and the project has tests, run them on the parent
+first. Red → do not push. `scope.ts --push` refuses non-main.
 
-If this session is about to **push** and the project has a test script, run it
-on the parent first (`npm test` / `composer test` / project quality gate).
-Red tests → do not push.
+After a **code** commit: spawn `documenter` then `domain-updater` (sequential).
+Do not pass `reasoning_effort` on spawn.
 
 ## Do not
 
 - `git add -A` / `git add .` / `git add -u`
 - Commit peer files
-- Push from a non-main branch (`scope.ts --push` refuses)
-- Run documenter before this commit
+- Documenter before this commit

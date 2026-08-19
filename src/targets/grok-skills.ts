@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.27.0';
+export const GROK_SKILLS_VERSION = '1.28.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -62,7 +62,12 @@ export const GROK_CURATED_SKILL_NAMES = [
   'react-theme-apply',
 ] as const;
 
-const GENERATED_SKILL_NAMES = ['svs-policy', 'svs-dev-process', 'svs-memory-index'] as const;
+const GENERATED_SKILL_NAMES = [
+  'svs-policy',
+  'svs-dev-process',
+  'svs-memory-index',
+  'svs-document',
+] as const;
 
 const SKILLS_BLOCK_RE = /# SVS:SKILLS:START[\s\S]*?# SVS:SKILLS:END\n?/;
 
@@ -158,7 +163,7 @@ function devProcessSkillBody(): string {
     'Claude Code may auto-invoke agents via Task. **Grok:** spawn `documenter` /',
     '`domain-updater` (`capability_mode: all`). Do **not** pass `reasoning_effort`',
     '(schema often omits it — reject inherits parent `xhigh`). Writer roles pin',
-    '`none` (`.grok/roles/<name>.toml`). Short prompt (HEAD + filesTouched + what shipped).',
+    '`low` (`.grok/roles/<name>.toml`). Child Reads `svs-document`. Short prompt.',
     'Fallback: parent Reads the Grok-native agent. **Kimi:** Read + execute inline.',
     'Stop blocks via `svs-bridge` until finalize completes (`decision:block` / exit 2).',
     '',
@@ -169,7 +174,8 @@ function devProcessSkillBody(): string {
     '- Subagents **on by default** (`GROK_SUBAGENTS=1`; `--no-subagents` disables). Ask the user to enable if off.',
     '- Built-in types: `general-purpose` (writes), `explore` / `plan` (read+shell, **no edits**).',
     '- Prefer custom type `documenter` / `domain-updater` (agent + role apply). Fallback: parent Reads the native agent.',
-    '- Do **not** pass `reasoning_effort` on spawn (schema omit → inherit `xhigh`). Writer roles pin `none`.',
+    '- Do **not** pass `reasoning_effort` on spawn (schema omit → inherit `xhigh`). Writer roles pin `low`.',
+    '- Documenter/domain-updater **Read** `.grok/skills/svs-document/SKILL.md` first.',
     '- Never paste the agent body into the parent prompt.',
     '- Spawn: `capability_mode` (`read-only`|`read-write`|`execute`|`all`), `isolation` (`none`|`worktree`), `background`, `resume_from` (same type only).',
     '- Stop gate: `{"decision":"block","reason"}`; **max 8 continuations/turn** — finish finalize in that window.',
@@ -249,8 +255,95 @@ function devProcessSkillBody(): string {
     '## Skills on Grok',
     '',
     'Only curated + SVS skills under `.grok/skills/` (boot-safe). Load `svs-finalize`',
-    'before claiming done after source edits. For ads/infra detail,',
+    'before claiming done after source edits. Documenter/domain-updater **must Read**',
+    '`svs-document` (Grok does not inject Claude `skills:`). For ads/infra detail,',
     'read `svs-memory-index` then open the linked `.claude/memories/*.md` file.',
+    '',
+  ].join('\n');
+}
+
+function documentSkillBody(): string {
+  return [
+    '---',
+    'name: svs-document',
+    'description: >',
+    '  Write protocol for Grok documenter and domain-updater. File-to-domain mapping,',
+    '  action matrix, _index.json stamp, CLAUDE.md Recent Changes prepend, wisdom',
+    '  entries. Use when stamping domains, last_commit, or Recent Changes after a',
+    '  code commit. Grok subagents do not auto-load Claude skills — Read this file.',
+    'metadata:',
+    `  svs-version: "${GROK_SKILLS_VERSION}"`,
+    '---',
+    '',
+    '# SVS document (Grok write protocol)',
+    '',
+    'Claude agents declare `skills: docs-tracker, codebase-knowledge`. Grok custom',
+    'types do **not**. The child must `read_file` this skill, then apply it.',
+    '',
+    'Companions: `.claude/skills/docs-tracker/SKILL.md` (full matrix),',
+    '`.claude/skills/codebase-knowledge/TEMPLATE.md` (new domain).',
+    '',
+    '## Detect',
+    '',
+    '```bash',
+    'git diff-tree --no-commit-id --name-status -r HEAD',
+    '```',
+    '',
+    'Skip if every path is `.claude/**`, `docs/**`, or `.github/**`.',
+    'Map via `.claude/config/domain-mapping.json` (else `general`).',
+    '',
+    '## Action matrix (documenter)',
+    '',
+    '| Git | Domain file | Action |',
+    '|-----|-------------|--------|',
+    '| A | exists | Add Files row + commit row; bump `files_count` |',
+    '| A | missing | Write TEMPLATE.md; fill TL;DR from parent "what shipped" |',
+    '| M | exists | Prepend commit row; update Files role if it changed |',
+    '| M | missing | Treat as A |',
+    '| D | exists | Strike `~~path~~`; decrement `files_count` |',
+    '| R src→dst | exists | Replace src row; note rename in Attention |',
+    '',
+    'Edit known anchors on existing files. Do not overwrite a domain with Write.',
+    '',
+    '## Caps',
+    '',
+    '- Live domain ≤ 8 KB / ~200 lines. Recent Commits 20. Attention 10. P&S 5.',
+    '- Overflow → `<slug>.archive.md` (oldest rows).',
+    '- Connections bidirectional (A→B and B←A) or neither.',
+    '',
+    '## Index',
+    '',
+    'After every pass set `_index.json` `last_commit` + `generated_at`. Upsert the',
+    'touched domain record. Update `_INDEX.md` row if that file exists.',
+    '',
+    '## Recent Changes (domain-updater)',
+    '',
+    'Read CLAUDE.md first ~80 lines, then PREPEND:',
+    '',
+    '```markdown',
+    '### YYYY-MM-DD · <branch> · <slug>',
+    '<1–3 lines. WHY. No bullets. Do not edit a peer entry. Cap 10 — drop oldest.>',
+    '```',
+    '',
+    '## Wisdom (domain-updater, only if parent named a gotcha)',
+    '',
+    '```markdown',
+    '### [resolved YYYY-MM-DD] <title ≤ 10 words>',
+    '',
+    '- **Symptom:** <what broke>',
+    '- **Cause:** <file / config / assumption>',
+    '- **Fix:** <what we changed>',
+    '- **Prevention:** <check / skill / test>',
+    '```',
+    '',
+    'Grep first — no duplicates.',
+    '',
+    '## Do not',
+    '',
+    '- Git commit.',
+    '- Restamp after a docs-only follow-up.',
+    '- Invent domain prose.',
+    '- Quote secrets.',
     '',
   ].join('\n');
 }
@@ -499,6 +592,7 @@ export function exportGrokSkills(
     writeSkillMd(root, 'svs-policy', policySkillBody());
     writeSkillMd(root, 'svs-dev-process', devProcessSkillBody());
     writeSkillMd(root, 'svs-memory-index', memoryIndexSkillBody());
+    writeSkillMd(root, 'svs-document', documentSkillBody());
     generatedWritten = GENERATED_SKILL_NAMES.length;
     nativeSkillWritten = true;
     managedNames.push(...GENERATED_SKILL_NAMES);

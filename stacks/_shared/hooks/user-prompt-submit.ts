@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.20.0
+// @sv-version: 1.21.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,7 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.21.0: Grok writer roles pin low (4.6 floor). Child Reads svs-document.
  * v1.20.0: Grok spawn — do not pass reasoning_effort (schema omit). Role pin + type hook.
  * v1.19.0: Grok spawn custom type + reasoning_effort low; richer native agents.
  * v1.18.0: Grok-native lean agents; no restamp spawn after docs commit.
@@ -218,7 +219,7 @@ function buildPeersBlock(
     parts.push('  2. documenter → domains + _index.json');
     parts.push('  3. domain-updater → PREPEND CLAUDE.md ## Recent Changes');
     parts.push('  4. If docs dirty → scope.ts commit "docs: …"');
-    parts.push('  Grok: spawn subagent_type documenter|domain-updater, capability_mode all. Do NOT pass reasoning_effort (schema omit → inherit xhigh). Writer roles pin none (no reasoning for file writes). Hook rewrites general-purpose. SHORT prompt. Do not paste. Do not restamp after docs:. Not explore/plan as documenter.');
+    parts.push('  Grok: spawn subagent_type documenter|domain-updater, capability_mode all. Do NOT pass reasoning_effort. Writer roles pin low. Child Reads .grok/skills/svs-document first. Hook rewrites general-purpose. SHORT prompt. Do not paste. Do not restamp after docs:. Not explore/plan as documenter.');
     parts.push('  Kimi: Read .claude/agents/<name>.md and execute inline.');
     parts.push('  FORBIDDEN: code-only push; documenter before code commit; skip domain-updater; trust child “done” without jq/rg verify. Stop BLOCKS if stale.');
   }

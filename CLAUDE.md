@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.2
+Grok writer roles pin `low` (4.6 rejects `none`). Native agents use Grok
+frontmatter; child Reads `.grok/skills/svs-document` (no Claude `skills:`).
+
 ### 2026-08-19 · main · v2.90.1
 Grok spawn schema often omits `reasoning_effort` — do not pass it (reject
 inherits parent `xhigh`). Writer roles pin `none` (no reasoning for file
@@ -48,10 +52,6 @@ non-main; UPS refreshes live branch + MAIN-ONLY nudge; memory
 
 ### 2026-08-12 · main · v2.84.1
 Drop accidental `__pycache__` from vendored `remove-ai-marks` scripts; gitignore Python bytecode.
-
-### 2026-08-12 · main · v2.84.0
-Skill `remove-ai-marks` (vendored watermarks-remover) + memory `remove-ai-watermarks`;
-UPS **1.13** step 3b — inspect/clean Layer A on user-facing prose before done.
 
 ---
 
