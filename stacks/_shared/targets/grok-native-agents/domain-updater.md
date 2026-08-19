@@ -2,9 +2,9 @@
 name: domain-updater
 version: 1.4.0
 description: >
-  OPTIONAL after documenter — only if RC was skipped and/or the parent
-  named a gotcha. First 80 lines of CLAUDE.md. No HOW rewrite, no AGENTS.md
-  mirror, no 40k compact essay. Do not Read svs-document.
+  OPTIONAL after documenter — only if RC was skipped and/or a leftover
+  gotcha was not written. First 80 lines of CLAUDE.md. No HOW rewrite.
+  Do not Read svs-document.
 prompt_mode: full
 model: inherit
 permission_mode: default

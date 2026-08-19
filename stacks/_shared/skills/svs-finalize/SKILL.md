@@ -1,19 +1,21 @@
 ---
 name: svs-finalize
-version: 1.9.0
+version: 1.10.0
 description: >
   Mandatory finalize for Kimi/Grok (and Claude when Task is skipped): after source
   edits — scope commit (code, HEREDOC body) → documenter → docs commit --push.
-  Grok: one documenter (`why=` + `slug=` prepends Recent Changes); skip
-  domain-updater unless a gotcha remains. Kimi/Claude: documenter then
-  domain-updater. Verify stamps before claiming done. Stop blocks on stale docs.
+  Grok: one documenter (`why=` `slug=` `gotcha=` if any) stamps domains + RC +
+  Attention crumb. Skip domain-updater unless a leftover gotcha remains.
+  Kimi/Claude: documenter then domain-updater. Verify stamps before claiming done.
 ---
 
 # SVS finalize chain (do not skip)
 
 Claude Code may auto-`Task` agents. **Kimi and Grok must run the agents** (spawn or
-Read+execute). **Grok:** one `documenter` spawn (`why=` + `slug=` in the prompt — it prepends
-Recent Changes). Do **not** spawn `domain-updater` after unless a gotcha remains.
+Read+execute). **Grok:** one `documenter` spawn (`why=` + `slug=` + optional `gotcha=` —
+stamps `codebase-knowledge` domains, prepends Recent Changes, one Attention crumb;
+P&S only if `gotcha=`). Do **not** spawn `domain-updater` after unless a leftover
+gotcha remains.
 (`capability_mode: all`, `background: true`, `isolation: none`). Do **not** pass
 `reasoning_effort`. Writer roles pin `low`. Do **not** tell the child to Read
 `svs-document` / `AGENTS.md` first. Do not paste the file.
@@ -37,10 +39,10 @@ via Edit/Write (recorded in `.claude/state/sessions/<id>.json#filesTouched`).
 2. scope status — confirm filesTouched
 3. commit-manager → scope.ts commit HEREDOC (code, C1) — never git add -A
    Do **not** --push C1 yet
-4. documenter (Grok spawn_subagent background:true with why= slug= — it
-   prepends Recent Changes. Kimi/Claude: stamp domains)
-5. domain-updater (Kimi/Claude always. Grok: ONLY if a gotcha remains or
-   documenter skipped RC)
+4. documenter (Grok spawn_subagent background:true with why= slug= gotcha= —
+   stamps domains + RC + Attention crumb. Kimi/Claude: stamp domains)
+5. domain-updater (Kimi/Claude always. Grok: ONLY if a leftover gotcha remains
+   or documenter skipped RC)
 6. If docs dirty → scope.ts commit HEREDOC "docs: …" (C2)
 7. On main / master (SAFE SHIP): C2 `--push` (sends C1+C2). Then
    `gh run list --commit HEAD` when the repo has Actions
@@ -114,9 +116,10 @@ spawn_subagent({
   background: true,
   capability_mode: "all",
   description: "SVS documenter",
-  prompt: "HEAD=… filesTouched=… what shipped=… why=… slug=… Execute. Return files written."
+  prompt: "HEAD=… filesTouched=… what shipped=… why=… slug=… gotcha=…(or omit). Execute. Return files written."
 })
-# One child. Do not spawn domain-updater after (unless a gotcha remains).
+# One child. Domains + RC + Attention crumb. Do not spawn domain-updater after
+# (unless a leftover gotcha remains).
 # Do not tell the child to Read svs-document. Do not ask it to compact HOW / AGENTS.md.
 # If the user has a next question: end the turn (do not get_task_output here)
 # Parent verifies on disk (jq last_commit + rg Recent Changes)

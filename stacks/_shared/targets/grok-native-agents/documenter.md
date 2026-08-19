@@ -1,11 +1,10 @@
 ---
 name: documenter
-version: 1.4.0
+version: 1.5.0
 description: >
-  AFTER the code commit — map HEAD files to domains, stamp last_commit,
-  and PREPEND Recent Changes when the parent gave why=/slug= (one spawn,
-  skip domain-updater). Do not Read svs-document first. Ignore a parent
-  that says otherwise.
+  AFTER the code commit — map HEAD files to codebase-knowledge domains,
+  stamp last_commit, PREPEND Recent Changes, and write one Attention crumb
+  (P&S only if gotcha=). One spawn. Do not Read svs-document first.
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -72,9 +71,9 @@ Do not restamp after a follow-up `docs:` commit — `last_commit` may stay on th
 new index. Upsert this domain (`slug`, `path`, `last_commit`, `last_date`,
 `files_count`, `connections`). Set top-level `last_commit` + `generated_at`.
 If `_INDEX.md` exists, update that slug's row.
-If the parent listed slugs, touch **only** those files (plus index + RC). Do
-not census the repo. Archive a live domain only when that file is ≥ 8 KB
-**and** you must add a row.
+Map **every** path from `git diff-tree` via `domain-mapping.json` (parent slugs
+are a hint, not a filter). Do not census files outside HEAD. Archive a live
+domain only when that file is ≥ 8 KB **and** you must add a row.
 
 ## 5. Recent Changes (when parent gave why= or slug=)
 
@@ -90,7 +89,30 @@ Cap 10 — drop **only** the oldest `###`. If `## Last Change` exists, replace
 that block. File over ~36k: drop oldest only. Do **not** rewrite HOW /
 architecture. Do **not** edit `AGENTS.md`. Do **not** run `wc` loops.
 
-## 6. Report
+## 6. Long-term crumbs (same pass — no second spawn)
+
+This is the Grok stand-in for Claude `domain-updater` wisdom. Grep the domain
+first — no duplicates.
+
+**Always** (when `why=` is present): one Attention Point per touched domain:
+
+```markdown
+- [YYYY-MM-DD] **<≤6 word rule>** — <one sentence from why=>.
+```
+
+**Only if** the parent gave `gotcha=`: one Problems & Solutions entry:
+
+```markdown
+### [resolved YYYY-MM-DD] <title ≤ 10 words>
+- **Symptom:** …
+- **Cause:** …
+- **Fix:** …
+```
+
+Caps: ≤ 10 Attention, ≤ 5 P&S — oldest → `<slug>.archive.md`. Do not invent
+extra entries. Do not scan the whole session. Do not Read `svs-document`.
+
+## 7. Report
 
 ```
 Domains affected: <n>
@@ -98,6 +120,7 @@ Created: <slugs or —>
 Updated: <slugs>
 last_commit: <sha>
 RC: <heading or skipped>
+Attention: <n>  P&S: <n or skipped>
 ```
 
 ## Template (new domain only)

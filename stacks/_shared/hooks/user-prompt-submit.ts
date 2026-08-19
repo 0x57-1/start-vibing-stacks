@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.25.0
+// @sv-version: 1.26.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,7 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.26.0: Grok documenter same-pass Attention crumb (P&S if gotcha=).
  * v1.25.0: Grok ship = one documenter (why=/slug=). Stop-recovery Grok
  * does not demand domain-updater. Claude TASK WORKFLOW untouched.
  * v1.24.0: Grok-only light work turn (no TASK WORKFLOW essay). Dirty may
@@ -410,8 +411,8 @@ function buildStopRecoveryBlock(
       parts.push(
         '',
         'STOP-RECOVERY — docs debt (Grok):',
-        '  Source edits still need ONE documenter (why= slug= in the prompt; it prepends RC).',
-        '  Do not spawn domain-updater unless a gotcha remains. Ship-time, not mid-chat.'
+        '  Source edits still need ONE documenter (why= slug= gotcha= if any; domains + RC + Attention).',
+        '  Do not spawn domain-updater unless a leftover gotcha remains. Ship-time, not mid-chat.'
       );
     } else {
       parts.push(
@@ -560,7 +561,7 @@ async function main(): Promise<void> {
   if (target === 'grok') {
     const head =
       promptKind === 'ship'
-        ? `GROK SHIP (Stack: ${stackName}): C1 HEREDOC (no --push) → ONE documenter (why= slug= in the same prompt; it prepends Recent Changes). Do not spawn domain-updater. Do not say Read svs-document. Parent-inline if ≤5 files. C2 --push on main. Never git add -A.`
+        ? `GROK SHIP (Stack: ${stackName}): C1 HEREDOC (no --push) → ONE documenter (why= slug= gotcha= if any; stamps codebase-knowledge + RC + one Attention crumb). Do not spawn domain-updater. Do not say Read svs-document. Parent-inline if ≤5 files. C2 --push on main. Never git add -A.`
         : `GROK WORK (Stack: ${stackName}): do the asked work. No todo list. Do not Read CLAUDE.md/AGENTS.md first. Do not finalize unless asked to commit/ship. Dirty tree is OK — answer the user. Claim-done / Stop still need svs-finalize.`;
     const systemMessage =
       head +

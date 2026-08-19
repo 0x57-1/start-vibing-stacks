@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.33.0';
+export const GROK_SKILLS_VERSION = '1.34.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -161,8 +161,9 @@ function devProcessSkillBody(): string {
     '# Development process (Kimi / Grok)',
     '',
     'Claude Code may auto-invoke agents via Task. **Grok:** one `documenter`',
-    'spawn (`why=` `slug=` — it prepends Recent Changes). Do **not** spawn',
-    '`domain-updater` after unless a gotcha remains. `capability_mode: all`.',
+    'spawn (`why=` `slug=` `gotcha=` if any — domains + RC + Attention crumb).',
+    'Do **not** spawn `domain-updater` after unless a leftover gotcha remains.',
+    '`capability_mode: all`.',
     'Do **not** pass `reasoning_effort` (schema omit → inherit `xhigh`). Writer',
     'roles pin `low`. Short prompt. `background: true`. Never “Read first:',
     'svs-document”. Fallback: parent Reads the Grok-native agent.',
@@ -175,7 +176,7 @@ function devProcessSkillBody(): string {
     '- Folder trust: `/hooks-trust` or `--trust` → `~/.grok/trusted_folders.toml` (hooks + project MCP/LSP).',
     '- Subagents **on by default** (`GROK_SUBAGENTS=1`; `--no-subagents` disables). Ask the user to enable if off.',
     '- Built-in types: `general-purpose` (writes), `explore` / `plan` (read+shell, **no edits**).',
-    '- Prefer custom type `documenter` (agent + role apply). `domain-updater` only if a gotcha remains.',
+    '- Prefer custom type `documenter` (agent + role apply). `domain-updater` only if a leftover gotcha remains.',
     '- Do **not** pass `reasoning_effort` on spawn (schema omit → inherit `xhigh`). Writer roles pin `low`.',
     '- Native agent **is** the protocol — do not Read `svs-document` / `AGENTS.md` first.',
     '- Never paste the agent body into the parent prompt.',
@@ -195,8 +196,8 @@ function devProcessSkillBody(): string {
     '3. **Implement** — keep edits scoped; hooks may run plan-gate + multi-instance locks',
     '4. **Security-sensitive** → `security-auditor` + `security-baseline` (named CVEs: `cve-watchlist.md` on lockfile hit)',
     '5. **Commit code** → `commit-manager` → `scope.ts commit` HEREDOC (never `git add -A`; no `--push` yet)',
-    '6. **Document** → one `documenter` (`why=` `slug=` — stamps + PREPEND Recent Changes)',
-    '7. **Wisdom** → `domain-updater` only if a gotcha remains or RC was skipped (Kimi: always)',
+    '6. **Document** → one `documenter` (`why=` `slug=` `gotcha=` if any — stamps + RC + Attention crumb)',
+    '7. **Wisdom** → same spawn (P&S if `gotcha=`). `domain-updater` only if leftover (Kimi: always)',
     '8. **Docs commit + push** if dirty → HEREDOC `"docs: …"` + `--push` on main',
     '9. **Stop** — bridge + stop-validator: clean tree + CLAUDE this session + index ≈ HEAD + not ahead of origin',
     '',
@@ -220,7 +221,7 @@ function devProcessSkillBody(): string {
     '| `security-auditor` | Auth/API — CWE veto; `cve-watchlist.md` on lockfile hit |',
     '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest) |',
     '| `commit-manager` | Scoped HEREDOC commit / push after C2 |',
-    '| `documenter` | **After** code commit — map files → domains + RC when why=/slug= |',
+    '| `documenter` | **After** code commit — domains + RC + Attention crumb (P&S if gotcha=) |',
     '| `domain-updater` | Optional — gotcha / RC skipped (Kimi: after documenter) |',
     '| `claude-md-compactor` | CLAUDE.md over ~20 KB — Grok native |',
     '',

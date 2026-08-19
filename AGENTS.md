@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.17
+svs-version: 1.2.18
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-19 · main · v2.90.8
+Grok documenter same-pass: domains + RC + Attention crumb (P&S if gotcha=).
+Claude documenter → domain-updater unchanged.
 
 ### 2026-08-19 · main · v2.90.7
 Grok: one documenter spawn (`why=`/`slug=`). Hook strips Read-first
@@ -67,10 +71,6 @@ Launch Grok menu: `--always-approve --trust` + folder-trust persist.
 Grok spawn: child Reads agent md (short parent prompt; no paste / no overlays).
 UPS **1.17**; `svs-finalize` **1.3.1**.
 
-### 2026-08-18 · main · v2.88.1
-After `migrate --apply`, launch-only menu when current (no Update first).
-AGENTS.md generator = policy-pack **1.2.7** (stale-loop fix).
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -105,7 +105,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
-- Grok finalize: one `documenter` spawn (`why=` `slug=` — child prepends Recent Changes). Do **not** spawn `domain-updater` after unless a gotcha remains. `capability_mode: all`, `background: true`, `isolation: none`. Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; never “Read first: svs-document”. HEREDOC commit body. Do **not** `--push` C1 before documenter; `--push` after C2 on main. Parent-inline if ≤5 files. Do not restamp after docs:. Do not use `explore`/`plan` as documenter.
+- Grok finalize: one `documenter` spawn (`why=` `slug=` `gotcha=` if any). Child stamps `codebase-knowledge` domains, prepends Recent Changes, writes one Attention crumb (P&S only if `gotcha=`). Do **not** spawn `domain-updater` after unless a leftover gotcha remains. `capability_mode: all`, `background: true`, `isolation: none`. Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; never “Read first: svs-document”. HEREDOC commit body. Do **not** `--push` C1 before documenter; `--push` after C2 on main. Parent-inline if ≤5 files. Do not restamp after docs:. Do not use `explore`/`plan` as documenter.
 - Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)

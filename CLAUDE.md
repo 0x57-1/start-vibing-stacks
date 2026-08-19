@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-08-19 · main · v2.90.8
+Grok documenter (same spawn) writes codebase-knowledge crumbs: one Attention
+from why=, P&S if gotcha=. HEAD mapping is source of truth. Claude chain
+unchanged (documenter → domain-updater).
+
 ### 2026-08-19 · main · v2.90.7
 Grok finalize: one documenter (`why=`/`slug=` prepends RC). Hook strips
 Read-first svs-document + 40k HOW compact. Session 01a00f26 tail was
@@ -52,10 +57,6 @@ leaks). Stop accepts last_commit on the code SHA after a docs-only commit.
 Launch Grok menu shows `--always-approve --trust` (persists folder trust).
 Grok spawn: child Reads `.grok/agents/<name>.md` (short parent prompt — no paste,
 no personas/roles). UPS **1.17**; `svs-finalize` **1.3.1**; grok-agents **1.3.1**.
-
-### 2026-08-18 · main · v2.88.1
-After `migrate --apply`, skip the full resume menu when artefacts are current
-(launch-only). Fix AGENTS.md stale-loop (generator 1.2.5 vs policy 1.2.7).
 
 ---
 
