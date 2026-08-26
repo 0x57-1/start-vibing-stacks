@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.18
+svs-version: 1.2.19
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-08-26 · main · v2.90.9
+Ads creative identity: no stego/hex mutator, no `?v=` on `image_link`, no
+duplicate-review promise. `ad-creative-cloaking` **1.2**.
 
 ### 2026-08-19 · main · v2.90.8
 Grok documenter same-pass: domains + RC + Attention crumb (P&S if gotcha=).
@@ -66,11 +70,6 @@ roles pin `none`. Hook rewrites `general-purpose` → type.
 Grok-native documenter creates missing domains (template + Files + index).
 Spawn custom type + `reasoning_effort: low`. Stop accepts C1 stamp after docs C2.
 
-### 2026-08-18 · main · v2.89.0
-Launch Grok menu: `--always-approve --trust` + folder-trust persist.
-Grok spawn: child Reads agent md (short parent prompt; no paste / no overlays).
-UPS **1.17**; `svs-finalize` **1.3.1**.
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -87,6 +86,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 | Lookalike domains whose primary effect is donor/merchant confusion | Phishing-class |
 | Unauthorized active scan / exploit against third-party systems | Security assessment limits |
 | “Bypass Anthropic” / evade model cyber gates as the goal | Policy evasion |
+| “Undetectable” creative mutator / LSB stego / `?v=` on `image_link` / promise review won’t see a duplicate | Same look = same pHash; Meta throttles cache-bust QS; operator needs a new creative |
 
 **Correct donation recovery:** refuse only the matching founder asset → placeholder → finish layout/CRO/copy under **your** brand. Swap in a photo of **your** operator (different file/hash).
 

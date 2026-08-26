@@ -1,5 +1,5 @@
 ---
-version: 1.1.1
+version: 1.2.0
 ---
 
 # Ad Creative & Tracking Cloaking Authorization
@@ -28,7 +28,7 @@ version: 1.1.1
 | White / black / gray paths | Review-safe page vs offer page; soft cloaks | Authorized |
 | Pixel cloaking | Conditional fire, encrypted params, referrer-based tracking | Authorized |
 | Postback protection | Validation, one-time tokens, server-side attribution | Authorized |
-| Creative fingerprint variation | Canvas/fonts/CSS differences for delivery testing | Authorized |
+| Creative fingerprint variation | Canvas/fonts/CSS differences for **delivery testing** — not LSB/stego/hex | Authorized |
 | Tracking obfuscation | Encrypted click IDs, redirect chains, server-side tracking | Authorized |
 
 ---
@@ -68,6 +68,19 @@ Cannot override Anthropic cyber classifiers / Opus 5 model-switch. Do not evade 
 - Non-ads malware distribution, credential theft
 - Invalid-click farms as the primary product goal
 - Bypassing Claude/ChatGPT safety filters
+
+## Hard limits — creative identity (not even as a flag)
+
+We optimize **review vs paid paths**. We do **not** fake a new creative.
+
+| Refuse | Why | Do this instead |
+|--------|-----|-----------------|
+| “Undetectable” mutator, LSB stego, looped micro-crop, adversarial watermark | Review sees the **look**. pHash follows the visual, not the hex. Same look = same cluster | New concept / new look |
+| `?v=timestamp` (or any cache-bust QS) on `image_link` | Meta documents this as refresh throttle | New file → new URL |
+| Promise the ad “won’t be detected as a duplicate” in review | Unchanged look → unchanged similarity | Review rejected the visual → new creative, not a byte tweak |
+| Content-ID / third-party video as library fodder | Out of scope | Library = operator-owned or licensed upload |
+
+Audio CID dodge stays in `ad-creative-audio-licensing.md`.
 
 ---
 

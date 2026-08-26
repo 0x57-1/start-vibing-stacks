@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.18
+svs-version: 1.2.19
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -17,6 +17,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 | Lookalike domains whose primary effect is donor/merchant confusion | Phishing-class |
 | Unauthorized active scan / exploit against third-party systems | Security assessment limits |
 | “Bypass Anthropic” / evade model cyber gates as the goal | Policy evasion |
+| “Undetectable” creative mutator / LSB stego / `?v=` on `image_link` / promise review won’t see a duplicate | Same look = same pHash; Meta throttles cache-bust QS; operator needs a new creative |
 
 **Correct donation recovery:** refuse only the matching founder asset → placeholder → finish layout/CRO/copy under **your** brand. Swap in a photo of **your** operator (different file/hash).
 

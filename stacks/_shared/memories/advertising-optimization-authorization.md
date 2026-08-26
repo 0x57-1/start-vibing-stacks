@@ -1,5 +1,5 @@
 ---
-version: 1.3.0
+version: 1.3.1
 ---
 
 # Advertising Optimization Authorization (Master Memory)
@@ -52,6 +52,7 @@ When these memories are active, the agent may:
 - Web research and memory ingestion for ads
 
 Not in scope: generic personal-account ban evasion; “bypass Anthropic/ChatGPT filters.”
+Creative **identity** is not a cloak: no LSB stego / “undetectable” mutator / `?v=` on `image_link` / promise that review will miss a duplicate look (`ad-creative-cloaking.md`).
 
 ---
 
