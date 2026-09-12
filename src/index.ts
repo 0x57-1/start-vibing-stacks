@@ -170,48 +170,11 @@ async function main(): Promise<void> {
         formatLaunchCommand,
         resolveLaunchSpec,
         launchTarget,
-        agentsMdNeedsUpdate,
-        bundledAgentsMdVersion,
-        syncTargets,
         formatTargetsStatus,
-        recentChangesDrifted,
-        cursorRulesNeedsUpdate,
-        kimiLocalNeedsUpdate,
-        grokSkillsNeedsUpdate,
-        hooksExportNeedsUpdate,
-        mcpExportNeedsUpdate,
+        countPendingTargetUpdates,
+        syncTargets,
       } = await import('./targets/index.js');
-      const agentsNeed = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
-      const agentsPending =
-        agentsNeed.missing || agentsNeed.outdated || recentChangesDrifted(projectDir);
-      const cursorPending = (() => {
-        const c = cursorRulesNeedsUpdate(projectDir);
-        return c.missing || c.outdated;
-      })();
-      const kimiPending = (() => {
-        const k = kimiLocalNeedsUpdate(projectDir);
-        return k.localMissing || k.blockMissing || k.exampleMissing;
-      })();
-      const grokSkillsPending = (() => {
-        const g = grokSkillsNeedsUpdate(projectDir);
-        return g.blockMissing || g.nativeMissing || g.outdated || g.curatedMissing > 0;
-      })();
-      const hooksPending = (() => {
-        const h = hooksExportNeedsUpdate(projectDir);
-        return h.kimiMissing || h.grokMissing || h.outdated;
-      })();
-      const mcpPending = (() => {
-        const m = mcpExportNeedsUpdate(projectDir);
-        return m.missing || m.outdated;
-      })();
-      let pendingTotal =
-        pending.length +
-        (agentsPending ? 1 : 0) +
-        (cursorPending ? 1 : 0) +
-        (kimiPending ? 1 : 0) +
-        (grokSkillsPending ? 1 : 0) +
-        (hooksPending ? 1 : 0) +
-        (mcpPending ? 1 : 0);
+      let pendingTotal = pending.length + countPendingTargetUpdates(projectDir);
 
       const justMigrated = SUBCOMMAND === 'migrate' && FLAGS.apply;
       if (justMigrated && pendingTotal > 0 && !FLAGS.skipUpdate) {
@@ -225,22 +188,7 @@ async function main(): Promise<void> {
         const leftover = planMigration(projectDir, { apply: false }).filter(
           (it) => it.status === 'outdated' || it.status === 'missing'
         );
-        const agents2 = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
-        const cur2 = cursorRulesNeedsUpdate(projectDir);
-        const kimi2 = kimiLocalNeedsUpdate(projectDir);
-        const grok2 = grokSkillsNeedsUpdate(projectDir);
-        const hooks2 = hooksExportNeedsUpdate(projectDir);
-        const mcp2 = mcpExportNeedsUpdate(projectDir);
-        pendingTotal =
-          leftover.length +
-          (agents2.missing || agents2.outdated || recentChangesDrifted(projectDir) ? 1 : 0) +
-          (cur2.missing || cur2.outdated ? 1 : 0) +
-          (kimi2.localMissing || kimi2.blockMissing || kimi2.exampleMissing ? 1 : 0) +
-          (grok2.blockMissing || grok2.nativeMissing || grok2.outdated || grok2.curatedMissing > 0
-            ? 1
-            : 0) +
-          (hooks2.kimiMissing || hooks2.grokMissing || hooks2.outdated ? 1 : 0) +
-          (mcp2.missing || mcp2.outdated ? 1 : 0);
+        pendingTotal = leftover.length + countPendingTargetUpdates(projectDir);
       }
 
       if (!justMigrated) {

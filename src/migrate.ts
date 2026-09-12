@@ -47,10 +47,8 @@ import {
   shouldSkipCorpusWrite,
 } from './targets/skill-corpus.js';
 import {
-  DESIGN_SYSTEM_SKILL_REL,
-  GROK_DESIGN_SYSTEM_REL,
   ensureProjectUi,
-  hasFrontendLayout,
+  projectDesignSystemNeedsSeed,
   wantsPrelineMoon,
 } from './targets/project-ui.js';
 
@@ -276,10 +274,7 @@ function listMemorySources(): Array<{ source: string; name: string }> {
 
 function projectUiNeedsSeed(projectDir: string): boolean {
   const cfg = loadProjectConfig(projectDir);
-  if (!hasFrontendLayout(projectDir, cfg?.frontend)) return false;
-  if (!existsSync(join(projectDir, DESIGN_SYSTEM_SKILL_REL))) return true;
-  if (!existsSync(join(projectDir, GROK_DESIGN_SYSTEM_REL))) return true;
-  return false;
+  return projectDesignSystemNeedsSeed(projectDir, cfg?.frontend);
 }
 
 function loadProjectConfig(projectDir: string): MigrateProjectConfig | null {
@@ -980,11 +975,13 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const {
     agentsMdNeedsUpdate,
     bundledAgentsMdVersion,
+    bundledPackageVersion,
     mcpExportNeedsUpdate,
     cursorRulesNeedsUpdate,
     kimiLocalNeedsUpdate,
     grokSkillsNeedsUpdate,
     hooksExportNeedsUpdate,
+    packageManifestNeedsUpdate,
     recentChangesDrifted,
     formatTargetsStatus,
     MCP_EXPORT_VERSION,
@@ -1028,6 +1025,9 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const hooksPending =
     (migrateTarget === 'all' || migrateTarget === 'kimi' || migrateTarget === 'grok') &&
     (hooksNeed.kimiMissing || hooksNeed.grokMissing || hooksNeed.outdated);
+  const pkgNeed = packageManifestNeedsUpdate(projectDir);
+  const pkgPending = pkgNeed.missing || pkgNeed.outdated;
+  const bundledPkg = bundledPackageVersion();
 
   console.log('\n' + formatTargetsStatus(projectDir));
 
@@ -1058,7 +1058,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     cursorPending ||
     kimiPending ||
     grokSkillsPending ||
-    hooksPending
+    hooksPending ||
+    pkgPending
   ) {
     console.log('\n  TARGETS — pending updates:');
     if (agentsPending) {
@@ -1106,6 +1107,12 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
           (hooksNeed.outdated ? '  (outdated)' : '')
       );
     }
+    if (pkgPending) {
+      console.log(
+        `    svs-manifest package  installed=${pkgNeed.installedVersion ?? '–'}  bundled=${bundledPkg}` +
+          (pkgNeed.missing ? '  (missing)' : '  (outdated)')
+      );
+    }
   }
 
   const upgradable = [
@@ -1130,6 +1137,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     !kimiPending &&
     !grokSkillsPending &&
     !hooksPending &&
+    !pkgPending &&
     !mopPending &&
     !uiPending
   ) {
@@ -1150,6 +1158,11 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (kimiPending) todo.push('.kimi-code/local.toml');
     if (grokSkillsPending) todo.push('Grok skills bridge');
     if (hooksPending) todo.push('Kimi/Grok hooks bridge');
+    if (pkgPending) {
+      todo.push(
+        `svs-manifest package ${pkgNeed.installedVersion ?? '–'} → ${bundledPkg}`
+      );
+    }
     if (mopPending) todo.push('Memory Optimization Pipeline');
     if (uiPending) todo.push('project design-system');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);

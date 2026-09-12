@@ -100,6 +100,17 @@ export function hasFrontendLayout(
   return FRONTEND_MARKERS.some((rel) => existsSync(join(projectDir, rel)));
 }
 
+/** True when a frontend project is missing the protected design-system skill. */
+export function projectDesignSystemNeedsSeed(
+  projectDir: string,
+  frontend?: string
+): boolean {
+  if (!hasFrontendLayout(projectDir, frontend)) return false;
+  if (!existsSync(join(projectDir, DESIGN_SYSTEM_SKILL_REL))) return true;
+  if (!existsSync(join(projectDir, GROK_DESIGN_SYSTEM_REL))) return true;
+  return false;
+}
+
 export function detectPreline(projectDir: string): PrelineDetection {
   const evidence: string[] = [];
   const deps = pkgDeps(projectDir);

@@ -6,7 +6,9 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import {
   agentsMdNeedsUpdate,
+  bundledPackageVersion,
   mcpExportNeedsUpdate,
+  packageManifestNeedsUpdate,
   readManifest,
 } from './manifest.js';
 import { bundledAgentsMdVersion, readClaudeRecentChangesHash } from './agents-md.js';
@@ -17,6 +19,7 @@ import { hooksExportNeedsUpdate, GROK_HOOKS_REL, HOOKS_EXPORT_VERSION } from './
 import { grokUserConfigNeedsUpdate, GROK_USER_CONFIG_VERSION } from './grok-user-config.js';
 import { grokAgentsNeedsUpdate, GROK_AGENTS_REL, GROK_AGENTS_VERSION } from './grok-agents.js';
 import { isBinaryOnPath } from './launch.js';
+import { projectDesignSystemNeedsSeed } from './project-ui.js';
 import { LAUNCH_SPECS } from './types.js';
 
 export interface TargetStatusLine {
@@ -131,10 +134,16 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
           : `ok (${GROK_AGENTS_REL}/; ${GROK_AGENTS_VERSION})`,
   });
 
+  const pkgNeed = packageManifestNeedsUpdate(projectDir);
+  const bundledPkg = bundledPackageVersion();
   lines.push({
     id: 'svs-manifest',
-    ok: !!manifest,
-    detail: manifest ? `ok (pkg ${manifest.packageVersion})` : 'missing',
+    ok: !pkgNeed.missing && !pkgNeed.outdated,
+    detail: pkgNeed.missing
+      ? 'missing'
+      : pkgNeed.outdated
+        ? `outdated (pkg ${pkgNeed.installedVersion} → ${bundledPkg})`
+        : `ok (pkg ${manifest?.packageVersion ?? bundledPkg})`,
   });
 
   for (const spec of LAUNCH_SPECS) {
@@ -181,4 +190,30 @@ export function recentChangesDrifted(projectDir: string): boolean {
   if (!stored) return false;
   const now = readClaudeRecentChangesHash(projectDir);
   return !!now && now !== stored;
+}
+
+/**
+ * Count target artefacts that should surface "Update from package" on resume.
+ * Includes packageVersion drift even when every skill/hook semver already matches.
+ */
+export function countPendingTargetUpdates(projectDir: string): number {
+  let n = 0;
+  const agents = agentsMdNeedsUpdate(projectDir, bundledAgentsMdVersion());
+  if (agents.missing || agents.outdated || recentChangesDrifted(projectDir)) n++;
+  const cursor = cursorRulesNeedsUpdate(projectDir);
+  if (cursor.missing || cursor.outdated) n++;
+  const kimi = kimiLocalNeedsUpdate(projectDir);
+  if (kimi.localMissing || kimi.blockMissing || kimi.exampleMissing) n++;
+  const grokSk = grokSkillsNeedsUpdate(projectDir);
+  if (grokSk.blockMissing || grokSk.nativeMissing || grokSk.outdated || grokSk.curatedMissing > 0) {
+    n++;
+  }
+  const hooks = hooksExportNeedsUpdate(projectDir);
+  if (hooks.kimiMissing || hooks.grokMissing || hooks.outdated) n++;
+  const mcp = mcpExportNeedsUpdate(projectDir);
+  if (mcp.missing || mcp.outdated) n++;
+  const pkg = packageManifestNeedsUpdate(projectDir);
+  if (pkg.missing || pkg.outdated) n++;
+  if (projectDesignSystemNeedsSeed(projectDir)) n++;
+  return n;
 }

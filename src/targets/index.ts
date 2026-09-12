@@ -15,6 +15,8 @@ export {
   defaultManifest,
   agentsMdNeedsUpdate,
   mcpExportNeedsUpdate,
+  packageManifestNeedsUpdate,
+  bundledPackageVersion,
 } from './manifest.js';
 export {
   generateAgentsMd,
@@ -105,5 +107,6 @@ export {
   collectTargetsStatus,
   formatTargetsStatus,
   recentChangesDrifted,
+  countPendingTargetUpdates,
 } from './status.js';
 export type { TargetStatusLine } from './status.js';

@@ -5,8 +5,7 @@
 
 import { createHash } from 'crypto';
 import { existsSync, readFileSync } from 'fs';
-import { join, resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
 import {
   generateAgentsMd,
   bundledAgentsMdVersion,
@@ -14,6 +13,7 @@ import {
 } from './agents-md.js';
 import {
   agentsMdNeedsUpdate,
+  bundledPackageVersion,
   defaultManifest,
   mcpExportNeedsUpdate,
   readManifest,
@@ -61,17 +61,8 @@ import {
 import { recentChangesDrifted } from './status.js';
 import type { MigrateTarget } from './types.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PACKAGE_ROOT = resolve(__dirname, '../..');
-
 export function packageVersion(): string {
-  try {
-    const pkg = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'package.json'), 'utf8'));
-    return typeof pkg.version === 'string' ? pkg.version : '0.0.0';
-  } catch {
-    return '0.0.0';
-  }
+  return bundledPackageVersion();
 }
 
 export interface SyncTargetsOptions {

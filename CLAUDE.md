@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-12 · main · v2.92.1
+Resume / migrate treat `svs-manifest.packageVersion` as pending. A
+package bump shows **Update from package** even when skill/hook
+semvers already match.
+
 ### 2026-09-12 · main · v2.92.0
 Project `design-system` is the UI SoT (seed from existing guides; never
 delete). Preline only when the app uses it — corpus is
@@ -53,11 +58,6 @@ or stop — memory `ad-creative-cloaking` **1.2**.
 Grok documenter (same spawn) writes codebase-knowledge crumbs: one Attention
 from why=, P&S if gotcha=. HEAD mapping is source of truth. Claude chain
 unchanged (documenter → domain-updater).
-
-### 2026-08-19 · main · v2.90.7
-Grok finalize: one documenter (`why=`/`slug=` prepends RC). Hook strips
-Read-first svs-document + 40k HOW compact. Session 01a00f26 tail was
-254+394 s on a title-only hint.
 
 ---
 

@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-09-12 · main · v2.92.1
+Resume treats `svs-manifest.packageVersion` as pending. A package bump
+shows Update from package even when skill/hook semvers already match.
+
 ### 2026-09-12 · main · v2.92.0
 Project `design-system` is the UI SoT (seed, never delete). Preline only
 when the app uses it — Read `~/.claude/skills/preline-moon` (5.0), not npm.
@@ -65,10 +69,6 @@ duplicate-review promise. `ad-creative-cloaking` **1.2**.
 ### 2026-08-19 · main · v2.90.8
 Grok documenter same-pass: domains + RC + Attention crumb (P&S if gotcha=).
 Claude documenter → domain-updater unchanged.
-
-### 2026-08-19 · main · v2.90.7
-Grok: one documenter spawn (`why=`/`slug=`). Hook strips Read-first
-svs-document + 40k compact. 01a00f26 tail was 254+394 s.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

@@ -3,10 +3,40 @@
  */
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { dirname, join, resolve } from 'path';
+import { fileURLToPath } from 'url';
 import type { AgentsMdMeta, SvsManifest } from './types.js';
 import { AGENTS_MD_GENERATOR_VERSION } from './types.js';
 import { MCP_EXPORT_VERSION } from './mcp-export.js'; // used by mcpExportNeedsUpdate
+
+const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+
+export function bundledPackageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(join(PACKAGE_ROOT, 'package.json'), 'utf8')) as {
+      version?: string;
+    };
+    return typeof pkg.version === 'string' ? pkg.version : '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
+/** Project svs-manifest.packageVersion vs this CLI's package.json. */
+export function packageManifestNeedsUpdate(
+  projectDir: string,
+  bundledPkg = bundledPackageVersion()
+): { missing: boolean; outdated: boolean; installedVersion: string | null } {
+  const manifest = readManifest(projectDir);
+  const installedVersion = manifest?.packageVersion ?? null;
+  if (!manifest) return { missing: true, outdated: false, installedVersion: null };
+  if (!installedVersion) return { missing: false, outdated: true, installedVersion: null };
+  return {
+    missing: false,
+    outdated: compareSemver(installedVersion, bundledPkg) < 0,
+    installedVersion,
+  };
+}
 
 export const MANIFEST_REL = '.claude/config/svs-manifest.json';
 
