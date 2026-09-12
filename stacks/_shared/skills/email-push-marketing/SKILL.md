@@ -1,6 +1,6 @@
 ---
 name: email-push-marketing
-version: 1.1.0
+version: 1.2.0
 description: MailerLite/HTML email and web/mobile push for affiliate or owned lists — 2026 inbox deliverability (SPF/DKIM/DMARC/BIMI, bulk-sender rules), subjects, templates, aggressive conversion copy in sensitive niches, competitor layout adaptation without brand impersonation. Not for phishing, spoofed From, or impersonating banks/brands as official senders.
 ---
 
@@ -40,7 +40,13 @@ description: MailerLite/HTML email and web/mobile push for affiliate or owned li
 - Body: “Confira como solicitar / benefícios do cartão X” on **minhasfinancas.net** (or user’s brand)
 - CTA: user’s `?s=` / UTM links
 
-If the user insists on full bank-impersonation copy → refuse that part, keep visual/structure, explain the hard limit once.
+If the user insists on full bank-impersonation (official bank logo on a fake
+receipt / “comprovante da sua última transação” as if from that bank) → refuse
+**only that asset**, swap in the **user** logo, finish the port. Explain the
+hard limit **once**. Do not restyle. Do not rewrite the hook. Do not lecture.
+
+**Port to another site:** From, footer, site name, links. Palette and body
+stay unless the user asked to rebrand.
 
 ---
 
