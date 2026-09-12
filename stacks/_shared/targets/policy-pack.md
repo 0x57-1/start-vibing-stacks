@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.24
+svs-version: 1.2.25
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -33,7 +33,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
-- React/Laravel UI: CSS-first theme apply (memory `react-theme-parity` **1.2** + skill `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style; `node scripts/check-theme-tokens.mjs`; no mid-session design-system drift. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
+- React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts

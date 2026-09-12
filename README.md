@@ -46,7 +46,7 @@ Prefer `@latest` — plain `npx start-vibing-stacks` can stick on an old cache.
 | **Grok** | `AGENTS.md` + curated `.grok/skills/` | Adapted `.grok/agents/` (`compat.claude.skills=false` — no `~/.claude/skills` dump) | `.grok/hooks/svs.json` + bridge; Launch `grok --always-approve --trust` |
 | **Cursor** | `AGENTS.md` + `.cursor/rules/svs-policy.mdc` | (reads project files) | — |
 
-Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). Curated project skills are mirrored into `.grok/skills/`. `preline-moon` is a **pointer** (resolve project or `~/.claude/skills`); the npm package does not ship the example dump. Never symlink the global capture into `.grok/skills/` — migrate writes through the link.
+Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). Curated project skills are mirrored into `.grok/skills/`. Frontend projects get a protected **`design-system`** skill (Claude + Grok copy; Kimi reads `.claude/skills`). `preline-moon` is installed only when the project uses Preline — a **pointer** to `~/.claude/skills/preline-moon` (5.0). Never symlink the global capture into the repo.
 
 ---
 
@@ -95,12 +95,14 @@ On Grok Build 1.0+, SessionEnd archives session state; SessionStart **rehydrates
 
 | Skill | Role |
 |-------|------|
-| **`preline-moon`** | Pointer to the live moon corpus (project or `~/.claude/skills`) — not shipped in the tarball |
+| **`design-system`** | Project SoT — decisions already made. Seeded, never overwritten. Claude + Grok + Kimi |
+| **`project-ui-standard`** | Order: read existing guides → seed `design-system` → Preline only if the app uses it |
+| **`preline-moon`** | Pointer to `~/.claude/skills/preline-moon` (5.0). Not in the tarball. Opt-in |
 | **`preline-ui`** | Short summary — install, CSS order, `HSStaticMethods.autoInit()` |
 | **`react-theme-apply`** | CSS-first token apply + `scripts/check-theme-tokens.mjs` (memory `react-theme-parity`) |
 | Others | `tailwind-patterns`, `react-standards`, `shadcn-ui`, … |
 
-Shipped for `react` / `react-api` / `react-inertia` (`frontendBaseSkillsDir`). After migrate: a thin `preline-moon` pointer under `.claude/skills/` (and `.grok/skills/`). A local 5.x capture is never overwritten.
+Shipped for `react` / `react-api` / `react-inertia`. Setup asks whether the project uses Preline. Existing apps: detect `preline` / `theme-moon`. The 5.0 capture stays in `~/.claude/skills/preline-moon`.
 
 Layout:
 

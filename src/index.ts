@@ -18,6 +18,7 @@ import { loadStackConfig, setupProject } from './setup.js';
 import { selectMcpServers, installMcpServers } from './mcp.js';
 import { scanProjectStandards } from './scanner.js';
 import type { ProjectConfig, StandardsReview } from './types.js';
+import { detectPreline, hasGlobalPrelineCorpus } from './targets/project-ui.js';
 
 const __cli_filename = fileURLToPath(import.meta.url);
 const __cli_dirname = dirname(__cli_filename);
@@ -575,6 +576,36 @@ async function main(): Promise<void> {
     },
   ]);
 
+  let prelineMoon: boolean | undefined;
+  if (frontend && frontend !== 'none') {
+    const det = detectPreline(projectDir);
+    const globalOk = hasGlobalPrelineCorpus();
+    const { prelineChoice } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'prelineChoice',
+        message: 'Preline moon corpus? Markup is read from ~/.claude/skills/preline-moon (not shipped in npm)',
+        default: det.used ? 'yes' : 'no',
+        choices: [
+          {
+            name: globalOk
+              ? 'Yes — use the global 5.0 capture'
+              : 'Yes — pointer only (global capture not on disk yet)',
+            value: 'yes',
+          },
+          { name: 'No — project design-system only', value: 'no' },
+          {
+            name: det.used
+              ? `Detect from this repo (found: ${det.evidence.join(', ')})`
+              : 'Detect from this repo (no Preline found)',
+            value: 'detect',
+          },
+        ],
+      },
+    ]);
+    prelineMoon = prelineChoice === 'yes' ? true : prelineChoice === 'no' ? false : det.used;
+  }
+
   // ─── Step 6: Deploy — GitHub (default) ──────────────────────────────────
   const deploy = 'github';
 
@@ -646,6 +677,7 @@ async function main(): Promise<void> {
     framework,
     database,
     frontend,
+    prelineMoon,
     frontendSkillsDir: selectedFrontend?.skillsDir,
     frontendBaseSkillsDir: selectedFrontend?.baseSkillsDir,
     deploy,
@@ -672,6 +704,12 @@ async function main(): Promise<void> {
     'Framework': framework,
     'Database': database,
     'Frontend': frontend,
+    'Preline moon':
+      frontend && frontend !== 'none'
+        ? prelineMoon
+          ? 'yes (global ~/.claude/skills/preline-moon)'
+          : 'no (design-system only)'
+        : 'n/a',
     'Deploy': '🐙 GitHub (git push)',
     'Standards': standardsLabel,
     'Agents': '6 universal',

@@ -10,7 +10,12 @@ import { fileURLToPath } from 'url';
 import ora from 'ora';
 import * as ui from './ui.js';
 import type { ProjectConfig, StackConfig } from './types.js';
-import { shouldSkipCorpusWrite } from './targets/skill-corpus.js';
+import {
+  OPTIONAL_PRELINE_SKILLS,
+  shouldSkipCorpusWrite,
+  shouldSkipProjectOwnedWrite,
+} from './targets/skill-corpus.js';
+import { ensureProjectUi, wantsPrelineMoon } from './targets/project-ui.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,22 +50,30 @@ export function installMemoryOptimization(projectDir: string, overwrite = false)
 /**
  * Copy directory recursively, preserving structure
  */
-function copyDirRecursive(src: string, dest: string, overwrite = false): number {
+function copyDirRecursive(
+  src: string,
+  dest: string,
+  overwrite = false,
+  skipChildNames?: Set<string>
+): number {
   if (!existsSync(src)) return 0;
   if (shouldSkipCorpusWrite(dest)) return 0;
+  if (shouldSkipProjectOwnedWrite(dest)) return 0;
   let count = 0;
 
   mkdirSync(dest, { recursive: true });
   const entries = readdirSync(src);
 
   for (const entry of entries) {
+    if (skipChildNames?.has(entry)) continue;
     const srcPath = join(src, entry);
     const destPath = join(dest, entry);
     const stat = statSync(srcPath);
 
     if (stat.isDirectory()) {
       if (shouldSkipCorpusWrite(destPath)) continue;
-      count += copyDirRecursive(srcPath, destPath, overwrite);
+      if (shouldSkipProjectOwnedWrite(destPath)) continue;
+      count += copyDirRecursive(srcPath, destPath, overwrite, skipChildNames);
     } else {
       if (!existsSync(destPath) || overwrite) {
         const content = readFileSync(srcPath, 'utf8');
@@ -142,6 +155,9 @@ export async function setupProject(
     //    Order matters: base first, then specific (specific can override base).
     if (config.frontend && config.frontend !== 'none') {
       let feSkillCount = 0;
+      const skipPreline = wantsPrelineMoon(projectDir, config.prelineMoon)
+        ? undefined
+        : OPTIONAL_PRELINE_SKILLS;
 
       if (config.frontendBaseSkillsDir) {
         const baseDir = join(PACKAGE_ROOT, 'stacks', 'frontend', config.frontendBaseSkillsDir);
@@ -149,7 +165,8 @@ export async function setupProject(
           feSkillCount += copyDirRecursive(
             join(baseDir, 'skills'),
             join(claudeDir, 'skills'),
-            options.force
+            options.force,
+            skipPreline
           );
         }
       }
@@ -160,7 +177,8 @@ export async function setupProject(
         feSkillCount += copyDirRecursive(
           join(frontendDir, 'skills'),
           join(claudeDir, 'skills'),
-          options.force
+          options.force,
+          skipPreline
         );
       }
 
@@ -557,18 +575,19 @@ export async function setupProject(
 
     writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify(settings, null, '\t'));
 
-    // 14. Detect Preline and suggest official agent skills
-    const projectPkgPath = join(projectDir, 'package.json');
-    if (existsSync(projectPkgPath)) {
-      try {
-        const projectPkg = JSON.parse(readFileSync(projectPkgPath, 'utf8'));
-        const allDeps = { ...projectPkg.dependencies, ...projectPkg.devDependencies };
-        if (allDeps['preline'] && !existsSync(join(claudeDir, 'skills', 'preline-theme-generator'))) {
-          ui.info('Preline UI detected — run: npx skills add htmlstreamofficial/preline');
-        }
-      } catch {
-        // package.json parse error, skip
-      }
+    const uiState = ensureProjectUi(projectDir, {
+      frontend: config.frontend,
+      projectName: config.name,
+      prelineMoon: config.prelineMoon,
+    });
+    if (uiState.designSystem.seeded) {
+      ui.info('Seeded .claude/skills/design-system/ from existing project sources (protected — migrate will not overwrite)');
+    }
+    if (uiState.designSystem.mirrored) {
+      ui.info('Mirrored design-system → .grok/skills/ (copy, not symlink)');
+    }
+    if (uiState.preline.written) {
+      ui.info('Wrote preline-moon pointer — Read ~/.claude/skills/preline-moon for the 5.0 capture');
     }
 
     // 15. Auto-install UI/UX Pro Max skill for frontend projects

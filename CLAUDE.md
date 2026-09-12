@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-12 · main · v2.92.0
+Project `design-system` is the UI SoT (seed from existing guides; never
+delete). Preline only when the app uses it — corpus is
+`~/.claude/skills/preline-moon` (5.0), not the npm tarball.
+
 ### 2026-09-12 · main · v2.91.1
 `preline-moon` is a thin pointer (no 12M 4.2.0 dump). Grok export never
 prunes project skills off the allowlist; never recopies current curated
@@ -53,12 +58,6 @@ unchanged (documenter → domain-updater).
 Grok finalize: one documenter (`why=`/`slug=` prepends RC). Hook strips
 Read-first svs-document + 40k HOW compact. Session 01a00f26 tail was
 254+394 s on a title-only hint.
-
-### 2026-08-19 · main · v2.90.6
-Grok-only: UPS work-turn is a one-liner (Claude TASK WORKFLOW untouched).
-Dirty may answer; claim-done still finalize. Auditor VETO is CRIT/HIGH.
-No spawn banner on child agents. SVS package: always publish without asking
-(`execute-ship-ops` 1.5).
 
 ---
 
@@ -430,6 +429,10 @@ The following memories are automatically loaded via `context.memory_files` in ge
 - **multi-target-mcp-discovery.md** — Find MCP configs in common Claude/Kimi/Grok/Cursor paths (project + `~`) and migrate into the active target’s file (prefer `migrate --apply`). Do not refuse “copy MCP” for the user’s own machine/project. No secret exfil.
 
   Loaded from: `.claude/memories/multi-target-mcp-discovery.md`
+
+- **project-design-system.md** — Frontend/layout: Read `.claude/skills/design-system` first; seed if missing; never delete. Preline corpus is `~/.claude/skills/preline-moon` only when the project uses Preline. Skill `project-ui-standard`.
+
+  Loaded from: `.claude/memories/project-design-system.md`
 
 - **react-theme-parity.md** — CSS-first theme (1.2): tokens → `uiStyles.js` recipes → `<Button variant size>`. Parents pass role, not style. 11 hard laws. Skill `react-theme-apply` **1.1**.
 

@@ -23,14 +23,15 @@ import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import * as semver from 'semver';
 import { GROK_SPAWN_RECIPE_MD } from './grok-agents.js';
-import { CORPUS_SKILL_NAMES, shouldSkipCorpusWrite } from './skill-corpus.js';
+import { CORPUS_SKILL_NAMES, OPTIONAL_PRELINE_SKILLS, shouldSkipCorpusWrite } from './skill-corpus.js';
+import { wantsPrelineMoon } from './project-ui.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.40.0';
+export const GROK_SKILLS_VERSION = '1.41.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -58,6 +59,7 @@ export const GROK_CURATED_SKILL_NAMES = [
   'own-subscription-integration',
   'email-push-marketing',
   'remove-ai-marks',
+  'project-ui-standard',
   // Project-owned (not in the npm tree). Allowlist keeps prune from deleting it.
   'design-system',
   // Thin pointer only — never mirror a 100 MB capture into .grok/skills
@@ -511,6 +513,9 @@ function copyCuratedSkill(projectDir: string, name: string): boolean {
   const destDir = join(skillsRoot(projectDir), name);
   const destMd = join(destDir, 'SKILL.md');
   const destExists = existsSync(destMd);
+  if (OPTIONAL_PRELINE_SKILLS.has(name) && !wantsPrelineMoon(projectDir) && !destExists) {
+    return false;
+  }
 
   // Never write through a symlink or smash a local Preline (etc.) capture.
   if (CORPUS_SKILL_NAMES.has(name) && shouldSkipCorpusWrite(destDir)) {
@@ -591,8 +596,11 @@ export function grokSkillsNeedsUpdate(projectDir: string): {
 
   let curatedMissing = 0;
   for (const name of GROK_CURATED_SKILL_NAMES) {
-    const src = curatedSkillSource(projectDir, name);
     const dest = join(skillsRoot(projectDir), name, 'SKILL.md');
+    if (OPTIONAL_PRELINE_SKILLS.has(name) && !wantsPrelineMoon(projectDir) && !existsSync(dest)) {
+      continue;
+    }
+    const src = curatedSkillSource(projectDir, name);
     if (src && !existsSync(dest)) curatedMissing += 1;
   }
 

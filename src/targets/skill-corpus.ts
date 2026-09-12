@@ -13,6 +13,12 @@ import { join } from 'path';
 
 export const CORPUS_SKILL_NAMES = new Set(['preline-moon']);
 
+/** Operator-owned. migrate/setup/--force must never overwrite or delete. */
+export const PROJECT_OWNED_SKILL_NAMES = new Set(['design-system']);
+
+/** Only install when the project uses Preline (detect or operator choice). */
+export const OPTIONAL_PRELINE_SKILLS = new Set(['preline-moon', 'preline-ui']);
+
 export function isSymlinkPath(p: string): boolean {
   try {
     return lstatSync(p).isSymbolicLink();
@@ -39,4 +45,18 @@ export function shouldSkipCorpusWrite(destSkillDir: string): boolean {
   if (isSymlinkPath(destSkillDir)) return true;
   if (isSymlinkPath(join(destSkillDir, 'SKILL.md'))) return true;
   return destHasLocalCorpus(destSkillDir);
+}
+
+export function skillDirName(skillDir: string): string {
+  const trimmed = skillDir.replace(/[/\\]+$/, '');
+  const i = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'));
+  return i >= 0 ? trimmed.slice(i + 1) : trimmed;
+}
+
+/** Skip copy into an existing project design-system (even on --force). */
+export function shouldSkipProjectOwnedWrite(destSkillDir: string): boolean {
+  const name = skillDirName(destSkillDir);
+  if (!PROJECT_OWNED_SKILL_NAMES.has(name)) return false;
+  if (isSymlinkPath(destSkillDir) || isSymlinkPath(join(destSkillDir, 'SKILL.md'))) return true;
+  return existsSync(join(destSkillDir, 'SKILL.md'));
 }

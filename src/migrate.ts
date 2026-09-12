@@ -40,7 +40,19 @@ import { randomBytes } from 'crypto';
 import * as semver from 'semver';
 import * as ui from './ui.js';
 import { installMemoryOptimization } from './setup.js';
-import { CORPUS_SKILL_NAMES, shouldSkipCorpusWrite } from './targets/skill-corpus.js';
+import {
+  CORPUS_SKILL_NAMES,
+  OPTIONAL_PRELINE_SKILLS,
+  PROJECT_OWNED_SKILL_NAMES,
+  shouldSkipCorpusWrite,
+} from './targets/skill-corpus.js';
+import {
+  DESIGN_SYSTEM_SKILL_REL,
+  GROK_DESIGN_SYSTEM_REL,
+  ensureProjectUi,
+  hasFrontendLayout,
+  wantsPrelineMoon,
+} from './targets/project-ui.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
 const __m_dirname = dirname(__m_filename);
@@ -80,9 +92,11 @@ export interface MigrateOptions {
   withMemoryOptimization?: boolean;
 }
 
-interface ProjectConfig {
+interface MigrateProjectConfig {
+  name?: string;
   stack: string;
   frontend?: string;
+  prelineMoon?: boolean;
   frontendSkillsDir?: string;
   /** Copied before frontendSkillsDir in setup; migrate must scan it too. */
   frontendBaseSkillsDir?: string;
@@ -260,11 +274,19 @@ function listMemorySources(): Array<{ source: string; name: string }> {
   return listFiles(dir, ['.md']).map(n => ({ source: join(dir, n), name: n }));
 }
 
-function loadProjectConfig(projectDir: string): ProjectConfig | null {
+function projectUiNeedsSeed(projectDir: string): boolean {
+  const cfg = loadProjectConfig(projectDir);
+  if (!hasFrontendLayout(projectDir, cfg?.frontend)) return false;
+  if (!existsSync(join(projectDir, DESIGN_SYSTEM_SKILL_REL))) return true;
+  if (!existsSync(join(projectDir, GROK_DESIGN_SYSTEM_REL))) return true;
+  return false;
+}
+
+function loadProjectConfig(projectDir: string): MigrateProjectConfig | null {
   const path = join(projectDir, '.claude', 'config', 'active-project.json');
   if (!existsSync(path)) return null;
   try {
-    return JSON.parse(readFileSync(path, 'utf8'));
+    return JSON.parse(readFileSync(path, 'utf8')) as MigrateProjectConfig;
   } catch {
     return null;
   }
@@ -291,15 +313,22 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
       config.frontend
     )) {
       const target = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
+      if (
+        OPTIONAL_PRELINE_SKILLS.has(name) &&
+        !wantsPrelineMoon(projectDir, config.prelineMoon) &&
+        !existsSync(target)
+      ) {
+        continue;
+      }
       const bundledVersion = parseFrontmatterVersion(source);
       if (!bundledVersion) continue;
       const installedVersion = parseFrontmatterVersion(target);
       let status: Status = !existsSync(target)
         ? 'missing'
         : statusFromSemver(bundledVersion, installedVersion);
-      // Local Preline (etc.) capture — never mark outdated for missing 4.2 companions
-      // and never let --apply overwrite / write through a symlink.
-      if (CORPUS_SKILL_NAMES.has(name) && shouldSkipCorpusWrite(dirname(target))) {
+      if (PROJECT_OWNED_SKILL_NAMES.has(name) && existsSync(target)) {
+        status = 'ahead';
+      } else if (CORPUS_SKILL_NAMES.has(name) && shouldSkipCorpusWrite(dirname(target))) {
         status = 'ahead';
       } else if (
         (status === 'current' || status === 'ahead') &&
@@ -413,6 +442,9 @@ function applyOne(item: MigrateItem, opts: MigrateOptions): { applied: boolean; 
   }
 
   if (item.kind === 'skill') {
+    if (PROJECT_OWNED_SKILL_NAMES.has(item.name) && existsSync(item.target)) {
+      return { applied: false };
+    }
     if (CORPUS_SKILL_NAMES.has(item.name) && shouldSkipCorpusWrite(dirname(item.target))) {
       return { applied: false };
     }
@@ -1086,6 +1118,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const nothingRuntime =
     runtimePreview.created.length === 0 && runtimePreview.copied.length === 0 && !runtimePreview.gitignoreUpdated;
   const mopPending = Boolean(opts.withMemoryOptimization);
+  const uiPending = projectUiNeedsSeed(projectDir);
 
   if (
     nothingFile &&
@@ -1097,7 +1130,8 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     !kimiPending &&
     !grokSkillsPending &&
     !hooksPending &&
-    !mopPending
+    !mopPending &&
+    !uiPending
   ) {
     console.log('');
     ui.success('Everything up to date.');
@@ -1117,6 +1151,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (grokSkillsPending) todo.push('Grok skills bridge');
     if (hooksPending) todo.push('Kimi/Grok hooks bridge');
     if (mopPending) todo.push('Memory Optimization Pipeline');
+    if (uiPending) todo.push('project design-system');
     ui.info(`Run with --apply to update: ${todo.join(' + ')}.`);
     if (grouped['needs-update-legacy'].length > 0 && !opts.forceHooks) {
       ui.info(
@@ -1173,6 +1208,22 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     } else {
       ui.warn('MOP: bundled memory-optimization/ missing from this package');
     }
+  }
+
+  const projectCfg = loadProjectConfig(projectDir);
+  const uiState = ensureProjectUi(projectDir, {
+    frontend: projectCfg?.frontend,
+    projectName: projectCfg?.name,
+    prelineMoon: projectCfg?.prelineMoon,
+  });
+  if (uiState.designSystem.seeded) {
+    ui.success('project UI: seeded .claude/skills/design-system/ (protected)');
+  }
+  if (uiState.designSystem.mirrored) {
+    ui.success('project UI: mirrored design-system → .grok/skills/');
+  }
+  if (uiState.preline.written) {
+    ui.success('project UI: preline-moon pointer (Read ~/.claude/skills/preline-moon)');
   }
 
   // Multi-target: AGENTS.md + MCP + Cursor rules + Kimi local + Grok skills + manifest

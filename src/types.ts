@@ -85,6 +85,8 @@ export interface ProjectConfig {
   framework: string;
   database: string;
   frontend: string;
+  /** Operator choice / detect: install Preline pointer (not the 100 MB dump). */
+  prelineMoon?: boolean;
   frontendSkillsDir?: string;
   /** Inherited base frontend folder copied BEFORE the main frontend skills. */
   frontendBaseSkillsDir?: string;

@@ -1,30 +1,29 @@
 ---
 name: preline-ui
-version: 2.3.0
+version: 2.4.0
 description: >-
   Preline UI overview — install, CSS import order, HSStaticMethods.autoInit(),
-  semantic tokens, theme activation (data-theme + .dark). This skill is the SHORT
-  SUMMARY. For moon markup and tokens, resolve skill preline-moon to the live
-  corpus (project or ~/.claude/skills) — the npm package ships a pointer, not
-  the 800-example dump. Invoke for Preline install/setup; defer component
-  look-ups to preline-moon. Do not invent markup from this file alone.
+  semantic tokens, theme activation (data-theme + .dark). SHORT SUMMARY. Markup
+  lives in the global ~/.claude/skills/preline-moon capture (5.0), not in npm.
+  Only install this skill when the project uses Preline. Project decisions:
+  design-system first. Invoke for install/setup; defer look-ups to preline-moon.
 ---
 
 # Preline UI — overview (summary)
 
 **This skill is the short install / conventions guide.** Moon markup lives in
-the **live** `preline-moon` capture (see that skill’s resolve order). The npm
-package does **not** ship the example dump.
+**`$HOME/.claude/skills/preline-moon`** (5.0 capture). The npm package does
+**not** ship the dump. **Read `design-system` first** — project size/focus/recipes
+win over a raw corpus paste.
 
 | Need | Skill |
 |------|--------|
-| `npm install`, CSS `@import` order, `autoInit()`, theme generator CLI | **this file** (`preline-ui`) |
-| “What markup for modal / drawer / table / select?”, moon tokens, `hs-*` / `data-hs-*`, dark mode | **`preline-moon`** → resolve `$CORPUS` → `INDEX.md` → `components/` → `examples/` |
+| What this repo already decided | **`design-system`** |
+| `npm install`, CSS `@import` order, `autoInit()` | **this file** (`preline-ui`) |
+| Markup / tokens / `hs-*` | **`preline-moon`** → `$HOME/.claude/skills/preline-moon` → `INDEX.md` / `TEMPLATES.md` / `PRO-BLOCKS.md` |
 
-**Rule:** when writing or editing Preline UI under moon, resolve `preline-moon`
-first (project `.claude/skills` or `~/.claude/skills`). Do not compose from
-this summary. Never fetch preline.co if `$CORPUS` exists. Do not symlink the
-global capture into `.grok/skills/` — `migrate` copy follows the link.
+Do not compose from this summary. Never fetch preline.co if `$CORPUS` exists.
+Do not symlink the global capture into the repo.
 
 > Pairs with `tailwind-patterns` and `react-standards`. Pick **one** component
 > system per project — do not mix Preline and `shadcn-ui`.
@@ -36,11 +35,11 @@ preline-ui     = summary (install, init, high-level rules)
 preline-moon   = source of truth (schemes, examples, moon token tables, JS refs)
 ```
 
-Resolve `$CORPUS` (first hit with `INDEX.md` + `examples/` or `data/index.json`):
+Resolve `$CORPUS` (**global first** — a leftover project 4.2.0 dump is not SoT):
 
 ```
-$CLAUDE_PROJECT_DIR/.claude/skills/preline-moon/
 $HOME/.claude/skills/preline-moon/
+$CLAUDE_PROJECT_DIR/.claude/skills/preline-moon/   # only if it has examples/ or data/
 ```
 
 Start every component task with:
@@ -412,6 +411,8 @@ npx preline-theme-generator /tmp/config.json ./src/styles/themes/brand.css
 
 ## See Also
 
-- **`preline-moon` (required companion)** — pointer + resolve `$CORPUS`; this skill is only the install summary
+- **`design-system`** — project decisions (Read first)
+- **`preline-moon`** — pointer; `$HOME/.claude/skills/preline-moon` is the capture
+- **`project-ui-standard`** — when to seed design-system; when Preline is in play
 - `tailwind-patterns` — Tailwind v4 `@theme` / Oxide
 - `react-standards` — React component conventions
