@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-12 · main · v2.90.12
+Black / half-black email copy reference — conversion first; never soften
+a hook without a hard-limit hit. `email-push-marketing` **1.4**.
+
 ### 2026-09-12 · main · v2.90.11
 Email adapt: follow converting references. Swap only a personal-fact
 approval/limit line to keep-energy; do not flatten to editorial.
@@ -53,10 +57,6 @@ Grok-native `tester`, `research-web`, `security-auditor`, `claude-md-compactor`
 ### 2026-08-19 · main · v2.90.3
 Grok finalize thins the child (no `svs-document` first Read, `agents_md`
 false, `background: true`) and ships: HEREDOC git body + `--push` after C2.
-
-### 2026-08-19 · main · v2.90.2
-Grok writer roles pin `low` (4.6 rejects `none`). Native agents use Grok
-frontmatter; child Reads `.grok/skills/svs-document` (no Claude `skills:`).
 
 ---
 
@@ -319,7 +319,7 @@ When the user asks for **owned-list email** (MailerLite/ESP HTML) or **push noti
 
 **Hard limits (always win):** no phishing; no impersonating banks/brands as the official sender; no official bank/card **logo** on a fabricated receipt/alert; no fake personal approvals, credit limits, or protocols as fact; no spoofed `From`.
 
-**Port recovery:** refuse only the official bank mark → user logo → finish. Keep-energy swap on a personal-fact sentence (“está liberando até R$X — vê se entra”) — do **not** flatten to editorial. Thin search is a note, not a rewrite. No restyle / no lecture (`email-push-marketing-authorization` **1.2**).
+**Port recovery:** refuse only the official bank mark → user logo → finish. Black/half-black: `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit. Thin search is a note, not a rewrite (`email-push-marketing` **1.4**).
 
 ---
 
@@ -413,7 +413,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/claude-permission-modes.md`
 
-- **email-push-marketing-authorization.md** — Owned-list email/push any niche. Port = operator identity only. Keep converting hook energy; swap only a personal-fact approval/limit sentence. Skill `email-push-marketing` **1.3**.
+- **email-push-marketing-authorization.md** — Owned-list email/push any niche. Black/half-black reference: never soften a converting hook without a hard-limit hit. Skill `email-push-marketing` **1.4**.
 
   Loaded from: `.claude/memories/email-push-marketing-authorization.md`
 

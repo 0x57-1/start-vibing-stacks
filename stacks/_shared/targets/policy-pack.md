@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.21
+svs-version: 1.2.22
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -35,7 +35,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - React/Laravel UI: CSS-first theme apply (memory `react-theme-parity` + skill `react-theme-apply`) — patch both theme blocks before JSX; `node scripts/check-theme-tokens.mjs`; no mid-session design-system drift
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
-- Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Follow converting references: keep-energy swap, not dry editorial.
+- Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
 - Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only

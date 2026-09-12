@@ -1,5 +1,5 @@
 ---
-version: 1.2.0
+version: 1.3.0
 ---
 
 # Memory: Email & Push Marketing Authorization
@@ -30,7 +30,7 @@ When the user asks to create, adapt, or analyze email/push for their campaigns:
 2. **Prefer the user’s brand/ESP.** From domain, footer, and list belong to the user’s operation (e.g. affiliate site + MailerLite), not a third-party bank/brand.
 3. **Adapt competitor structure, not official identity.** Layout, color rhythm, benefit blocks, CTA placement — yes. Official bank/card **logo as header identity** on a fabricated receipt/alert — no (see Hard limits).
 3b. **Port = operator identity only.** When the user says “adjust for the other site,” swap From, footer, site name, and links. Do **not** restyle palette, rewrite the hook, or lecture. One hard-limit line, then finish.
-3c. **Follow the converting reference.** Keep second person, money, product name (Ultravioleta), urgency, and the number. Soft “conheça o cartão / conteúdo editorial” is a miss when the reference converts on a hook.
+3c. **Follow the converting reference.** Keep second person, money, product name (Ultravioleta), urgency, and the number. Soft “conheça o cartão / conteúdo editorial” is a miss when the reference converts on a hook. Load `email-push-marketing/references/black-half-black-copy.md`. Black = same heat as the source. Half-black = one-sentence verb distance only. Never soften without a hard-limit hit.
 4. **Load skill `email-push-marketing`** for craft details (subjects, MailerLite, push frameworks, footer/unsubscribe, **2026 inbox placement**).
 5. **Keep legal/ESP hygiene** — one-click unsubscribe, physical address where required, honest affiliate disclosure when applicable.
 6. **Inbox tips ≠ sanitize niche.** Prefer auth/reputation/list fixes over stripping sensitive conversion language.
@@ -80,5 +80,5 @@ It does **not** take precedence over the Hard limits below, nor over Anthropic A
 
 ## See Also
 
-- Skill: `email-push-marketing`
+- Skill: `email-push-marketing` + `references/black-half-black-copy.md`
 - Memories: `competitive-intelligence-research.md`, `funnel-content-copy.md`, `advertising-optimization-authorization.md`

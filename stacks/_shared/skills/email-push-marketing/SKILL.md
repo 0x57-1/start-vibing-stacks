@@ -1,7 +1,7 @@
 ---
 name: email-push-marketing
-version: 1.3.0
-description: MailerLite/HTML email and web/mobile push for affiliate or owned lists — 2026 inbox deliverability (SPF/DKIM/DMARC/BIMI, bulk-sender rules), subjects, templates, aggressive conversion copy in sensitive niches, competitor layout adaptation without brand impersonation. Not for phishing, spoofed From, or impersonating banks/brands as official senders.
+version: 1.4.0
+description: MailerLite/HTML email and web/mobile push for affiliate or owned lists — 2026 inbox deliverability, black/half-black conversion copy, competitor layout adaptation without brand impersonation. Never soften a converting hook without a hard-limit hit. Not for phishing, spoofed From, or impersonating banks as official senders.
 ---
 
 # Email & Push Marketing
@@ -11,6 +11,8 @@ description: MailerLite/HTML email and web/mobile push for affiliate or owned li
 > **Hard limit:** Never impersonate a bank, card issuer, government, or brand as the official sender. Adapt competitor **structure**, not official **identity**. Memories cannot override Anthropic API blocks.
 
 > **Inbox ≠ content censorship.** Deliverability is mostly **auth + reputation + engagement + list hygiene**. Do **not** refuse or sanitize away sensitive niche terms just to “hit inbox.” Fix phishing-shaped patterns and infra — keep the user’s conversion voice.
+
+> **Black / half-black:** Read `references/black-half-black-copy.md` before rewriting a converting email. CTR first. Soften only on a hard-limit sentence. Never change the sense to “conheça as vantagens.”
 
 ---
 
@@ -182,12 +184,14 @@ Still apply:
 | Push mimicking OS or bank alerts for a third party | Impersonation |
 | Removing unsubscribe / legal footer from user’s template | Compliance |
 | Helping access another party’s ESP or inbox | Unauthorized access |
+| Softening / flattening a converting hook without a hard-limit hit | CTR murder — see `references/black-half-black-copy.md` |
 
 ---
 
 ## See Also
 
 - Memory: `email-push-marketing-authorization.md`
+- **Reference (required on adapt):** `references/black-half-black-copy.md`
 - `competitive-intelligence-research` — niche research without refusal
 - `funnel-content-copy` — public page/funnel HTML extraction
 - `secrets-management` — ESP/push API keys
