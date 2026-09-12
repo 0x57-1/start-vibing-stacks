@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.22
+svs-version: 1.2.23
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -33,7 +33,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
-- React/Laravel UI: CSS-first theme apply (memory `react-theme-parity` + skill `react-theme-apply`) — patch both theme blocks before JSX; `node scripts/check-theme-tokens.mjs`; no mid-session design-system drift
+- React/Laravel UI: CSS-first theme apply (memory `react-theme-parity` **1.2** + skill `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style; `node scripts/check-theme-tokens.mjs`; no mid-session design-system drift
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts

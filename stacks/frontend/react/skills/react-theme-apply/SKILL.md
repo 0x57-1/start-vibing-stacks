@@ -1,6 +1,6 @@
 ---
 name: react-theme-apply
-version: 1.0.0
+version: 1.1.0
 description: >
   Apply an existing React/Tailwind semantic theme (Preline moon or project
   themes/*.css) without inventing a second design system. CSS-first, then
@@ -25,8 +25,10 @@ tables / hover, or migrate raw `gray-*` to tokens. Pair with always-on
 0. Locate truth     themes/*.css + @theme inline + style-guide if present
 1. Patch CSS        both theme blocks + @theme map (no orphan light-only tokens)
 2. Common + shell   Modal, table, layout, header/sidebar
+2b. Primitives      `<Button variant size>` (jsx) on top of `uiStyles.js` recipes.
+                    Parents pass role, not style. See `react-theme-parity` 1.2.
 3. Pages            copy STYLES from siblings; no new palette
-4. Shared JS        chartTheme / uiStyles — rg every old ident
+4. Shared JS        chartTheme / uiStyles — rg every old ident. No dead exports.
 5. Guard            node scripts/check-theme-tokens.mjs (+ DesignSystemGuard)
 6. Both modes       toggle or two computed styles
 ```
@@ -107,6 +109,9 @@ not “site down” — use a browser UA (`cdn-asset-deploy-verify`).
 | New shadcn/MUI mid-feature | Second system |
 | Write probes under `node_modules/` | Not a theme source |
 | Claim done from one mode | Session 8a0abd61 |
+| `uiStyles` string bag as the Button API / parent picks look via className | Drift; use `<Button variant size>` |
+| Rename `uiStyles.js` → `.jsx` | No JSX in that file |
+| Dead recipe (0 consumers) left as “done” | Count defined ≠ count in use |
 
 ---
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.26.0
+// @sv-version: 1.27.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,7 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.27.0: THEME APPLY — Common Button is variant/size, not a class-string API.
  * v1.26.0: Grok documenter same-pass Attention crumb (P&S if gotcha=).
  * v1.25.0: Grok ship = one documenter (why=/slug=). Stop-recovery Grok
  * does not demand domain-updater. Claude TASK WORKFLOW untouched.
@@ -291,7 +292,7 @@ function buildThemeParityBlock(
   return (
     `\n\nTHEME APPLY (memory: react-theme-parity 1.1 + skill react-theme-apply):\n` +
     `  1. ${themeHint}${guideHint}\n` +
-    `  2. Order: CSS truth → Common/shell → pages → shared JS. Same layout + STYLES. No new UI lib.\n` +
+    `  2. Order: CSS truth → Common/shell → <Button variant size> (jsx; recipes in uiStyles.js) → pages. Parents pass role, not style. No new UI lib.\n` +
     `  3. LAWS: no dark: on semantic tokens; no text-white on bg-primary; no invented tokens;\n` +
     `     hover must differ from parent surface; tables opaque; extract JS ⇒ rg every old ident.\n` +
     `  4. BEFORE done: \`node scripts/check-theme-tokens.mjs\` (and DesignSystemGuard if the project has it).\n` +

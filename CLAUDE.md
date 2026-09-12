@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-12 · main · v2.90.13
+React UI: theme CSS + recipe strings + `<Button variant size>`. `.js` for
+no-JSX helpers. Do not treat `uiStyles` as the public API.
+`react-theme-parity` **1.2**.
+
 ### 2026-09-12 · main · v2.90.12
 Black / half-black email copy reference — conversion first; never soften
 a hook without a hard-limit hit. `email-push-marketing` **1.4**.
@@ -53,10 +58,6 @@ the table; never Read a skill first.
 ### 2026-08-19 · main · v2.90.4
 Grok-native `tester`, `research-web`, `security-auditor`, `claude-md-compactor`
 — Grok Build tools only (`search_tool`/`use_tool`, no Claude `mcp__*`).
-
-### 2026-08-19 · main · v2.90.3
-Grok finalize thins the child (no `svs-document` first Read, `agents_md`
-false, `background: true`) and ships: HEREDOC git body + `--push` after C2.
 
 ---
 
@@ -429,7 +430,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/multi-target-mcp-discovery.md`
 
-- **react-theme-parity.md** — CSS-first React theme apply (1.1): both theme blocks + `@theme` before JSX; 10 hard laws; extract-grep; `node scripts/check-theme-tokens.mjs`; both modes. UPS **1.16** THEME APPLY. Skill `react-theme-apply`.
+- **react-theme-parity.md** — CSS-first theme (1.2): tokens → `uiStyles.js` recipes → `<Button variant size>`. Parents pass role, not style. 11 hard laws. Skill `react-theme-apply` **1.1**.
 
   Loaded from: `.claude/memories/react-theme-parity.md`
 

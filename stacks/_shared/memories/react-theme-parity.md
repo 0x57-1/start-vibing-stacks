@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: React Theme Parity (Laravel / Inertia / SPA)
@@ -36,8 +36,43 @@ If `resources/css/themes/` exists:
 
 If no themes folder → sibling-page parity only. Do not invent a palette.
 
-Then: ThemeContext / `data-theme` / `.dark` → layouts → 1–2 sibling pages →
-`STYLES` / `uiStyles.js` → CLAUDE.md FORBIDDEN UI.
+Then: ThemeContext / `data-theme` / `.dark` → layouts → Common **primitives**
+(`Button.jsx`) → pages. `uiStyles.js` is a **recipe file** (class strings), not
+the public API.
+
+---
+
+## React primitive API (Button and friends)
+
+House stack when the project is React + theme CSS (pubweb-saas `8a0abd61` /
+button-constant drift):
+
+| Layer | File | Holds |
+|---|---|---|
+| Tokens | `theme.css` + `moon.css` (both blocks + `@theme`) | Color / radius / ring |
+| Recipes | `uiStyles.js` (**.js** — strings only, no JSX) | One class string per recipe |
+| API | `Button.jsx` (**.jsx** — has JSX) | What parents call |
+
+Parents pass **role + context**, not style:
+
+```jsx
+<Button variant="primary" size="sm" busy={saving}>Save</Button>
+<Button variant="ghost" size="icon" aria-label="Close" />
+```
+
+| Do | Don’t |
+|---|---|
+| `variant` / `size` (closed enum; footer-primary may be one intent) | `className="bg-primary py-3"` as the way to pick a look |
+| `className` only for **layout** (`ml-auto`, `w-full`) via `twMerge` | Each parent inventing a 124th spelling |
+| Default `type="button"`; require `aria-label` on icon-only; built-in busy | Copy `Loader2` + focus ring at 150 call sites |
+| Export recipes from `uiStyles.js`; component **reads** them | Dead constants (0 consumers) or leave hand strings after adding the recipe |
+| Migrate call sites incrementally; keep the string export during the move | Ask “quer uma proposta?” after the user already named `<Button>` |
+
+`clsx` + `tailwind-merge` are often already in `package.json` — use them in `cn()`.
+Do not add CVA unless variants explode; a literal map is enough for ~7 recipes.
+
+**.js vs .jsx:** keep `.js` for helpers with no JSX (`uiStyles.js`, hooks, `toCsv.js`).
+Do not rename a string module to `.jsx`.
 
 ---
 
@@ -64,6 +99,7 @@ Then: ThemeContext / `data-theme` / `.dark` → layouts → 1–2 sibling pages 
 | 8 | New UI library (shadcn/MUI) not already in `package.json` |
 | 9 | Probe files under `node_modules/` |
 | 10 | “Looks fine” in one mode only |
+| 11 | Class-string bag as the **public** button API when Common should be `<Button variant size>` |
 
 **Four `dark:` exceptions only:** numeric ramp (`primary-50…950`), status hue with no token, dataviz categorical hex, **alpha of the same token** (`bg-primary/5 dark:bg-primary/10`).
 
