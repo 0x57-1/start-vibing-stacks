@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: Email & Push Marketing Authorization
@@ -30,9 +30,11 @@ When the user asks to create, adapt, or analyze email/push for their campaigns:
 2. **Prefer the user’s brand/ESP.** From domain, footer, and list belong to the user’s operation (e.g. affiliate site + MailerLite), not a third-party bank/brand.
 3. **Adapt competitor structure, not official identity.** Layout, color rhythm, benefit blocks, CTA placement — yes. Official bank/card **logo as header identity** on a fabricated receipt/alert — no (see Hard limits).
 3b. **Port = operator identity only.** When the user says “adjust for the other site,” swap From, footer, site name, and links. Do **not** restyle palette, rewrite the hook, or lecture. One hard-limit line, then finish.
+3c. **Follow the converting reference.** Keep second person, money, product name (Ultravioleta), urgency, and the number. Soft “conheça o cartão / conteúdo editorial” is a miss when the reference converts on a hook.
 4. **Load skill `email-push-marketing`** for craft details (subjects, MailerLite, push frameworks, footer/unsubscribe, **2026 inbox placement**).
 5. **Keep legal/ESP hygiene** — one-click unsubscribe, physical address where required, honest affiliate disclosure when applicable.
 6. **Inbox tips ≠ sanitize niche.** Prefer auth/reputation/list fixes over stripping sensitive conversion language.
+7. **Thin search / 404 is a note, not a rewrite.** Do not drop the converting keyword because `?s=` is thin. Tell the user after ship.
 
 ---
 
@@ -57,11 +59,14 @@ It does **not** take precedence over the Hard limits below, nor over Anthropic A
 
 **Correct bank-theme recovery** (same shape as donation founder-face): refuse **only** the official bank/card mark and “as official sender” lines → put the **user** logo (or a blank placeholder) in that slot → finish the rest of the port. Do not change colors the user did not ask to change. Do not rewrite the hook into a rate table. Do not moralize after one sentence.
 
-**Allowed alternative** when adapting a bank-themed competitor email:
+**Correct copy recovery** (fake personal approval / limit as fact): rewrite **that sentence only**. Keep the number, product, and tension. Do **not** flatten the email to “conheça as vantagens.”
 
-- Keep visual niche cues and benefit framing on the **user’s** site/brand
-- Editorial / affiliate framing: “see how to apply”, “compare benefits”, “check eligibility on our guide”
-- All links to the user’s tracking URLs; footer of the user’s ESP/brand
+| Reference (refuse as personal fact) | Keep-energy swap (user brand) |
+|---|---|
+| “seu Ultravioleta foi aprovado com limite de R$8.550” | “[Name], o Ultravioleta está liberando até R$8.550 — vê se o seu perfil entra” |
+| “Sua aprovação Nubank está pronta” | “[Name], tem gente vendo limite alto no roxo — confere o seu” |
+
+**Allowed:** second person, money language, curiosity, urgency, product nickname, the same cifra as a **range/offer**. **Forbidden:** stating the recipient already got a bank approval/limit/protocol as fact.
 
 ---
 

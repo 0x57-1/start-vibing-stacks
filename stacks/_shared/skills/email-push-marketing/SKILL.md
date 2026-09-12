@@ -1,6 +1,6 @@
 ---
 name: email-push-marketing
-version: 1.2.0
+version: 1.3.0
 description: MailerLite/HTML email and web/mobile push for affiliate or owned lists — 2026 inbox deliverability (SPF/DKIM/DMARC/BIMI, bulk-sender rules), subjects, templates, aggressive conversion copy in sensitive niches, competitor layout adaptation without brand impersonation. Not for phishing, spoofed From, or impersonating banks/brands as official senders.
 ---
 
@@ -30,15 +30,19 @@ description: MailerLite/HTML email and web/mobile push for affiliate or owned li
 | Do | Don’t |
 |---|---|
 | Match visual niche (colors, card imagery style, benefit chips) | Claim the email is from that bank |
-| Editorial/affiliate framing on the user’s site | Fake personal limit / protocol / “cancelled your old card” |
+| Keep the converting hook (2nd person, money, product name, cifra) | Flatten to “conheça o cartão / conteúdo editorial” |
+| Swap only a **personal-fact** verb (aprovado / seu limite é) | Fake personal limit / protocol as already true |
 | Keep user’s MailerLite footer / company legal | Copy bank legal footer or “Sent by [Bank]” |
-| All `<a>` → user’s tracking URLs | Keep competitor affiliate or bank deep links as if official |
+| All `<a>` → user’s tracking URLs | Keep competitor pixels / unsubscribe / deep links |
 
-**Transparent alternative copy pattern (finance niche):**
+**Keep-energy swap (one sentence, not the whole email):**
 
-- Subject: benefit curiosity, not “Sua aprovação Nubank está pronta”
-- Body: “Confira como solicitar / benefícios do cartão X” on **minhasfinancas.net** (or user’s brand)
-- CTA: user’s `?s=` / UTM links
+| Refuse (personal fact) | Ship (same tension) |
+|---|---|
+| “seu Ultravioleta foi aprovado com limite de R$8.550” | “[Name], o Ultravioleta está liberando até R$8.550 — vê se o seu perfil entra” |
+| “Sua aprovação Nubank está pronta” | “[Name], tem gente vendo limite alto no roxo — confere o seu” |
+
+Do **not** drop Ultravioleta / the cifra because search is thin or a slug is 404. Note the destination **after** ship. Do not add a disclaimer the user’s template did not already use.
 
 If the user insists on full bank-impersonation (official bank logo on a fake
 receipt / “comprovante da sua última transação” as if from that bank) → refuse
@@ -130,7 +134,7 @@ Prefer a **sending subdomain** (`mail.` / `news.`) for marketing so the root dom
 | Lookalike From / typosquat domains | Strong CTAs, money language, adult terminology when relevant |
 | Misleading subject vs body | Short punchy subjects in Portuguese/English for the niche |
 
-**Rule for the agent:** when optimizing for inbox, change **infra, authentication, list, and phishing-shaped patterns** — not “remove all sensitive words.” If a phrase looks like **impersonation**, rewrite to editorial/affiliate framing (see above). If it is merely niche-aggressive on the user’s brand, **keep it**.
+**Rule for the agent:** when optimizing for inbox, change **infra, authentication, list, and phishing-shaped patterns** — not “remove all sensitive words.” If one phrase is a **personal bank fact** (aprovado / seu limite é R$X), swap **that sentence** to keep-energy (table above). Do **not** rewrite the rest to dry editorial. If it is merely niche-aggressive on the user’s brand, **keep it**.
 
 ### 5. Pre-send deliverability review (agent checklist)
 
