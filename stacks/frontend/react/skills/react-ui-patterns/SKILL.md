@@ -1,7 +1,7 @@
 ---
 name: react-ui-patterns
-version: 2.0.0
-description: "React 19 + TanStack Query v5 UI patterns for production async UI: loading/error/empty state hierarchy, skeleton vs spinner choice, ErrorState/EmptyState/LoadingState reusable components, button states with disabled+loading indicator, RHF + Zod 4 forms, optimistic updates via React 19 `useOptimistic` (built-in, simpler than TanStack `onMutate`/rollback) AND TanStack Query v5 onMutate pattern (when you need cache surgery), Suspense + useSuspenseQuery boundaries, signal threading for cancellation. TanStack Query v5 renamed `loading` → `pending` (note isPending vs isFetching vs isLoading). Invoke when handling any async UI state, form, mutation, or user feedback."
+version: 2.1.0
+description: "React 19.3 + TanStack Query v5 UI patterns: loading/error/empty hierarchy, `<Activity>` for keep-alive panels, `<ViewTransition>` only around Transition updates, ErrorState/EmptyState/LoadingState, button pending states, RHF + Zod 4, `useOptimistic` vs TanStack `onMutate`, Suspense + useSuspenseQuery, axios `signal` threading. TanStack v5: isPending vs isFetching vs isLoading. Invoke when handling any async UI state, form, mutation, or user feedback."
 ---
 
 # React UI Patterns — Loading, Errors, Empty States & Forms (R19 + TanStack v5)
@@ -17,6 +17,10 @@ description: "React 19 + TanStack Query v5 UI patterns for production async UI: 
 | Optimistic UI for **submit-then-confirm** flows | React 19 **`useOptimistic`** (no cache surgery needed) |
 | Optimistic UI when you must mutate the cache | TanStack `onMutate` + `setQueryData` rollback |
 | Suspense / streaming data | `useSuspenseQuery` + `<Suspense>` |
+| Keep-alive hidden panels (tabs / drawers) | React 19.2+ **`<Activity mode>`** — not `{open && <Panel />}` |
+| Enter/exit motion | React 19.3 **`<ViewTransition>`** inside `startTransition` |
+| Browser-only widget | `use(browser())` + nearest Suspense fallback |
+| Client HTTP | Shared **axios** instance + `signal` — not raw `fetch` |
 | Toasts | **Sonner** (`toast.success`, `toast.error`) |
 
 > **TanStack Query v5 renamed `loading` → `pending`.** Use `isPending` (no data yet, no error), `isFetching` (any fetch in flight, including refetch), `isLoading` (legacy alias for `isPending && isFetching`). The render-tree decision below is unchanged.
@@ -410,5 +414,8 @@ function ToggleFavorite({ item }: { item: Item }) {
 | Clickable button while a mutation is pending | `disabled={mutation.isPending}` + spinner |
 | `console.log`-only errors | User must see feedback (toast / banner / inline) |
 | `useOptimistic` AND TanStack `onMutate` for the same flow | Pick one — mixing produces double rollbacks |
-| `mutationFn` that doesn't thread the `signal` | Add `({ signal }) => fetch(url, { signal })` so unmount cancels in-flight |
+| `mutationFn` that doesn't thread the `signal` | `({ signal }) => api.get(url, { signal })` so unmount cancels in-flight |
 | `forwardRef` wrappers around shadcn primitives | React 19 — refs are plain props |
+| Unmount a tab the user will reopen | `<Activity mode={on ? 'visible' : 'hidden'}>` |
+| Polling / websocket inside `<Activity mode="hidden">` | Keep the engine in a parent; feed props down |
+| `<ViewTransition>` without a Transition update | Wrap `setState` in `startTransition` |

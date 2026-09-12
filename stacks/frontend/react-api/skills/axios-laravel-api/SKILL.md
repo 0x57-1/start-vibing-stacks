@@ -1,7 +1,7 @@
 ---
 name: axios-laravel-api
-version: 2.0.0
-description: "Axios HTTP client for Laravel 12 + Sanctum SPA in React 19 (Tailwind v4) projects. `withCredentials: true` + `withXSRFToken: true` + `/sanctum/csrf-cookie` priming flow, plus a single response interceptor that handles 401 (logout), 403 (forbidden toast), 419 (CSRF stale → re-prime + retry once), 422 (validation errors surfaced to RHF), 5xx (toast + log). Pairs with `laravel-api-architecture` (backend) and `react-api-standards` (frontend conventions). 2026 polish: Zod 4 response validation at the boundary, TanStack Query v5 `signal` threading for cancellation, React 19 forms via `useActionState` for client-side mutations. Invoke when wiring or auditing the API client, login flow, or CSRF/cookie configuration."
+version: 2.1.0
+description: "Axios ≥1.20.0 HTTP client for Laravel 12 + Sanctum SPA in React 19.3 (Tailwind 4.3). Boolean `withCredentials` + `withXSRFToken`, `allowAbsoluteUrls: false`, bounded 419 retry, CSRF priming, interceptors for 401/403/422/5xx. Zod 4 at the boundary, TanStack Query v5 `signal`, React 19 Actions. Invoke when wiring or auditing the API client, login flow, or CSRF/cookie configuration."
 ---
 
 # Axios + Laravel Sanctum SPA Client
@@ -53,13 +53,16 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || '/',
-    withCredentials: true,        // send + receive session cookies
-    withXSRFToken: true,          // auto-attach X-XSRF-TOKEN header from cookie
+    withCredentials: true,        // MUST be boolean — session cookies
+    withXSRFToken: true,          // MUST be boolean true (CVE-2026-42042)
+    allowAbsoluteUrls: false,     // block absolute-URL override (CVE-2025-27152)
+    timeout: 15000,
+    maxContentLength: 10_000_000,
+    maxBodyLength: 10_000_000,
     headers: {
         Accept: 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     },
-    timeout: 15000,
 });
 
 // ── 1. CSRF cookie cache (avoid hitting /sanctum/csrf-cookie on every POST) ──
@@ -95,9 +98,10 @@ api.interceptors.response.use(
             }
         }
 
-        if (status === 419) {
+        if (status === 419 && !error.config?._csrfRetry) {
             // CSRF token mismatch — re-prime cookie and retry ONCE
             csrfReady = false;
+            error.config._csrfRetry = true;
             await ensureCsrf();
             return api.request(error.config);
         }
@@ -130,15 +134,20 @@ export default api;
 
 **Rules:**
 
+- Pin **axios ≥ 1.20.0** (XSRF boolean check, absolute-URL / `data:` / size / NO_PROXY / redirect headers).
 - `withCredentials: true` is MANDATORY — without it, session cookie is dropped.
-- `withXSRFToken: true` is MANDATORY (Axios ≥ 1.4) — auto-copies `XSRF-TOKEN`
-  cookie value into the `X-XSRF-TOKEN` header.
+- `withXSRFToken: true` is MANDATORY and **must be the boolean `true`** — never
+  `1`, `"true"`, or a polluted prototype value (CVE-2026-42042 leaks the token
+  cross-origin when the flag is merely truthy).
+- `allowAbsoluteUrls: false` is MANDATORY — a caller-controlled absolute URL
+  must not override `baseURL` and walk cookies/headers off-origin
+  (CVE-2025-27152). Paths stay relative (`/api/users`).
 - The `csrfReady` cache avoids hitting `/sanctum/csrf-cookie` on every POST.
   Reset it on any 401/419 so the next mutation re-primes.
-- 419 retry is bounded to ONE attempt (don't pass through interceptor twice —
-  use the original `error.config`).
+- 419 retry is bounded by `_csrfRetry` on `error.config` — one attempt only.
 - 401 → redirect, 403 → toast, 422 → return for inline form errors,
   5xx → toast. NEVER swallow errors silently.
+- TanStack Query: `queryFn: ({ signal }) => api.get(url, { signal })`.
 
 ## Auth Helpers — `resources/js/lib/auth.js`
 
@@ -241,8 +250,11 @@ export const queryClient = new QueryClient({
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 
-const fetchUsers = async (page: number) => {
-    const { data } = await api.get('/api/users', { params: { page, per_page: 25 } });
+const fetchUsers = async (page: number, signal?: AbortSignal) => {
+    const { data } = await api.get('/api/users', {
+        params: { page, per_page: 25 },
+        signal,
+    });
     return data;
 };
 
@@ -250,7 +262,7 @@ export default function UsersIndexPage() {
     const [page, setPage] = useState(1);
     const { data, error, isPending, refetch } = useQuery({
         queryKey: ['users', page],
-        queryFn: () => fetchUsers(page),
+        queryFn: ({ signal }) => fetchUsers(page, signal),
     });
 
     if (error) return <ErrorState error={error} onRetry={refetch} />;
@@ -430,7 +442,8 @@ VITE_API_URL=/                # same-origin → leave as "/"
 
 ## Checklist — Before Shipping the Client
 
-- [ ] `withCredentials: true` and `withXSRFToken: true` set on the instance
+- [ ] axios ≥ 1.20.0; `allowAbsoluteUrls: false`; relative paths only
+- [ ] `withCredentials: true` and `withXSRFToken: true` (booleans) on the instance
 - [ ] CSRF cookie primed before any POST/PUT/PATCH/DELETE
 - [ ] 401 interceptor redirects to `/login` (with `?redirect=...`)
 - [ ] 419 interceptor re-primes CSRF and retries ONCE
@@ -454,9 +467,15 @@ VITE_API_URL=/                # same-origin → leave as "/"
 | Storing tokens in `VITE_*` env vars | They're embedded in the bundle — public |
 | Blocking page render on first fetch | Defeats the purpose of skeleton-first SPA |
 | `axios.defaults.baseURL = absolute-prod-url` in dev | Use `import.meta.env.VITE_API_URL` |
+| `withXSRFToken: 1` / `"true"` / omitted after proto pollution | Literal boolean `true` (CVE-2026-42042) |
+| `api.get('https://…')` or user-controlled absolute URL | Relative path + `allowAbsoluteUrls: false` |
+| 419 retry without a per-config flag | Set `error.config._csrfRetry` — one hop |
+| axios `< 1.20.0` | Pin ≥ 1.20.0 (XSRF, SSRF, `data:`, size, NO_PROXY) |
 
 ## See Also
 
 - `laravel-api-architecture` — backend pipeline (Controller → FormRequest → Policy → Service → Resource)
 - `react-api-standards` — page/component conventions for API-first React
+- `react-patterns` — generic axios contract (Vite / Next client)
 - `api-security` — Sanctum config, CORS, rate limiting, brute-force protection
+- `security-baseline/cve-watchlist.md` — named axios / React floors (lockfile hit)

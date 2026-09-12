@@ -15,7 +15,7 @@ Initial project setup with start-vibing-stacks (PHP — API-first React SPA).
 ## 30 Seconds Overview
 
 {{PROJECT_NAME}} is a PHP 8.3+ project using {{FRAMEWORK}}, serving a JSON API
-consumed by a React 19 + Vite SPA via Axios. Authentication uses Laravel
+consumed by a React 19.3 + Vite SPA via Axios ≥1.20.0. Authentication uses Laravel
 Sanctum SPA (HttpOnly session cookie + CSRF). Pages render shell + skeleton
 instantly; data is fetched async via the `api` Axios instance.
 
@@ -28,8 +28,8 @@ instantly; data is fetched async via the `api` Axios instance.
 | Server | Octane + RoadRunner |
 | Auth | Sanctum SPA (HttpOnly cookie + CSRF) |
 | API contract | JSON Resource + paginate (data + meta + links) |
-| Frontend | React 19 + Vite + TailwindCSS 4 + React Router |
-| HTTP client | Axios (`withCredentials`, `withXSRFToken`, interceptors) |
+| Frontend | React 19.3 + Vite + TailwindCSS 4.3 + React Router ≥ 7.13.2 |
+| HTTP client | Axios ≥ 1.20.0 (`withCredentials`, boolean `withXSRFToken`, `allowAbsoluteUrls: false`, interceptors) |
 | Server cache | TanStack Query (recommended) |
 | Database | {{DATABASE}} |
 | Package Manager | Composer / npm (or pnpm/bun) |
@@ -104,7 +104,7 @@ project/
 │   └── pt/
 ├── public/
 ├── resources/
-│   ├── css/                    # TailwindCSS 4
+│   ├── css/                    # TailwindCSS 4.3
 │   ├── views/
 │   │   └── app.blade.php       # Single Vite shell (catch-all)
 │   └── js/
@@ -207,9 +207,13 @@ SESSION_DOMAIN=.example.com  // shared subdomains
 ```
 
 ```js
-// resources/js/lib/api.js  (Axios)
-axios.defaults.withCredentials = true;
-axios.defaults.withXSRFToken   = true;
+// resources/js/lib/api.js  (Axios ≥ 1.20.0)
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/',
+  withCredentials: true,
+  withXSRFToken: true,       // boolean true only
+  allowAbsoluteUrls: false,
+});
 ```
 
 ### Environment Variables & Secrets (MANDATORY)

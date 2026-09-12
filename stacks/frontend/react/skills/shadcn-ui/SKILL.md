@@ -1,10 +1,10 @@
 ---
 name: shadcn-ui
-version: 2.0.0
-description: "shadcn/ui CLI v4 (March 2026) for React 19 + Tailwind v4. Components updated to remove forwardRef (refs as props in R19), every primitive carries a data-slot attribute for targeted styling, HSL → OKLCH tokens, size-* utility replaces w-h pairs, default style deprecated in favor of new-york. CLI v4 brings shadcn/skills (AI agent context for component registry), --preset (shareable design-system bundle), --dry-run / --diff / --view (inspect changes before applying), --template scaffolds (Next.js, Vite, Laravel, React Router, Astro, TanStack Start), --base flag (Radix vs Base UI primitives), and `shadcn info` / `shadcn docs` commands for agents. Includes components.json schema, registry-item.json, blocks. Invoke when adding, customising, theming, or scaffolding shadcn components."
+version: 2.1.0
+description: "shadcn/ui CLI v4 (March 2026) for React 19.3 + Tailwind CSS 4.3. Components updated to remove forwardRef (refs as props in R19), every primitive carries a data-slot attribute for targeted styling, HSL → OKLCH tokens, size-* utility replaces w-h pairs, default style deprecated in favor of new-york. Pair with Tailwind 4.3 scrollbar / `@container-size` utilities. CLI v4: shadcn/skills, --preset, --dry-run / --diff / --view, --template scaffolds, --base (Radix vs Base UI), `shadcn info` / `shadcn docs`. Invoke when adding, customising, theming, or scaffolding shadcn components."
 ---
 
-# shadcn/ui — CLI v4 + React 19 + Tailwind v4 (2026)
+# shadcn/ui — CLI v4 + React 19.3 + Tailwind 4.3 (2026)
 
 **ALWAYS invoke when adding, customising, theming, or scaffolding shadcn components.**
 
@@ -14,7 +14,7 @@ description: "shadcn/ui CLI v4 (March 2026) for React 19 + Tailwind v4. Componen
 
 | Change | Impact |
 |---|---|
-| **Tailwind v4 + React 19 first-class** | All components updated; v3+R18 still works (non-breaking) |
+| **Tailwind 4.3 + React 19.3 first-class** | All components updated; v3+R18 still works (non-breaking). Use `scrollbar-*` / `@container-size` from the host CSS, not ad-hoc component CSS |
 | **`forwardRef` removed** | React 19 treats `ref` as a prop — components are simpler |
 | **`data-slot="…"` on every primitive** | Style any sub-element from outside without overriding source |
 | **HSL → OKLCH** colour tokens | Smoother gradients, perceptual uniformity |

@@ -26,7 +26,8 @@ Initial project setup with start-vibing-stacks (Node.js).
 | Database | {{DATABASE}} |
 | Validation | Zod |
 | Testing | Vitest + Playwright |
-| UI | React + Tailwind + shadcn |
+| UI | React 19.3 + Tailwind CSS 4.3 + shadcn |
+| HTTP (client) | Axios ≥ 1.20.0 (`allowAbsoluteUrls: false`) — Server Components keep `fetch` |
 | Data | TanStack Query + Sonner |
 | Forms | react-hook-form + Zod |
 
@@ -69,7 +70,7 @@ project/
 ├── public/                 # Static assets
 ├── tsconfig.json           # TypeScript config (strict: true)
 ├── next.config.ts          # Framework config
-├── tailwind.config.ts      # TailwindCSS config
+├── src/styles/globals.css  # Tailwind 4.3 `@import "tailwindcss"` + `@theme`
 ├── vitest.config.ts        # Test config
 └── package.json            # Dependencies
 ```

@@ -1,6 +1,6 @@
 ---
 name: api-security
-version: 2.0.0
+version: 2.1.0
 description: Laravel 12 + Sanctum + Octane API hardening — cookie-based SPA auth
   by default, token auth for mobile/3rd-party, CORS/CSRF/HSTS/CSP, rate limiting,
   brute-force protection, audit logging, encryption at rest. Use when building
@@ -501,6 +501,8 @@ class RequestId
 | Store JWT/Sanctum token in `localStorage` | HttpOnly session cookie (Sanctum SPA) |
 | `'allowed_origins' => ['*']` with credentials | Specific origins or patterns |
 | `axios.defaults.withCredentials = false` | `true` is MANDATORY for cookie auth |
+| `withXSRFToken: 1` / `"true"` | Literal boolean `true` (CVE-2026-42042) |
+| Caller-controlled absolute URL into axios | `allowAbsoluteUrls: false`; axios ≥ 1.20.0 |
 | `same_site=none` over HTTP | `none` requires `secure=true` (HTTPS) |
 | `$guarded = []` | Explicit `$fillable` |
 | `createToken('x', ['*'])` | Specific abilities (least privilege) |

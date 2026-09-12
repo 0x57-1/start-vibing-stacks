@@ -1,22 +1,34 @@
 ---
 name: react-patterns
-version: 2.0.0
-description: "Modern React 19 component architecture (stable Dec 5 2024; 19.1 in 2025). Covers the new hooks (`useActionState`, `useOptimistic`, `useFormStatus`, `use()` for promises and Context), refs-as-props (no more `forwardRef`), document metadata hoisting (write `<title>` and `<meta>` anywhere), Actions for async mutations, Server Components vs Client Components, compound + generic components, custom hooks, state-management decision matrix (useState → useReducer → Context → Zustand → server cache), Error Boundaries, performance via memo/useMemo/useCallback, and Suspense boundaries. Invoke for any new component, hook, state design, or React-architecture decision."
+version: 2.1.0
+description: "React 19.3 component architecture (19.3 stable 9 Sep 2026). Covers Actions (`useActionState`, `useOptimistic`, `useFormStatus`), `use()` for promises/Context, refs-as-props (no `forwardRef`), `<Activity>` (19.2), `useEffectEvent` (19.2), stable `<ViewTransition>` + Fragment refs + `use(browser())` + Trusted Types (19.3), document metadata, Server vs Client, axios client contract for SPAs, Error Boundaries, and the state-management matrix. Invoke for any new component, hook, state design, or React-architecture decision."
 ---
 
-# React 19 Patterns — Modern Component Architecture
+# React 19.3 Patterns — Modern Component Architecture
 
 **ALWAYS invoke when writing React components, hooks, or state management.**
 
-## React 19 essentials (stable Dec 5, 2024 → 19.1 in 2025)
+## Version floor (Sep 2026)
+
+- **New projects:** `react` / `react-dom` **≥ 19.3.0**. RSC runtimes also bump `react-server-dom-webpack|parcel|turbopack` to the same line.
+- **Existing 19.0 / 19.1 / 19.2 lines:** do **not** stop at the first React2Shell patch. Combined Flight floor is **19.0.5 / 19.1.6 / 19.2.5** (or jump to 19.3). See `security-baseline/cve-watchlist.md` on lockfile hit.
+- **eslint-plugin-react-hooks** v6+ (flat `recommended`; Compiler rules opt-in).
+
+## React 19 essentials (through 19.3)
 
 - **Actions** — async functions passed straight to forms; `useActionState` manages pending/error/optimistic state automatically
-- **`use()`** — read promises and Context **conditionally** during render (paired with Suspense + Error Boundaries)
+- **`use()`** — read promises and Context during render (paired with Suspense + Error Boundaries). 19.3 warns if `use` is used incorrectly in a conditional
 - **Refs as props** — pass `ref` like any other prop. **`forwardRef` is no longer needed** for new components
 - **Document metadata hoisting** — `<title>`, `<meta>`, `<link>` get auto-hoisted into `<head>` from anywhere
 - **Form `action` prop** — submits via the action, auto-resets uncontrolled inputs on success
 - **Stylesheet management** — `<link rel="stylesheet">` in components is awaited before the Suspense boundary reveals
 - **Suspense sibling pre-warming** — fallback shows immediately and queues sibling requests in parallel
+- **`<Activity>` (19.2)** — keep hidden UI mounted (`mode="hidden"`) without tearing state; Effects unmount while hidden
+- **`useEffectEvent` (19.2)** — event-style callbacks that read latest props/state without re-subscribing the Effect
+- **`<ViewTransition>` (19.3 stable)** — animate enter/exit/update/share; only Transition updates animate
+- **Fragment refs (19.3 stable)** — `ref` on `<Fragment>` for group focus / observers without a wrapper div
+- **`use(browser())` (19.3)** — skip SSR; nearest Suspense fallback on the server, render on the client
+- **Trusted Types (19.3)** — React no longer string-coerces `TrustedHTML` before DOM sinks
 
 ## Component Patterns
 
@@ -239,6 +251,92 @@ function Article({ post }: { post: Post }) {
 
 No `next/head` / `react-helmet` needed — React handles it. Server-rendered metadata appears in the initial HTML (good for SEO).
 
+## React 19.2 — `<Activity>` and `useEffectEvent`
+
+Prefer `<Activity>` over `{open && <Panel />}` when the user will come back (tabs, drawers, wizard steps). Hidden mode preserves state and DOM, unmounts Effects, and defers updates.
+
+```tsx
+import { Activity, useEffectEvent, useEffect } from 'react';
+
+<Activity mode={open ? 'visible' : 'hidden'}>
+  <Panel />
+</Activity>
+```
+
+Keep subscriptions / polling **outside** Activity. Hidden children still re-render at low priority; an Effect that must stay alive (auth, websocket, query client) belongs in a parent.
+
+`useEffectEvent` is for "read latest value inside a long-lived Effect" without listing that value as a dependency:
+
+```tsx
+const onMessage = useEffectEvent((msg: ChatMsg) => {
+  pushLine(roomId, msg); // roomId is always current
+});
+
+useEffect(() => {
+  const unsub = socket.subscribe(onMessage);
+  return unsub;
+}, [socket]);
+```
+
+## React 19.3 — `<ViewTransition>`, Fragment refs, `browser()`
+
+```tsx
+import { Fragment, ViewTransition, browser, startTransition, use, useRef } from 'react';
+
+function Gallery({ show, setShow, posts }: {
+  show: boolean;
+  setShow: (fn: (s: boolean) => boolean) => void;
+  posts: Post[];
+}) {
+  const fragmentRef = useRef(null);
+
+  return (
+    <>
+      <button onClick={() => startTransition(() => setShow((s) => !s))}>
+        Toggle
+      </button>
+      {show && (
+        <ViewTransition>
+          <Fragment ref={fragmentRef}>
+            {posts.map((p) => <Card key={p.id} post={p} />)}
+          </Fragment>
+        </ViewTransition>
+      )}
+    </>
+  );
+}
+
+function MapWidget() {
+  use(browser()); // Suspense fallback on the server; render in the browser
+  return <ClientMap />;
+}
+```
+
+Urgent `setState` does **not** animate. Wrap the update in `startTransition`, or trigger it via Suspense / `useDeferredValue`.
+
+Do not pass raw HTML strings into `dangerouslySetInnerHTML`. Under Trusted Types, create `TrustedHTML` via your sanitizer policy — React 19.3 forwards the typed object to the DOM.
+
+## Axios client contract (browser React)
+
+Server Components / Next Route Handlers may use native `fetch` (cache, `revalidate`). **Client** first-party APIs use one axios instance — never raw `fetch` / `axios.get` in components.
+
+```ts
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL ?? '/',
+  withCredentials: true,
+  withXSRFToken: true,          // boolean true only — never 1 / "true"
+  allowAbsoluteUrls: false,     // block baseURL override / header leak
+  timeout: 15_000,
+  maxContentLength: 10_000_000,
+  maxBodyLength: 10_000_000,
+  headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+});
+```
+
+Pin **axios ≥ 1.20.0**. Thread TanStack Query `signal` into `api.get(url, { signal })`. Laravel Sanctum extras live in `axios-laravel-api`. Inertia page forms still use `useForm()` — not this client.
+
 ## State Management Selection
 
 | Complexity | Solution | When |
@@ -317,12 +415,19 @@ class ErrorBoundary extends Component<
 | Premature memoisation | Profile with React DevTools first |
 | Manual `isPending` + `error` `useState` for forms | Use `useActionState` |
 | Custom optimistic-state code | `useOptimistic` + Action |
+| `{open && <Panel />}` for tabs the user returns to | `<Activity mode>` — keep state, pause Effects |
+| `<ViewTransition>` around a urgent `setState` | Wrap the update in `startTransition` |
+| Raw string in `dangerouslySetInnerHTML` | Sanitizer → `TrustedHTML` (19.3) or don't render HTML |
+| `fetch()` / raw `axios` in a Client Component for first-party APIs | Shared `api` instance (`axios-laravel-api` / this contract) |
+| Pin `react@19.2.0` / first React2Shell patch only | Combined Flight floor — watchlist; prefer 19.3 |
 
 ## See Also
 
-- `react-standards` v2 — LABELS / STYLES const pattern
-- `react-ui-patterns` v2 — loading/error/empty + TanStack Query v5
-- `tailwind-patterns` v2 — `@theme`, container queries, OKLCH
-- `shadcn-ui` v2 — primitives without `forwardRef`, `data-slot` styling
+- `react-standards` v2.2 — LABELS / STYLES; React ≥ 19.3, Tailwind ≥ 4.3
+- `react-ui-patterns` v2.1 — loading/error/empty + TanStack Query v5 + Activity
+- `tailwind-patterns` v2.1 — Tailwind 4.3 (`scrollbar-*`, `@container-size`)
+- `shadcn-ui` v2.1 — primitives without `forwardRef`, `data-slot` styling
+- `axios-laravel-api` v2.1 — Sanctum SPA client (CSRF, 419 retry, URL floor)
+- `react-server-components` v1.1 — RSC + Flight CVE floor
 - `zod-validation` v2 — Zod 4 + RHF for form Actions
 - `_shared/skills/playwright-automation` v2 — E2E coverage including R19 forms

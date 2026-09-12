@@ -1,22 +1,23 @@
 ---
 name: tailwind-patterns
-version: 2.0.0
-description: "Tailwind CSS v4 (stable Jan 22 2025) CSS-first design system with the Rust-based Oxide engine — 3.78× faster full builds, 8.8× faster incremental, 100× faster on no-CSS-change runs. CSS-first config via `@theme` directive (no `tailwind.config.js`), automatic content detection, native container queries (`@container` + `@md:`), OKLCH color space (perceptual uniformity), modern CSS features (cascade layers, `@property`, `color-mix()`), `@import \"tailwindcss\"` single line. Covers the v3 → v4 migration, semantic-token architecture, mobile-first + container-query responsive strategy, dark mode via `@theme dark`, and the 4px spacing scale. Invoke whenever writing Tailwind classes, theming a project, or designing responsive layouts."
+version: 2.1.0
+description: "Tailwind CSS 4.3 (stable 8 May 2026; patch 4.3.3) CSS-first design system with the Oxide engine. `@theme` (no `tailwind.config.js`), `@import \"tailwindcss\"`, automatic content detection, native container queries plus `@container-size` (block-size / `cqb`), OKLCH, scrollbar / zoom / tab utilities, stacked+compound `@variant`, `@tailwindcss/webpack`, mauve/olive/mist/taupe palettes (4.2), logical inset (`inset-s` / `inset-e`). Covers v3 → v4 migration, semantic tokens, mobile-first + container-query layouts. Invoke whenever writing Tailwind classes, theming a project, or designing responsive layouts."
 ---
 
-# Tailwind CSS v4 — CSS-First Design System (2026)
+# Tailwind CSS 4.3 — CSS-First Design System (2026)
 
 **ALWAYS invoke when writing Tailwind classes, theming, or responsive layouts.**
 
-## v4 Status (2026)
+## v4 Status (Sep 2026)
 
-- **Tailwind v4.0 stable**: January 22, 2025
-- **Oxide engine** (Rust) — full builds **3.78× faster** (378ms → 100ms), incremental rebuilds **8.8× faster** (44ms → 5ms), no-CSS-change rebuilds **100× faster** (35ms → 192µs)
+- **Current floor for new projects:** Tailwind CSS **≥ 4.3.0** (4.3.0 on 8 May 2026; install `@latest` — 4.3.3+ as of Jul 2026)
+- **v4.0 stable**: January 22, 2025 — Oxide engine, `@theme`, auto content detection
 - **No `tailwind.config.js`** — config lives in CSS via `@theme`
 - **Automatic content detection** — no `content: [...]` paths to maintain
-- **Native container queries** — no plugin
+- **Native container queries** — `@container` (inline) and **`@container-size`** (size / `cqb` / `cqh`)
 - **OKLCH** color space everywhere (perceptual uniformity, smoother gradients)
 - Built-in support for cascade layers, `@property`, `color-mix()`, modern CSS
+- **Next / webpack:** prefer `@tailwindcss/webpack` over PostCSS detour (v4.2+; ~2× in large webpack graphs)
 
 ## v3 → v4 cheatsheet
 
@@ -32,6 +33,43 @@ description: "Tailwind CSS v4 (stable Jan 22 2025) CSS-first design system with 
 | `@apply` for everything | React components + tokens; reserve `@apply` for legacy CSS |
 
 Migration is non-breaking for existing v3 codebases — both can coexist. Run `npx @tailwindcss/upgrade@latest` to automate the bulk.
+
+## v4.2 / v4.3 — use these now
+
+| Utility / feature | When |
+|---|---|
+| `scrollbar-thin` / `scrollbar-none` / `scrollbar-auto` | `scrollbar-width` |
+| `scrollbar-thumb-*` / `scrollbar-track-*` | `scrollbar-color` (+ opacity modifiers) |
+| `scrollbar-gutter-stable` / `both` / `auto` | Stop layout shift when the bar appears |
+| `@container-size` / `@container-size/{name}` | Height-aware container queries (`cqb`, `cqh`) |
+| `zoom-75` / `zoom-[1.1]` / `zoom-(--preview-zoom)` | CSS `zoom` for previews — **not** an a11y substitute for user zoom |
+| `tab-2` / `tab-8` / `tab-[12px]` | `tab-size` in `<pre>` / editors |
+| `@variant hover:focus` and `@variant hover, focus` | Stacked + compound variants in CSS |
+| `--default(...)` on `--value(...)` | Functional `@utility` that works bare or with a value |
+| `mauve` / `olive` / `mist` / `taupe` (4.2) | Extra neutral-ish palettes |
+| `font-features-["tnum"]` (4.2) | OpenType escape hatch; prefer `tabular-nums` first |
+| `mbs-*` / `pbs-*` / `inset-s-*` / `inset-e-*` (4.2) | Logical block/inline; `start-*`/`end-*` **deprecated** → `inset-s-*`/`inset-e-*` |
+| `@tailwindcss/webpack` (4.2) | Next.js / webpack / Turbopack loader path |
+
+```css
+@import "tailwindcss";
+
+.panel {
+  @variant hover, focus {
+    background: var(--color-primary);
+  }
+}
+
+@utility tab-* {
+  tab-size: --value(integer, --default(4));
+}
+```
+
+```html
+<div class="@container-size">
+  <div class="h-[50cqb] scrollbar-thin scrollbar-gutter-stable overflow-auto">…</div>
+</div>
+```
 
 ## Setup (v4)
 
@@ -327,6 +365,10 @@ Card padding: p-4 md:p-6
 | `forwardRef`-style ref-as-prop indirection | Refs are just props in React 19 |
 | `content: [...]` arrays | Auto-detection in v4 |
 | Inconsistent spacing | Follow 4px scale |
+| `start-*` / `end-*` insets (deprecated 4.2) | `inset-s-*` / `inset-e-*` |
+| `zoom-*` as the accessibility zoom story | User browser zoom + real type scale; `zoom-*` is preview-only |
+| `@container` when you need `cqb` / `cqh` | `@container-size` |
+| Custom scrollbar CSS per browser | `scrollbar-thin` + `scrollbar-thumb-*` |
 
 ## See Also
 

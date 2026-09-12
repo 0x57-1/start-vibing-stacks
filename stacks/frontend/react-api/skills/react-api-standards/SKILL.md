@@ -1,23 +1,23 @@
 ---
 name: react-api-standards
-version: 2.0.0
-description: "React 19 + Vite 6 + Axios standards for a Laravel-backed JSON API SPA. Page shell + skeleton-first paint, async data via `api.get`, 422 validation binding to React Hook Form, protected-route + catch-all routing, NO Inertia. Pairs with `axios-laravel-api` (HTTP client) and `laravel-api-architecture` (backend). 2026 polish: TanStack Query v5 (`isPending` semantics + `signal` threading), Zod 4 (`z.email()`/`z.url()` top-level), `useOptimistic` for instant feedback, `useActionState` for form submissions, `useFormStatus` to wire Submit buttons without prop drilling. Tailwind v4 with `@theme` and OKLCH tokens. Invoke for any new page, layout, or component in a Laravel + Sanctum SPA."
+version: 2.1.0
+description: "React 19.3 + Vite 6 + Axios ≥1.20.0 standards for a Laravel-backed JSON API SPA. Page shell + skeleton-first paint, async data via `api.get`, 422 validation binding to React Hook Form, protected-route + catch-all routing, NO Inertia. Pairs with `axios-laravel-api` 2.1 (HTTP client) and `laravel-api-architecture` (backend). TanStack Query v5 (`isPending` + `signal`), Zod 4, `useOptimistic` / `useActionState` / `useFormStatus`, Tailwind 4.3 `@theme` + OKLCH. Invoke for any new page, layout, or component in a Laravel + Sanctum SPA."
 ---
 
-# React 19 API-First Standards (Laravel + Axios) — 2026
+# React 19.3 API-First Standards (Laravel + Axios) — 2026
 
 **ALWAYS invoke when creating React pages, components, or layouts in a project
 that uses a Laravel JSON API as backend (NOT Inertia.js).**
 
 ## Version Requirements
 
-- **React ≥ 19.0** — MANDATORY (`useActionState`, `useOptimistic`, `useFormStatus`, `use()`)
+- **React ≥ 19.3.0** — MANDATORY (`useActionState`, `useOptimistic`, `useFormStatus`, `use()`, `ViewTransition`, `browser()`)
 - **Vite ≥ 6** with `@vitejs/plugin-react`
-- **TailwindCSS ≥ 4** (CSS-first `@theme`, Oxide engine)
-- **Axios ≥ 1.7** (for `withXSRFToken` and modern interceptor types)
-- **TanStack Query ≥ 5** — `isPending` (no data yet) vs `isFetching` (any in-flight); thread `signal` through `queryFn`
+- **Tailwind CSS ≥ 4.3** (CSS-first `@theme`, Oxide, scrollbar / `@container-size`)
+- **Axios ≥ 1.20.0** — boolean `withXSRFToken`, `allowAbsoluteUrls: false` (see `axios-laravel-api`)
+- **TanStack Query ≥ 5** — `isPending` vs `isFetching`; thread `signal` through `queryFn` → `api.get(url, { signal })`
 - **Zod ≥ 4** — top-level `z.email()`/`z.url()` for tree-shaking
-- **react-router-dom ≥ 7** (`<RouterProvider>` + data routers)
+- **react-router-dom ≥ 7.13.2** — Framework-mode / RSC XSS floors (CVE-2026-21884, CVE-2026-33245)
 
 ## Folder Structure
 
@@ -488,6 +488,8 @@ resolve: {
 | `Inertia::render()` for new pages | Blocks first paint on DB | `api.get()` from React |
 | `fetch()` in components | Bypasses CSRF/interceptors | `api.get/post/...` |
 | `axios.get(...)` direct | Bypasses interceptors | `import api from '@/lib/api'` |
+| Absolute URL into `api.get` | Overrides `baseURL`, leaks cookies | Relative path only |
+| axios `< 1.20.0` | Known XSRF / SSRF / size / NO_PROXY CVEs | Pin ≥ 1.20.0 |
 | `useEffect` to derive state | Anti-pattern | `useMemo` |
 | `<a href>` for internal links | Full reload | `<Link>` from react-router-dom |
 | `window.location.assign` for SPA nav | Full reload | `useNavigate()` |
@@ -502,6 +504,6 @@ resolve: {
 
 - `axios-laravel-api` — the `api.js` instance and Sanctum CSRF flow
 - `laravel-api-architecture` — the backend Controller→Service→Resource pipeline
-- `react-patterns` — generic React 19 hooks (`useActionState`, `useOptimistic`)
+- `react-patterns` v2.1 — React 19.3 hooks + generic axios contract
 - `react-ui-patterns` — loading/error/empty patterns and decision tree
 - `tailwind-patterns` — utility class composition with `cn()`

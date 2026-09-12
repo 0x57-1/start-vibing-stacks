@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-12 · main · v2.91.0
+React **19.3** + Tailwind **4.3** patterns across stacks. Axios **≥ 1.20.0**
+(`allowAbsoluteUrls: false`, boolean `withXSRFToken`). Flight CVE floor
+raised past first React2Shell patches. `cve-watchlist` + `react-patterns` **2.1**.
+
 ### 2026-09-12 · main · v2.90.13
 React UI: theme CSS + recipe strings + `<Button variant size>`. `.js` for
 no-JSX helpers. Do not treat `uiStyles` as the public API.
@@ -54,10 +59,6 @@ No spawn banner on child agents. SVS package: always publish without asking
 Named CVEs live in `security-baseline/cve-watchlist.md` (Read on lockfile
 hit). Grok natives + Claude `security-auditor` stay protocol — never inline
 the table; never Read a skill first.
-
-### 2026-08-19 · main · v2.90.4
-Grok-native `tester`, `research-web`, `security-auditor`, `claude-md-compactor`
-— Grok Build tools only (`search_tool`/`use_tool`, no Claude `mcp__*`).
 
 ---
 

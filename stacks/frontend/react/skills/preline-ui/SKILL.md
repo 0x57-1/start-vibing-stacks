@@ -1,6 +1,6 @@
 ---
 name: preline-ui
-version: 2.2.0
+version: 2.2.1
 description: >-
   Preline UI overview — install, CSS import order, HSStaticMethods.autoInit(),
   semantic tokens, theme activation (data-theme + .dark). This skill is the SHORT

@@ -1,18 +1,19 @@
 ---
 name: react-standards
-version: 2.1.1
-description: "Project conventions for React 19 + Tailwind v4 codebases. Mandates the LABELS / STYLES const pattern (defined at file top, before hooks, with `as const` for stable references — prevents re-renders, centralises styles, supports i18n drop-in), controlled debug logging (no raw console.log), semantic Tailwind tokens (no raw colours, no dark: on those tokens), separate-file SVG icons, mandatory loading/empty states, modal data-flow contract (`onUpdated` callback), and third-party chart integration (no useRef DOM mutation). Pairs with `tailwind-patterns` v2, `react-theme-apply`, and `react-ui-patterns` v2. Invoke at the start of any new React project or component file."
+version: 2.2.0
+description: "Project conventions for React 19.3 + Tailwind CSS 4.3 codebases. Mandates the LABELS / STYLES const pattern (defined at file top, before hooks, with `as const` for stable references — prevents re-renders, centralises styles, supports i18n drop-in), controlled debug logging (no raw console.log), semantic Tailwind tokens (no raw colours, no dark: on those tokens), separate-file SVG icons, mandatory loading/empty states, modal data-flow contract (`onUpdated` callback), and third-party chart integration (no useRef DOM mutation). Pairs with `tailwind-patterns` v2.1, `react-theme-apply`, and `react-ui-patterns` v2.1. Invoke at the start of any new React project or component file."
 ---
 
-# React 19 + Tailwind v4 — Project Standards
+# React 19.3 + Tailwind CSS 4.3 — Project Standards
 
 > Conventions that apply to **every** component in the codebase. Pairs with `react-patterns` (architecture), `tailwind-patterns` (tokens), `react-ui-patterns` (state), and `shadcn-ui` (primitives).
 
 ## Version Requirements
 
-- **React ≥ 19.0** (stable Dec 5, 2024) — MANDATORY for new projects
-- **TailwindCSS ≥ 4.0** (stable Jan 22, 2025) — MANDATORY (CSS-first `@theme`, Oxide engine)
+- **React ≥ 19.3.0** — MANDATORY for new projects (`ViewTransition`, Fragment refs, `browser()`, Trusted Types). Existing 19.0–19.2 apps: Flight floor 19.0.5 / 19.1.6 / 19.2.5 or jump to 19.3
+- **Tailwind CSS ≥ 4.3.0** — MANDATORY (CSS-first `@theme`, Oxide; 4.3 scrollbar / `@container-size` / `zoom-*` / stacked `@variant`)
 - **TypeScript ≥ 5.6** strict mode
+- **Client HTTP:** axios ≥ 1.20.0 via one `api` instance (`allowAbsoluteUrls: false`). Inertia page forms stay on `useForm()`
 
 ## Label Constants Pattern
 
@@ -287,9 +288,9 @@ const processedData = useMemo(() => {
 ## See Also
 
 - Memory `react-theme-parity` + skill `react-theme-apply` — CSS-first; `node scripts/check-theme-tokens.mjs` before done
-- `react-patterns` v2 — React 19 hooks, `use()`, refs as props
-- `tailwind-patterns` v2 — `@theme`, Oxide engine, container queries, OKLCH
-- `shadcn-ui` v2 — primitives without `forwardRef`, `data-slot` slots
-- `react-ui-patterns` v2 — loading/error/empty + TanStack Query v5
+- `react-patterns` v2.1 — React 19.3 hooks, Activity, ViewTransition, axios contract
+- `tailwind-patterns` v2.1 — `@theme`, Oxide, Tailwind 4.3 utilities
+- `shadcn-ui` v2.1 — primitives without `forwardRef`, `data-slot` slots
+- `react-ui-patterns` v2.1 — loading/error/empty + TanStack Query v5
 - `zod-validation` v2 — Zod 4 schemas for forms + env vars
 - `_shared/skills/ui-ux-audit` v2 — WCAG 2.2 AA validation

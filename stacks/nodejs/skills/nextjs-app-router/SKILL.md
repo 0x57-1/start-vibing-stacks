@@ -1,11 +1,19 @@
 ---
 name: nextjs-app-router
-version: 1.2.0
+version: 1.3.0
+description: "Next.js App Router on React 19.3 + Tailwind CSS 4.3. Server Components by default, Flight CVE floors, server `fetch` vs client axios, `@tailwindcss/webpack`, parallel routes, Server Actions. Invoke when writing Next.js pages, layouts, or server components."
 ---
 
 # Next.js App Router — Modern Patterns
 
 **ALWAYS invoke when writing Next.js pages, layouts, or server components.**
+
+## Version floors (Sep 2026)
+
+- **React / Flight:** `react` / `react-dom` / `react-server-dom-*` **≥ 19.3.0** (or 19.0.5 / 19.1.6 / 19.2.5). Do not ship the first React2Shell-only patches.
+- **Next.js:** 15.x ≥ **15.5.16**, 16.x ≥ **16.2.5** (PPR deadlock + beforeInteractive XSS).
+- **Tailwind:** ≥ **4.3** via `@tailwindcss/webpack` or the Next compiler — do not add a standalone `tailwindcss` CLI to `scripts.build`.
+- **Client first-party HTTP:** axios **≥ 1.20.0** (`allowAbsoluteUrls: false`). Server Components keep native `fetch` (cache / `revalidate`).
 
 ## File Conventions
 
@@ -118,7 +126,7 @@ function Counter() {
 ## Data Fetching
 
 ```tsx
-// Server Component — fetch with caching
+// Server Component — native fetch with caching (OK here)
 async function Page() {
   const data = await fetch('https://api.example.com/data', {
     next: { revalidate: 3600 }, // ISR: revalidate every hour
@@ -133,6 +141,42 @@ async function Page() {
   });
 }
 ```
+
+### Client components — axios, not `fetch`
+
+Browser-side calls to **your** API use one axios instance (credentials, interceptors, `allowAbsoluteUrls: false`). Do not `fetch('/api/...')` from `'use client'` for first-party JSON.
+
+```ts
+// lib/api.ts — imported only from Client Components / hooks
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: '',
+  withCredentials: true,
+  withXSRFToken: true,
+  allowAbsoluteUrls: false,
+  timeout: 15_000,
+  maxContentLength: 10_000_000,
+  maxBodyLength: 10_000_000,
+});
+```
+
+```tsx
+'use client';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
+
+export function OrdersTable() {
+  const { data, isPending } = useQuery({
+    queryKey: ['orders'],
+    queryFn: ({ signal }) => api.get('/api/orders', { signal }).then((r) => r.data),
+  });
+  if (isPending) return <OrdersSkeleton />;
+  return <Table rows={data} />;
+}
+```
+
+Validate Server Action `FormData` with Zod before any write. Actions are public HTTP endpoints.
 
 ## Server Actions
 
@@ -349,7 +393,7 @@ multi-stage builds, and any CI runner that respects `NODE_ENV` or runs
 | `tsc` | `"prebuild": "tsc -p tsconfig.gen.json"` | `typescript` is conventionally a devDep |
 | `vitest` / `jest` | `"prebuild": "vitest run"` | Test runners are dev-only |
 | `eslint` / `prettier` / `biome` | `"build": "eslint . && next build"` | Linters are dev-only |
-| `tailwindcss` (CLI) | `"build": "tailwindcss -i ... && next build"` | Next.js handles Tailwind via its compiler; the standalone CLI is dev-only |
+| `tailwindcss` (CLI) | `"build": "tailwindcss -i ... && next build"` | Next.js handles Tailwind via its compiler; prefer `@tailwindcss/webpack` (4.2+) if you need a loader. The standalone CLI is dev-only |
 | `prisma` | `"postinstall": "prisma generate"` | **OK** only if `prisma` is in `dependencies` (it should be) — generation needs the CLI on every install |
 
 ### The Rule
@@ -591,3 +635,6 @@ export async function createCheckout(priceId: string) {
 12. **Returning 5xx from a webhook on a downstream failure** — triggers provider retry storms; ack 2xx and retry from your side
 13. **Calling `tsx` / `ts-node` / `vitest` / `eslint` directly from `scripts.build` or `scripts.prebuild`** — Vercel strips devDeps; build fails with exit 127. Convert to `.mjs` or move to `dependencies` (see "Build Script Hygiene")
 14. **Shipping helper scripts as `.ts`** — they cannot run on Vercel without `tsx` in `dependencies`. Use `.mjs` and plain `node`
+15. **`fetch` in a Client Component for first-party APIs** — use the shared axios instance (`allowAbsoluteUrls: false`)
+16. **Shipping `react@19.2.0` / first React2Shell-only patch** — combined Flight floor is 19.0.5 / 19.1.6 / 19.2.5 or **19.3**
+17. **Raw `dangerouslySetInnerHTML` from a Server Action / RSC payload** — sanitize; React 19.3 Trusted Types do not make a raw string safe

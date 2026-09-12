@@ -1,13 +1,13 @@
 ---
 name: inertia-react
-version: 2.1.0
-description: LEGACY skill — Inertia.js + React frontend integration with
-  Laravel-rendered pages. Use ONLY in pre-existing Inertia projects. For NEW
-  projects use the `react-api` frontend stack (`axios-laravel-api` +
-  `react-api-standards`) which decouples render from data fetching. v2.1.0 adds
-  the "Vite Build Gotchas" section covering the `manualChunks` × entry-chunk
-  × `resolvePageComponent` glob interaction that produces silent
-  wrong-component renders (production post-mortem 2026-05).
+version: 2.1.1
+description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 frontend
+  integration with Laravel-rendered pages. Use ONLY in pre-existing Inertia
+  projects. For NEW projects use the `react-api` frontend stack
+  (`axios-laravel-api` + `react-api-standards`) which decouples render from
+  data fetching. v2.1.0 adds the "Vite Build Gotchas" section covering the
+  `manualChunks` × entry-chunk × `resolvePageComponent` glob interaction
+  that produces silent wrong-component renders (production post-mortem 2026-05).
 ---
 
 # Inertia.js + React Integration (LEGACY)
