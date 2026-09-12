@@ -40,6 +40,7 @@ import { randomBytes } from 'crypto';
 import * as semver from 'semver';
 import * as ui from './ui.js';
 import { installMemoryOptimization } from './setup.js';
+import { CORPUS_SKILL_NAMES, shouldSkipCorpusWrite } from './targets/skill-corpus.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
 const __m_dirname = dirname(__m_filename);
@@ -296,11 +297,15 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
       let status: Status = !existsSync(target)
         ? 'missing'
         : statusFromSemver(bundledVersion, installedVersion);
-      // SKILL.md alone is not enough — reference/, TEMPLATE.md, etc. must match bundle.
-      if (
+      // Local Preline (etc.) capture — never mark outdated for missing 4.2 companions
+      // and never let --apply overwrite / write through a symlink.
+      if (CORPUS_SKILL_NAMES.has(name) && shouldSkipCorpusWrite(dirname(target))) {
+        status = 'ahead';
+      } else if (
         (status === 'current' || status === 'ahead') &&
         skillCompanionsMissing(source, target)
       ) {
+        // SKILL.md alone is not enough — reference/, TEMPLATE.md, etc. must match bundle.
         status = 'outdated';
       }
       items.push({ kind: 'skill', name, source, target, bundledVersion, installedVersion, status });
@@ -408,6 +413,9 @@ function applyOne(item: MigrateItem, opts: MigrateOptions): { applied: boolean; 
   }
 
   if (item.kind === 'skill') {
+    if (CORPUS_SKILL_NAMES.has(item.name) && shouldSkipCorpusWrite(dirname(item.target))) {
+      return { applied: false };
+    }
     const backupPath = existsSync(item.target) ? backup(item.target) : null;
     copySkillBundle(item.source, item.target);
     return { applied: true, backupPath };

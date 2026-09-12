@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-09-12 · main · v2.91.1
+`preline-moon` pointer only. Grok export does not prune project skills
+or recopy current curated trees. `design-system` stays on the allowlist.
+
 ### 2026-09-12 · main · v2.91.0
 React **19.3** + Tailwind **4.3** skills. Axios **≥ 1.20.0**
 (`allowAbsoluteUrls: false`). Flight CVE floor raised past first
@@ -66,10 +70,6 @@ svs-document + 40k compact. 01a00f26 tail was 254+394 s.
 Grok-only light UPS (no Claude TASK WORKFLOW). Dirty may answer.
 Auditor VETO is CRIT/HIGH. No spawn banner on child agents.
 SVS package: always publish without asking (`execute-ship-ops` 1.5).
-
-### 2026-08-19 · main · v2.90.5
-Named CVEs in `security-baseline/cve-watchlist.md` (Read on lockfile hit).
-Grok natives + Claude `security-auditor` stay protocol — never inline / never first.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

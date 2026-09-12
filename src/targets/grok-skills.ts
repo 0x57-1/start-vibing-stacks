@@ -21,14 +21,16 @@ import {
 } from 'fs';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
+import * as semver from 'semver';
 import { GROK_SPAWN_RECIPE_MD } from './grok-agents.js';
+import { CORPUS_SKILL_NAMES, shouldSkipCorpusWrite } from './skill-corpus.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.39.0';
+export const GROK_SKILLS_VERSION = '1.40.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -56,7 +58,9 @@ export const GROK_CURATED_SKILL_NAMES = [
   'own-subscription-integration',
   'email-push-marketing',
   'remove-ai-marks',
-  // Frontend theme corpus (large; only mirrored when present in project .claude/skills)
+  // Project-owned (not in the npm tree). Allowlist keeps prune from deleting it.
+  'design-system',
+  // Thin pointer only — never mirror a 100 MB capture into .grok/skills
   'preline-moon',
   'preline-ui',
   'react-theme-apply',
@@ -468,21 +472,81 @@ function copySkillTree(srcSkillMd: string, destDir: string): void {
   walk(srcDir, '');
 }
 
+const SKILL_VERSION_RE = /^version:\s*['"]?([0-9][^'"\s]*)/m;
+
+function readSkillVersion(skillMd: string): string | null {
+  if (!existsSync(skillMd)) return null;
+  try {
+    const m = SKILL_VERSION_RE.exec(readFileSync(skillMd, 'utf8').slice(0, 2048));
+    return m?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function bundledSkillMd(name: string): string | null {
+  if (isBlockedSkillName(name)) return null;
+  const shared = join(PACKAGE_ROOT, 'stacks', '_shared', 'skills', name, 'SKILL.md');
+  if (existsSync(shared)) return shared;
+  const frontend = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
+  if (existsSync(frontend)) return frontend;
+  return null;
+}
+
+/** Dest already has this skill at bundled version or newer — do not recopy. */
+function destSkillCurrentOrAhead(destMd: string, srcMd: string): boolean {
+  if (!existsSync(destMd)) return false;
+  const srcV = readSkillVersion(srcMd);
+  const destV = readSkillVersion(destMd);
+  if (!srcV) return true;
+  if (!destV) return false;
+  try {
+    return semver.compare(destV, srcV) >= 0;
+  } catch {
+    return destV === srcV;
+  }
+}
+
 function copyCuratedSkill(projectDir: string, name: string): boolean {
-  // Prefer bundled tree so reference/ companions ship even when project SKILL.md
-  // was migrated alone by an older SVS. Fall back to project skill dir.
-  const bundled = join(PACKAGE_ROOT, 'stacks', '_shared', 'skills', name, 'SKILL.md');
-  const projectSrc = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
-  const src =
-    !isBlockedSkillName(name) && existsSync(bundled)
-      ? bundled
-      : curatedSkillSource(projectDir, name);
-  if (!src) return false;
-  // If bundled exists but project has a newer SKILL.md, still copy companions
-  // from bundled and overlay project's SKILL.md.
   const destDir = join(skillsRoot(projectDir), name);
+  const destMd = join(destDir, 'SKILL.md');
+  const destExists = existsSync(destMd);
+
+  // Never write through a symlink or smash a local Preline (etc.) capture.
+  if (CORPUS_SKILL_NAMES.has(name) && shouldSkipCorpusWrite(destDir)) {
+    return true;
+  }
+
+  const bundled = bundledSkillMd(name);
+  const projectSrc = join(projectDir, '.claude', 'skills', name, 'SKILL.md');
+
+  let src: string | null;
+  if (CORPUS_SKILL_NAMES.has(name)) {
+    // Thin package pointer only — never copy a 100 MB project/global capture.
+    const pointer = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
+    src = existsSync(pointer) ? pointer : bundled;
+  } else if (bundled) {
+    src = bundled;
+  } else {
+    src = curatedSkillSource(projectDir, name);
+  }
+
+  if (!src) return destExists;
+
+  // Project-owned (not in the npm tree): never overwrite. A Grok-bridge
+  // version bump must not smash design-system (etc.) the operator placed.
+  if (destExists && !bundled) {
+    return true;
+  }
+
+  // Bundled: skip when dest SKILL.md is already current/ahead. Do not recopy
+  // the whole .grok/skills tree on every GROK_SKILLS_VERSION bump.
+  if (destExists && destSkillCurrentOrAhead(destMd, src)) {
+    return true;
+  }
+
   copySkillTree(src, destDir);
-  if (src === bundled && existsSync(projectSrc)) {
+  if (bundled && src === bundled && existsSync(projectSrc) && !CORPUS_SKILL_NAMES.has(name)) {
     copyFileSync(projectSrc, join(destDir, 'SKILL.md'));
   }
   return true;
@@ -588,7 +652,11 @@ export function exportGrokSkills(
       ...GROK_CURATED_SKILL_NAMES,
     ]);
     if (prev) {
-      const stale = prev.skills.filter((s) => !nextSet.has(s));
+      // Only drop generated svs-* that left GENERATED_SKILL_NAMES.
+      // Never rm a curated / project skill (design-system) just because the
+      // published allowlist does not list it — that was deleting operator work.
+      const generatedSet = new Set<string>(GENERATED_SKILL_NAMES);
+      const stale = prev.skills.filter((s) => generatedSet.has(s) && !nextSet.has(s));
       if (stale.length > 0) removeManagedSkillDirs(projectDir, stale);
     }
 
@@ -610,8 +678,10 @@ export function exportGrokSkills(
     managedNames.push(...GENERATED_SKILL_NAMES);
 
     for (const name of GROK_CURATED_SKILL_NAMES) {
+      const destMd = join(root, name, 'SKILL.md');
+      const existed = existsSync(destMd);
       if (copyCuratedSkill(projectDir, name)) {
-        curatedCopied += 1;
+        if (!existed && existsSync(destMd)) curatedCopied += 1;
         managedNames.push(name);
       }
     }

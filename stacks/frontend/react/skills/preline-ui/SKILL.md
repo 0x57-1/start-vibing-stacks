@@ -1,28 +1,30 @@
 ---
 name: preline-ui
-version: 2.2.1
+version: 2.3.0
 description: >-
   Preline UI overview — install, CSS import order, HSStaticMethods.autoInit(),
   semantic tokens, theme activation (data-theme + .dark). This skill is the SHORT
-  SUMMARY. For real moon-theme markup, component schemes, 800+ examples, and
-  resolved light/dark token values, ALWAYS load and follow skill preline-moon
-  (offline corpus). Invoke for Preline install/setup; defer component look-ups
-  to preline-moon. Do not invent markup from this file alone.
+  SUMMARY. For moon markup and tokens, resolve skill preline-moon to the live
+  corpus (project or ~/.claude/skills) — the npm package ships a pointer, not
+  the 800-example dump. Invoke for Preline install/setup; defer component
+  look-ups to preline-moon. Do not invent markup from this file alone.
 ---
 
 # Preline UI — overview (summary)
 
-**This skill is the short install / conventions guide.** The full offline
-corpus for the **moon** theme lives in skill **`preline-moon`**.
+**This skill is the short install / conventions guide.** Moon markup lives in
+the **live** `preline-moon` capture (see that skill’s resolve order). The npm
+package does **not** ship the example dump.
 
 | Need | Skill |
 |------|--------|
 | `npm install`, CSS `@import` order, `autoInit()`, theme generator CLI | **this file** (`preline-ui`) |
-| “What markup for modal / drawer / table / select?”, moon tokens, `hs-*` / `data-hs-*`, dark mode | **`preline-moon`** — `INDEX.md` → `components/*.md` → `examples/**` |
+| “What markup for modal / drawer / table / select?”, moon tokens, `hs-*` / `data-hs-*`, dark mode | **`preline-moon`** → resolve `$CORPUS` → `INDEX.md` → `components/` → `examples/` |
 
-**Rule:** when writing or editing Preline UI under moon, open `preline-moon` first.
-Do not compose components from memory using only this summary. Copy from
-`preline-moon/examples/`. Never fetch preline.co if the corpus is installed.
+**Rule:** when writing or editing Preline UI under moon, resolve `preline-moon`
+first (project `.claude/skills` or `~/.claude/skills`). Do not compose from
+this summary. Never fetch preline.co if `$CORPUS` exists. Do not symlink the
+global capture into `.grok/skills/` — `migrate` copy follows the link.
 
 > Pairs with `tailwind-patterns` and `react-standards`. Pick **one** component
 > system per project — do not mix Preline and `shadcn-ui`.
@@ -34,16 +36,18 @@ preline-ui     = summary (install, init, high-level rules)
 preline-moon   = source of truth (schemes, examples, moon token tables, JS refs)
 ```
 
-Path after migrate/setup:
+Resolve `$CORPUS` (first hit with `INDEX.md` + `examples/` or `data/index.json`):
 
 ```
 $CLAUDE_PROJECT_DIR/.claude/skills/preline-moon/
+$HOME/.claude/skills/preline-moon/
 ```
 
 Start every component task with:
 
 ```bash
-cd "$CLAUDE_PROJECT_DIR/.claude/skills/preline-moon"
+# $CORPUS from preline-moon SKILL.md
+cd "$CORPUS"
 grep -i '<intent>' INDEX.md
 ```
 
@@ -55,8 +59,8 @@ Preline is a **semantic token-based design system** built on TailwindCSS. It pro
 - Theme generator for custom color schemes
 - Light + dark mode via `data-theme` + `.dark`
 
-Default theme corpus shipped by start-vibing-stacks: **moon** (`data-theme="theme-moon"`)
-— details only in `preline-moon`.
+Default theme: **moon** (`data-theme="theme-moon"`) — markup/tokens from the live
+`preline-moon` capture, not from this npm tarball.
 
 ## Installation
 
@@ -408,6 +412,6 @@ npx preline-theme-generator /tmp/config.json ./src/styles/themes/brand.css
 
 ## See Also
 
-- **`preline-moon` (required companion)** — full offline moon corpus; this skill is only the summary of that stack’s install rules
+- **`preline-moon` (required companion)** — pointer + resolve `$CORPUS`; this skill is only the install summary
 - `tailwind-patterns` — Tailwind v4 `@theme` / Oxide
 - `react-standards` — React component conventions

@@ -10,6 +10,7 @@ import { fileURLToPath } from 'url';
 import ora from 'ora';
 import * as ui from './ui.js';
 import type { ProjectConfig, StackConfig } from './types.js';
+import { shouldSkipCorpusWrite } from './targets/skill-corpus.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -46,6 +47,7 @@ export function installMemoryOptimization(projectDir: string, overwrite = false)
  */
 function copyDirRecursive(src: string, dest: string, overwrite = false): number {
   if (!existsSync(src)) return 0;
+  if (shouldSkipCorpusWrite(dest)) return 0;
   let count = 0;
 
   mkdirSync(dest, { recursive: true });
@@ -57,6 +59,7 @@ function copyDirRecursive(src: string, dest: string, overwrite = false): number 
     const stat = statSync(srcPath);
 
     if (stat.isDirectory()) {
+      if (shouldSkipCorpusWrite(destPath)) continue;
       count += copyDirRecursive(srcPath, destPath, overwrite);
     } else {
       if (!existsSync(destPath) || overwrite) {

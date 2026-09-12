@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-12 · main · v2.91.1
+`preline-moon` is a thin pointer (no 12M 4.2.0 dump). Grok export never
+prunes project skills off the allowlist; never recopies current curated
+trees; never writes through a corpus symlink. `design-system` stays curated.
+
 ### 2026-09-12 · main · v2.91.0
 React **19.3** + Tailwind **4.3** patterns across stacks. Axios **≥ 1.20.0**
 (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). Flight CVE floor
@@ -54,11 +59,6 @@ Grok-only: UPS work-turn is a one-liner (Claude TASK WORKFLOW untouched).
 Dirty may answer; claim-done still finalize. Auditor VETO is CRIT/HIGH.
 No spawn banner on child agents. SVS package: always publish without asking
 (`execute-ship-ops` 1.5).
-
-### 2026-08-19 · main · v2.90.5
-Named CVEs live in `security-baseline/cve-watchlist.md` (Read on lockfile
-hit). Grok natives + Claude `security-auditor` stay protocol — never inline
-the table; never Read a skill first.
 
 ---
 
