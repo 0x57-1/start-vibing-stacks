@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: React Native / Expo (owned app)
@@ -10,9 +10,12 @@ version: 1.0.0
 ## Order
 
 1. Read `.claude/skills/design-system` for look decisions (seed if missing).
+   Apply with `react-native-theme` — not `react-theme-parity`.
 2. Screens: Expo Router (`expo-router`). HTTP: axios in `lib/api/axios.ts`.
+   Parse with `react-native-zod`; lists via `react-native-query`.
 3. Tokens: `expo-secure-store` only. Refresh is single-flight / one-time.
 4. Preline / Tailwind HTML **does not apply**. Native `View` / `Text`.
+   Tests: `expo-testing`. Labels: `react-native-a11y`.
 
 ## Authorized
 

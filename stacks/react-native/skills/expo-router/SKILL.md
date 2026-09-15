@@ -48,4 +48,6 @@ Set `scheme` in `app.json`. Validate host + path before navigating. Never open a
 
 - `expo-modules` — SecureStore, notifications, config plugins
 - `react-native-http` — axios + refresh
+- `react-native-query` — QueryClient in this layout
 - `react-native-security` — token storage
+- `expo-testing` — screen tests

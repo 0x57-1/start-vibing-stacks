@@ -1,6 +1,6 @@
 ---
 name: tester
-version: 1.2.0
+version: 1.3.0
 description: >
   AFTER new logic — write isolated tests for the stack in active-project.json
   (PHPUnit / Vitest / pytest / Jest+RNTL). Run them. Tool-first.
@@ -48,9 +48,10 @@ If `.commands.test` is empty **or** there is no neighbour test: Read
 `test-coverage/SKILL.md` (stack match) for layout only. Grok copy under
 `.grok/skills/` if present. Never Read a test skill first.
 
-On `react-native`: do **not** Read `vitest-testing`. Query by text /
-`accessibilityLabel` (RNTL). Mock `expo-secure-store` + axios. No Playwright
-/ Preline / `document` in native tests. Maestro/Detox only if already in repo.
+On `react-native`: do **not** Read `vitest-testing` first. Layout miss only
+→ `expo-testing/SKILL.md`. Query by text / `accessibilityLabel` (RNTL).
+Mock `expo-secure-store` + axios. No Playwright / Preline / `document`.
+Maestro/Detox only if already in repo.
 
 ## 2. Write
 

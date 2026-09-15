@@ -43,4 +43,6 @@ Parse `data` from `{ data: T }`. Fail closed on unknown shapes.
 ## See Also
 
 - `react-native-security` — where tokens live
+- `react-native-zod` — parse envelopes
+- `react-native-query` — queryFn uses this client
 - `expo-router` — redirect to login on refresh failure

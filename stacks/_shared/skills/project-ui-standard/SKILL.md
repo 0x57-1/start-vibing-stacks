@@ -1,6 +1,6 @@
 ---
 name: project-ui-standard
-version: 1.0.0
+version: 1.1.0
 description: >-
   Create and protect the project design-system skill for Claude, Grok, and
   Kimi. Use when the repo has frontend/layout, a first UI task, Preline vs
@@ -24,7 +24,11 @@ overwrite or delete either file.
 ## Order (do not skip)
 
 1. **Frontend / layout?** If the repo has no UI (`frontend: none`, no
-   React/Vue/Inertia/Tailwind, no `resources/js` / `src/components`), stop.
+   React/Vue/Inertia/Tailwind/Expo, no `resources/js` / `src/components` /
+   `app/_layout.tsx`), stop.
+1b. **Native (`frontend: native` / Expo)?** Seed `design-system` with
+    `View` / `Text` / StyleSheet. Load `react-native-theme`. Do **not**
+    load Preline or memory `react-theme-parity`.
 2. **Read what already exists** before writing a skill:
    - `.claude/skills/design-system/` and `.grok/skills/design-system/`
    - `docs/design/**`, `docs/style-guide.md`, `DESIGN.md`
@@ -61,4 +65,5 @@ overwrite or delete either file.
 
 - `design-system` — the project file this protocol creates
 - `preline-moon` — pointer; global corpus when Preline is on
-- `react-theme-apply` + memory `react-theme-parity` + `project-design-system`
+- `react-theme-apply` + memory `react-theme-parity` + `project-design-system` (web)
+- `react-native-theme` + memory `react-native-theme.md` (Expo)

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-15 · main · v2.95.0
+RN skills lote: `expo-testing`, `react-native-query`, `react-native-zod`,
+`react-native-theme`, `react-native-a11y`. Drop `react-theme-parity`
+always-on on Expo; native `design-system` seed; quality-gate / test-coverage § RN.
+
 ### 2026-09-15 · main · v2.94.0
 Agents fork on `react-native`: `security-auditor` §4.RN (SecureStore,
 no web overlay), `tester` Jest+RNTL, `documenter` Expo paths.
@@ -53,11 +58,6 @@ a hook without a hard-limit hit. `email-push-marketing` **1.4**.
 Email adapt: follow converting references. Swap only a personal-fact
 approval/limit line to keep-energy; do not flatten to editorial.
 `email-push-marketing` **1.3**.
-
-### 2026-09-12 · main · v2.90.10
-Email port recovery: refuse only official bank/card mark on a fake receipt;
-user logo; finish the rest. No unsolicited restyle or lecture.
-`email-push-marketing-authorization` **1.1**.
 
 ---
 
@@ -136,7 +136,7 @@ start-vibing-stacks/
 │   │   └── workflows/
 │   ├── react-native/
 │   │   ├── stack.json                  # Expo app kinds + gates
-│   │   ├── skills/                     # expo-router, modules, security, eas
+│   │   ├── skills/                     # expo-router, testing, query, theme, a11y, security, eas
 │   │   ├── memories/                   # stack-only (not on php/node)
 │   │   ├── app-templates/              # seed if no app.json
 │   │   └── workflows/

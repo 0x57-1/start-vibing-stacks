@@ -157,7 +157,7 @@ export async function setupProject(
     //    Order matters: base first, then specific (specific can override base).
     if (config.frontend && config.frontend !== 'none') {
       let feSkillCount = 0;
-      const skipPreline = wantsPrelineMoon(projectDir, config.prelineMoon)
+      const skipPreline = wantsPrelineMoon(projectDir, config.prelineMoon, config.frontend)
         ? undefined
         : OPTIONAL_PRELINE_SKILLS;
 

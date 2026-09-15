@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.43.0';
+export const GROK_SKILLS_VERSION = '1.44.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -68,11 +68,17 @@ export const GROK_CURATED_SKILL_NAMES = [
   'react-theme-apply',
   'expo-router',
   'expo-modules',
+  'expo-testing',
   'react-native-security',
   'react-native-secure-coding',
   'react-native-http',
+  'react-native-query',
+  'react-native-zod',
+  'react-native-theme',
+  'react-native-a11y',
   'react-native-patterns',
   'eas-release',
+  'typescript-strict',
 ] as const;
 
 const GENERATED_SKILL_NAMES = [
@@ -232,7 +238,7 @@ function devProcessSkillBody(): string {
     '|-------|------|',
     '| `research-web` | New feature — Grok native (`search_tool`/`use_tool`, else `web_search`) |',
     '| `security-auditor` | Auth/API — CWE veto; `cve-watchlist.md` on lockfile hit |',
-    '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest / Jest+RNTL) |',
+    '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest / Jest+RNTL via expo-testing) |',
     '| `commit-manager` | Scoped HEREDOC commit / push after C2 |',
     '| `documenter` | **After** code commit — domains + RC + Attention crumb (P&S if gotcha=) |',
     '| `domain-updater` | Optional — gotcha / RC skipped (Kimi: after documenter) |',
@@ -420,7 +426,8 @@ function memoryIndexSkillBody(): string {
     '| `passive-public-security-posture.md` | Passive public OSINT only |',
     '| `post-push-ci-verification.md` | After `git push` — verify Actions for the SHA |',
     '| `cursor-ide-edit-sync.md` | Cursor buffer sync / Save file to continue |',
-    '| `react-theme-parity.md` | React UI: CSS-first tokens + check-theme-tokens + both modes |',
+    '| `react-theme-parity.md` | Web React UI only — omitted on `react-native` |',
+    '| `react-native-theme.md` | Expo StyleSheet / design-system (RN stack only) |',
     '| `claude-cross-session-messaging.md` | Native Claude SendMessage vs SVS /svs-peers bus |',
     '',
     'All paths are under `.claude/memories/`.',
@@ -440,8 +447,10 @@ function curatedSkillSource(projectDir: string, name: string): string | null {
   if (existsSync(bundled)) return bundled;
   const frontendReact = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
   if (existsSync(frontendReact)) return frontendReact;
-  const rn = join(PACKAGE_ROOT, 'stacks', 'react-native', 'skills', name, 'SKILL.md');
-  if (existsSync(rn)) return rn;
+  for (const stack of ['nodejs', 'python', 'php', 'react-native'] as const) {
+    const p = join(PACKAGE_ROOT, 'stacks', stack, 'skills', name, 'SKILL.md');
+    if (existsSync(p)) return p;
+  }
   return null;
 }
 
@@ -501,8 +510,10 @@ function bundledSkillMd(name: string): string | null {
   if (existsSync(shared)) return shared;
   const frontend = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
   if (existsSync(frontend)) return frontend;
-  const rn = join(PACKAGE_ROOT, 'stacks', 'react-native', 'skills', name, 'SKILL.md');
-  if (existsSync(rn)) return rn;
+  for (const stack of ['nodejs', 'python', 'php', 'react-native'] as const) {
+    const p = join(PACKAGE_ROOT, 'stacks', stack, 'skills', name, 'SKILL.md');
+    if (existsSync(p)) return p;
+  }
   return null;
 }
 

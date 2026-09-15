@@ -51,7 +51,7 @@ import {
   projectDesignSystemNeedsSeed,
   wantsPrelineMoon,
 } from './targets/project-ui.js';
-import { memoryFilesForStack } from './memories-canon.js';
+import { memoryFilesForStack, WEB_THEME_MEMORY } from './memories-canon.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
 const __m_dirname = dirname(__m_filename);
@@ -637,12 +637,16 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
 
   if (!settings.context) settings.context = {};
   const currentMem = Array.isArray(settings.context.memory_files) ? settings.context.memory_files : [];
-  const missingMem = requiredMemoryFiles.filter(m => !currentMem.includes(m));
-  if (missingMem.length > 0) {
+  const droppedTheme =
+    projectStack === 'react-native' && currentMem.includes(WEB_THEME_MEMORY);
+  const baseMem = droppedTheme ? currentMem.filter((m) => m !== WEB_THEME_MEMORY) : currentMem;
+  const missingMem = requiredMemoryFiles.filter((m) => !baseMem.includes(m));
+  if (missingMem.length > 0 || droppedTheme) {
     if (!dryRun) {
-      settings.context.memory_files = [...currentMem, ...missingMem];
+      settings.context.memory_files = [...baseMem, ...missingMem];
     }
     for (const m of missingMem) report.added.push(`memory_files: ${m}`);
+    if (droppedTheme) report.added.push('memory_files: dropped react-theme-parity (native)');
   } else {
     report.alreadyPresent.push('memory_files');
   }

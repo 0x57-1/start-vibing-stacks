@@ -50,11 +50,13 @@ project/
 1. Screens → Expo Router groups
 2. API → axios + Zod (never fetch for JSON)
 3. Tokens → SecureStore; single-flight refresh
-4. TEST → tester (Jest + RNTL, not Vitest)
-5. SECURITY → security-auditor §4.RN (not web overlay)
-6. QUALITY → tsc && lint
-7. DOCS → documenter (Expo paths) → domain-updater
-8. VALIDATE → stop-validator
+4. TEST → tester + `expo-testing` (Jest + RNTL, not Vitest)
+5. DATA → `react-native-query` + `react-native-zod`
+6. UI → `react-native-theme` + `react-native-a11y` (not react-theme-parity)
+7. SECURITY → security-auditor §4.RN (not web overlay)
+8. QUALITY → tsc && lint (`quality-gate` § RN)
+9. DOCS → documenter (Expo paths) → domain-updater
+10. VALIDATE → stop-validator
 ```
 
 ## Critical Rules
@@ -79,3 +81,4 @@ project/
 - `react-native-authorization.md`
 - `expo-router-modules.md`
 - `mobile-secure-coding.md`
+- `react-native-theme.md` (replaces web `react-theme-parity` on this stack)

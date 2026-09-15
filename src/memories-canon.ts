@@ -44,16 +44,24 @@ export const SHARED_MEMORY_FILES = [
   '.claude/memories/owned-wordpress-plugin-ops.md',
 ] as const;
 
+/** Web CSS theme — drop from always-on when `$STACK` is `react-native`. */
+export const WEB_THEME_MEMORY = '.claude/memories/react-theme-parity.md';
+
 /** Copied from `stacks/{id}/memories/` and auto-loaded only on that stack. */
 export const STACK_MEMORY_FILES: Record<string, readonly string[]> = {
   'react-native': [
     '.claude/memories/react-native-authorization.md',
     '.claude/memories/expo-router-modules.md',
     '.claude/memories/mobile-secure-coding.md',
+    '.claude/memories/react-native-theme.md',
   ],
 };
 
 export function memoryFilesForStack(stack?: string | null): string[] {
   const extra = stack && STACK_MEMORY_FILES[stack] ? STACK_MEMORY_FILES[stack] : [];
-  return [...SHARED_MEMORY_FILES, ...extra];
+  const shared =
+    stack === 'react-native'
+      ? SHARED_MEMORY_FILES.filter((f) => f !== WEB_THEME_MEMORY)
+      : [...SHARED_MEMORY_FILES];
+  return [...shared, ...extra];
 }

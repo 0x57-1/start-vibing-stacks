@@ -1,6 +1,10 @@
 ---
 name: test-coverage
-version: 1.0.0
+version: 1.1.0
+description: >-
+  Isolation and coverage rules after new features. PHP/Node/Python keep
+  PHPUnit/Vitest/Playwright. On react-native, defer to expo-testing
+  (Jest+RNTL) — do not require DB verify or Playwright.
 ---
 
 # Test Coverage — Testing Management
@@ -52,6 +56,20 @@ npx vitest run --coverage
 npx playwright test
 npx playwright test --ui
 ```
+
+### React Native / Expo (Jest + RNTL)
+
+When `$STACK` is `react-native`, **this section wins** over the web rules
+above (no DB verify, no Playwright, auth **is** mocked).
+
+```bash
+npm test
+```
+
+- Skill `expo-testing` is the layout SoT.
+- Mock `expo-secure-store` and `lib/api/axios.ts`.
+- Query by text / `accessibilityLabel`.
+- Maestro/Detox only if the repo already has that runner.
 
 ## Before Commit Checklist
 

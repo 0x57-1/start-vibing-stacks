@@ -36,4 +36,6 @@ in-flight.
 ## See Also
 
 - `expo-router` — screens
+- `react-native-theme` — tokens / StyleSheet
+- `react-native-a11y` — labels + 44pt
 - `project-ui-standard` — seed/protect design-system

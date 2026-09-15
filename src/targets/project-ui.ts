@@ -67,6 +67,8 @@ const DESIGN_SOURCE_CANDIDATES = [
   'resources/js/Components/Common/uiStyles.ts',
   'src/lib/uiStyles.js',
   'src/lib/uiStyles.ts',
+  'lib/theme.ts',
+  'src/lib/theme.ts',
 ];
 
 function readJson(path: string): Record<string, unknown> | null {
@@ -159,11 +161,17 @@ export function writeProjectUiFile(projectDir: string, data: ProjectUiFile): voi
   writeFileSync(dest, JSON.stringify(data, null, 2) + '\n');
 }
 
+export function isNativeUi(frontend?: string): boolean {
+  return frontend === 'native';
+}
+
 /** True when this project should get the Preline pointer (not the 100 MB dump). */
 export function wantsPrelineMoon(
   projectDir: string,
-  configPrelineMoon?: boolean
+  configPrelineMoon?: boolean,
+  frontend?: string
 ): boolean {
+  if (isNativeUi(frontend)) return false;
   if (configPrelineMoon === true) return true;
   if (configPrelineMoon === false) return false;
   const file = readProjectUiFile(projectDir);
@@ -247,6 +255,74 @@ that lives only in the diff is not a standard; the next agent re-derives it.
 `;
 }
 
+function seedDesignSystemBodyNative(projectName: string, sources: string[]): string {
+  const sourceList =
+    sources.length > 0
+      ? sources.map((s) => `- \`${s}\``).join('\n')
+      : '- _(none found — fill Decisions as you decide)_';
+
+  return `---
+name: design-system
+description: >-
+  THE ${projectName} UI standard — decisions THIS Expo / React Native
+  project already made (color, type, spacing, roles). Start here for any
+  screen. Implement with StyleSheet or existing NativeWind — not Preline
+  HTML. Companion: react-native-theme.
+---
+
+# ${projectName} — project UI standard (native)
+
+**You are in the right place if the question is "what does THIS app look like".**
+This file is the standard. It is not a vendor dump.
+
+Claude, Grok, and Kimi all Read this path (Grok also has a copy under
+\`.grok/skills/design-system/\`). **Never delete or rewrite this skill** on
+migrate. Append a decision in the same commit as the UI change.
+
+## Precedence
+
+| Layer | Where | Job |
+|---|---|---|
+| **1. Standard** | this skill | What this repo already decided |
+| **2. In-repo tokens** | \`lib/theme.ts\` / StyleSheet listed below | Measurements win if this file is stale |
+| **3. Implementation** | skill \`react-native-theme\` | \`View\` / \`Text\` / \`Pressable\` |
+
+Do **not** load Preline, \`react-theme-apply\`, or memory \`react-theme-parity\`.
+
+## Sources already in the repo
+
+${sourceList}
+
+Read those first. Lift decisions here.
+
+## Decisions
+
+<!-- Append. Do not erase a row because a new screen looks different — fix the screen. -->
+
+| Area | Use | Do not |
+|---|---|---|
+| Primitives | \`View\` / \`Text\` / \`Pressable\` | \`div\` / HTML \`className\` |
+| Lists | \`FlatList\` | Card grid of 1k rows |
+| Theme | tokens in \`lib/theme.ts\` or StyleSheet | Raw hex on every screen |
+
+## Recipes / tokens
+
+Point at \`lib/theme.ts\` (or NativeWind theme if the repo already has it).
+Parents pass **role** (\`primary\`, \`ghost\`), not a style string.
+
+## Maintenance
+
+When a pattern is decided: update this file in the same commit.
+
+## See Also
+
+- \`react-native-theme\` — StyleSheet / NativeWind apply
+- \`react-native-patterns\` — lists / SafeArea
+- \`react-native-a11y\` — labels + 44pt targets
+- \`project-ui-standard\` — create/protect this skill
+`;
+}
+
 export function mirrorDesignSystemToGrok(projectDir: string): boolean {
   const src = join(projectDir, DESIGN_SYSTEM_SKILL_REL);
   const dest = join(projectDir, GROK_DESIGN_SYSTEM_REL);
@@ -267,12 +343,21 @@ export function ensureProjectDesignSystem(
 
   if (!existsSync(dest) && hasFrontendLayout(projectDir, opts.frontend)) {
     const name = opts.projectName || readJson(join(projectDir, 'package.json'))?.['name'] as string || 'project';
-    const preline = wantsPrelineMoon(projectDir, opts.prelineMoon);
+    const native = isNativeUi(opts.frontend);
+    const preline = native ? false : wantsPrelineMoon(projectDir, opts.prelineMoon, opts.frontend);
     mkdirSync(dirname(dest), { recursive: true });
-    writeFileSync(
-      dest,
-      seedDesignSystemBody(String(name), sources.filter((s) => !s.endsWith('design-system/SKILL.md')), preline, hasGlobalPrelineCorpus())
-    );
+    const body = native
+      ? seedDesignSystemBodyNative(
+          String(name),
+          sources.filter((s) => !s.endsWith('design-system/SKILL.md'))
+        )
+      : seedDesignSystemBody(
+          String(name),
+          sources.filter((s) => !s.endsWith('design-system/SKILL.md')),
+          preline,
+          hasGlobalPrelineCorpus()
+        );
+    writeFileSync(dest, body);
     seeded = true;
   }
 
@@ -316,7 +401,7 @@ export function ensureProjectUi(
   designSystem: { seeded: boolean; mirrored: boolean; sources: string[] };
   preline: { written: boolean; skipped: string | null };
 } {
-  const prelineMoon = wantsPrelineMoon(projectDir, opts.prelineMoon);
+  const prelineMoon = wantsPrelineMoon(projectDir, opts.prelineMoon, opts.frontend);
   const designSystem = ensureProjectDesignSystem(projectDir, { ...opts, prelineMoon });
   const preline = ensurePrelinePointer(projectDir, { prelineMoon });
   writeProjectUiFile(projectDir, {

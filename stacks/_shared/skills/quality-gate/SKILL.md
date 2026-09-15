@@ -1,7 +1,7 @@
 ---
 name: quality-gate
-version: 1.0.1
-description: Run stack quality checks (typecheck → lint → test → build) before commit. Invoke after dead-code hygiene and before commit-manager. Blocks on required gate failures.
+version: 1.1.0
+description: Run stack quality checks (typecheck → lint → test → build) before commit. Invoke after dead-code hygiene and before commit-manager. Blocks on required gate failures. React Native: tsc, lint, npm test, optional expo-doctor.
 ---
 
 # Quality Gate — Verification System
@@ -46,6 +46,17 @@ bun run build                              # Build verification (must come AFTER
 > deploy with `command not found / exit 127`. `check-build-scripts.mjs`
 > catches this statically — see `nextjs-app-router` skill, section
 > "Build Script Hygiene".
+
+### React Native / Expo
+```bash
+npx tsc --noEmit          # required
+npm run lint              # required if the script exists
+npm test                  # optional unless active-project marks it required
+npx expo-doctor           # optional — needs network
+```
+
+Read `qualityGates` from `active-project.json` when present. Do **not** run
+Vitest, `next build`, or Playwright on this stack.
 
 ## Gate Results
 

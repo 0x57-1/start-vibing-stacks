@@ -1,6 +1,6 @@
 ---
 name: tester
-version: 1.1.0
+version: 1.2.0
 description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL)."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
@@ -35,7 +35,7 @@ Load the appropriate skill from `.claude/skills/` **only if** there is no neighb
 - PHP → `phpunit-testing/SKILL.md`
 - Node → `vitest-testing/SKILL.md`
 - Python → `pytest-testing/SKILL.md` (or `test-coverage` isolation rules)
-- React Native → **do not** load `vitest-testing`. Mirror a neighbour `*.test.tsx`. Use `test-coverage` for isolation rules only.
+- React Native → `expo-testing/SKILL.md`. Do **not** load `vitest-testing`. `test-coverage` isolation / no-skip only.
 
 ## Step 3: Create Tests
 
