@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.41.0';
+export const GROK_SKILLS_VERSION = '1.42.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -66,6 +66,13 @@ export const GROK_CURATED_SKILL_NAMES = [
   'preline-moon',
   'preline-ui',
   'react-theme-apply',
+  'expo-router',
+  'expo-modules',
+  'react-native-security',
+  'react-native-secure-coding',
+  'react-native-http',
+  'react-native-patterns',
+  'eas-release',
 ] as const;
 
 const GENERATED_SKILL_NAMES = [
@@ -433,6 +440,8 @@ function curatedSkillSource(projectDir: string, name: string): string | null {
   if (existsSync(bundled)) return bundled;
   const frontendReact = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
   if (existsSync(frontendReact)) return frontendReact;
+  const rn = join(PACKAGE_ROOT, 'stacks', 'react-native', 'skills', name, 'SKILL.md');
+  if (existsSync(rn)) return rn;
   return null;
 }
 
@@ -492,6 +501,8 @@ function bundledSkillMd(name: string): string | null {
   if (existsSync(shared)) return shared;
   const frontend = join(PACKAGE_ROOT, 'stacks', 'frontend', 'react', 'skills', name, 'SKILL.md');
   if (existsSync(frontend)) return frontend;
+  const rn = join(PACKAGE_ROOT, 'stacks', 'react-native', 'skills', name, 'SKILL.md');
+  if (existsSync(rn)) return rn;
   return null;
 }
 

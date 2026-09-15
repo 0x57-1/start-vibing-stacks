@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.25
+svs-version: 1.2.26
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -12,7 +12,7 @@ targets: kimi, grok, cursor
 
 ## 30 Seconds Overview
 
-CLI tool published to npm as `start-vibing-stacks`. Generates a complete `.claude/` setup (agents, skills, hooks, commands, configs) and `CLAUDE.md` for a target project, parametrized by stack (PHP / Node.js / Python). Auto-detects existing project standards (lint configs, lockfiles, env shapes) and either adapts to them or seeds defaults. Also ships a `migrate` subcommand that diffs installed skill versions against the bundled package and upgrades outdated ones.
+CLI tool published to npm as `start-vibing-stacks`. Generates a complete `.claude/` setup (agents, skills, hooks, commands, configs) and `CLAUDE.md` for a target project, parametrized by stack (PHP / Node.js / Python / React Native). Auto-detects existing project standards (lint configs, lockfiles, env shapes) and either adapts to them or seeds defaults. Also ships a `migrate` subcommand that diffs installed skill versions against the bundled package and upgrades outdated ones.
 
 Run via `npx start-vibing-stacks` — no install required.
 
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-09-15 · main · v2.93.0
+New react-native stack (Expo). Setup picks app kind; seeds only an
+empty tree; RN memories + secure-coding stay off other stacks.
 
 ### 2026-09-12 · main · v2.92.1
 Resume treats `svs-manifest.packageVersion` as pending. A package bump
@@ -66,10 +70,6 @@ finish. No restyle / no lecture.
 Ads creative identity: no stego/hex mutator, no `?v=` on `image_link`, no
 duplicate-review promise. `ad-creative-cloaking` **1.2**.
 
-### 2026-08-19 · main · v2.90.8
-Grok documenter same-pass: domains + RC + Attention crumb (P&S if gotcha=).
-Claude documenter → domain-updater unchanged.
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -102,6 +102,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local forensic dump → extract **clean** checkout/upsell/recovery architecture; rebuild on **user** brand (no dump tokens, no email-bump/UTM fraud, no stalkerware)
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
+- Owned Expo / React Native app (user’s store listing): Expo Router, SecureStore, EAS, config plugins, axios to **their** mobile API. Native `View`/`Text` — not Preline HTML. No SSL-kill / jailbreak bypass; no tokens in `EXPO_PUBLIC_*`.
 - React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.

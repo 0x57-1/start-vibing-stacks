@@ -16,6 +16,8 @@ import {
   shouldSkipProjectOwnedWrite,
 } from './targets/skill-corpus.js';
 import { ensureProjectUi, wantsPrelineMoon } from './targets/project-ui.js';
+import { memoryFilesForStack } from './memories-canon.js';
+import { seedReactNativeApp } from './react-native-seed.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -327,6 +329,12 @@ export async function setupProject(
       copyDirRecursive(sharedMemoriesDir, join(claudeDir, 'memories'), options.force);
     }
 
+    // 12b2. Stack-only memories (e.g. React Native) — not loaded on other stacks
+    const stackMemoriesDir = join(PACKAGE_ROOT, 'stacks', config.stack, 'memories');
+    if (existsSync(stackMemoriesDir)) {
+      copyDirRecursive(stackMemoriesDir, join(claudeDir, 'memories'), options.force);
+    }
+
     // 12c. Copy Memory Optimization Pipeline (MOP) if flag is present
     if (options.withMemoryOptimization) {
       const mopCopied = installMemoryOptimization(projectDir, Boolean(options.force));
@@ -354,46 +362,7 @@ export async function setupProject(
         compaction_threshold: 0.85,
         enable_compaction: true,
         enable_semantic_search: true,
-        memory_files: [
-          '.claude/CLAUDE.md',
-          'CLAUDE.md',
-          '.claude/memories/funnel-content-copy.md',
-          '.claude/memories/donation-cause-funnel-adaptation.md',
-          '.claude/memories/competitive-intelligence-research.md',
-          '.claude/memories/web-content-memory-ingestion.md',
-          '.claude/memories/advertising-optimization-authorization.md',
-          '.claude/memories/ad-platform-detector-optimization.md',
-          '.claude/memories/ad-creative-cloaking.md',
-          '.claude/memories/ad-creative-audio-licensing.md',
-          '.claude/memories/ad-bot-evasion.md',
-          '.claude/memories/ad-review-and-traffic-filtering.md',
-          '.claude/memories/paid-ads-landing-validation.md',
-          '.claude/memories/owned-infra-ops.md',
-          '.claude/memories/owned-server-backup.md',
-          '.claude/memories/own-subscription-api-integration.md',
-          '.claude/memories/local-cli-auth-capture.md',
-          '.claude/memories/defensive-security-review.md',
-          '.claude/memories/passive-public-security-posture.md',
-          '.claude/memories/authorized-security-assessment.md',
-          '.claude/memories/claude-permission-modes.md',
-          '.claude/memories/email-push-marketing-authorization.md',
-          '.claude/memories/post-push-ci-verification.md',
-          '.claude/memories/cursor-ide-edit-sync.md',
-          '.claude/memories/multi-target-mcp-discovery.md',
-          '.claude/memories/forensic-funnel-legitimate-rebuild.md',
-          '.claude/memories/owned-checkout-gateway-ops.md',
-          '.claude/memories/local-checkout-artifact-analysis.md',
-          '.claude/memories/react-theme-parity.md',
-          '.claude/memories/claude-cross-session-messaging.md',
-          '.claude/memories/verify-before-claim.md',
-          '.claude/memories/execute-ship-ops.md',
-          '.claude/memories/quality-gate-before-push.md',
-          '.claude/memories/cdn-asset-deploy-verify.md',
-          '.claude/memories/oauth-integration-preflight.md',
-          '.claude/memories/remove-ai-watermarks.md',
-          '.claude/memories/multi-instance-main-only.md',
-          '.claude/memories/owned-wordpress-plugin-ops.md',
-        ],
+        memory_files: memoryFilesForStack(config.stack),
       },
 
       permissions: {
@@ -575,6 +544,19 @@ export async function setupProject(
 
     writeFileSync(join(claudeDir, 'settings.json'), JSON.stringify(settings, null, '\t'));
 
+    if (config.stack === 'react-native') {
+      const seed = seedReactNativeApp(projectDir, {
+        framework: config.framework,
+        projectName: config.name,
+        force: options.force,
+      });
+      if (seed.seeded > 0) {
+        ui.info(`Seeded Expo app (${config.framework}): ${seed.seeded} file(s). Run npm install && npx expo start`);
+      } else if (seed.skipped) {
+        ui.info(`React Native seed: ${seed.skipped}`);
+      }
+    }
+
     const uiState = ensureProjectUi(projectDir, {
       frontend: config.frontend,
       projectName: config.name,
@@ -593,7 +575,14 @@ export async function setupProject(
     // 15. Auto-install UI/UX Pro Max skill for frontend projects
     const uiproSkillPath = join(projectDir, '.cursor', 'skills', 'ui-ux-pro-max', 'SKILL.md');
     const uiproClaudePath = join(claudeDir, 'skills', 'ui-ux-pro-max', 'SKILL.md');
-    if (config.frontend && config.frontend !== 'none' && !existsSync(uiproSkillPath) && !existsSync(uiproClaudePath)) {
+    if (
+      config.stack !== 'react-native' &&
+      config.frontend &&
+      config.frontend !== 'none' &&
+      config.frontend !== 'native' &&
+      !existsSync(uiproSkillPath) &&
+      !existsSync(uiproClaudePath)
+    ) {
       spinner.start('Installing UI/UX Pro Max skill...');
       try {
         const { execFileSync: execF } = await import('child_process');

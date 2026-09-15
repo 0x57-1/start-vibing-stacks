@@ -37,6 +37,9 @@ const FRONTEND_DEPS = [
   '@inertiajs/react',
   '@inertiajs/vue3',
   'preline',
+  'expo',
+  'react-native',
+  'expo-router',
 ];
 
 const FRONTEND_MARKERS = [
@@ -44,6 +47,7 @@ const FRONTEND_MARKERS = [
   'resources/css',
   'src/components',
   'src/app',
+  'app/_layout.tsx',
   'app/globals.css',
   'tailwind.config.js',
   'tailwind.config.ts',

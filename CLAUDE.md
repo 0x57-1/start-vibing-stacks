@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-15 · main · v2.93.0
+New **react-native** stack (Expo is RN). Setup asks for app kind
+(tabs / auth-panel / blank / bare), seeds Expo only if the tree is
+empty, and loads RN memories + secure-coding skills.
+
 ### 2026-09-12 · main · v2.92.1
 Resume / migrate treat `svs-manifest.packageVersion` as pending. A
 package bump shows **Update from package** even when skill/hook
@@ -54,16 +59,11 @@ Ads creative identity hard limit: no stego/hex “undetectable” mutator, no
 `?v=` on `image_link`, no “won’t be detected as duplicate” promise. New look
 or stop — memory `ad-creative-cloaking` **1.2**.
 
-### 2026-08-19 · main · v2.90.8
-Grok documenter (same spawn) writes codebase-knowledge crumbs: one Attention
-from why=, P&S if gotcha=. HEAD mapping is source of truth. Claude chain
-unchanged (documenter → domain-updater).
-
 ---
 
 ## 30 Seconds Overview
 
-CLI tool published to npm as `start-vibing-stacks`. Generates a complete `.claude/` setup (agents, skills, hooks, commands, configs) and `CLAUDE.md` for a target project, parametrized by stack (PHP / Node.js / Python). Auto-detects existing project standards (lint configs, lockfiles, env shapes) and either adapts to them or seeds defaults. Also ships a `migrate` subcommand that diffs installed skill versions against the bundled package and upgrades outdated ones.
+CLI tool published to npm as `start-vibing-stacks`. Generates a complete `.claude/` setup (agents, skills, hooks, commands, configs) and `CLAUDE.md` for a target project, parametrized by stack (PHP / Node.js / Python / React Native). Auto-detects existing project standards (lint configs, lockfiles, env shapes) and either adapts to them or seeds defaults. Also ships a `migrate` subcommand that diffs installed skill versions against the bundled package and upgrades outdated ones.
 
 Run via `npx start-vibing-stacks` — no install required.
 
@@ -134,11 +134,17 @@ start-vibing-stacks/
 │   │   ├── stack.json
 │   │   ├── skills/                     # 9 Python skills (FastAPI, Django, Pydantic, ...)
 │   │   └── workflows/
+│   ├── react-native/
+│   │   ├── stack.json                  # Expo app kinds + gates
+│   │   ├── skills/                     # expo-router, modules, security, eas
+│   │   ├── memories/                   # stack-only (not on php/node)
+│   │   ├── app-templates/              # seed if no app.json
+│   │   └── workflows/
 │   └── php/
 │       ├── stack.json
 │       ├── skills/                     # 12 PHP/Laravel skills
 │       └── workflows/
-├── templates/                          # CLAUDE-{php,nodejs,python,default}.md
+├── templates/                          # CLAUDE-{php,nodejs,python,react-native,default}.md
 └── .github/workflows/
     ├── auto-release.yml                # version bump on main → tag + release + publish
     └── publish.yml                     # manual / GitHub Release → npm publish
@@ -161,8 +167,11 @@ start-vibing-stacks/
 10. copy stacks/{stack}/scripts/*     → <project>/scripts/   (non-destructive merge)
 10b. copy stacks/_shared/scripts/*    → <project>/scripts/   (theme-token guard, …)
 11. copy stacks/_shared/commands/*    → .claude/commands/
-12. write .claude/settings.json       (hooks, MCP, agents, workflow, rules, quality_gates)
-13. write CLAUDE.md from templates/CLAUDE-{stack}.md (if missing)
+12. copy stacks/_shared/memories/*    → .claude/memories/
+12b. copy stacks/{stack}/memories/*   → .claude/memories/   (react-native only today)
+12c. react-native: seed app-templates/{kind} if no app.json / app/_layout.tsx
+13. write .claude/settings.json       (hooks, MCP, agents, workflow, rules, quality_gates)
+14. write CLAUDE.md from templates/CLAUDE-{stack}.md (if missing)
 ```
 
 **Rule:** the `frameworks[].skills` and `databases[].skills` arrays in `stack.json` are **declarative metadata** for discovery (UI, agent reasoning) — they do **not** drive `setup.ts` filtering. Setup copies the whole stack folder. Per-skill scoping is enforced at runtime by the `description:` frontmatter in each `SKILL.md` (Claude only auto-loads when the description matches the task).
@@ -187,7 +196,7 @@ This is enforced in `src/setup.ts` (lines ~263, 274). Any new hook added to the 
 
 | Folder | Loads in |
 |---|---|
-| `stacks/_shared/skills/` | Every generated project (Node, Python, PHP) |
+| `stacks/_shared/skills/` | Every generated project (Node, Python, PHP, RN) |
 | `stacks/{stack}/skills/` | Every project for that stack |
 | `stacks/frontend/{fe}/skills/` | Every project that picks that frontend |
 

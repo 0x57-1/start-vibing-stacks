@@ -12,7 +12,13 @@ import { fileURLToPath } from 'url';
 import inquirer from 'inquirer';
 import chalk from 'chalk';
 import * as ui from './ui.js';
-import { detectProject, detectPhpFramework, detectNodeFramework, detectPythonFramework } from './detector.js';
+import {
+  detectProject,
+  detectPhpFramework,
+  detectNodeFramework,
+  detectPythonFramework,
+  detectReactNativeFramework,
+} from './detector.js';
 import { autoInstall, installComposer, installClaudeCode } from './installer.js';
 import { loadStackConfig, setupProject } from './setup.js';
 import { selectMcpServers, installMcpServers } from './mcp.js';
@@ -137,7 +143,7 @@ const AVAILABLE_STACKS: StackChoice[] = [
   { id: 'php', name: 'PHP 8.3+', icon: '🐘', available: true },
   { id: 'nodejs', name: 'Node.js / TypeScript', icon: '📦', available: true },
   { id: 'python', name: 'Python 3.12+', icon: '🐍', available: true },
-
+  { id: 'react-native', name: 'React Native / Expo', icon: '📱', available: true },
 ];
 
 // =============================================================================
@@ -466,7 +472,9 @@ async function main(): Promise<void> {
         ? detectNodeFramework(projectDir)
         : stackId === 'python'
           ? detectPythonFramework(projectDir)
-          : null;
+          : stackId === 'react-native'
+            ? detectReactNativeFramework(projectDir)
+            : null;
 
   const defaultFramework =
     detectedFramework ||
@@ -477,7 +485,7 @@ async function main(): Promise<void> {
     {
       type: 'list',
       name: 'framework',
-      message: 'Select framework:',
+      message: stackId === 'react-native' ? 'Select app:' : 'Select framework:',
       default: defaultFramework,
       choices: stackConfig.frameworks.map((f) => ({
         name: `${f.icon}  ${f.name}`,
@@ -511,21 +519,29 @@ async function main(): Promise<void> {
 
   const defaultFrontend = compatibleFrontends.find((f) => f.default)?.id || undefined;
 
-  const { frontend } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'frontend',
-      message: 'Frontend included?',
-      default: defaultFrontend,
-      choices: compatibleFrontends.map((f) => ({
-        name: `${f.icon}  ${f.name}`,
-        value: f.id,
-      })),
-    },
-  ]);
+  let frontend: string;
+  if (stackId === 'react-native' && compatibleFrontends.length === 1) {
+    frontend = compatibleFrontends[0]?.id ?? 'native';
+  } else {
+    const fe = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'frontend',
+        message: 'Frontend included?',
+        default: defaultFrontend,
+        choices: compatibleFrontends.map((f) => ({
+          name: `${f.icon}  ${f.name}`,
+          value: f.id,
+        })),
+      },
+    ]);
+    frontend = fe.frontend;
+  }
 
   let prelineMoon: boolean | undefined;
-  if (frontend && frontend !== 'none') {
+  if (stackId === 'react-native') {
+    prelineMoon = false;
+  } else if (frontend && frontend !== 'none') {
     const det = detectPreline(projectDir);
     const globalOk = hasGlobalPrelineCorpus();
     const { prelineChoice } = await inquirer.prompt([
@@ -653,11 +669,13 @@ async function main(): Promise<void> {
     'Database': database,
     'Frontend': frontend,
     'Preline moon':
-      frontend && frontend !== 'none'
-        ? prelineMoon
-          ? 'yes (global ~/.claude/skills/preline-moon)'
-          : 'no (design-system only)'
-        : 'n/a',
+      stackId === 'react-native'
+        ? 'n/a (React Native — no HTML/Preline)'
+        : frontend && frontend !== 'none'
+          ? prelineMoon
+            ? 'yes (global ~/.claude/skills/preline-moon)'
+            : 'no (design-system only)'
+          : 'n/a',
     'Deploy': '🐙 GitHub (git push)',
     'Standards': standardsLabel,
     'Agents': '6 universal',

@@ -1,12 +1,12 @@
 # start-vibing-stacks
 
-CLI that installs a **shared AI engineering setup** into a repo: agents, skills, hooks, memories, and quality gates for **Claude Code**, **Kimi Code**, **Grok** (Build 1.0+), and **Cursor** — parametrized by stack (PHP / Node / Python).
+CLI that installs a **shared AI engineering setup** into a repo: agents, skills, hooks, memories, and quality gates for **Claude Code**, **Kimi Code**, **Grok** (Build 1.0+), and **Cursor** — parametrized by stack (PHP / Node / Python / React Native).
 
 ```bash
 npx start-vibing-stacks@latest
 ```
 
-Latest: **v2.92.1** — a `package.json` bump shows **Update from package** even when skill/hook semvers already match.
+Latest: **v2.93.0** — new **React Native / Expo** stack (app kind at setup; seed only if the tree is empty).
 
 ---
 
@@ -21,7 +21,7 @@ Latest: **v2.92.1** — a `package.json` bump shows **Update from package** even
 | Multi-instance safety | `.claude/state/` locks + `/svs-peers`; Claude ≥2.1.224 also has native `SendMessage` |
 | Theme-aware React UI | Preline moon corpus + `react-theme-apply` + `react-theme-parity` + `check-theme-tokens.mjs` |
 
-**Not** a framework or app generator. It wires agents/skills/hooks around *your* codebase.
+Wires agents/skills/hooks around *your* codebase. Exception: the **react-native** stack can seed an Expo Router app (tabs / auth-panel / blank) when `app.json` is missing.
 
 ---
 

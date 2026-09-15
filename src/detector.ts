@@ -38,6 +38,11 @@ const STACK_SIGNATURES: StackSignature[] = [
   { id: 'python', files: ['Pipfile'], weight: 85, reason: 'Pipfile detected' },
   { id: 'python', files: ['setup.py'], weight: 75, reason: 'setup.py detected' },
 
+  // React Native / Expo — score above generic package.json so empty-ish Expo wins
+  { id: 'react-native', files: ['app.json'], weight: 70, reason: 'app.json detected' },
+  { id: 'react-native', files: ['app.config.ts'], weight: 90, reason: 'Expo app.config.ts detected' },
+  { id: 'react-native', files: ['app.config.js'], weight: 88, reason: 'Expo app.config.js detected' },
+
 ];
 
 export function detectProject(projectDir: string): DetectionResult {
@@ -67,6 +72,32 @@ export function detectProject(projectDir: string): DetectionResult {
   // Check for git
   result.hasGit = existsSync(join(projectDir, '.git'));
 
+  let rnPkgBoost: { confidence: number; reasons: string[] } | null = null;
+  const pkgPath = join(projectDir, 'package.json');
+  if (existsSync(pkgPath)) {
+    try {
+      const pkg = JSON.parse(readFileSync(pkgPath, 'utf8')) as {
+        dependencies?: Record<string, string>;
+        devDependencies?: Record<string, string>;
+      };
+      const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+      if (deps['expo'] || deps['react-native'] || deps['expo-router']) {
+        rnPkgBoost = {
+          confidence: 96,
+          reasons: [
+            deps['expo']
+              ? 'package.json#expo'
+              : deps['expo-router']
+                ? 'package.json#expo-router'
+                : 'package.json#react-native',
+          ],
+        };
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   // Score each stack
   const stackScores = new Map<string, { confidence: number; reasons: string[] }>();
 
@@ -78,6 +109,13 @@ export function detectProject(projectDir: string): DetectionResult {
       existing.reasons.push(sig.reason);
       stackScores.set(sig.id, existing);
     }
+  }
+
+  if (rnPkgBoost) {
+    const existing = stackScores.get('react-native') || { confidence: 0, reasons: [] };
+    existing.confidence = Math.min(100, existing.confidence + rnPkgBoost.confidence);
+    existing.reasons.push(...rnPkgBoost.reasons);
+    stackScores.set('react-native', existing);
   }
 
   // Convert to sorted array
@@ -153,5 +191,26 @@ export function detectPythonFramework(projectDir: string): string | null {
     return 'scripts';
   }
 
+  return null;
+}
+
+/** App kind inside a React Native / Expo project. */
+export function detectReactNativeFramework(projectDir: string): string | null {
+  if (existsSync(join(projectDir, 'app', '(auth)', 'login.tsx'))) return 'expo-auth-panel';
+  if (existsSync(join(projectDir, 'app', '(tabs)', '_layout.tsx'))) return 'expo-tabs';
+  if (
+    existsSync(join(projectDir, 'android', 'app', 'build.gradle')) &&
+    !existsSync(join(projectDir, 'app.json')) &&
+    !existsSync(join(projectDir, 'app.config.ts'))
+  ) {
+    return 'bare';
+  }
+  if (
+    existsSync(join(projectDir, 'app', '_layout.tsx')) ||
+    existsSync(join(projectDir, 'app.json')) ||
+    existsSync(join(projectDir, 'app.config.ts'))
+  ) {
+    return 'expo-blank';
+  }
   return null;
 }

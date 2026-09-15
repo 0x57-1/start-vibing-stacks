@@ -51,6 +51,7 @@ import {
   projectDesignSystemNeedsSeed,
   wantsPrelineMoon,
 } from './targets/project-ui.js';
+import { memoryFilesForStack } from './memories-canon.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
 const __m_dirname = dirname(__m_filename);
@@ -267,9 +268,20 @@ function listCommandSources(): Array<{ source: string; name: string }> {
   return listFiles(dir, ['.md']).map(n => ({ source: join(dir, n), name: n }));
 }
 
-function listMemorySources(): Array<{ source: string; name: string }> {
-  const dir = join(CLI_ROOT, 'stacks', '_shared', 'memories');
-  return listFiles(dir, ['.md']).map(n => ({ source: join(dir, n), name: n }));
+function listMemorySources(stack?: string): Array<{ source: string; name: string }> {
+  const out: Array<{ source: string; name: string }> = [];
+  const seen = new Set<string>();
+  const dirs = [join(CLI_ROOT, 'stacks', '_shared', 'memories')];
+  if (stack) dirs.push(join(CLI_ROOT, 'stacks', stack, 'memories'));
+  for (const dir of dirs) {
+    if (!existsSync(dir)) continue;
+    for (const n of listFiles(dir, ['.md'])) {
+      if (seen.has(n)) continue;
+      seen.add(n);
+      out.push({ source: join(dir, n), name: n });
+    }
+  }
+  return out;
 }
 
 function projectUiNeedsSeed(projectDir: string): boolean {
@@ -388,7 +400,7 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
   }
 
   if (scope === 'all' || scope === 'memories') {
-    for (const { source, name } of listMemorySources()) {
+    for (const { source, name } of listMemorySources(config.stack)) {
       const target = join(projectDir, '.claude', 'memories', name);
       const bundledVersion = parseFrontmatterVersion(source);
       if (!bundledVersion) continue;
@@ -619,48 +631,9 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     report.alreadyPresent.push('permissions.defaultMode');
   }
 
-  // Memory files — canonical always-on memories (ads/funnel + owned-infra + email/push).
-  // This list is the single source of truth for auto-loaded .md memories.
-  const requiredMemoryFiles = [
-    '.claude/CLAUDE.md',
-    'CLAUDE.md',
-    '.claude/memories/funnel-content-copy.md',
-    '.claude/memories/donation-cause-funnel-adaptation.md',
-    '.claude/memories/competitive-intelligence-research.md',
-    '.claude/memories/web-content-memory-ingestion.md',
-    '.claude/memories/advertising-optimization-authorization.md',
-    '.claude/memories/ad-platform-detector-optimization.md',
-    '.claude/memories/ad-creative-cloaking.md',
-    '.claude/memories/ad-creative-audio-licensing.md',
-    '.claude/memories/ad-bot-evasion.md',
-    '.claude/memories/ad-review-and-traffic-filtering.md',
-    '.claude/memories/paid-ads-landing-validation.md',
-    '.claude/memories/owned-infra-ops.md',
-    '.claude/memories/owned-server-backup.md',
-    '.claude/memories/own-subscription-api-integration.md',
-    '.claude/memories/local-cli-auth-capture.md',
-    '.claude/memories/defensive-security-review.md',
-    '.claude/memories/passive-public-security-posture.md',
-    '.claude/memories/authorized-security-assessment.md',
-    '.claude/memories/claude-permission-modes.md',
-    '.claude/memories/email-push-marketing-authorization.md',
-    '.claude/memories/post-push-ci-verification.md',
-    '.claude/memories/cursor-ide-edit-sync.md',
-    '.claude/memories/multi-target-mcp-discovery.md',
-    '.claude/memories/forensic-funnel-legitimate-rebuild.md',
-    '.claude/memories/owned-checkout-gateway-ops.md',
-    '.claude/memories/local-checkout-artifact-analysis.md',
-    '.claude/memories/react-theme-parity.md',
-    '.claude/memories/claude-cross-session-messaging.md',
-    '.claude/memories/verify-before-claim.md',
-    '.claude/memories/execute-ship-ops.md',
-    '.claude/memories/quality-gate-before-push.md',
-    '.claude/memories/cdn-asset-deploy-verify.md',
-    '.claude/memories/oauth-integration-preflight.md',
-    '.claude/memories/remove-ai-watermarks.md',
-    '.claude/memories/multi-instance-main-only.md',
-    '.claude/memories/owned-wordpress-plugin-ops.md',
-  ];
+  // Memory files — shared always-on + stack extras (see memories-canon.ts).
+  const projectStack = loadProjectConfig(projectDir)?.stack;
+  const requiredMemoryFiles = memoryFilesForStack(projectStack);
 
   if (!settings.context) settings.context = {};
   const currentMem = Array.isArray(settings.context.memory_files) ? settings.context.memory_files : [];

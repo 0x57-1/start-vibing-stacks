@@ -1,0 +1,93 @@
+{
+  "id": "react-native",
+  "name": "React Native / Expo",
+  "icon": "📱",
+  "runtime": "Expo SDK 55+ / React Native 0.83+",
+  "minVersion": "20.0.0",
+  "packageManager": "npm|pnpm|yarn|bun",
+  "extensions": [".ts", ".tsx", ".js", ".jsx"],
+  "testExtensions": ["*.test.ts", "*.test.tsx", "*.spec.ts"],
+  "detectFiles": ["app.json", "app.config.ts", "app.config.js"],
+  "commands": {
+    "test": "npm test",
+    "lint": "npm run lint",
+    "format": "npm run format",
+    "serve": "npx expo start",
+    "build": "npx expo export",
+    "typecheck": "npx tsc --noEmit"
+  },
+  "qualityGates": [
+    { "name": "TypeCheck", "command": "npx tsc --noEmit", "required": true, "order": 1 },
+    { "name": "Lint", "command": "npm run lint", "required": true, "order": 2 },
+    { "name": "Tests", "command": "npm test", "required": false, "order": 3 },
+    { "name": "ExpoDoctor", "command": "npx expo-doctor", "required": false, "order": 4, "description": "Expo project health. Needs network; non-blocking." }
+  ],
+  "frameworks": [
+    {
+      "id": "expo-tabs",
+      "name": "Expo Router — tabs (Home / list / account)",
+      "icon": "📑",
+      "detectFiles": ["app/(tabs)/_layout.tsx"],
+      "default": true,
+      "skills": ["expo-router"]
+    },
+    {
+      "id": "expo-auth-panel",
+      "name": "Expo Router — auth + user panel (login / 2FA / tenant)",
+      "icon": "🔐",
+      "detectFiles": ["app/(auth)/login.tsx"],
+      "skills": ["expo-router", "react-native-http"]
+    },
+    {
+      "id": "expo-blank",
+      "name": "Expo Router — blank (single screen)",
+      "icon": "📄",
+      "skills": ["expo-router"]
+    },
+    {
+      "id": "bare",
+      "name": "Bare React Native (no Expo seed)",
+      "icon": "🧱",
+      "detectFiles": ["android/app/build.gradle"],
+      "skills": []
+    }
+  ],
+  "databases": [
+    { "id": "none", "name": "Remote API only (no local DB)", "icon": "☁️", "default": true },
+    { "id": "sqlite", "name": "SQLite (expo-sqlite)", "icon": "📁" }
+  ],
+  "frontendOptions": [
+    {
+      "id": "native",
+      "name": "React Native (this stack — not web HTML)",
+      "icon": "📱",
+      "default": true
+    }
+  ],
+  "deployTargets": [
+    { "id": "github", "name": "GitHub (git push)", "icon": "🐙" }
+  ],
+  "skills": [
+    "expo-router",
+    "expo-modules",
+    "react-native-security",
+    "react-native-secure-coding",
+    "react-native-http",
+    "react-native-patterns",
+    "eas-release",
+    "typescript-strict"
+  ],
+  "requirements": [
+    {
+      "name": "Node.js",
+      "command": "node",
+      "versionFlag": "--version",
+      "minVersion": "20.0.0",
+      "installCommand": {
+        "macos": "brew install node",
+        "linux": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs"
+      },
+      "versionRegex": "v?(\\d+\\.\\d+\\.\\d+)"
+    }
+  ]
+}
