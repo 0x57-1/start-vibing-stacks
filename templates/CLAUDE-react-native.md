@@ -50,8 +50,11 @@ project/
 1. Screens → Expo Router groups
 2. API → axios + Zod (never fetch for JSON)
 3. Tokens → SecureStore; single-flight refresh
-4. QUALITY → tsc && lint
-5. VALIDATE → stop-validator
+4. TEST → tester (Jest + RNTL, not Vitest)
+5. SECURITY → security-auditor §4.RN (not web overlay)
+6. QUALITY → tsc && lint
+7. DOCS → documenter (Expo paths) → domain-updater
+8. VALIDATE → stop-validator
 ```
 
 ## Critical Rules

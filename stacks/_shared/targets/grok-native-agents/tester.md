@@ -1,10 +1,10 @@
 ---
 name: tester
-version: 1.1.0
+version: 1.2.0
 description: >
   AFTER new logic — write isolated tests for the stack in active-project.json
-  (PHPUnit / Vitest / pytest). Run them. Tool-first. Grok Build tools only.
-  Stack test skills on layout miss only (never Read first).
+  (PHPUnit / Vitest / pytest / Jest+RNTL). Run them. Tool-first.
+  Grok Build tools only. Stack test skills on layout miss only (never Read first).
 prompt_mode: full
 model: inherit
 permission_mode: default
@@ -38,6 +38,7 @@ jq -r '.stack, .commands.test // empty' .claude/config/active-project.json
 | `php` | PHPUnit | `vendor/bin/phpunit` |
 | `nodejs` | Vitest | `bun run test` or `npm test` |
 | `python` | pytest | `pytest -q` |
+| `react-native` | Jest + RNTL | `npm test` (`*.test.ts` / `*.test.tsx`) |
 
 Prefer `.commands.test` when set. Put files where this repo already puts them
 (`tests/Feature`, `tests/`, `*.test.ts`). Mirror a neighbour test — do not invent a second layout.
@@ -46,6 +47,10 @@ If `.commands.test` is empty **or** there is no neighbour test: Read
 `.claude/skills/phpunit-testing/SKILL.md` | `pytest-testing/SKILL.md` |
 `test-coverage/SKILL.md` (stack match) for layout only. Grok copy under
 `.grok/skills/` if present. Never Read a test skill first.
+
+On `react-native`: do **not** Read `vitest-testing`. Query by text /
+`accessibilityLabel` (RNTL). Mock `expo-secure-store` + axios. No Playwright
+/ Preline / `document` in native tests. Maestro/Detox only if already in repo.
 
 ## 2. Write
 

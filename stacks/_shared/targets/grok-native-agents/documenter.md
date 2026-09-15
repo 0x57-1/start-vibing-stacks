@@ -1,6 +1,6 @@
 ---
 name: documenter
-version: 1.5.0
+version: 1.6.0
 description: >
   AFTER the code commit — map HEAD files to codebase-knowledge domains,
   stamp last_commit, PREPEND Recent Changes, and write one Attention crumb
@@ -43,6 +43,9 @@ Do not restamp after a follow-up `docs:` commit — `last_commit` may stay on th
 
 `.claude/config/domain-mapping.json` (unmatched → `general`). Path:
 `.claude/skills/codebase-knowledge/domains/<slug>.md`
+
+`$STACK` from `active-project.json`. On `react-native`, Files Role uses Expo
+paths (`app/(auth)/login.tsx`, `lib/api/axios.ts`) — not Laravel controllers.
 
 | Status | Action |
 |---|---|

@@ -1,9 +1,9 @@
 {
-  "$sv-version": "1.0.0",
+  "$sv-version": "1.1.0",
   "$schema": "Domain mapping - maps file patterns to documentation domains",
   "domains": {
     "authentication": {
-      "patterns": ["**/auth/**", "**/login/**", "**/session/**", "**/*auth*", "**/*login*"],
+      "patterns": ["**/auth/**", "**/login/**", "**/session/**", "**/*auth*", "**/*login*", "**/two-factor/**"],
       "description": "User authentication, sessions, tokens"
     },
     "api": {
@@ -19,8 +19,15 @@
       "description": "Reusable UI components"
     },
     "pages": {
-      "patterns": ["**/pages/**", "**/app/**/page.*", "**/app/**/layout.*"],
-      "description": "Page routes and layouts"
+      "patterns": [
+        "**/pages/**",
+        "**/app/**/page.*",
+        "**/app/**/layout.*",
+        "**/app/**/_layout.*",
+        "**/app/**/+not-found.*",
+        "**/app/**/*.tsx"
+      ],
+      "description": "Page routes, Expo Router screens, and layouts"
     },
     "utilities": {
       "patterns": ["**/lib/**", "**/utils/**", "**/helpers/**", "**/common/**"],

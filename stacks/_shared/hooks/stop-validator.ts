@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.12.0
+// @sv-version: 1.13.0
 /**
  * Stop Validator Hook — Start Vibing Stacks (Universal)
  *
@@ -15,6 +15,7 @@
  * 7. Domain `_index.json#last_commit` stale vs HEAD after source edits (documenter skipped).
  *    Docs-only HEAD (C2) may still stamp the parent code SHA (C1) — that is OK.
  *
+ * v1.13.0: STACK_EXTENSIONS.react-native includes .tsx/.jsx (Expo screens).
  * v1.12.0: finalize hint — HEREDOC commit, background spawn, --push after C2.
  * v1.11.0: last_commit may equal HEAD~1 when HEAD is docs-only (no restamp spawn).
  * v1.10.0: record `lastStopKind` for UPS COMMIT-FIRST / FINALIZE-NOW / COMPACT-NOW;
@@ -71,6 +72,7 @@ const STACK_EXTENSIONS: Record<string, Set<string>> = {
   php: new Set(['.php', '.blade.php', '.twig']),
   nodejs: new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs']),
   python: new Set(['.py']),
+  'react-native': new Set(['.ts', '.tsx', '.js', '.jsx']),
   go: new Set(['.go']),
   rust: new Set(['.rs']),
 };

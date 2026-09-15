@@ -822,6 +822,49 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
     }
   }
 
+  // Domain mapping — merge new patterns when bundled $sv-version is newer
+  const mappingSrc = join(CLI_ROOT, 'stacks', '_shared', 'config', 'domain-mapping.json');
+  const mappingDest = join(projectDir, '.claude', 'config', 'domain-mapping.json');
+  if (existsSync(mappingSrc)) {
+    if (!existsSync(mappingDest)) {
+      if (!dryRun) {
+        mkdirSync(dirname(mappingDest), { recursive: true });
+        copyFileSync(mappingSrc, mappingDest);
+      }
+      report.copied.push(relative(projectDir, mappingDest));
+    } else if (!dryRun) {
+      try {
+        const bundled = JSON.parse(readFileSync(mappingSrc, 'utf8')) as {
+          '$sv-version'?: string;
+          domains?: Record<string, { patterns?: string[]; description?: string }>;
+        };
+        const installed = JSON.parse(readFileSync(mappingDest, 'utf8')) as {
+          '$sv-version'?: string;
+          domains?: Record<string, { patterns?: string[]; description?: string }>;
+        };
+        const bVer = bundled['$sv-version'] ?? '0.0.0';
+        const iVer = installed['$sv-version'] ?? '0.0.0';
+        if (semver.valid(bVer) && semver.valid(iVer) && semver.lt(iVer, bVer)) {
+          installed.domains = installed.domains ?? {};
+          for (const [key, def] of Object.entries(bundled.domains ?? {})) {
+            const destDom = installed.domains[key] ?? {
+              patterns: [],
+              description: def.description,
+            };
+            destDom.patterns = [...new Set([...(destDom.patterns ?? []), ...(def.patterns ?? [])])];
+            if (!destDom.description && def.description) destDom.description = def.description;
+            installed.domains[key] = destDom;
+          }
+          installed['$sv-version'] = bVer;
+          writeFileSync(mappingDest, `${JSON.stringify(installed, null, 2)}\n`);
+          report.copied.push(relative(projectDir, mappingDest));
+        }
+      } catch {
+        /* keep user mapping */
+      }
+    }
+  }
+
   // Optional local permission overrides template (never overwrite user's settings.local.json)
   const localExampleSrc = join(CLI_ROOT, 'stacks', '_shared', 'config', 'settings.local.example.json');
   const localExampleDest = join(projectDir, '.claude', 'settings.local.example.json');

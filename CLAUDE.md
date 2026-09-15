@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-15 · main · v2.94.0
+Agents fork on `react-native`: `security-auditor` §4.RN (SecureStore,
+no web overlay), `tester` Jest+RNTL, `documenter` Expo paths.
+stop-validator lists `.tsx`; migrate merges domain-mapping 1.1.
+
 ### 2026-09-15 · main · v2.93.0
 New **react-native** stack (Expo is RN). Setup asks for app kind
 (tabs / auth-panel / blank / bare), seeds Expo only if the tree is
@@ -53,11 +58,6 @@ approval/limit line to keep-energy; do not flatten to editorial.
 Email port recovery: refuse only official bank/card mark on a fake receipt;
 user logo; finish the rest. No unsolicited restyle or lecture.
 `email-push-marketing-authorization` **1.1**.
-
-### 2026-08-26 · main · v2.90.9
-Ads creative identity hard limit: no stego/hex “undetectable” mutator, no
-`?v=` on `image_link`, no “won’t be detected as duplicate” promise. New look
-or stop — memory `ad-creative-cloaking` **1.2**.
 
 ---
 

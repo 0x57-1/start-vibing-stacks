@@ -1,13 +1,13 @@
 ---
 name: documenter
-version: 3.1.0
-description: "AUTOMATICALLY invoke AFTER `commit-manager` succeeds. Maintains the project's local long-term memory under `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore the codebase. Search-optimized layout (YAML frontmatter + `_index.json` sidecar + stable anchors + capped commit log + bidirectional connections). Atomic files (≤ 8 KB / ~2k tokens / 200 lines). v3.1.0: Kimi/Grok execute this file inline (no Task); required by svs-finalize / stop-validator."
+version: 3.2.0
+description: "AUTOMATICALLY invoke AFTER `commit-manager` succeeds. Maintains the project's local long-term memory under `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore the codebase. Search-optimized layout (YAML frontmatter + `_index.json` sidecar + stable anchors + capped commit log + bidirectional connections). Atomic files (≤ 8 KB / ~2k tokens / 200 lines). v3.2.0: stack-typical Files roles (Expo vs Laravel). v3.1.0: Kimi/Grok execute this file inline (no Task); required by svs-finalize / stop-validator."
 model: sonnet
 tools: Read, Write, Edit, Grep, Glob, Bash
 skills: docs-tracker, codebase-knowledge, svs-finalize
 ---
 
-# Documenter Agent (v3.1.0 — search-optimized memory layer, per-instance-aware chain)
+# Documenter Agent (v3.2.0 — search-optimized memory layer, per-instance-aware chain)
 
 > **Kimi / Grok:** Execute every step below inline, then hand off to `domain-updater`. Do not skip.
 
@@ -63,6 +63,15 @@ git diff-tree --no-commit-id --name-status -r HEAD
 > NOT need to filter further by `session.filesTouched` — that work was done one step upstream.
 
 Map each path to a `domain` slug using `.claude/config/domain-mapping.json`. A file may belong to ≥1 domain. If no pattern matches → `general`. Skip if all matched files are inside `.claude/`, `docs/`, or `.github/`.
+
+When adding a `## Files` row, use paths that exist on **this** `$STACK`. Do not paste Laravel controllers into an Expo repo (or the reverse).
+
+| `$STACK` | Typical Files roles |
+|---|---|
+| `react-native` | `app/(auth)/login.tsx` login; `app/_layout.tsx` root layout; `lib/api/axios.ts` Bearer + refresh |
+| `php` | `app/Http/Controllers/Auth/LoginController.php` POST /login; `app/Models/Session.php` session row |
+| `nodejs` | `src/lib/api/axios.ts` client; `src/app/api/**/route.ts` handler |
+| `python` | `app/routers/*.py` routes; `app/schemas/*.py` Pydantic |
 
 ### 3. For each affected domain
 
@@ -232,4 +241,4 @@ Use `Edit` / `StrReplace`, never `Write`, on existing domain files.
 - `domain-updater` v3.0.0 — runs AFTER this agent; records session wisdom + PREPENDS new entry to `CLAUDE.md` `## Recent Changes` (append-only LIFO, cap 10)
 - `claude-md-compactor` v2.1.0 — keeps top-level `CLAUDE.md` ≤ 20 KB (see §5 budget, §6 forbidden, §6.1 multi-instance safety); this layer keeps each domain ≤ 8 KB
 - `scope.ts` (`.claude/hooks/scope.ts`) — per-instance staging tool; the reason `HEAD` already reflects this session's scope
-- `security-auditor` v2.0.0 — vetoes commit if PII/secret leaks into a domain file
+- `security-auditor` v2.2.0 — vetoes commit if PII/secret leaks into a domain file; §4.RN on Expo

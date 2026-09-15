@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.42.0';
+export const GROK_SKILLS_VERSION = '1.43.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -232,7 +232,7 @@ function devProcessSkillBody(): string {
     '|-------|------|',
     '| `research-web` | New feature — Grok native (`search_tool`/`use_tool`, else `web_search`) |',
     '| `security-auditor` | Auth/API — CWE veto; `cve-watchlist.md` on lockfile hit |',
-    '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest) |',
+    '| `tester` | New logic — Grok native (PHPUnit / Vitest / pytest / Jest+RNTL) |',
     '| `commit-manager` | Scoped HEREDOC commit / push after C2 |',
     '| `documenter` | **After** code commit — domains + RC + Attention crumb (P&S if gotcha=) |',
     '| `domain-updater` | Optional — gotcha / RC skipped (Kimi: after documenter) |',

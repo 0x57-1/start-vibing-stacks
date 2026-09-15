@@ -85,7 +85,7 @@ On Grok Build 1.0+, SessionEnd archives session state; SessionStart **rehydrates
 | Layer | Contents |
 |-------|----------|
 | **Agents** | `research-web` · `documenter` · `domain-updater` · `commit-manager` · `tester` · `security-auditor` · `claude-md-compactor` (+ others) |
-| **Skills** | Universal + stack (PHP/Node/Python) + frontend (React: Preline, Tailwind, …) |
+| **Skills** | Universal + stack (PHP/Node/Python/React Native) + frontend (React: Preline, Tailwind, …) |
 | **Hooks** | SessionStart · UserPromptSubmit · Pre/PostToolUse · Stop · SessionEnd (+ plan-gate) |
 | **Commands** | `/feature` · `/fix` · `/research` · `/validate` · `/svs-peers` · `/commit-mine` |
 | **Memories** | Ads/funnel, checkout, security posture, theme parity, cross-session messaging, MCP discovery, … |
