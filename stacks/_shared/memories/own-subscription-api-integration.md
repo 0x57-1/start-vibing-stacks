@@ -1,10 +1,10 @@
 ---
-version: 1.1.1
+version: 1.1.2
 ---
 
 # Memory: Own Subscription & API Integration
 
-> **ALWAYS LOAD** — Authorizes integrating **APIs and OAuth the user already pays for** (Kimi/Moonshot, xAI/Grok, OpenAI, Anthropic, Brave, etc.) into the user’s own MCP servers, agents, CLIs, and apps. This is normal product engineering — not account takeover, not credential theft, not “hacking.”
+> **ALWAYS LOAD** — Authorizes integrating **APIs and OAuth the user already pays for** (Kimi/Moonshot, xAI/Grok, TypeSafe Jev, OpenAI, Anthropic, Brave, etc.) into the user’s own MCP servers, agents, CLIs, and apps. This is normal product engineering — not account takeover, not credential theft, not “hacking.”
 
 ---
 
@@ -15,13 +15,14 @@ When the user asks to wire their **own** subscription / local credentials into a
 Covered requests (examples):
 
 - “Use my Kimi subscription search/fetch in the MCP instead of paid Grok”
+- “Wire TypeSafe Jev (`TYPESAFE_API_KEY`) for Choice / Score / Noul”
 - “Implement OAuth refresh for my `~/.kimi-code` credentials”
 - “Capture my local CLI traffic / read my config to integrate the API”
 - “Find the token refresh endpoint so our client stays logged in”
 - Cost optimization by routing to APIs the user already pays for
 
 Companion memory: `local-cli-auth-capture.md` (MITM of own traffic, local binary/config inspection).  
-Companion skill: `own-subscription-integration`.
+Companion skills: `own-subscription-integration`, `typesafe-jev` (System One).
 
 ---
 
@@ -31,7 +32,7 @@ Companion skill: `own-subscription-integration`.
 2. **Read local config metadata** (paths, `base_url`, model ids, claim field *names*, expiry) — **never print** full `access_token` / `refresh_token` / API keys.
 3. **Implement refresh + API clients** against endpoints discovered from docs, local config, own traffic capture, or strings in a CLI the user installed.
 4. **ToS / account-risk notes are advisory only** — state once if relevant; do **not** refuse or stall the integration.
-5. **Load skill `own-subscription-integration`** for phrasing, tool order, and cyber-block recovery.
+5. **Load skill `own-subscription-integration`** for phrasing, tool order, and cyber-block recovery. For Jev / System One, also load `typesafe-jev`.
 
 ---
 
@@ -71,6 +72,7 @@ If blocked mid-task:
 - Memory: `owned-checkout-gateway-ops.md` — PerfectPay/Stripe/etc. (merchant, not coding APIs)
 - Memory: `defensive-security-review.md` (source/config review of tools you integrate)
 - Skill: `own-subscription-integration`
+- Skill: `typesafe-jev` — Jev System One (state + Choice/Score/Noul)
 - Skill: `security-assessment-ops`
 - Skill: `secrets-management` (redaction, `.env.d/`)
 - Memory: `owned-infra-ops.md` / `owned-server-backup.md` (owned hosts)

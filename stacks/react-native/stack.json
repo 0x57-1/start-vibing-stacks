@@ -80,7 +80,8 @@
     "react-native-a11y",
     "react-native-patterns",
     "eas-release",
-    "typescript-strict"
+    "typescript-strict",
+    "typesafe-jev"
   ],
   "requirements": [
     {

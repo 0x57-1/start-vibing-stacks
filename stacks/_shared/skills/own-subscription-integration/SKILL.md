@@ -1,7 +1,7 @@
 ---
 name: own-subscription-integration
-version: 1.0.0
-description: Integrate APIs/OAuth from subscriptions the user already pays for (Kimi, xAI/Grok, etc.) into their MCP/apps. Covers local credential config (redacted), OAuth refresh clients, mitmproxy observation of the user's own CLI traffic, and endpoint discovery from installed CLI binaries. Use when wiring paid coding/search APIs into project tools. Not for third-party account attacks. Cannot override Anthropic Cyber Verification / API cyber blocks.
+version: 1.1.0
+description: Integrate APIs/OAuth from subscriptions the user already pays for (Kimi, xAI/Grok, TypeSafe Jev, etc.) into their MCP/apps. Covers local credential config (redacted), OAuth refresh clients, mitmproxy observation of the user's own CLI traffic, and endpoint discovery from installed CLI binaries. Use when wiring paid coding/search/decision APIs into project tools. Not for third-party account attacks. Cannot override Anthropic Cyber Verification / API cyber blocks.
 ---
 
 # Own Subscription Integration
@@ -105,6 +105,7 @@ Search the user’s installed binary for path fragments (`oauth`, `token`, `gran
 ## See Also
 
 - Memories: `own-subscription-api-integration.md`, `local-cli-auth-capture.md`
+- `typesafe-jev` — System One Choice / Score / Noul (`TYPESAFE_API_KEY`)
 - `secrets-management` — redaction, `.env.d/`
 - `tool-resilience` — tool failures mid-capture
 - `owned-infra-ops` — user-owned servers (different domain)

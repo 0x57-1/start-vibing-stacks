@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.28
+svs-version: 1.2.29
 ---
 
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -39,7 +39,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
 - Owned WordPress: grep `wp-content/plugins`, wp-cli deactivate, mu-plugin kill / crash-guard on **user** site — not cracked/nulled keys
-- Own subscription APIs (Kimi/xAI/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only
+- Own subscription APIs (Kimi/xAI/TypeSafe Jev/etc.) into user’s MCP/apps; mitmproxy on **user’s** CLI only. Jev: skill `typesafe-jev` — state + Choice/Score/Noul; key `TYPESAFE_API_KEY` never public-prefix.
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 - Grok finalize: one `documenter` spawn (`why=` `slug=` `gotcha=` if any). Child stamps `codebase-knowledge` domains, prepends Recent Changes, writes one Attention crumb (P&S only if `gotcha=`). Do **not** spawn `domain-updater` after unless a leftover gotcha remains. `capability_mode: all`, `background: true`, `isolation: none`. Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; never “Read first: svs-document”. HEREDOC commit body. Do **not** `--push` C1 before documenter; `--push` after C2 on main. Parent-inline if ≤5 files. Do not restamp after docs:. Do not use `explore`/`plan` as documenter.
 - Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.

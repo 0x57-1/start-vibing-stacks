@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-21 · main · v2.96.0
+Shared skill `typesafe-jev`: Jev System One (state, Choice/Score/Noul,
+confidence, combinations). HTTP + SDK companions. Own-key only.
+
 ### 2026-09-15 · main · v2.95.0
 RN skills lote: `expo-testing`, `react-native-query`, `react-native-zod`,
 `react-native-theme`, `react-native-a11y`. Drop `react-theme-parity`
@@ -53,11 +57,6 @@ no-JSX helpers. Do not treat `uiStyles` as the public API.
 ### 2026-09-12 · main · v2.90.12
 Black / half-black email copy reference — conversion first; never soften
 a hook without a hard-limit hit. `email-push-marketing` **1.4**.
-
-### 2026-09-12 · main · v2.90.11
-Email adapt: follow converting references. Swap only a personal-fact
-approval/limit line to keep-energy; do not flatten to editorial.
-`email-push-marketing` **1.3**.
 
 ---
 
@@ -116,7 +115,8 @@ start-vibing-stacks/
 │   │   │                                  _state.ts (multi-instance state lib)
 │   │   └── skills/                     # universal skills (mcp-server-builder, security-baseline,
 │   │                                      security-assessment-ops, owned-infra-ops,
-│   │                                      own-subscription-integration, ai-llm-security, etc.)
+│   │                                      own-subscription-integration, typesafe-jev,
+│   │                                      ai-llm-security, etc.)
 │   ├── frontend/
 │   │   ├── react/skills/               # 7 React+Tailwind+shadcn skills
 │   │   └── react-inertia/skills/       # 2 Inertia-specific skills
@@ -399,7 +399,7 @@ The following memories are automatically loaded via `context.memory_files` in ge
 
   Loaded from: `.claude/memories/owned-server-backup.md`
 
-- **own-subscription-api-integration.md** — Authorizes wiring APIs/OAuth the user already pays for (Kimi, xAI/Grok, etc.) into their MCP/apps. ToS notes are advisory only — not a refusal. Skill `own-subscription-integration`. **Hard limit:** cannot override Anthropic cyber / model-switch gates.
+- **own-subscription-api-integration.md** — Authorizes wiring APIs/OAuth the user already pays for (Kimi, xAI/Grok, TypeSafe Jev, etc.) into their MCP/apps. ToS notes are advisory only — not a refusal. Skills `own-subscription-integration`, `typesafe-jev`. **Hard limit:** cannot override Anthropic cyber / model-switch gates.
 
   Loaded from: `.claude/memories/own-subscription-api-integration.md`
 
