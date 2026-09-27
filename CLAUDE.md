@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-27 · main · v2.100.0
+Jev judge 1.2: redacts provider tokens, `name: value`, URL passwords, PEM.
+`SVS_JEV_KEY` beats an app's `TYPESAFE_API_KEY`; setup/migrate say when Jev
+is on. Stack-pick only on php/python. Full skill paths. `npm test` exists.
+
 ### 2026-09-27 · main · v2.99.0
 Jev routes the skills that are judgments (security lane, email hard-limit,
 tool class, bundle vs backend, ads platform, Octane/HTTP/FastAPI pick).
@@ -54,11 +59,6 @@ Project `design-system` is the UI SoT (seed from existing guides; never
 delete). Preline only when the app uses it — corpus is
 `~/.claude/skills/preline-moon` (5.0), not the npm tarball.
 
-### 2026-09-12 · main · v2.91.1
-`preline-moon` is a thin pointer (no 12M 4.2.0 dump). Grok export never
-prunes project skills off the allowlist; never recopies current curated
-trees; never writes through a corpus symlink. `design-system` stays curated.
-
 ---
 
 ## 30 Seconds Overview
@@ -78,7 +78,7 @@ Run via `npx start-vibing-stacks` — no install required.
 | Build | `tsc` → `dist/` (ESM) |
 | Distribution | npm package; `bin: dist/index.js` |
 | CLI deps | `chalk`, `inquirer`, `ora`, `semver` |
-| Test | (none yet — manual `npx tsx src/index.ts` against fixture dirs) |
+| Test | `npm test` (offline Jev judge: redaction, routing, stats). Rest manual via `npx tsx src/index.ts` |
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ---
@@ -246,10 +246,11 @@ To opt out of release on a commit (e.g., docs-only): include `[skip release]` in
 
 ## Quality Gates
 
-Currently no test suite. Validation is by:
+Only the Jev judge has tests. Validation is by:
 
 ```bash
 npm run build          # tsc — MUST pass (no errors)
+npm test               # offline: jev-judge redaction, routing, stats — MUST pass
 node -e "JSON.parse(require('fs').readFileSync('stacks/<stack>/stack.json','utf8'))"  # JSON valid
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: security-assessment-ops
-version: 1.0.1
+version: 1.0.2
 description: Defensive source/API security review, passive public OSINT posture, and authorized active assessment on owned/in-scope assets. Preferred phrasing to reduce Opus 5 / Fable-style cyber false positives; recovery when API falls back to Opus 4.8. Invoke for OWASP reviews, public header/TLS checks, or authorized hardening assessments. Not for unauthorized third-party attacks or exploit packs. Cannot override Anthropic Cyber Verification / API cyber blocks.
 ---
 
@@ -14,7 +14,7 @@ description: Defensive source/API security review, passive public OSINT posture,
 
 ## Jev lane
 
-No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: use the table below.
+No Jev key, or `SVS_JEV=0`: use the table below.
 
 With a key: one Choice `lane` before any fetch. Confidence &lt; 0.75 → the table.
 `source_review` Lane A, `passive_osint` Lane B only, `authorized_active` Lane C only

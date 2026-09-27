@@ -1,6 +1,6 @@
 ---
 name: ads-audit
-version: 1.5.1
+version: 1.5.2
 description: "Full multi-platform paid advertising audit with parallel subagent delegation. Analyzes Google Ads, Meta Ads, LinkedIn Ads, TikTok Ads, and Microsoft Ads accounts. Generates health score per platform and aggregate score. Use when user says audit, full ad check, analyze my ads, account health check, or PPC audit."
 user-invokable: false
 ---
@@ -9,7 +9,7 @@ user-invokable: false
 
 ## Jev route
 
-No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: the process below.
+No Jev key, or `SVS_JEV=0`: the process below.
 
 With a key: Choice `platform` before reading every platform skill. Load only the
 winner. `several` stays here, then one Choice of which exports exist. The

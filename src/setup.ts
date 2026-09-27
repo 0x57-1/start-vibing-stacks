@@ -18,6 +18,7 @@ import {
 import { ensureProjectUi, wantsPrelineMoon } from './targets/project-ui.js';
 import { memoryFilesForStack } from './memories-canon.js';
 import { seedReactNativeApp } from './react-native-seed.js';
+import { printJevNotice } from './jev-notice.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -631,6 +632,7 @@ export async function setupProject(
           ? ' + MCP targets'
           : '')
     );
+    printJevNotice(projectDir);
 
     return true;
   } catch (err) {

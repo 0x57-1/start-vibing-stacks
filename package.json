@@ -1,6 +1,6 @@
 {
   "name": "start-vibing-stacks",
-  "version": "2.99.0",
+  "version": "2.100.0",
   "description": "AI-powered multi-stack dev workflow for Claude Code, Kimi Code, and Grok. Supports PHP, Node.js, Python, React Native / Expo and more.",
   "type": "module",
   "bin": {
@@ -11,6 +11,7 @@
     "build": "npx -p typescript tsc",
     "dev": "tsx src/index.ts",
     "start": "node dist/index.js",
+    "test": "tsx test/jev-judge.test.ts",
     "prepublishOnly": "npm run build"
   },
   "keywords": [

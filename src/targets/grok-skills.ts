@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.48.0';
+export const GROK_SKILLS_VERSION = '1.49.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -60,6 +60,12 @@ export const GROK_CURATED_SKILL_NAMES = [
   'typesafe-jev',
   'email-push-marketing',
   'remove-ai-marks',
+  // Jev routes (hook names them with a .claude/ path; Grok also gets a native copy)
+  'security-assessment-ops',
+  'ai-llm-security',
+  'laravel-octane',
+  'external-api-patterns',
+  'fastapi-patterns',
   'project-ui-standard',
   // Project-owned (not in the npm tree). Allowlist keeps prune from deleting it.
   'design-system',

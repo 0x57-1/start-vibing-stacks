@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-09-27 · main · v2.100.0
+Jev judge redacts real token shapes. SVS_JEV_KEY for the agent; setup
+and migrate say when Jev is on. Stack picks only on php/python.
+
 ### 2026-09-27 · main · v2.99.0
 Jev skill routes: security lane, email, tool errors, ads, stack pick.
 No key keeps the written skill. Metric math stays in code.
@@ -78,10 +82,6 @@ React2Shell patches. `cve-watchlist` + `react-patterns` **2.1**.
 ### 2026-09-12 · main · v2.90.13
 React: `<Button variant size>` over `uiStyles` string API.
 `react-theme-parity` **1.2**.
-
-### 2026-09-12 · main · v2.90.12
-Black / half-black email copy reference. Never soften a converting hook
-without a hard-limit hit.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

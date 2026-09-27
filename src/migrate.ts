@@ -52,6 +52,7 @@ import {
   wantsPrelineMoon,
 } from './targets/project-ui.js';
 import { memoryFilesForStack, WEB_THEME_MEMORY } from './memories-canon.js';
+import { printJevNotice } from './jev-notice.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
 const __m_dirname = dirname(__m_filename);
@@ -972,6 +973,7 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
 export async function runMigrate(projectDir: string, opts: MigrateOptions): Promise<void> {
   const migrateTarget = opts.target ?? 'all';
   ui.header(`🔄 Start Vibing — Migrate (target=${migrateTarget})`);
+  printJevNotice(projectDir);
 
   const skipClaudeFiles =
     migrateTarget === 'kimi' || migrateTarget === 'grok' || migrateTarget === 'cursor';

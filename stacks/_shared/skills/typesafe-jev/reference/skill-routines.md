@@ -3,9 +3,14 @@
 The session hook only routes. These questions run **inside** the skill, with the
 artifact in `state` (email, error text, diff, ads export, landing HTML).
 
-No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: skip this file and follow the skill prose.
+No key (`SVS_JEV_KEY` or `TYPESAFE_API_KEY`), or `SVS_JEV=0`: skip this file and follow the skill prose.
 Choice confidence &lt; 0.75 → prose. Noul 0.30–0.70 → do not act on it.
 Never send the API key. CTR, CPA, ROAS, retry counts, and score weights stay in code.
+
+Calling: keep the key out of the command text. Reference it as `$SVS_JEV_KEY` /
+`$TYPESAFE_API_KEY` in the shell (load `.env` into the environment first if needed).
+Never `cat`, `echo`, or Read the `.env` value into the chat. Redact secrets in the
+artifact before it goes into `state`.
 
 ---
 
