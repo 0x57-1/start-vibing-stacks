@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * Grok PreToolUse — pin SVS spawns to the native agent type + strip fat child
  * prompts. Session 01a00f26: parent still said “Read first: svs-document” and
@@ -30,7 +30,7 @@ export function stripFatChildPrompt(prompt: string): string {
   return prompt.replace(re, '').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function pickType(input: Record<string, unknown>): NativeType | null {
+export function pickType(input: Record<string, unknown>): NativeType | null {
   const type = String(input['subagent_type'] || input['subagentType'] || '')
     .trim()
     .toLowerCase();
@@ -45,17 +45,20 @@ function pickType(input: Record<string, unknown>): NativeType | null {
   if (/\bresearch-web\b/.test(blob) || /\bunified_search\b/.test(blob)) {
     return 'research-web';
   }
-  if (/\btester\b/.test(blob) && /\b(phpunit|vitest|pytest)\b/.test(blob)) {
+  if (/\btester\b/.test(blob) && /\b(phpunit|vitest|pytest|jest|rntl)\b/.test(blob)) {
     return 'tester';
   }
   if (/\bcommit-manager\b/.test(blob) || /scope\.ts commit/.test(blob)) {
     return 'commit-manager';
   }
-  if (/\bdomain-updater\b/.test(blob) || /recent changes|last change/.test(blob)) {
-    return 'domain-updater';
-  }
+  // "Recent Changes" is also the documenter's job. Matching that phrase first
+  // pinned a documenter spawn (which says "do not spawn domain-updater") to
+  // domain-updater. Explicit documenter wins when both names appear.
   if (/\bdocumenter\b/.test(blob) || /_index\.json/.test(blob) || /stamp domains/.test(blob)) {
     return 'documenter';
+  }
+  if (/\bdomain-updater\b/.test(blob)) {
+    return 'domain-updater';
   }
   return null;
 }

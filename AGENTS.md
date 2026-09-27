@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-09-27 · main · v2.98.0
+UPS calls Jev only with TYPESAFE_API_KEY. Grok/Kimi get the same gate.
+Spawn pin no longer steals documenter turns.
+
 ### 2026-09-27 · main · v2.97.0
 typesafe-jev 1.1: six decision shapes before the first Jev call.
 Cookbook metrics are examples, not floors.
@@ -77,10 +81,6 @@ without a hard-limit hit.
 
 ### 2026-09-12 · main · v2.90.11
 Email adapt: keep-energy swap, not dry editorial. `email-push` **1.3**.
-
-### 2026-09-12 · main · v2.90.10
-Email port: refuse only official bank mark on a fake receipt; user logo;
-finish. No restyle / no lecture.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

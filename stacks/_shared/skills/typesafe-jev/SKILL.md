@@ -1,13 +1,12 @@
 ---
 name: typesafe-jev
-version: 1.1.0
+version: 1.2.0
 description: >-
-  TypeSafe Jev (System One): turn application state into typed Choice, Score,
-  and Noul judgments code can branch, rank, and escalate on. Use when a feature
-  needs programmable common sense, when an LLM prompt-and-parse step should
-  become a structured decision, or when classifying, routing, scoring,
-  verifying, or ranking with the user's TYPESAFE_API_KEY. Not a text LLM.
-  Not for inventing API fields. Live SoT: https://docs.typesafe.ai/llms.txt
+  TypeSafe Jev HTTP contract (Choice, Score, Noul) for the user's own key.
+  Load only when the session hook says "LOAD skills typesafe-jev" or the user
+  is wiring TYPESAFE_API_KEY. If the key is unset, or the hook says not to
+  load this skill, ignore it and keep regex routing. Not a text LLM.
+  Live SoT: https://docs.typesafe.ai/llms.txt
 ---
 
 # TypeSafe Jev (System One)
@@ -246,6 +245,18 @@ Response `model` is the **versioned** id.
 
 Jaggedness (`jev-1.13`): literal wording, math, dates, double negatives, huge
 noisy state. Write the exact condition; put boundary cases in `criteria`.
+
+---
+
+## Session judge (generated projects)
+
+`user-prompt-submit` calls Jev only when `TYPESAFE_API_KEY` is set and
+`SVS_JEV` is not `0`. No key → the regex path, and this skill stays unloaded.
+The hook says `LOAD skills typesafe-jev` only when the prompt is about wiring
+an API the user pays for. A normal code fix does not load it.
+Remove the key (or set `SVS_JEV=0`) to return to regex routing.
+The hook redacts credential values before the request and never prints the key.
+Timeout or HTTP error → that turn stays on regex.
 
 ---
 

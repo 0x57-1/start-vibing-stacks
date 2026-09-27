@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.27.0
+// @sv-version: 1.28.0
 /**
  * UserPromptSubmit Hook — Start Vibing Stacks
  *
@@ -10,6 +10,9 @@
  *     peer messages reach the user before this turn runs, and warn if active
  *     peers exist.
  *
+ * v1.28.0: Optional Jev judge when TYPESAFE_API_KEY is set (SVS_JEV=0 off).
+ * Overrides negated ship, theme false-friends, ads/WP/auth memory, and the
+ * Grok ship head. No key → regex path unchanged. Claude, Kimi, and Grok.
  * v1.27.0: THEME APPLY — Common Button is variant/size, not a class-string API.
  * v1.26.0: Grok documenter same-pass Attention crumb (P&S if gotcha=).
  * v1.25.0: Grok ship = one documenter (why=/slug=). Stop-recovery Grok
@@ -89,6 +92,7 @@ import {
   type SessionRecord,
   type StopKind,
 } from './_state.js';
+import { judgeTurn, renderJevDirective, type JevDecision } from './jev-judge.js';
 
 const CLAUDE_MD_SOFT = 36000;
 
@@ -356,8 +360,7 @@ function buildWatermarkHygieneBlock(prompt: string): string {
   );
 }
 
-function buildShipNowBlock(prompt: string): string {
-  if (!SHIP_PROMPT_RE.test(prompt)) return '';
+function shipNowBody(): string {
   return (
     `\n\nSHIP NOW (memory: execute-ship-ops v1.3) — classify then act:\n` +
     `  SAFE SHIP (on main/master, scoped, no secrets, tests OK, deploy targets known, matches user ask):\n` +
@@ -370,6 +373,19 @@ function buildShipNowBlock(prompt: string): string {
     `    Off main / peer created a feature branch in shared cwd → checkout main first (memory multi-instance-main-only).\n` +
     `    FORBIDDEN: fake Attention for generic caution or multi-instance lore without a real conflict.`
   );
+}
+
+function attentionShipBody(): string {
+  return (
+    `\n\nSHIP ATTENTION (JEV): the prompt asked to ship and said tests, typecheck, or the build are failing.\n` +
+    `  Do NOT commit/push. Ask the user with: Risk / Evidence / Options (proceed | fix first | abort).\n` +
+    `  Off main / peer feature branch in a shared cwd → checkout main first.`
+  );
+}
+
+function buildShipNowBlock(prompt: string): string {
+  if (!SHIP_PROMPT_RE.test(prompt)) return '';
+  return shipNowBody();
 }
 
 function buildStatusOnlyMessage(peersBlock: string, recoveryBlock: string): string {
@@ -558,12 +574,57 @@ async function main(): Promise<void> {
     wpPluginBlock = '';
   }
 
+  // Status turns stay on the regex fast path (no Jev). Ship/work may override.
+  let decision: JevDecision | null = null;
+  if (promptKind !== 'status') {
+    try {
+      decision = await judgeTurn({
+        projectDir: PROJECT_DIR,
+        prompt,
+        stack: stackName,
+      });
+    } catch {
+      decision = null;
+    }
+  }
+  if (decision?.visualUi === 'no') themeParityBlock = '';
+  if (decision?.wordpress === 'yes' && !wpPluginBlock) {
+    wpPluginBlock = buildWpPluginOpsBlock('wordpress wp-admin plugin');
+  }
+  if (decision?.gate === 'do_not_ship') shipBlock = '';
+  else if (decision?.gate === 'attention') shipBlock = attentionShipBody();
+  else if (decision?.gate === 'safe_ship' && !shipBlock) shipBlock = shipNowBody();
+
+  const jevBlock = decision ? renderJevDirective(decision, target) : '';
+
+  if (decision?.kind === 'status' && (target === 'grok' || lastStopKind !== 'dirty')) {
+    console.log(
+      JSON.stringify({
+        continue: true,
+        systemMessage: buildStatusOnlyMessage(peersBlock, recoveryBlock) + jevBlock,
+      })
+    );
+    process.exit(0);
+  }
+
   // Grok only — Claude/Kimi keep the TASK WORKFLOW essay below unchanged.
   if (target === 'grok') {
+    const grokMode =
+      decision?.gate === 'attention'
+        ? 'attention'
+        : decision?.gate === 'do_not_ship'
+          ? 'work'
+          : decision?.gate === 'safe_ship'
+            ? 'ship'
+            : promptKind === 'ship'
+              ? 'ship'
+              : 'work';
     const head =
-      promptKind === 'ship'
+      grokMode === 'ship'
         ? `GROK SHIP (Stack: ${stackName}): C1 HEREDOC (no --push) → ONE documenter (why= slug= gotcha= if any; stamps codebase-knowledge + RC + one Attention crumb). Do not spawn domain-updater. Do not say Read svs-document. Parent-inline if ≤5 files. C2 --push on main. Never git add -A.`
-        : `GROK WORK (Stack: ${stackName}): do the asked work. No todo list. Do not Read CLAUDE.md/AGENTS.md first. Do not finalize unless asked to commit/ship. Dirty tree is OK — answer the user. Claim-done / Stop still need svs-finalize.`;
+        : grokMode === 'attention'
+          ? `GROK ATTENTION (Stack: ${stackName}): do NOT commit or push. Tests, typecheck, or the build were described as failing. Ask Risk / Evidence / Options (proceed | fix first | abort). Dirty tree is OK — answer the user.`
+          : `GROK WORK (Stack: ${stackName}): do the asked work. No todo list. Do not Read CLAUDE.md/AGENTS.md first. Do not finalize unless asked to commit/ship. Dirty tree is OK — answer the user. Claim-done / Stop still need svs-finalize.`;
     const systemMessage =
       head +
       recoveryBlock +
@@ -573,7 +634,8 @@ async function main(): Promise<void> {
       multiPartBlock +
       shipBlock +
       watermarkBlock +
-      wpPluginBlock;
+      wpPluginBlock +
+      jevBlock;
     console.log(JSON.stringify({ continue: true, systemMessage }));
     process.exit(0);
   }
@@ -612,7 +674,7 @@ async function main(): Promise<void> {
    b. Update ALL affected rule/flow sections (Critical Rules, FORBIDDEN, NRY) when the change
       modifies how the project works.
 
-7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}${watermarkBlock}${wpPluginBlock}`;
+7. Run stop-validator before finishing.${recoveryBlock}${standardsContext}${peersBlock}${themeParityBlock}${verifyBlock}${multiPartBlock}${shipBlock}${watermarkBlock}${wpPluginBlock}${jevBlock}`;
 
   console.log(JSON.stringify({ continue: true, systemMessage }));
   process.exit(0);

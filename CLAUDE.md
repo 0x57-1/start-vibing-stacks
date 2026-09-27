@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-27 · main · v2.98.0
+UPS Jev judge when `TYPESAFE_API_KEY` is set (`SVS_JEV=0` off). No key
+keeps regex. Grok ship head follows the gate. Spawn pin: documenter
+wins over a "Recent Changes" phrase; Jest counts as tester.
+
 ### 2026-09-27 · main · v2.97.0
 `typesafe-jev` **1.1**: decide with the six TypeSafe shapes before the
 first call (select-not-generate, verify+escalate, stale state). Cookbook
@@ -53,11 +58,6 @@ trees; never writes through a corpus symlink. `design-system` stays curated.
 React **19.3** + Tailwind **4.3** patterns across stacks. Axios **≥ 1.20.0**
 (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). Flight CVE floor
 raised past first React2Shell patches. `cve-watchlist` + `react-patterns` **2.1**.
-
-### 2026-09-12 · main · v2.90.13
-React UI: theme CSS + recipe strings + `<Button variant size>`. `.js` for
-no-JSX helpers. Do not treat `uiStyles` as the public API.
-`react-theme-parity` **1.2**.
 
 ---
 
