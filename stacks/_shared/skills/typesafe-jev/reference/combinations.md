@@ -12,6 +12,36 @@ Jaggedness: [jev-1.13](https://docs.typesafe.ai/model-jaggedness/jev-1.13.md).
 Siblings in **one** `system_one` do not see each other. Compose in **code**.
 
 Thresholds below are **starting points**. Keep them next to the questions.
+Cookbook percents are examples from that page, not floors for every domain.
+
+---
+
+## Six shapes (pick one before writing questions)
+
+Official procedure: [typesafe-ai skill](https://github.com/typesafe-ai/skills).
+Map:
+
+| Shape | Code | Jev | Then |
+|---|---|---|---|
+| **Route + fill known args** | Dispatch, defaults, free text, dates | Handler Choice + per-arg Choice + `stated?` Noul | §A, §F. [function calling](https://docs.typesafe.ai/cookbooks/function_calling.md) |
+| **Select instead of generate** | Find the spans or rows; copy or normalize the winner | Which candidate, or none | [value extraction](https://docs.typesafe.ai/cookbooks/pre_parsed_value_extraction_cookbook.md), [structure recovery](https://docs.typesafe.ai/cookbooks/autoformat.md) |
+| **Find + judge evidence** | Retrieve the shortlist | Relevance or support **per pair** | [rerank](https://docs.typesafe.ai/cookbooks/rerank_typesafe.md), [hierarchy](https://docs.typesafe.ai/cookbooks/hierarchical_classification.md) |
+| **Judgments as data** | Weights, sort, filters; later, classical ML features | One Score per dimension, **once** | §B. [composite scoring](https://docs.typesafe.ai/patterns/composite-scoring.md) |
+| **Verify + escalate** | Policy order; human or an LLM only on fail / low confidence | Claim-vs-evidence Nouls | §C, §D. [citations](https://docs.typesafe.ai/cookbooks/citation_check.md) |
+| **Changing state** | Store goals apart from observed facts; drop stale answers | Next bounded judgment on **current** facts | §G |
+
+Rerank example (CLERC, 40 legal queries, BM25 shortlist, one question per
+query–passage pair): top-10 accuracy **38% → 62%**. Same page, top-1
+**5% → 18%**. Re-measure before treating that as your retrieval budget.
+Source: [rerank_typesafe](https://docs.typesafe.ai/cookbooks/rerank_typesafe.md).
+
+Model routing is the route shape: intent Choice + difficulty Score + escalate
+Noul. The expensive model runs only on the escalated slice.
+[Use-case map](https://docs.typesafe.ai/concepts/use-case-map.md).
+
+A weight edit or a UI filter does **not** rerun inference when evidence and
+question text are unchanged. A rule of the form “any serious violation” is
+separate Nouls with precedence in code, not one blended Score.
 
 ---
 
@@ -141,11 +171,14 @@ if topic == billing and refund_requested.noul >= 0.7: refund_flow
 if frustration.confidence >= 0.7 and frustration.score >= 1.5: priority
 ```
 
-Weighted Noul quality:
+Weighted Noul quality (compensating preferences only):
 
 ```
 0.4*answers_request + 0.4*citations_ok + 0.2*(1 - contradicts)
 ```
+
+A single hard fail (injection, a required citation missing) stays its own
+Noul with precedence. Do not bury it in the average.
 
 ---
 
@@ -159,6 +192,10 @@ Weighted Noul quality:
 | Keep / drop RAG hits | `classifying_rag_passages` |
 | Quote vs source | `citation_check` |
 | Line-level search + “not in doc” | `semantic_find` |
+| Pick a value the code already parsed | `pre_parsed_value_extraction_cookbook` |
+| Turn prose into blocks that did not exist | `autoformat` |
+| Rerank a retrieved shortlist | `rerank_typesafe` |
+| Features for a classical model | `autoresearch_feature_discovery` |
 | Huge agent roster | `skill_suggestion` |
 | Deep taxonomy | `hierarchical_classification` |
 | Flat labels + parent rollup | `classification_using_confidence` |

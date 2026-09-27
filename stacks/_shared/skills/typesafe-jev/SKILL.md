@@ -1,12 +1,13 @@
 ---
 name: typesafe-jev
-version: 1.0.0
+version: 1.1.0
 description: >-
-  TypeSafe Jev (System One): send state + typed Choice/Score/Noul questions;
-  get structured answers, probabilities, and confidence your code can branch
-  on. Use when classifying, routing, scoring, guardrailing, or ranking with
-  the user's TYPESAFE_API_KEY. Not a text LLM. Not for inventing API fields.
-  Live SoT: https://docs.typesafe.ai/llms.txt
+  TypeSafe Jev (System One): turn application state into typed Choice, Score,
+  and Noul judgments code can branch, rank, and escalate on. Use when a feature
+  needs programmable common sense, when an LLM prompt-and-parse step should
+  become a structured decision, or when classifying, routing, scoring,
+  verifying, or ranking with the user's TYPESAFE_API_KEY. Not a text LLM.
+  Not for inventing API fields. Live SoT: https://docs.typesafe.ai/llms.txt
 ---
 
 # TypeSafe Jev (System One)
@@ -32,14 +33,58 @@ isolation**, and **do not see each other’s answers**.
 
 ---
 
+## Before the first call
+
+This file is the procedure. Live docs are the contract. Read the
+[index](https://docs.typesafe.ai/llms.txt), then only the pages this design
+needs. Mintlify: append `.md` to a docs path.
+
+| Step | Do |
+|---|---|
+| 1. Name the behavior | What will the app **show, select, change, or hand off**? |
+| 2. List the judgments | One coherent judgment each. Rules, math, lookup, and execution stay in **code**. |
+| 3. Pick the primitive | Choice = one of a set. Noul = does this hold. Score = degree on a rubric. |
+| 4. Batch | Same original state → one request. Write each speculative premise into that question. |
+| 5. No-match | If nothing may fit, the Choice includes `none` / `other`. An omitted candidate cannot be selected. |
+| 6. Compose | Code owns weights, order, and escalation. Typed JSON is the **interface**, not the truth. |
+| 7. Test on **this** data | Cookbook numbers are examples. Split a miss: missing evidence, model, code, or HTTP. |
+
+| Design need | Read |
+|---|---|
+| Programming model | [System One](https://docs.typesafe.ai/concepts/system-one.md), [how to build](https://docs.typesafe.ai/concepts/how-to-build-with-system-one.md) |
+| What to build | [Use-case map](https://docs.typesafe.ai/concepts/use-case-map.md), then the closest cookbook |
+| Inputs | [State](https://docs.typesafe.ai/concepts/state.md), [primitives](https://docs.typesafe.ai/primitives.md) |
+| Uncertainty | [Confidence](https://docs.typesafe.ai/confidence.md) |
+| Client | [HTTP](https://docs.typesafe.ai/api.md), [JS](https://docs.typesafe.ai/sdk/javascript.md), or [Python](https://docs.typesafe.ai/sdk/python.md) |
+| Older integration | [Migration](https://docs.typesafe.ai/migrating-to-v1.md) |
+
+Six shapes (worked in `reference/combinations.md`): **route and fill known
+args**, **select instead of generate**, **find and judge evidence**,
+**judgments as data**, **verify and escalate**, **respond to changing state**.
+
+Several labels can be true together → **one Noul per label**, not one Choice.
+“Atomic” means one coherent judgment. It does not mean one sentence, and it
+does not forbid a bounded action pick.
+
+`confidence` is **not** permission to act and **not** “the workflow is correct”.
+Ignore uncertainty on branches the Choice did not take. A harmless preference
+may stay low-confidence. “Any serious violation” is its own Noul — a weighted
+average can hide one failure. Changing a weight or a display filter does **not**
+need a new call when the questions and the evidence are unchanged.
+
+Keep inferred labels apart from observed facts. If the state changed, do not
+apply the old answers.
+
+---
+
 ## When Jev vs code vs an LLM
 
 | Keep in Jev | Keep in **code** | Send to an **LLM** |
 |---|---|---|
-| Classify, detect, score, route, rank, verify, closed-set args, guardrails | Arithmetic, counts, date math, regex, weighted sums | Generate text, split compound commands, multi-hop plans |
+| Classify, detect, score, route, rank, verify a claim, pick among candidates the code already found, closed-set args, guardrails | Arithmetic, counts, date math, regex, weighted sums, copying the chosen span, dispatch | Generate text, split compound commands, multi-hop plans, the case Jev escalates |
 
-One snap judgment per question. Decompose “rate this pitch” into market /
-feasibility / differentiation, then weight in code.
+Decompose “rate this pitch” into market / feasibility / differentiation, then
+weight in code. Do not ask Jev to emit the pitch.
 
 ---
 
@@ -144,9 +189,10 @@ is_urgent.noul === 1.0
 ```
 
 Batch every question that can see the **original** state. A 13-question
-cookbook batch was ~**12× cheaper / 10× faster** than 13 calls. Second
-request **only** when you must fetch state, rebuild objects, or shrink the
-next Choice set (taxonomy walk, skill rerank).
+cookbook batch was about **12× cheaper and 10× faster** than 13 calls — an
+example, not a budget. Extra questions still spend input tokens; measure the
+real request. Second request **only** when an earlier answer must fetch
+evidence, build objects that did not exist, or shrink the next Choice set.
 
 ---
 
@@ -187,9 +233,13 @@ Response `model` is the **versioned** id.
 | Don't | Do |
 |---|---|
 | Invent fields (`weight`, `explanation`, Noul `confidence`) | Fields in `reference/http-api.md` + live docs |
-| One fat “analyze and decide” question | Atomic questions + code |
+| One fat “analyze and decide” question | One coherent judgment per question, then code |
+| Prompt-and-parse a label out of prose | Choice, Score, or Noul |
 | Sequential calls that could have been one | Speculative fan-out; ignore unused answers |
-| Ask Jev to count / add dates / generate copy | Code or an LLM |
+| Ask Jev to count, date-math, or generate copy | Code, or an LLM for the prose |
+| Hide a hard fail inside a weighted average | Separate Noul; precedence in code |
+| Apply answers after the facts changed | New call on the current state |
+| Treat a cookbook percent as a floor | Measure on the user’s labels |
 | Interpolate Score to a “true” magnitude | Read `probabilities` + `confidence` |
 | Treat Choice p and Noul as inverses | They are not a partition (jaggedness) |
 | Put the key in a public env | `secrets-management` |
@@ -202,8 +252,8 @@ noisy state. Write the exact condition; put boundary cases in `criteria`.
 ## See Also
 
 - `reference/http-api.md` — endpoints, SDK names, errors
-- `reference/combinations.md` — fan-out, gates, composite score, RAG, tools
+- `reference/combinations.md` — six shapes, fan-out, gates, composite score
 - `own-subscription-integration` — user’s paid key
 - `secrets-management` — env hygiene
-- Official skill (optional, do not duplicate into this folder):
-  `https://raw.githubusercontent.com/typesafe-ai/skills/main/skills/typesafe-ai/SKILL.md`
+- Official procedure (do not copy into this folder):
+  [typesafe-ai/skills](https://github.com/typesafe-ai/skills) `skills/typesafe-ai/SKILL.md`

@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-27 · main · v2.97.0
+`typesafe-jev` **1.1**: decide with the six TypeSafe shapes before the
+first call (select-not-generate, verify+escalate, stale state). Cookbook
+percents stay examples. Own key only.
+
 ### 2026-09-21 · main · v2.96.0
 Shared skill `typesafe-jev`: Jev System One (state, Choice/Score/Noul,
 confidence, combinations). HTTP + SDK companions. Own-key only.
@@ -53,10 +58,6 @@ raised past first React2Shell patches. `cve-watchlist` + `react-patterns` **2.1*
 React UI: theme CSS + recipe strings + `<Button variant size>`. `.js` for
 no-JSX helpers. Do not treat `uiStyles` as the public API.
 `react-theme-parity` **1.2**.
-
-### 2026-09-12 · main · v2.90.12
-Black / half-black email copy reference — conversion first; never soften
-a hook without a hard-limit hit. `email-push-marketing` **1.4**.
 
 ---
 
