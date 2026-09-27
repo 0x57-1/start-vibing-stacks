@@ -1,6 +1,6 @@
 ---
 name: owned-wordpress-plugin-ops
-version: 1.0.0
+version: 1.0.1
 description: >
   Search and neutralize WordPress plugins on a site the user owns — grep
   wp-content/plugins, wp-cli deactivate, mu-plugin kill switch, smallest
@@ -19,6 +19,14 @@ ask to search/deactivate/stub it. Pair with always-on memory
 > **Neutralize ≠ nulled.** Stop the fatal. Do not ship stolen keys or cracked
 > plugin packs. If they say “nullar” as crack: refuse the crack; still recover
 > the site.
+
+## Jev fix
+
+No key or `SVS_JEV=0`: the symptom table in §3.
+
+With a key: Noul `is_crack` and Choice `fix` in one call before editing.
+`is_crack` ≥ 0.70: refuse the key, still apply `fix`. Deactivate and curl proof
+stay in code. Questions: `typesafe-jev/reference/skill-routines.md` § wordpress-fix.
 
 ---
 

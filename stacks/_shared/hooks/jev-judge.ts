@@ -1,4 +1,4 @@
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * Optional TypeSafe judge for UserPromptSubmit.
  * No TYPESAFE_API_KEY (and SVS_JEV=0) → caller keeps regex routing.
@@ -17,6 +17,10 @@ export type JevKind = 'ship' | 'status' | 'work';
 export type JevGate = 'safe_ship' | 'attention' | 'do_not_ship';
 export type JevBand = 'yes' | 'no' | 'review';
 
+export type SecurityLane = 'source_review' | 'passive_osint' | 'authorized_active' | 'not_security';
+export type AdsPlatform = 'google' | 'meta' | 'tiktok' | 'several' | 'not_ads';
+export type StackPick = 'octane_server' | 'php_http_client' | 'fastapi_background' | 'not_a_stack_pick';
+
 export interface JevDecision {
   kind: JevKind | null;
   gate: JevGate | null;
@@ -26,6 +30,14 @@ export interface JevDecision {
   auth: JevBand;
   ownApi: JevBand;
   web: JevBand;
+  securityLane: SecurityLane | null;
+  adsPlatform: AdsPlatform | null;
+  stackPick: StackPick | null;
+  email: JevBand;
+  toolFailure: JevBand;
+  bundleMismatch: JevBand;
+  aiMarks: JevBand;
+  highImpact: JevBand;
 }
 
 interface Answer {
@@ -39,11 +51,11 @@ const QUESTIONS = {
   kind: {
     type: 'choice',
     instructions:
-      'What is `prompt` asking for? Negation counts: não publique / não é urgente means they are refusing a ship.',
+      'What is `prompt` asking for? Negation counts: não publique / não é urgente means they are refusing a ship. A push notification is not a git push.',
     criteria: {
-      ship: 'Commit, push, or publish in this turn',
+      ship: 'Commit, git push, or npm publish in this turn',
       status: 'Only check whether something already shipped (npm, CI, deploy)',
-      work: 'Edit, explain, or review. Not a publish.',
+      work: 'Edit, explain, or review. Writing an email or a push notification is work, not a publish.',
     },
   },
   gate: {
@@ -88,6 +100,62 @@ const QUESTIONS = {
     type: 'noul',
     instructions:
       'A correct answer requires searching the public web. npm view, git, and gh do not count as web search.',
+  },
+  security_lane: {
+    type: 'choice',
+    instructions: 'What security lane does `prompt` ask for? A normal bugfix is not security.',
+    criteria: {
+      source_review: 'Review code, routes, or config the user owns',
+      passive_osint: 'Public headers, TLS, or DNS only. No exploit.',
+      authorized_active: 'They own the host or it is in a stated bounty, and they want an active check',
+      not_security: 'Not a security task',
+    },
+  },
+  ads_platform: {
+    type: 'choice',
+    instructions: 'Which paid-ads platform is `prompt` about?',
+    criteria: {
+      google: 'Google Ads, Search, or Performance Max',
+      meta: 'Meta, Facebook, or Instagram ads',
+      tiktok: 'TikTok ads',
+      several: 'More than one ads platform, or a full ads audit',
+      not_ads: 'Not paid advertising',
+    },
+  },
+  stack_pick: {
+    type: 'choice',
+    instructions: 'Is `prompt` choosing one of these tools? A normal feature is not a stack pick.',
+    criteria: {
+      octane_server: 'FrankenPHP vs RoadRunner vs Swoole',
+      php_http_client: 'Laravel Http client vs Saloon vs a vendor SDK',
+      fastapi_background: 'FastAPI BackgroundTasks vs ARQ, Dramatiq, Celery, or Temporal',
+      not_a_stack_pick: 'Not that choice',
+    },
+  },
+  about_email: {
+    type: 'noul',
+    instructions:
+      'The prompt asks to write, rewrite, or review an email or a push notification. A source file whose name contains email does not count.',
+  },
+  about_tool_failure: {
+    type: 'noul',
+    instructions:
+      'The prompt is about a failed agent tool call: timeout, hook block, spawn error, or Cursor save-file prompt',
+  },
+  about_bundle_mismatch: {
+    type: 'noul',
+    instructions:
+      'The server returns HTTP 200 with empty logs and the browser still shows the wrong UI',
+  },
+  about_ai_marks: {
+    type: 'noul',
+    instructions:
+      'The prompt asks to strip AI watermarks, C2PA, or Claude marks from a file the user owns',
+  },
+  about_high_impact: {
+    type: 'noul',
+    instructions:
+      'The prompt asks an agent to send a payment, delete data, send email, or write to production',
   },
 } as const;
 
@@ -153,12 +221,11 @@ export function decisionFromAnswers(answers: Record<string, Answer> | undefined)
   if (!answers) return null;
   const kind = choiceOf(answers['kind'], ['ship', 'status', 'work'] as const, 0.75);
   const gate = choiceOf(answers['gate'], ['safe_ship', 'attention', 'do_not_ship'] as const, 0.85);
-  if (!kind && !gate) return null;
   const noul = (id: string) => {
     const row = answers[id];
     return row && row.type === 'noul' ? row.noul : undefined;
   };
-  return {
+  const decision: JevDecision = {
     kind,
     gate,
     ads: band(noul('about_paid_ads')),
@@ -167,7 +234,42 @@ export function decisionFromAnswers(answers: Record<string, Answer> | undefined)
     auth: band(noul('about_auth')),
     ownApi: band(noul('about_own_api')),
     web: band(noul('needs_public_web')),
+    securityLane: choiceOf(
+      answers['security_lane'],
+      ['source_review', 'passive_osint', 'authorized_active', 'not_security'] as const,
+      0.75
+    ),
+    adsPlatform: choiceOf(
+      answers['ads_platform'],
+      ['google', 'meta', 'tiktok', 'several', 'not_ads'] as const,
+      0.75
+    ),
+    stackPick: choiceOf(
+      answers['stack_pick'],
+      ['octane_server', 'php_http_client', 'fastapi_background', 'not_a_stack_pick'] as const,
+      0.75
+    ),
+    email: band(noul('about_email')),
+    toolFailure: band(noul('about_tool_failure')),
+    bundleMismatch: band(noul('about_bundle_mismatch')),
+    aiMarks: band(noul('about_ai_marks')),
+    highImpact: band(noul('about_high_impact')),
   };
+  const routed =
+    decision.email === 'yes' ||
+    decision.toolFailure === 'yes' ||
+    decision.bundleMismatch === 'yes' ||
+    decision.aiMarks === 'yes' ||
+    decision.highImpact === 'yes' ||
+    decision.ads === 'yes' ||
+    decision.wordpress === 'yes' ||
+    decision.auth === 'yes' ||
+    decision.ownApi === 'yes' ||
+    (decision.securityLane !== null && decision.securityLane !== 'not_security') ||
+    (decision.adsPlatform !== null && decision.adsPlatform !== 'not_ads') ||
+    (decision.stackPick !== null && decision.stackPick !== 'not_a_stack_pick');
+  if (!kind && !gate && !routed) return null;
+  return decision;
 }
 
 export async function judgeTurn(opts: {
@@ -250,6 +352,49 @@ export function renderJevDirective(d: JevDecision, target: string): string {
   }
   if (d.web === 'yes' && d.kind === 'work') {
     if (target === 'kimi') lines.push('  KIMI: Read .claude/agents/research-web.md and execute inline.');
+  }
+  if (d.securityLane === 'source_review') {
+    lines.push('  LOAD skill security-assessment-ops Lane A (owned source). Do not active-scan.');
+  } else if (d.securityLane === 'passive_osint') {
+    lines.push('  LOAD skill security-assessment-ops Lane B only. Public headers, TLS, DNS. No exploit.');
+  } else if (d.securityLane === 'authorized_active') {
+    lines.push('  LOAD skill security-assessment-ops Lane C only if ownership or bounty scope is in the prompt. Otherwise Lane B.');
+  }
+  if (d.email === 'yes') {
+    lines.push('  LOAD skill email-push-marketing. Run its Jev block on the copy before rewriting. Hard-limit math stays in code.');
+  }
+  if (d.toolFailure === 'yes') {
+    lines.push('  LOAD skill tool-resilience. Classify the error before any retry. Max 2 retries stays in code.');
+  }
+  if (d.bundleMismatch === 'yes') {
+    lines.push('  LOAD skill debugging-patterns. Triage bundle vs backend before reading server logs.');
+  }
+  if (d.aiMarks === 'yes') {
+    lines.push('  LOAD skill remove-ai-marks. Run the fraud Noul before cleaning.');
+  }
+  if (d.highImpact === 'yes') {
+    lines.push('  LOAD skill ai-llm-security § LLM06. A human confirms payment, delete, outbound email, or prod write.');
+  }
+  if (d.ads === 'yes' && d.adsPlatform && d.adsPlatform !== 'not_ads') {
+    const skill =
+      d.adsPlatform === 'google'
+        ? 'ads-google'
+        : d.adsPlatform === 'meta'
+          ? 'ads-meta'
+          : d.adsPlatform === 'tiktok'
+            ? 'ads-tiktok'
+            : 'ads-audit';
+    lines.push(`  LOAD skill ${skill}. Judgment checks are Nouls in one call. CTR, CPA, ROAS, and the health-score weights stay in code.`);
+  }
+  if (d.stackPick === 'octane_server') {
+    lines.push('  LOAD skill laravel-octane § Server Selection. One Choice, then the matching config. Do not load RoadRunner and Swoole docs unless chosen.');
+  } else if (d.stackPick === 'php_http_client') {
+    lines.push('  LOAD skill external-api-patterns § Choose your tool. One Choice: Http service or Saloon.');
+  } else if (d.stackPick === 'fastapi_background') {
+    lines.push('  LOAD skill fastapi-patterns § Background work. One Choice, then only that worker’s section.');
+  }
+  if (d.wordpress === 'yes') {
+    lines.push('  WordPress: run the crack Noul in owned-wordpress-plugin-ops before editing. Refuse a nulled key. Still recover the site.');
   }
   return lines.join('\n');
 }

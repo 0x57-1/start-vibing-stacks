@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-09-27 · main · v2.99.0
+Jev routes the skills that are judgments (security lane, email hard-limit,
+tool class, bundle vs backend, ads platform, Octane/HTTP/FastAPI pick).
+No key, or `SVS_JEV=0`, keeps the prose. CTR/CPA/ROAS stay in code.
+
 ### 2026-09-27 · main · v2.98.0
 UPS Jev judge when `TYPESAFE_API_KEY` is set (`SVS_JEV=0` off). No key
 keeps regex. Grok ship head follows the gate. Spawn pin: documenter
@@ -53,11 +58,6 @@ delete). Preline only when the app uses it — corpus is
 `preline-moon` is a thin pointer (no 12M 4.2.0 dump). Grok export never
 prunes project skills off the allowlist; never recopies current curated
 trees; never writes through a corpus symlink. `design-system` stays curated.
-
-### 2026-09-12 · main · v2.91.0
-React **19.3** + Tailwind **4.3** patterns across stacks. Axios **≥ 1.20.0**
-(`allowAbsoluteUrls: false`, boolean `withXSRFToken`). Flight CVE floor
-raised past first React2Shell patches. `cve-watchlist` + `react-patterns` **2.1**.
 
 ---
 

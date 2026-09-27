@@ -1,6 +1,6 @@
 ---
 name: fastapi-patterns
-version: 2.0.0
+version: 2.0.1
 description: "FastAPI patterns for Python 3.13/3.14 production APIs in 2026. Covers lifespan context manager (replaces deprecated @app.on_event), Pydantic V2 (Rust-backed), SQLAlchemy 2.0 async with Mapped[] type hints + async_sessionmaker(expire_on_commit=False) + pool_pre_ping, dependency injection with @lru_cache for settings and yield-based deps for cleanup, mandatory async/sync separation (NEVER mix sync DB driver in async def — freezes the worker), security headers + CORS via Starlette middleware, BackgroundTasks vs Celery/ARQ, deployment with uvicorn (production-ready since 2024 — gunicorn no longer required for most workloads). Invoke when writing FastAPI routes, dependencies, middleware, lifespan, or DB integration."
 ---
 
@@ -293,6 +293,15 @@ def register_exception_handlers(app: FastAPI) -> None:
 Use `application/problem+json` shape — see the universal `openapi-design` skill.
 
 ## Background work — pick by need
+
+## Jev worker
+
+No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: the table below.
+
+With a key: Choice `background_tasks` | `arq` | `dramatiq` | `celery` | `temporal`
+before the long worker examples. Read only the winner. Confidence &lt; 0.75 →
+the table (ARQ is the lightweight default). Questions:
+`typesafe-jev/reference/skill-routines.md` § stack-pick.
 
 | Tool | When |
 |---|---|

@@ -1,6 +1,6 @@
 ---
 name: ai-llm-security
-version: 1.0.0
+version: 1.0.1
 description: Security for LLM/agent features — OWASP Top 10 for LLM Apps 2025. Prompt injection (direct + indirect), improper output handling, excessive agency / tool & MCP invocation, system-prompt & secret leakage, RAG/embedding poisoning, and unbounded consumption (cost/DoS). Polyglot (AI SDK / Node, Python, PHP). Invoke whenever building chat, RAG, agents, tool-calling, or MCP integrations.
 ---
 
@@ -9,6 +9,15 @@ description: Security for LLM/agent features — OWASP Top 10 for LLM Apps 2025.
 **Invoke whenever the app calls an LLM** — chatbots, RAG, agents, tool/function calling, MCP servers/clients, or any feature that puts model output into a downstream sink (shell, SQL, HTML, filesystem, another API). Maps to the **OWASP Top 10 for LLM Applications 2025**.
 
 > The model is an **untrusted, non-deterministic component**. Treat every model output as attacker-controlled input to the next system. Never grant an LLM more authority than the least-privileged user of the feature.
+
+## Jev HITL
+
+No key or `SVS_JEV=0`: LLM06 prose below.
+
+With a key: Noul `needs_human` before a tool runs. ≥ 0.70 and the action pays,
+deletes, sends email, or writes production: ask the user. ≤ 0.30: the allowlisted
+tool may run. Arg schemas and rate limits stay in code. Questions:
+`typesafe-jev/reference/skill-routines.md` § llm-hitl.
 
 ---
 

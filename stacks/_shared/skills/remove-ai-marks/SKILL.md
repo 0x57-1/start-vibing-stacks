@@ -1,6 +1,6 @@
 ---
 name: remove-ai-marks
-version: 1.0.0
+version: 1.0.1
 description: >
   Remove multi-vendor AI provenance marks: invisible Unicode (Layer A), statistical
   text watermarks via rewrite (Layer B, always offer), and C2PA/EXIF/XMP/container
@@ -20,6 +20,14 @@ description: >
 > Companion always-on memory: `remove-ai-watermarks.md`.
 
 Multi-vendor anti-detection hygiene for **text** (Unicode + statistical rewrite) and **files** (C2PA / AI metadata across common containers).
+
+## Jev ethics
+
+No key or `SVS_JEV=0`: `references/ethics.md` as written.
+
+With a key: Noul `is_fraud` before clean. ≥ 0.70: warn. Clean only a file they own
+if they still want the technical step. ≤ 0.30: Layer A inspect/clean. The scripts
+stay in code. Questions: `typesafe-jev/reference/skill-routines.md` § ai-marks-ethics.
 
 ## SVS default (mandatory)
 

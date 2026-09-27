@@ -1,6 +1,6 @@
 ---
 name: external-api-patterns
-version: 2.0.0
+version: 2.0.1
 description: "Laravel patterns for consuming external APIs / SDKs / webhooks (2026). Two recommended approaches: (1) Laravel HTTP Client (`Http::`) wrapped in a Service for one-off integrations; (2) Saloon v3 for SDK-style integrations with multiple endpoints (Connectors + Requests + Responses, retry/auth/middleware/pagination first-class, mock client for testing, Laravel plugin). Octane-safe (no static client state), typed DTOs, typed exceptions, structured logging, idempotent webhook reception with signature verification (2025-A10 fail-closed). Invoke when adding any third-party integration or webhook handler."
 ---
 
@@ -9,6 +9,16 @@ description: "Laravel patterns for consuming external APIs / SDKs / webhooks (20
 **ALWAYS invoke when consuming external APIs, webhooks, or third-party services.**
 
 ## Choose your tool
+
+## Jev tool
+
+No key or `SVS_JEV=0`: the table below.
+
+With a key: Choice `laravel_http` | `saloon` | `vendor_sdk` before the long
+examples. Read only the winner. Confidence &lt; 0.75 → the table. Questions:
+`typesafe-jev/reference/skill-routines.md` § stack-pick.
+
+### Tool table
 
 | Scenario | Tool |
 |---|---|

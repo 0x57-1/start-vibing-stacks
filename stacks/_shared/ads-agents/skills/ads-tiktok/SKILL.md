@@ -1,6 +1,6 @@
 ---
 name: ads-tiktok
-version: 1.6.0
+version: 1.6.1
 description: "TikTok Ads deep analysis covering creative quality, tracking, bidding, campaign structure, and TikTok Shop. Evaluates 28 checks with emphasis on creative-first strategy, safe zone compliance, and Smart+ campaigns. Use when user says TikTok Ads, TikTok marketing, TikTok Shop, Spark Ads, Smart+, or TikTok campaign."
 user-invokable: false
 ---
@@ -8,6 +8,14 @@ user-invokable: false
 <!-- Updated: 2026-05-14 | v1.6: Smart+ Catalog Ads 29% CPA improvement, Smart+ expanded to Traffic objective, Symphony Automation in Smart+ workflow, Asset Manager, 30 ad groups × 30 asset groups × 50 creatives campaign structure -->
 
 # TikTok Ads Deep Analysis
+
+## Jev scorecard
+
+No key or `SVS_JEV=0`: the 28-check list.
+
+With a key: Scores `hook`, `safe_zone`, `native_feel` per ad, one request.
+Metric gates (CPA, spend) stay in code. Questions:
+`typesafe-jev/reference/skill-routines.md` § ads-judgments.
 
 ## Process
 

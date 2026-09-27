@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-09-27 · main · v2.99.0
+Jev skill routes: security lane, email, tool errors, ads, stack pick.
+No key keeps the written skill. Metric math stays in code.
+
 ### 2026-09-27 · main · v2.98.0
 UPS calls Jev only with TYPESAFE_API_KEY. Grok/Kimi get the same gate.
 Spawn pin no longer steals documenter turns.
@@ -78,9 +82,6 @@ React: `<Button variant size>` over `uiStyles` string API.
 ### 2026-09-12 · main · v2.90.12
 Black / half-black email copy reference. Never soften a converting hook
 without a hard-limit hit.
-
-### 2026-09-12 · main · v2.90.11
-Email adapt: keep-energy swap, not dry editorial. `email-push` **1.3**.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

@@ -1,10 +1,18 @@
 ---
 name: laravel-octane
-version: 2.0.0
+version: 2.0.1
 description: "Laravel Octane patterns for production 2026 — covers FrankenPHP (recommended for new projects: single binary, automatic HTTPS, HTTP/3, early hints, Brotli, ~5× FPM throughput), RoadRunner (mature, best raw RPS, gRPC/WebSocket), and Swoole (best for I/O-heavy workloads via coroutines). Long-lived worker rules: no static state, no globals, no superglobals, no config() mutations, no die/exit/dd, scoped bindings instead of singletons, persistent DB connections with Octane flush, instance-scoped memoization. Includes server selection matrix and per-server config. Invoke when adopting Octane, choosing a server, debugging worker leaks, or hardening for persistent processes."
 ---
 
 # Laravel Octane Patterns (FrankenPHP / RoadRunner / Swoole)
+
+## Jev server
+
+No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: the matrix below. Default remains FrankenPHP.
+
+With a key: Choice `frankenphp` | `roadrunner` | `swoole` before reading the other
+server’s config. Confidence &lt; 0.75 → FrankenPHP. Questions:
+`typesafe-jev/reference/skill-routines.md` § stack-pick.
 
 ## How Octane Works
 

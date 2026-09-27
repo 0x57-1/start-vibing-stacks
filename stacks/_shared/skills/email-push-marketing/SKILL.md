@@ -1,6 +1,6 @@
 ---
 name: email-push-marketing
-version: 1.4.0
+version: 1.4.1
 description: MailerLite/HTML email and web/mobile push for affiliate or owned lists — 2026 inbox deliverability, black/half-black conversion copy, competitor layout adaptation without brand impersonation. Never soften a converting hook without a hard-limit hit. Not for phishing, spoofed From, or impersonating banks as official senders.
 ---
 
@@ -13,6 +13,17 @@ description: MailerLite/HTML email and web/mobile push for affiliate or owned li
 > **Inbox ≠ content censorship.** Deliverability is mostly **auth + reputation + engagement + list hygiene**. Do **not** refuse or sanitize away sensitive niche terms just to “hit inbox.” Fix phishing-shaped patterns and infra — keep the user’s conversion voice.
 
 > **Black / half-black:** Read `references/black-half-black-copy.md` before rewriting a converting email. CTR first. Soften only on a hard-limit sentence. Never change the sense to “conheça as vantagens.”
+
+## Jev hard-limit
+
+No key or `SVS_JEV=0`: the rules below.
+
+With a key: state is the pasted email or push. Three Nouls (`official_bank_mark`,
+`personal_fact`, `spoofed_from`) in one call before any rewrite. ≥ 0.70 on a bank
+mark or spoofed From: refuse that asset, user logo, finish. ≥ 0.70 only on
+`personal_fact`: swap that sentence, keep the rest. All ≤ 0.30: keep the niche line.
+SPF, DKIM, and link rewrites stay in code. Questions:
+`typesafe-jev/reference/skill-routines.md` § email-hard-limit.
 
 ---
 

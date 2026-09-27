@@ -1,11 +1,21 @@
 ---
 name: ads-audit
-version: 1.5.0
+version: 1.5.1
 description: "Full multi-platform paid advertising audit with parallel subagent delegation. Analyzes Google Ads, Meta Ads, LinkedIn Ads, TikTok Ads, and Microsoft Ads accounts. Generates health score per platform and aggregate score. Use when user says audit, full ad check, analyze my ads, account health check, or PPC audit."
 user-invokable: false
 ---
 
 # Full Multi-Platform Ads Audit
+
+## Jev route
+
+No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: the process below.
+
+With a key: Choice `platform` before reading every platform skill. Load only the
+winner. `several` stays here, then one Choice of which exports exist. The
+aggregate `Sum(Platform_Score x Platform_Budget_Share)` stays in code. Judgment
+checks are Nouls in one call per platform. CTR and CPA thresholds are code.
+Questions: `typesafe-jev/reference/skill-routines.md` § ads-platform.
 
 ## Process
 

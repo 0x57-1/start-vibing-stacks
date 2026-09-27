@@ -1,6 +1,6 @@
 ---
 name: debugging-patterns
-version: 1.1.0
+version: 1.1.1
 description: Universal debugging strategies plus the "Bundle, not Backend"
   triage for silent wrong-component renders (HTTP 200, empty server logs,
   wrong default export shipped). Pairs with `inertia-react` "Vite Build
@@ -8,6 +8,15 @@ description: Universal debugging strategies plus the "Bundle, not Backend"
 ---
 
 # Debugging Patterns
+
+## Jev locus
+
+No key or `SVS_JEV=0`: the steps below, including Bundle, not Backend.
+
+With a key: state is the status code, whether server logs are empty, and what the
+browser shows. Choice `locus` = `bundle` | `backend` | `unknown`. `bundle` at
+confidence ≥ 0.75: do not read server logs first. `unknown`: reproduce before
+either path. Questions: `typesafe-jev/reference/skill-routines.md` § bundle-vs-backend.
 
 ## Universal Approach
 

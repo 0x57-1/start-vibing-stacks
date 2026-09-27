@@ -1,6 +1,6 @@
 ---
 name: ads-google
-version: 1.6.0
+version: 1.6.1
 description: "Google Ads deep analysis covering Search, Performance Max, Display, YouTube, and Demand Gen campaigns. Evaluates 80 checks across conversion tracking, wasted spend, account structure, keywords, ads, and settings. Use when user says Google Ads, Google PPC, search ads, PMax, Performance Max, or Google campaign."
 user-invokable: false
 ---
@@ -8,6 +8,15 @@ user-invokable: false
 <!-- Updated: 2026-05-14 | v1.6: AI Max GA + DSA September 2026 auto-upgrade, 7% conversion lift verified (Google blog April 2026), full feature suite (search term matching + text customization + final URL expansion) required for full uplift -->
 
 # Google Ads Deep Analysis
+
+## Jev checks
+
+No key or `SVS_JEV=0`: read `google-audit.md` and score in prose.
+
+With a key: one request, state = the account excerpt for this pass. Noul only for
+checks that are a judgment (policy, query intent, ad claim). A check that is
+“CTR fell” or “CPA vs target” is code. Do not send all 80 as prose to an LLM
+first. Questions: `typesafe-jev/reference/skill-routines.md` § ads-judgments.
 
 ## Process
 

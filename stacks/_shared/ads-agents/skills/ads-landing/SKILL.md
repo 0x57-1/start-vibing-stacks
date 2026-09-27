@@ -1,6 +1,6 @@
 ---
 name: ads-landing
-version: 1.6.0
+version: 1.6.1
 description: "Landing page quality assessment for paid advertising campaigns. Evaluates message match, page speed, mobile experience, trust signals, form optimization, and conversion rate potential. Use when user says landing page, post-click experience, landing page audit, conversion rate, or landing page optimization."
 user-invokable: false
 ---
@@ -8,6 +8,15 @@ user-invokable: false
 <!-- Updated: 2026-05-14 | v1.6: INP confirmed as official Core Web Vital (replaced FID March 12, 2024), Core Web Vitals 2026 thresholds verified -->
 
 # Landing Page Quality for Ad Campaigns
+
+## Jev scores
+
+No key or `SVS_JEV=0`: score in prose, then the weighted formula.
+
+With a key: five Scores on the page HTML (`message_match`, `speed`, `mobile`,
+`trust`, `form`). Code applies `0.25 / 0.25 / 0.20 / 0.15 / 0.15` after
+`score / (n_levels - 1)`. INP and other lab numbers stay in code.
+Questions: `typesafe-jev/reference/skill-routines.md` § ads-judgments.
 
 ## Process
 

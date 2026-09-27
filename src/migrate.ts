@@ -252,6 +252,17 @@ function listSkillSources(
   return out;
 }
 
+function listAdsSkillSources(): Array<{ source: string; name: string }> {
+  const dir = join(CLI_ROOT, 'stacks', '_shared', 'ads-agents', 'skills');
+  if (!existsSync(dir)) return [];
+  const out: Array<{ source: string; name: string }> = [];
+  for (const entry of listSubdirs(dir)) {
+    const skillPath = join(dir, entry, 'SKILL.md');
+    if (existsSync(skillPath)) out.push({ source: skillPath, name: entry });
+  }
+  return out;
+}
+
 function listAgentSources(): Array<{ source: string; name: string }> {
   const dir = join(CLI_ROOT, 'stacks', '_shared', 'agents');
   return listFiles(dir, ['.md']).map(n => ({ source: join(dir, n), name: n }));
@@ -342,6 +353,23 @@ export function planMigration(projectDir: string, opts: MigrateOptions): Migrate
         skillCompanionsMissing(source, target)
       ) {
         // SKILL.md alone is not enough — reference/, TEMPLATE.md, etc. must match bundle.
+        status = 'outdated';
+      }
+      items.push({ kind: 'skill', name, source, target, bundledVersion, installedVersion, status });
+    }
+
+    for (const { source, name } of listAdsSkillSources()) {
+      const target = join(projectDir, '.claude', 'ads-agents', 'skills', name, 'SKILL.md');
+      const bundledVersion = parseFrontmatterVersion(source);
+      if (!bundledVersion) continue;
+      const installedVersion = parseFrontmatterVersion(target);
+      let status: Status = !existsSync(target)
+        ? 'missing'
+        : statusFromSemver(bundledVersion, installedVersion);
+      if (
+        (status === 'current' || status === 'ahead') &&
+        skillCompanionsMissing(source, target)
+      ) {
         status = 'outdated';
       }
       items.push({ kind: 'skill', name, source, target, bundledVersion, installedVersion, status });

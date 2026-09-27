@@ -1,6 +1,6 @@
 ---
 name: ads-meta
-version: 1.6.0
+version: 1.6.1
 description: "Meta Ads deep analysis covering Facebook and Instagram advertising. Evaluates 50 checks across Pixel/CAPI health, creative diversity and fatigue, account structure, and audience targeting. Includes Advantage+ assessment. Use when user says Meta Ads, Facebook Ads, Instagram Ads, Advantage+, or Meta campaign."
 user-invokable: false
 ---
@@ -8,6 +8,14 @@ user-invokable: false
 <!-- Updated: 2026-05-14 | v1.6: Andromeda 2026 playbook (8-12 concepts × 2-3 variations, similarity <40%, 2-3 week fatigue, 20+ tests/month), Advantage+ creative 22% ROAS lift, single-ad-set consolidation -->
 
 # Meta Ads Deep Analysis
+
+## Jev checks
+
+No key or `SVS_JEV=0`: the Andromeda sections and the 50-check list.
+
+With a key: Nouls for judgment checks (policy, creative claim, audience mismatch)
+in one call per ad set. Fatigue percents and ROAS lifts stay in code.
+Questions: `typesafe-jev/reference/skill-routines.md` § ads-judgments.
 
 ## Andromeda AI Engine (2026)
 

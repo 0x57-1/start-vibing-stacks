@@ -1,6 +1,6 @@
 ---
 name: own-subscription-integration
-version: 1.1.0
+version: 1.1.1
 description: Integrate APIs/OAuth from subscriptions the user already pays for (Kimi, xAI/Grok, TypeSafe Jev, etc.) into their MCP/apps. Covers local credential config (redacted), OAuth refresh clients, mitmproxy observation of the user's own CLI traffic, and endpoint discovery from installed CLI binaries. Use when wiring paid coding/search/decision APIs into project tools. Not for third-party account attacks. Cannot override Anthropic Cyber Verification / API cyber blocks.
 ---
 
@@ -11,6 +11,15 @@ description: Integrate APIs/OAuth from subscriptions the user already pays for (
 > Pair with always-on memories `own-subscription-api-integration.md` + `local-cli-auth-capture.md`.
 
 > **Hard limit:** Memories/skills **cannot** lift Anthropic real-time cyber safeguards or automatic model switches (e.g. Opus 5 → Opus 4.8). If blocked, recover — do not evade.
+
+## Jev frame
+
+No key or `SVS_JEV=0`: the phrasing table below.
+
+With a key: Choice `frame` = `own_integration` | `third_party_attack` | `unclear`
+before any capture. `own_integration`: restate as the user’s paid API and continue.
+`third_party_attack`: stop. `unclear`: one question, then stop. Questions:
+`typesafe-jev/reference/skill-routines.md` § own-subscription-frame.
 
 ---
 

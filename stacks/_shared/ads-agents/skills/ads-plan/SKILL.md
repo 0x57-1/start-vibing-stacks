@@ -1,11 +1,19 @@
 ---
 name: ads-plan
-version: 1.5.0
+version: 1.5.1
 description: "Strategic paid advertising planning with industry-specific templates. Covers platform selection, campaign architecture, budget planning, creative strategy, and phased implementation roadmap. Use when user says ad plan, ad strategy, campaign planning, media plan, PPC strategy, or advertising plan."
 user-invokable: false
 ---
 
 # Strategic Paid Advertising Plan
+
+## Jev platform
+
+No key or `SVS_JEV=0`: §3 Platform Selection as written.
+
+With a key: Choice `platform` (`google` | `meta` | `tiktok` | `several` | `not_ads`)
+before opening budget templates. Confidence &lt; 0.75 → the matrix in this file.
+Budget math stays in code. Questions: `typesafe-jev/reference/skill-routines.md` § ads-platform.
 
 ## Process
 

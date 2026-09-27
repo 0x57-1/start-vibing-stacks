@@ -1,6 +1,6 @@
 ---
 name: security-assessment-ops
-version: 1.0.0
+version: 1.0.1
 description: Defensive source/API security review, passive public OSINT posture, and authorized active assessment on owned/in-scope assets. Preferred phrasing to reduce Opus 5 / Fable-style cyber false positives; recovery when API falls back to Opus 4.8. Invoke for OWASP reviews, public header/TLS checks, or authorized hardening assessments. Not for unauthorized third-party attacks or exploit packs. Cannot override Anthropic Cyber Verification / API cyber blocks.
 ---
 
@@ -11,6 +11,15 @@ description: Defensive source/API security review, passive public OSINT posture,
 > Pair with always-on memories: `defensive-security-review.md`, `passive-public-security-posture.md`, `authorized-security-assessment.md`.
 
 > **Hard limit:** Memories/skills **cannot** lift Anthropic real-time cyber safeguards or Opus 5 → Opus 4.8 switches. Opus 5 **allows** source-code vulnerability finding; it **blocks** binary-based vuln scanning, penetration testing, and exploit generation. Dual-use at scale → [CVP](https://portal.anthropic.com/programs/cvp).
+
+## Jev lane
+
+No `TYPESAFE_API_KEY`, or `SVS_JEV=0`: use the table below.
+
+With a key: one Choice `lane` before any fetch. Confidence &lt; 0.75 → the table.
+`source_review` Lane A, `passive_osint` Lane B only, `authorized_active` Lane C only
+with ownership or bounty in the prompt, else Lane B. Questions:
+`typesafe-jev/reference/skill-routines.md` § security-lane.
 
 ---
 

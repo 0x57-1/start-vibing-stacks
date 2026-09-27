@@ -1,6 +1,6 @@
 ---
 name: typesafe-jev
-version: 1.2.0
+version: 1.3.0
 description: >-
   TypeSafe Jev HTTP contract (Choice, Score, Noul) for the user's own key.
   Load only when the session hook says "LOAD skills typesafe-jev" or the user
@@ -254,6 +254,9 @@ noisy state. Write the exact condition; put boundary cases in `criteria`.
 `SVS_JEV` is not `0`. No key → the regex path, and this skill stays unloaded.
 The hook says `LOAD skills typesafe-jev` only when the prompt is about wiring
 an API the user pays for. A normal code fix does not load it.
+When the hook loads another skill (`email-push-marketing`, `security-assessment-ops`,
+ads, stack pick), that skill’s Jev block runs one more call on the artifact.
+Question JSON for those calls: `reference/skill-routines.md`. Metric math stays in code.
 Remove the key (or set `SVS_JEV=0`) to return to regex routing.
 The hook redacts credential values before the request and never prints the key.
 Timeout or HTTP error → that turn stays on regex.
@@ -264,6 +267,7 @@ Timeout or HTTP error → that turn stays on regex.
 
 - `reference/http-api.md` — endpoints, SDK names, errors
 - `reference/combinations.md` — six shapes, fan-out, gates, composite score
+- `reference/skill-routines.md` — in-skill questions (email, ads, errors, stack pick)
 - `own-subscription-integration` — user’s paid key
 - `secrets-management` — env hygiene
 - Official procedure (do not copy into this folder):

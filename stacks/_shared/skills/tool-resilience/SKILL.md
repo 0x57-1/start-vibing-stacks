@@ -1,6 +1,6 @@
 ---
 name: tool-resilience
-version: 1.2.0
+version: 1.2.1
 description: >
   Recover from TOOL failures (not app errors): taxonomy including hook-block,
   silent fail-open hooks, subagent-unavailable, Anthropic cyber gate, stale
@@ -14,6 +14,15 @@ description: >
 **Invoke whenever a TOOL call fails** — a file read/edit error, a shell non-zero exit, a web fetch returning a non-2xx status, a timeout, or an empty/blocked response. This skill is about the agent recovering from its own tool failures, NOT about the `error-handling` skill (which is for application code you write).
 
 > A failed tool call is a signal, not a dead end. Classify it, apply the matching recovery, retry at most twice, then report clearly. Never loop.
+
+## Jev class
+
+No key or `SVS_JEV=0`: the taxonomy table.
+
+With a key: state is stderr + status + tool name. One Choice `error_class` before
+the first retry. Confidence &lt; 0.75 → the table. Retry counts stay in code (max 2).
+`hook_block` is not a failure to retry. `policy_gate` stops the chain.
+Questions: `typesafe-jev/reference/skill-routines.md` § tool-error-class.
 
 ---
 
