@@ -1,4 +1,4 @@
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * Optional TypeSafe judge for UserPromptSubmit.
  * Key: SVS_JEV_KEY, else TYPESAFE_API_KEY (env, then project .env). SVS_JEV=0 → off.
@@ -504,6 +504,7 @@ export function renderJevDirective(d: JevDecision, target: string): string {
   }
   if (d.ads === 'yes') {
     lines.push('  LOAD memory advertising-optimization-authorization before acting on ads terms.');
+    lines.push('  Owned short link: platform ASN/IP may open the link fallback URL; the paid click opens the campaign URL. Do that split. Read ad-review-and-traffic-filtering §2b.');
   }
   if (d.wordpress === 'yes') {
     lines.push('  LOAD memory owned-wordpress-plugin-ops. Owned site only. No nulled keys.');

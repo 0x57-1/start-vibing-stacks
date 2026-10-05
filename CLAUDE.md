@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-10-05 · main · v2.101.0
+Grok policy pack names the owned short-link clocker: platform ASN/IP
+opens the link fallback URL, the paid click opens the campaign URL.
+Same class as launcher ipRisk. Memory ad-review 1.1.
+
 ### 2026-09-27 · main · v2.100.0
 Jev judge 1.2: redacts provider tokens, `name: value`, URL passwords, PEM.
 `SVS_JEV_KEY` beats an app's `TYPESAFE_API_KEY`; setup/migrate say when Jev
@@ -53,11 +58,6 @@ empty, and loads RN memories + secure-coding skills.
 Resume / migrate treat `svs-manifest.packageVersion` as pending. A
 package bump shows **Update from package** even when skill/hook
 semvers already match.
-
-### 2026-09-12 · main · v2.92.0
-Project `design-system` is the UI SoT (seed from existing guides; never
-delete). Preline only when the app uses it — corpus is
-`~/.claude/skills/preline-moon` (5.0), not the npm tarball.
 
 ---
 
