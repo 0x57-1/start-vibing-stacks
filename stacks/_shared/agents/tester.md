@@ -1,7 +1,7 @@
 ---
 name: tester
-version: 1.3.0
-description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL). On a web UI change, walks the local page with Playwright before calling it done."
+version: 1.4.0
+description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL). On a web UI change, walks the local page with Playwright before calling it done. On a Mac, starts a Podman pod when the test needs a database or the container image."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
 skills: test-coverage, playwright-automation
@@ -56,6 +56,10 @@ Follow the stack skill's patterns for:
 ## Step 2b: Web page — walk before done
 
 On php / nodejs / python, a screen or flow is not done until you walked it. Load `playwright-automation` **2.1** and follow it: local harness (isolated database), Playwright plugin on `127.0.0.1`, `playwright-cli screenshot` for one picture, a measure script for contrast only. Close the browser. Do not open a third-party site in it.
+
+## Step 2c: Local Podman on a Mac
+
+On php / nodejs / python, when the test needs a database and nothing is listening, or the thing under test is the container image, load `podman-patterns` **1.1**. Install and start the Podman machine, then run the test pod. A database container only if the test needs one. An app with no database still runs in the pod. Bind ports to `127.0.0.1`. Do not install MariaDB, Postgres, or Redis on the Mac. Expo native stays on Jest.
 
 ## Universal Rules (ALL stacks)
 

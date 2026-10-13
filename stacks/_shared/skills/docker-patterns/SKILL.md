@@ -1,6 +1,6 @@
 ---
 name: docker-patterns
-version: 2.1.1
+version: 2.1.2
 description: "Docker patterns for 2026: BuildKit + Buildx Bake (default builder for Docker Compose since June 2025), multi-stage builds, distroless / chiseled bases (90% size reduction, no shell), non-root users, .dockerignore, healthchecks, additional_contexts for service deps, secrets via build mounts (not COPY), reproducible builds. Stack examples: Node 24 LTS, Python 3.13 (uv), PHP 8.4 (FPM + Nginx)."
 ---
 
@@ -212,4 +212,4 @@ For Kubernetes the Dockerfile HEALTHCHECK is informational only — the cluster 
 - `security-baseline` (2025-A03) — supply chain: pin actions by SHA, sign images (Sigstore/cosign)
 - `observability` — `/healthz` + `/readyz` semantics
 - `ci-pipelines` — building & pushing in CI
-- `podman-patterns` — rootless execution, Quadlet, `podman play kube`, and daemonless alternative (same Dockerfiles work)
+- `podman-patterns` **1.1** — on a Mac, install the machine and run the local test pod (database container only when the test needs one)

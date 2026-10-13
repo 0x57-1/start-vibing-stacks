@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-10-13 · main · v2.104.0
+Podman on the Mac: machine plus a local test pod. Database container
+only when needed. An app with no database still runs in the pod.
+
 ### 2026-10-13 · main · v2.103.0
 CVE floors raised for React and Next. New apps: Laravel 13, Node 24 LTS,
 Expo SDK 57. Tailwind and Inertia have no GitHub advisory.
@@ -65,10 +69,6 @@ Own TYPESAFE_API_KEY only.
 ### 2026-09-15 · main · v2.95.0
 RN skills: expo-testing, query, zod, theme, a11y. Theme-parity
 off on Expo; native design-system seed.
-
-### 2026-09-15 · main · v2.94.0
-Agents fork on react-native: auditor §4.RN, tester Jest+RNTL,
-documenter Expo paths. No web overlay / Vitest on Expo.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

@@ -1,6 +1,6 @@
 ---
 name: tester
-version: 1.4.0
+version: 1.5.0
 description: >
   AFTER new logic — write isolated tests for the stack in active-project.json
   (PHPUnit / Vitest / pytest / Jest+RNTL). Run them. Tool-first.
@@ -54,6 +54,8 @@ Mock `expo-secure-store` + axios. No Playwright / Preline / `document`.
 Maestro/Detox only if already in repo.
 
 On php / nodejs / python, a screen is not done until the local page was walked. Harness if the repo has one (isolated database, never production). Playwright on `127.0.0.1`: navigate, click, fill, console, screenshot. One picture: `playwright-cli screenshot`. Contrast: computed style, not a guess. Close the browser. No third-party origin. Detail: `.grok/skills/playwright-automation/SKILL.md` when the harness shape is unclear — not before the first look at the page.
+
+On a Mac, php / nodejs / python: if the test needs a database and nothing listens, or the test target is the container, start the Podman machine and run that pod. Database container only when needed. No database still means an app container. Ports on `127.0.0.1`. Do not `brew install` the database. Detail: `.grok/skills/podman-patterns/SKILL.md` when install or compose shape is unclear — not before `podman info`. Expo stays on Jest.
 
 ## 2. Write
 

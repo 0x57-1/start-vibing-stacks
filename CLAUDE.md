@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-10-13 · main · v2.104.0
+Podman skill 1.1: on a Mac, install the machine and run the local test
+pod. Database container only when the test needs one. App with no
+database still runs in the pod. Tester 1.4. Grok skills 1.51.
+
 ### 2026-10-13 · main · v2.103.0
 CVE floors: React 19.0.6 / 19.1.7 / 19.2.6, Next 15.5.27 / 16.3.8.
 Laravel 13 (12.x stays ≥ 12.69.0). Node minimum 22, 24 LTS for new apps.
@@ -53,11 +58,6 @@ confidence, combinations). HTTP + SDK companions. Own-key only.
 RN skills lote: `expo-testing`, `react-native-query`, `react-native-zod`,
 `react-native-theme`, `react-native-a11y`. Drop `react-theme-parity`
 always-on on Expo; native `design-system` seed; quality-gate / test-coverage § RN.
-
-### 2026-09-15 · main · v2.94.0
-Agents fork on `react-native`: `security-auditor` §4.RN (SecureStore,
-no web overlay), `tester` Jest+RNTL, `documenter` Expo paths.
-stop-validator lists `.tsx`; migrate merges domain-mapping 1.1.
 
 ---
 
