@@ -5,6 +5,7 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.17.0: tester walks a local web page (playwright-automation 2.1) before done.
  * v1.16.0: tester points at expo-testing on react-native.
  * v1.15.0: security-auditor / tester / documenter fork on react-native
  * (SecureStore, Jest+RNTL, Expo Files paths; skip web overlay).
@@ -58,7 +59,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.16.0';
+export const GROK_AGENTS_VERSION = '1.17.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';

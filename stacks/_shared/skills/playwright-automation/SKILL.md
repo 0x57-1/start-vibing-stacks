@@ -1,27 +1,63 @@
 ---
 name: playwright-automation
-version: 2.0.0
-description: "Playwright 1.60+ E2E and browser-automation patterns for 2026. Page Object Model, fixtures (auth + DB cleanup), multi-viewport (375 / 768 / 1280), trace viewer, UI Mode v2 (search + system theme), HAR recording (1.60), screencast API (1.59), Playwright Agents (planner/generator/healer, 1.56+), sharding for CI, accessibility snapshots. Invoke when writing E2E tests or browser automation."
+version: 2.1.0
+description: "Playwright 1.64 agent walk before deploy, plus committed E2E. Local harness, then the Playwright plugin (navigate, click, fill, console, screenshot) on 127.0.0.1. CLI screenshot when only a picture is needed. A measure script for contrast only. PHP, Node, Python. Expo native stays on Jest. Never a third-party site in that browser."
 ---
 
-# Playwright Automation — E2E Testing (1.60+)
+# Playwright — walk the local app, then commit the test
 
-**ALWAYS invoke when writing E2E tests or browser automation.**
+**Invoke before claiming a web screen or flow is done, and when writing E2E.**
 
-> Pin Playwright in `package.json` and pin the matching browser binary version. Mismatch between client and browser is the #1 source of "flaky in CI" reports.
+Claude, Grok, Kimi, and Cursor all use this file. Grok also gets a copy under `.grok/skills/playwright-automation/`.
 
-## Version policy (2026)
+## What gives the agent the page
 
-- **1.60** (current): HAR recording first-class API (`tracing.startHar()` / `stopHar()`), `locator.drop()`, `test.abort()`, aria-snapshot bounding-box.
-- **1.59**: `page.screencast` (video with action annotations + real-time frames), `browser.bind()`.
-- **1.58**: UI Mode + Trace Viewer search (`Cmd/Ctrl+F`), `system` theme, JSON auto-format, **CLI+SKILLs token-efficient mode** (relevant for AI-assisted authoring).
-- **1.57**: aria snapshot improvements.
-- **1.56**: **Playwright Agents** (planner / generator / healer) — AI-assisted test creation and self-healing locators.
+Three tools. They are not substitutes.
+
+| Tool | Use it for | Skip it for |
+|---|---|---|
+| **Playwright plugin** (`browser_navigate`, `browser_click`, `browser_fill_form`, `browser_evaluate`, `browser_take_screenshot`, `browser_console_messages`, `browser_snapshot`, `browser_resize`, `browser_close`) | Walking a flow. The tree tells the next click. Console shows the JS error. | A single picture. A third-party site. |
+| **`playwright-cli`** (`@playwright/cli` **0.1.22**, same line as Playwright 1.64) | One screenshot. `playwright-cli open http://127.0.0.1:<port>` then `playwright-cli screenshot --filename=page.png`. Smaller context than the plugin tree. | A flow that depends on what the page contains. |
+| **Measure script** (`browser_evaluate` + `getComputedStyle`, or a short local script) | Contrast and computed color. Numbers, not a guess from the picture. | The only check of a flow. |
+
+Order: boot the local target, walk with the plugin, measure only when the question is numeric, close the browser.
+
+The plugin name depends on the client (`mcp__plugin_playwright_playwright__…` or `mcp__playwright__…` from `@playwright/mcp` in `.claude/settings.json`). Call the action. Do not invent a second browser stack.
+
+## Local target (do this before the first navigation)
+
+Use the harness the repo already has.
+
+| Stack | Boot | Isolated how |
+|---|---|---|
+| **PHP** | `composer harness` when `scripts/harness-serve.sh` exists. Otherwise `php artisan serve --host=127.0.0.1` only if that process already points at a local database. | SQLite file recreated on boot. Captcha off and `SESSION_SECURE_COOKIE=false` only in **that process env**. Seeder refuses `APP_ENV=production`. |
+| **Node** | `webServer` in `playwright.config.ts`, or the repo's dev script bound to `127.0.0.1`. | Test database URL. Not the database the developer is using. |
+| **Python** | `uvicorn` / `manage.py runserver` on `127.0.0.1`. | Test database URL in that process. Not the dev database. |
+| **React Native** | Do **not** boot Playwright. `expo-testing` (Jest + RNTL). | Playwright only if the user asked to check **Expo web** and the URL is localhost. |
+
+Cookie SPA login (Sanctum or equivalent): one in-page `fetch` for the CSRF cookie and the login POST. A navigation between two `evaluate` calls drops the cookie. `page.request` does not share that CSRF. Do not print the seed password, the cookie, or the CSRF token.
+
+Add a harness only when login, captcha, or a shared database would block the walk. Do not point it at production.
+
+## Committed tests, after the walk
+
+Promote a flow that must stay green. Match what the repo already pins. Do not upgrade the test framework just to look at a page.
+
+- **PHP.** If `pestphp/pest-plugin-browser` is installed: `visit('/')->click('Sign in')->assertSee('…')` in `tests/Browser`. Plugin **5.0.1** (2026-08-10) requires Pest `^5` and PHP `^8.4`. A lockfile still on Pest 4 stays on the 4.x plugin. Gitignore `tests/Browser/Screenshots` and `tests/Browser/Traces`. Pest starts its own local Playwright; there is no supported remote-server switch.
+- **Node.** `@playwright/test` **1.64.0** (stable 2026-10-07). `1.65.0` is alpha — do not pin it. Browsers: Chromium 156, Firefox 157, WebKit 27.2. After the pin: `npx playwright install`. CI image: `mcr.microsoft.com/playwright:v1.64.0-noble`.
+- **Python.** `pytest-playwright` only when the repo already has it or the user asked for a suite. Same Playwright **1.64** pin.
+- **React Native.** No Playwright suite. Jest + RNTL.
+
+## Version policy (2026-10-13)
+
+- **1.64** (current stable): `testProject.default: false` so a plain `npx playwright test` runs Chromium only; CI adds `--project="*"`. `--shuffle` finds order-dependent tests. `locator.within()` scopes a role inside a card. `page.webmcp` tests tools a page exposes to assistants — it does not replace locators on the app.
+- **1.60**: HAR (`tracing.startHar()` / `stopHar()`), `locator.drop()`, `test.abort()`.
+- **1.58**: CLI + skills for a token-cheap picture (`playwright-cli`).
+- **1.56**: planner / generator / healer. Commit only tests a person has read.
 
 ```json
-// package.json
 "devDependencies": {
-  "@playwright/test": "1.60.0"
+  "@playwright/test": "1.64.0"
 },
 "scripts": {
   "test:e2e": "playwright test",
@@ -60,7 +96,7 @@ export default defineConfig({
     ...(process.env['CI'] ? [['github']] : []),
   ],
   use: {
-    baseURL: process.env['E2E_BASE_URL'] ?? 'http://localhost:3000',
+    baseURL: process.env['E2E_BASE_URL'] ?? 'http://127.0.0.1:3000',
     trace: 'on-first-retry',           // saves cost; debug locally with --trace=on
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -69,12 +105,12 @@ export default defineConfig({
   },
   projects: [
     { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
-    { name: 'webkit-tablet',    use: { ...devices['iPad (gen 7)'] } },
-    { name: 'mobile-chrome',    use: { ...devices['Pixel 7'] } },
+    { name: 'webkit-tablet', use: { ...devices['iPad (gen 7)'] }, default: false },
+    { name: 'mobile-chrome', use: { ...devices['Pixel 7'] }, default: false },
   ],
   webServer: process.env['CI'] ? undefined : {
     command: 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://127.0.0.1:3000',
     reuseExistingServer: true,
   },
 });
@@ -233,6 +269,16 @@ The `planner`, `generator`, and `healer` agents support AI-driven test creation 
 | `page.waitForTimeout(N)` | Flaky; use `waitFor`, `toBeVisible`, etc. |
 | CSS selectors when a role / label exists | Loses accessibility coverage |
 | `--no-deps` in CI install | Browser binaries silently outdated |
+| Production URL as `baseURL` | The walk mutates real users. Default is `127.0.0.1`. Staging only when the user named `E2E_BASE_URL`. |
+| Third-party origin in this browser | Research uses WebFetch / web-scraper. A brand site in Playwright is not a test and fills the context. |
+| Printing Cookie, Set-Cookie, CSRF, Authorization, or the harness password | The page works without those values in the chat. |
+| Committing `.playwright-data/`, `test-results/`, HAR, or traces | They hold session cookies. |
+| Captcha-off or `SESSION_SECURE_COOKIE=false` in the production env file | Those overrides belong to the harness process only. |
+| Disabling TLS certificate checks | A local UI walk does not need that. |
+| Headless measure script as the only check of a flow | Numbers do not show a broken modal. Walk first. |
+| Playwright on Expo native screens | Jest + RNTL. Localhost Expo web only when the user asked. |
+| Pinning Playwright `1.65` alpha | Stable pin is `1.64.0`. |
+| Leaving the browser open after the walk | `browser_close`. The next task must not inherit the logged-in session. |
 
 ## See Also
 

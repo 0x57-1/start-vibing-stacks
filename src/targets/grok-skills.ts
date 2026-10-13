@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.49.0';
+export const GROK_SKILLS_VERSION = '1.50.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -67,6 +67,8 @@ export const GROK_CURATED_SKILL_NAMES = [
   'external-api-patterns',
   'fastapi-patterns',
   'project-ui-standard',
+  'playwright-automation',
+  'ui-ux-audit',
   // Project-owned (not in the npm tree). Allowlist keeps prune from deleting it.
   'design-system',
   // Thin pointer only — never mirror a 100 MB capture into .grok/skills

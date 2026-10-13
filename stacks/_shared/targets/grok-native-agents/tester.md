@@ -1,6 +1,6 @@
 ---
 name: tester
-version: 1.3.0
+version: 1.4.0
 description: >
   AFTER new logic — write isolated tests for the stack in active-project.json
   (PHPUnit / Vitest / pytest / Jest+RNTL). Run them. Tool-first.
@@ -52,6 +52,8 @@ On `react-native`: do **not** Read `vitest-testing` first. Layout miss only
 → `expo-testing/SKILL.md`. Query by text / `accessibilityLabel` (RNTL).
 Mock `expo-secure-store` + axios. No Playwright / Preline / `document`.
 Maestro/Detox only if already in repo.
+
+On php / nodejs / python, a screen is not done until the local page was walked. Harness if the repo has one (isolated database, never production). Playwright on `127.0.0.1`: navigate, click, fill, console, screenshot. One picture: `playwright-cli screenshot`. Contrast: computed style, not a guess. Close the browser. No third-party origin. Detail: `.grok/skills/playwright-automation/SKILL.md` when the harness shape is unclear — not before the first look at the page.
 
 ## 2. Write
 

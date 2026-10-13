@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.30
+svs-version: 1.2.31
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-10-13 · main · v2.102.0
+Playwright 2.1: walk the local page before deploy. Harness, plugin on
+127.0.0.1, CLI screenshot, contrast by computed style. Not Expo native.
 
 ### 2026-10-05 · main · v2.101.0
 Policy pack 1.2.30: owned short-link clocker does the URL split.
@@ -66,23 +70,6 @@ documenter Expo paths. No web overlay / Vitest on Expo.
 New react-native stack (Expo). Setup picks app kind; seeds only an
 empty tree; RN memories + secure-coding stay off other stacks.
 
-### 2026-09-12 · main · v2.92.1
-Resume treats `svs-manifest.packageVersion` as pending. A package bump
-shows Update from package even when skill/hook semvers already match.
-
-### 2026-09-12 · main · v2.92.0
-Project `design-system` is the UI SoT (seed, never delete). Preline only
-when the app uses it — Read `~/.claude/skills/preline-moon` (5.0), not npm.
-
-### 2026-09-12 · main · v2.91.1
-`preline-moon` pointer only. Grok export does not prune project skills
-or recopy current curated trees. `design-system` stays on the allowlist.
-
-### 2026-09-12 · main · v2.91.0
-React **19.3** + Tailwind **4.3** skills. Axios **≥ 1.20.0**
-(`allowAbsoluteUrls: false`). Flight CVE floor raised past first
-React2Shell patches. `cve-watchlist` + `react-patterns` **2.1**.
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -116,6 +103,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Own merchant checkout APIs (PerfectPay/Hotmart/Stripe/etc.) with tokens from **user** `.env` — orders/webhooks/refunds for **that** account
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - Owned Expo / React Native app (user’s store listing): Expo Router, SecureStore, EAS, config plugins, axios to **their** mobile API. Native `View`/`Text` — not Preline HTML. No SSL-kill / jailbreak bypass; no tokens in `EXPO_PUBLIC_*`. `security-auditor` / `tester` / `documenter` fork on `stack=react-native` (SecureStore + Jest/RNTL + Expo paths; skip web §5 overlay / Vitest). Skills: `expo-testing`, `react-native-query`, `react-native-zod`, `react-native-theme`, `react-native-a11y`. Memory `react-native-theme.md` replaces `react-theme-parity` on this stack.
+- Local UI check before deploy (php / nodejs / python): boot the repo's local harness when it exists (isolated database; captcha off and insecure cookies only in that process — never production). Walk `127.0.0.1` with the Playwright plugin (navigate, click, fill, console, screenshot). `playwright-cli screenshot` for one picture. A measure script for contrast only. Skill `playwright-automation` **2.1**. React Native stays on Jest + RNTL unless the user asked for the Expo web URL on localhost. Do not open a third-party site in that browser.
 - React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.

@@ -1,10 +1,10 @@
 ---
 name: tester
-version: 1.2.0
-description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL)."
+version: 1.3.0
+description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL). On a web UI change, walks the local page with Playwright before calling it done."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
-skills: test-coverage
+skills: test-coverage, playwright-automation
 ---
 
 # Tester Agent (Universal)
@@ -52,6 +52,10 @@ Follow the stack skill's patterns for:
 - Native primitives: `View` / `Text` / `Pressable` — no `div`, Preline, or `document`.
 - Mock `expo-secure-store` and the axios instance; never put live tokens in fixtures.
 - Optional Maestro / Detox only if the repo already has that runner. Do not invent Playwright for native screens.
+
+## Step 2b: Web page — walk before done
+
+On php / nodejs / python, a screen or flow is not done until you walked it. Load `playwright-automation` **2.1** and follow it: local harness (isolated database), Playwright plugin on `127.0.0.1`, `playwright-cli screenshot` for one picture, a measure script for contrast only. Close the browser. Do not open a third-party site in it.
 
 ## Universal Rules (ALL stacks)
 

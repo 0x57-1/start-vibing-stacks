@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-10-13 · main · v2.102.0
+Playwright skill 2.1: local harness, plugin walk on 127.0.0.1, CLI for
+one picture, measure script for contrast. PHP, Node, Python. Expo stays
+on Jest. Policy pack 1.2.31. Pin `@playwright/test` 1.64.0.
+
 ### 2026-10-05 · main · v2.101.0
 Grok policy pack names the owned short-link clocker: platform ASN/IP
 opens the link fallback URL, the paid click opens the campaign URL.
@@ -53,11 +58,6 @@ stop-validator lists `.tsx`; migrate merges domain-mapping 1.1.
 New **react-native** stack (Expo is RN). Setup asks for app kind
 (tabs / auth-panel / blank / bare), seeds Expo only if the tree is
 empty, and loads RN memories + secure-coding skills.
-
-### 2026-09-12 · main · v2.92.1
-Resume / migrate treat `svs-manifest.packageVersion` as pending. A
-package bump shows **Update from package** even when skill/hook
-semvers already match.
 
 ---
 

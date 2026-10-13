@@ -1,6 +1,6 @@
 ---
 name: expo-testing
-version: 1.0.0
+version: 1.0.1
 description: >-
   Jest + React Native Testing Library for Expo apps. Use when writing
   *.test.ts(x), mocking SecureStore/axios, or running npm test. Not Vitest,
@@ -11,6 +11,9 @@ description: >-
 
 **ALWAYS use this skill on `react-native`.** Ignore `vitest-testing` and
 Playwright. Maestro / Detox only if the repo already has the config.
+Playwright is allowed only when the user asked to check Expo web and the
+URL is `127.0.0.1` — then `playwright-automation` **2.1**. Never a store
+page or a third-party site.
 
 ## Layout
 

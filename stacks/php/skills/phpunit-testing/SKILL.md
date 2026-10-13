@@ -1,6 +1,6 @@
 ---
 name: phpunit-testing
-version: 2.0.0
+version: 2.0.1
 description: "PHP testing for 2026 — covers PHPUnit 12 (released 2025, foundation for Pest 4) and Pest 4 (March 2026: 20-30% faster, browser testing via Playwright, visual regression, smoke testing, sharding for CI parallelization, mutation testing). Includes Unit / Feature / Browser / Architecture test layout, AAA pattern, data providers / datasets, mocking, fixtures, dataset sharding, coverage thresholds. Invoke when authoring tests, choosing PHPUnit vs Pest, configuring sharding/parallel, or wiring CI test stages."
 ---
 
@@ -303,7 +303,7 @@ Realistic 2026 baseline: **70% line coverage minimum**, 100% on Services / Domai
 6. **Architecture tests on every Laravel project** — enforce layer rules in code, not docs
 7. **Mutation testing on critical Services** quarterly — catches "fake green" suites
 8. **Never `->skip()` / `->only()` in committed code**
-9. **Browser tests use real browsers (Pest 4 Playwright)** — no jsdom hacks
+9. **Browser tests use the Pest browser plugin already in the lockfile** — Pest 5 uses plugin 5.x (PHP 8.4); Pest 4 stays on 4.x. No jsdom. The pre-deploy walk is `playwright-automation` **2.1**, not a Pest upgrade.
 
 ## See Also
 

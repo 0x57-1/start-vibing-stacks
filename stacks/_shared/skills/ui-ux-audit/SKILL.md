@@ -1,6 +1,6 @@
 ---
 name: ui-ux-audit
-version: 2.0.0
+version: 2.0.1
 description: "UI/UX audit workflow targeting WCAG 2.2 AA (current W3C Recommendation since Dec 2024 — WCAG 3.0 is still a Working Draft as of 2026, do NOT plan against it). Competitor research, multi-viewport responsiveness (375 / 768 / 1280 + 1440), touch-target ≥ 24×24 CSS px (WCAG 2.2 SC 2.5.8), focus-not-obscured (2.4.11/2.4.12), redundant entry / accessible auth (3.3.7/3.3.8), design-system consistency. Pairs with accessibility-wcag22 for the per-criterion checklist. Invoke before implementing any UI feature."
 ---
 
@@ -21,7 +21,7 @@ description: "UI/UX audit workflow targeting WCAG 2.2 AA (current W3C Recommenda
         ↓
 4. IMPLEMENT → Follow accessibility + responsiveness checklists below
         ↓
-5. VALIDATE  → Manual + axe-core + Playwright multi-viewport (see playwright-automation)
+5. VALIDATE  → Local harness, then walk 127.0.0.1 with the Playwright plugin (playwright-automation 2.1). axe-core + viewports 375 / 768 / 1280. A measure script is for contrast numbers only.
         ↓
 6. DOCUMENT  → Update domain.md with the chosen pattern + rationale
 ```
@@ -113,5 +113,5 @@ test('home is WCAG 2.2 AA clean', async ({ page }) => {
 ## See Also
 
 - `accessibility-wcag22` — per-criterion code patterns and axe-core integration
-- `playwright-automation` — multi-viewport test patterns (375 / 768 / 1280)
+- `playwright-automation` **2.1** — local walk before deploy, then multi-viewport tests (375 / 768 / 1280)
 - `tailwind-patterns` / `shadcn-ui` — when those are the design system
