@@ -1,6 +1,6 @@
 ---
 name: react-standards
-version: 2.2.0
+version: 2.2.1
 description: "Project conventions for React 19.3 + Tailwind CSS 4.3 codebases. Mandates the LABELS / STYLES const pattern (defined at file top, before hooks, with `as const` for stable references — prevents re-renders, centralises styles, supports i18n drop-in), controlled debug logging (no raw console.log), semantic Tailwind tokens (no raw colours, no dark: on those tokens), separate-file SVG icons, mandatory loading/empty states, modal data-flow contract (`onUpdated` callback), and third-party chart integration (no useRef DOM mutation). Pairs with `tailwind-patterns` v2.1, `react-theme-apply`, and `react-ui-patterns` v2.1. Invoke at the start of any new React project or component file."
 ---
 
@@ -10,7 +10,7 @@ description: "Project conventions for React 19.3 + Tailwind CSS 4.3 codebases. M
 
 ## Version Requirements
 
-- **React ≥ 19.3.0** — MANDATORY for new projects (`ViewTransition`, Fragment refs, `browser()`, Trusted Types). Existing 19.0–19.2 apps: Flight floor 19.0.5 / 19.1.6 / 19.2.5 or jump to 19.3
+- **React ≥ 19.3.0** — MANDATORY for new projects (`ViewTransition`, Fragment refs, `browser()`, Trusted Types). Existing 19.0–19.2 apps: Flight floor 19.0.6 / 19.1.7 / 19.2.6 or jump to 19.3
 - **Tailwind CSS ≥ 4.3.0** — MANDATORY (CSS-first `@theme`, Oxide; 4.3 scrollbar / `@container-size` / `zoom-*` / stacked `@variant`)
 - **TypeScript ≥ 5.6** strict mode
 - **Client HTTP:** axios ≥ 1.20.0 via one `api` instance (`allowAbsoluteUrls: false`). Inertia page forms stay on `useForm()`

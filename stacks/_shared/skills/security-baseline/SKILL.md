@@ -1,6 +1,6 @@
 ---
 name: security-baseline
-version: 2.3.0
+version: 2.4.0
 description: "Universal OWASP Top 10 baseline with stack-aware examples. Covers BOTH OWASP 2021 (numbering kept stable for security-auditor §A01–§A10 cross-references) AND OWASP 2025 deltas (Software Supply Chain Failures new at A03, Mishandling Exceptional Conditions new at A10, SSRF demoted into Broken Access Control). A07 includes phishing-resistant Passkeys/WebAuthn (FIDO2). Named CVEs live in companion cve-watchlist.md (Read on lockfile hit only — do not inline in agents). Invoke before designing or reviewing any feature that touches user data, auth, persistence, supply chain, or external IO."
 ---
 

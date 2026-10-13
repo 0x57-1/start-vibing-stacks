@@ -1,7 +1,7 @@
 ---
 name: laravel-api-architecture
-version: 1.0.0
-description: Laravel 12 + Octane + Sanctum API-first architecture pipeline —
+version: 1.0.1
+description: Laravel 13 + Octane + Sanctum API-first architecture pipeline —
   Route → Controller → FormRequest → Policy → Service → Resource → JSON.
   Single-responsibility per layer, role-based bypass via Policy `before()`,
   thin controllers, no DB queries before first byte. Use as the default
@@ -9,7 +9,7 @@ description: Laravel 12 + Octane + Sanctum API-first architecture pipeline —
   `react-api-standards`.
 ---
 
-# Laravel 12 API-First Architecture (the One Pipeline)
+# Laravel 13 API-First Architecture (the One Pipeline)
 
 **ALWAYS invoke when designing or implementing any Laravel API endpoint that
 will be consumed by a React (Vite/Axios) SPA.**

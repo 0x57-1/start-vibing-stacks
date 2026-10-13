@@ -1,6 +1,6 @@
 ---
 name: inertia-react
-version: 2.1.1
+version: 2.1.2
 description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 with
   Laravel-rendered pages. Use ONLY in pre-existing projects already built on
   Inertia. For NEW projects use `laravel-api-architecture` + `axios-laravel-api`
@@ -11,6 +11,8 @@ description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 with
 ---
 
 # Inertia.js + React — Laravel Frontend (LEGACY)
+
+Current packages (2026-10-13), no GitHub security advisory: `inertiajs/inertia-laravel` **3.5.1**, `@inertiajs/react` **3.9.1**. Tailwind **≥ 4.3** (patch 4.3.3).
 
 > **STATUS: LEGACY.** Do NOT pick this stack for new projects. Inertia couples
 > the controller's first byte to a database query, blocking the page render.

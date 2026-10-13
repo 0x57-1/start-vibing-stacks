@@ -26,7 +26,7 @@
   "frameworks": [
     {
       "id": "laravel-octane",
-      "name": "Laravel 12 + Octane (RoadRunner) + Sanctum SPA API",
+      "name": "Laravel 13 + Octane (RoadRunner) + Sanctum SPA API",
       "icon": "🚀",
       "detectFiles": ["artisan", "rr.yaml"],
       "default": true,
@@ -40,7 +40,7 @@
     },
     {
       "id": "laravel",
-      "name": "Laravel 12 (standard) + Sanctum SPA API",
+      "name": "Laravel 13 (standard) + Sanctum SPA API",
       "icon": "🏗️",
       "detectFiles": ["artisan", "bootstrap/app.php"],
       "skills": [
@@ -120,8 +120,8 @@
       "versionFlag": "-v",
       "minVersion": "8.3.0",
       "installCommand": {
-        "macos": "brew install php@8.3",
-        "linux": "sudo apt install -y php8.3-cli php8.3-mbstring php8.3-xml php8.3-curl php8.3-zip"
+        "macos": "brew install php@8.4",
+        "linux": "sudo apt install -y php8.4-cli php8.4-mbstring php8.4-xml php8.4-curl php8.4-zip"
       },
       "versionRegex": "PHP\\s+(\\d+\\.\\d+\\.\\d+)"
     },
@@ -140,10 +140,10 @@
       "name": "Node.js",
       "command": "node",
       "versionFlag": "--version",
-      "minVersion": "20.0.0",
+      "minVersion": "22.0.0",
       "installCommand": {
         "macos": "brew install node",
-        "linux": "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt install -y nodejs"
+        "linux": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt install -y nodejs"
       },
       "versionRegex": "v?(\\d+\\.\\d+\\.\\d+)"
     }

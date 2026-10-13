@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-version: 2.2.0
+version: 2.2.1
 description: "AUTOMATICALLY invoke when code touches auth, sessions, user data, passwords, tokens, API routes, database queries, cookies, env vars, file uploads, SSRF surface, deserialization, webhook handlers, SecureStore, or Expo public env. Stack-aware: forks into PHP/Laravel+Octane+Sanctum, Node.js (Next.js/Fastify/Express), Python (FastAPI/Django), or React Native/Expo. VETO POWER — blocks insecure code with CWE-mapped findings. Named CVEs: Read security-baseline/cve-watchlist.md on lockfile hit only (not in skills:). Runs AFTER tester, BEFORE quality-gate."
 model: sonnet
 tools: Read, Grep, Glob, Bash
@@ -161,7 +161,7 @@ User-supplied URL passed to `fetch` / `axios.get` / `requests.get` / `Http::get`
 
 ## Step 4 — Stack-Specific Audit (fork on `$STACK`)
 
-### §4.PHP — Laravel 12 + Octane + Sanctum  →  refs `api-security` (v2.0.0) + `security-scan-php`
+### §4.PHP — Laravel 13 + Octane + Sanctum  →  refs `api-security` (v2.0.0) + `security-scan-php`
 
 | Check | Failing pattern | Skill section |
 |---|---|---|
@@ -348,7 +348,7 @@ CRITICAL and HIGH always block. MEDIUM blocks. LOW warns and allows.
 - `security-baseline/cve-watchlist.md` — named 2025–2026 CVEs (Read on lockfile hit)
 - `secrets-management` — env hygiene, gitleaks, rotation playbook
 - `observability` — structured logging + PII redaction
-- `api-security` (PHP, v2.0.0) — Laravel 12 + Sanctum + Octane hardening
+- `api-security` (PHP, v2.0.0) — Laravel 13 + Sanctum + Octane hardening
 - `security-scan-php` — Laravel-specific OWASP cheats + Octane safety
 - `api-security-node` — Node.js (Next.js / Fastify / Express) hardening
 - `api-security-python` — FastAPI / Django / Flask hardening

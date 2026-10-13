@@ -1,6 +1,6 @@
 ---
 name: react-patterns
-version: 2.1.0
+version: 2.1.1
 description: "React 19.3 component architecture (19.3 stable 9 Sep 2026). Covers Actions (`useActionState`, `useOptimistic`, `useFormStatus`), `use()` for promises/Context, refs-as-props (no `forwardRef`), `<Activity>` (19.2), `useEffectEvent` (19.2), stable `<ViewTransition>` + Fragment refs + `use(browser())` + Trusted Types (19.3), document metadata, Server vs Client, axios client contract for SPAs, Error Boundaries, and the state-management matrix. Invoke for any new component, hook, state design, or React-architecture decision."
 ---
 
@@ -11,7 +11,7 @@ description: "React 19.3 component architecture (19.3 stable 9 Sep 2026). Covers
 ## Version floor (Sep 2026)
 
 - **New projects:** `react` / `react-dom` **≥ 19.3.0**. RSC runtimes also bump `react-server-dom-webpack|parcel|turbopack` to the same line.
-- **Existing 19.0 / 19.1 / 19.2 lines:** do **not** stop at the first React2Shell patch. Combined Flight floor is **19.0.5 / 19.1.6 / 19.2.5** (or jump to 19.3). See `security-baseline/cve-watchlist.md` on lockfile hit.
+- **Existing 19.0 / 19.1 / 19.2 lines:** do **not** stop at the first React2Shell patch. Combined Flight floor is **19.0.6 / 19.1.7 / 19.2.6** (or jump to 19.3). See `security-baseline/cve-watchlist.md` on lockfile hit.
 - **eslint-plugin-react-hooks** v6+ (flat `recommended`; Compiler rules opt-in).
 
 ## React 19 essentials (through 19.3)

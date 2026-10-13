@@ -40,7 +40,7 @@ instantly; data is fetched async via the `api` Axios instance.
 ## Architecture (API-first — DEFAULT)
 
 ```
-Browser (React Vite SPA)        Laravel 12 + Octane (RoadRunner)
+Browser (React Vite SPA)        Laravel 13 + Octane (RoadRunner)
 ─────────────────────────       ───────────────────────────────────────
 GET  /                       →  routes/web.php catch-all → app.blade (Vite shell)
 GET  /sanctum/csrf-cookie    →  XSRF-TOKEN cookie set

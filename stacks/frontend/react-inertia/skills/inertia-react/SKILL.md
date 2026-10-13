@@ -1,6 +1,6 @@
 ---
 name: inertia-react
-version: 2.1.1
+version: 2.1.2
 description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 frontend
   integration with Laravel-rendered pages. Use ONLY in pre-existing Inertia
   projects. For NEW projects use the `react-api` frontend stack
@@ -11,6 +11,8 @@ description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 frontend
 ---
 
 # Inertia.js + React Integration (LEGACY)
+
+Current packages (2026-10-13), no GitHub security advisory: `inertiajs/inertia-laravel` **3.5.1**, `@inertiajs/react` **3.9.1**. Tailwind **≥ 4.3** (patch 4.3.3).
 
 > **STATUS: LEGACY.** New projects use the **React API SPA** stack — Laravel
 > serves a Vite shell, React owns routing client-side, and data is fetched via

@@ -122,8 +122,8 @@ your-project/
 
 | Stack | Typical frameworks |
 |-------|-------------------|
-| **PHP ≥ 8.3** | Laravel (+ Octane), React API-first or Inertia/Blade |
-| **Node ≥ 20** | Next.js, Nuxt, Fastify, Express, … |
+| **PHP ≥ 8.3** | Laravel 13 (+ Octane), React API-first or Inertia/Blade |
+| **Node ≥ 22** (24 LTS) | Next.js, Nuxt, Fastify, Express, … |
 | **Python ≥ 3.12** | FastAPI, Django, Flask, scripts |
 
 Frontend add-ons: `react` · `react-api` (default for new API stacks) · `react-inertia` (legacy; inherits React base skills).
@@ -172,8 +172,8 @@ Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropi
 
 | Stack | Need |
 |-------|------|
-| PHP | PHP ≥ 8.3 · Composer ≥ 2 · Node ≥ 20 |
-| Node | Node ≥ 20 |
+| PHP | PHP ≥ 8.3 (8.4 recommended) · Composer ≥ 2 · Node ≥ 22 |
+| Node | Node ≥ 22 (24 LTS for new apps) |
 | Python | Python ≥ 3.12 |
 
 Grok CLI: Build **1.0.4+** recommended (`grok --version`). SVS Launch runs `grok --always-approve --trust` (folder trust for hooks/MCP/LSP; `--trust` is hidden in `grok --help` but accepted). Subagents are on by default — the **child** Reads `.grok/agents/<name>.md`; keep the parent prompt short.

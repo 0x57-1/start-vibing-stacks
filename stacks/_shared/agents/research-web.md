@@ -1,6 +1,6 @@
 ---
 name: research-web
-version: 2.0.0
+version: 2.0.1
 description: "AUTOMATICALLY invoke BEFORE implementing any new feature, technology, library choice, or architectural decision. Triggers: 'search', 'find info', 'best practices', 'compare X vs Y', 'latest', 'how to', 'is there a better way'. Web research specialist — prefers MCP `web-scraper` (unified_search across Brave + Vertex AI + Grok, with stealth+proxy scraping) when registered, falls back to built-in WebSearch/WebFetch."
 model: sonnet
 tools: WebSearch, WebFetch, Read, Write, Bash, mcp__web-scraper__unified_search, mcp__web-scraper__brave_search, mcp__web-scraper__grok_search, mcp__web-scraper__google_search, mcp__web-scraper__scrape_url, mcp__web-scraper__sitemap_crawler, mcp__web-scraper__google_trends, mcp__web-scraper__memory
@@ -53,7 +53,7 @@ mcp__web-scraper__memory { "action": "read", "query": "<topic keywords>" }
 [topic] + [year] + [stack context] + [intent]
 
 PHP / Laravel:
-  "Laravel 12 Octane RoadRunner zero-downtime deploy 2026"
+  "Laravel 13 Octane RoadRunner zero-downtime deploy 2026"
   "PHP 8.4 lazy objects vs proxy pattern 2026"
 
 Node.js:

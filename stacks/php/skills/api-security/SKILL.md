@@ -1,14 +1,14 @@
 ---
 name: api-security
-version: 2.1.0
-description: Laravel 12 + Sanctum + Octane API hardening — cookie-based SPA auth
+version: 2.1.1
+description: Laravel 13 + Sanctum + Octane API hardening — cookie-based SPA auth
   by default, token auth for mobile/3rd-party, CORS/CSRF/HSTS/CSP, rate limiting,
   brute-force protection, audit logging, encryption at rest. Use when building
   any auth endpoint, public API, or handling user input. Pairs with
   `laravel-api-architecture` and `axios-laravel-api`.
 ---
 
-# API Security — NSA-Level Hardening for Laravel 12 + Octane
+# API Security — NSA-Level Hardening for Laravel 13 + Octane
 
 **ALWAYS invoke when building APIs, auth endpoints, or handling user input.**
 

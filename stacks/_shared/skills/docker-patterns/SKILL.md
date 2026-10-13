@@ -1,7 +1,7 @@
 ---
 name: docker-patterns
-version: 2.1.0
-description: "Docker patterns for 2026: BuildKit + Buildx Bake (default builder for Docker Compose since June 2025), multi-stage builds, distroless / chiseled bases (90% size reduction, no shell), non-root users, .dockerignore, healthchecks, additional_contexts for service deps, secrets via build mounts (not COPY), reproducible builds. Stack examples: Node 22, Python 3.13 (uv), PHP 8.4 (FPM + Nginx)."
+version: 2.1.1
+description: "Docker patterns for 2026: BuildKit + Buildx Bake (default builder for Docker Compose since June 2025), multi-stage builds, distroless / chiseled bases (90% size reduction, no shell), non-root users, .dockerignore, healthchecks, additional_contexts for service deps, secrets via build mounts (not COPY), reproducible builds. Stack examples: Node 24 LTS, Python 3.13 (uv), PHP 8.4 (FPM + Nginx)."
 ---
 
 # Docker Patterns (2026)
@@ -17,11 +17,11 @@ description: "Docker patterns for 2026: BuildKit + Buildx Bake (default builder 
 3. **Non-root user** — `USER 10001:10001` in the runtime stage. Never `root`.
 4. **`.dockerignore`** — at minimum: `node_modules`, `vendor`, `.git`, `.env*`, `*.log`, `dist`, `build`, `coverage`, `__pycache__`, `.venv`.
 
-## 2. Node.js 22 — production-grade Dockerfile
+## 2. Node.js 24 LTS — production-grade Dockerfile
 
 ```dockerfile
 # syntax=docker/dockerfile:1.7
-ARG NODE_VERSION=22.11.0
+ARG NODE_VERSION=24.21.0
 
 # ---------- builder ----------
 FROM node:${NODE_VERSION}-alpine AS builder

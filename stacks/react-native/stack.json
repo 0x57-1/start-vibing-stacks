@@ -2,8 +2,8 @@
   "id": "react-native",
   "name": "React Native / Expo",
   "icon": "📱",
-  "runtime": "Expo SDK 55+ / React Native 0.83+",
-  "minVersion": "20.0.0",
+  "runtime": "Expo SDK 57 / React Native 0.86",
+  "minVersion": "22.0.0",
   "packageManager": "npm|pnpm|yarn|bun",
   "extensions": [".ts", ".tsx", ".js", ".jsx"],
   "testExtensions": ["*.test.ts", "*.test.tsx", "*.spec.ts"],
@@ -88,10 +88,10 @@
       "name": "Node.js",
       "command": "node",
       "versionFlag": "--version",
-      "minVersion": "20.0.0",
+      "minVersion": "22.0.0",
       "installCommand": {
         "macos": "brew install node",
-        "linux": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs"
+        "linux": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt install -y nodejs"
       },
       "versionRegex": "v?(\\d+\\.\\d+\\.\\d+)"
     }

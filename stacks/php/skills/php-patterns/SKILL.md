@@ -1,6 +1,6 @@
 ---
 name: php-patterns
-version: 2.0.0
+version: 2.0.1
 description: "Modern PHP idioms for Laravel apps targeting PHP 8.3 and 8.4 (Nov 2024). Covers property hooks (replace boilerplate getters/setters), asymmetric visibility (public read / private write), lazy objects via Reflection, typed class constants (8.3), readonly classes, enums, match, named args, null-safe, first-class callable syntax, constructor promotion, Octane-safe DI patterns. Invoke for any new PHP class, refactor of an old one, or when reviewing OOP code."
 ---
 
@@ -8,8 +8,8 @@ description: "Modern PHP idioms for Laravel apps targeting PHP 8.3 and 8.4 (Nov 
 
 ## Version Requirements
 
-- **PHP ≥ 8.3** — minimum supported (Laravel 12 supports 8.2–8.5; we target 8.3+).
-- **PHP 8.4 strongly recommended** for new projects (released **Nov 21, 2024**) — adds property hooks + asymmetric visibility + lazy objects.
+- **PHP ≥ 8.3** — minimum. Laravel 13 requires PHP `^8.3`. New apps pin `laravel/framework` **≥ 13.30.0** (current 13.36). An existing Laravel 12 app stays on 12 at **≥ 12.69.0**.
+- **PHP 8.4 strongly recommended** for new projects — property hooks, asymmetric visibility, lazy objects. PHP 8.5 is current and supported.
 - **Composer ≥ 2.8** — see `composer-workflow`.
 - `declare(strict_types=1);` in EVERY file. No exceptions.
 

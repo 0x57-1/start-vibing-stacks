@@ -1,7 +1,7 @@
 ---
 name: phpstan-analysis
-version: 2.0.0
-description: "PHPStan 2.x (released Nov 11, 2024) static analysis for PHP 8.3-8.5 / Laravel 12. Covers Level 10 (strict mixed even from inferred types — new in 2.0), the list<T> array type for sequential int-keyed arrays, baseline workflow for legacy code, generics + array shapes annotations, larastan extension for Laravel-specific rules (Eloquent magic, facades, container resolution), 50-70% memory reduction in 2.0, CI integration with --error-format. Invoke when configuring PHPStan, raising the level, fixing reported issues, or onboarding a legacy codebase."
+version: 2.0.1
+description: "PHPStan 2.x (released Nov 11, 2024) static analysis for PHP 8.3-8.5 / Laravel 13. Covers Level 10 (strict mixed even from inferred types — new in 2.0), the list<T> array type for sequential int-keyed arrays, baseline workflow for legacy code, generics + array shapes annotations, larastan extension for Laravel-specific rules (Eloquent magic, facades, container resolution), 50-70% memory reduction in 2.0, CI integration with --error-format. Invoke when configuring PHPStan, raising the level, fixing reported issues, or onboarding a legacy codebase."
 ---
 
 # PHPStan Static Analysis (2.x, Nov 2024)

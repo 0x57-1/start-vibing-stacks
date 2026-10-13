@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-10-13 · main · v2.103.0
+CVE floors raised for React and Next. New apps: Laravel 13, Node 24 LTS,
+Expo SDK 57. Tailwind and Inertia have no GitHub advisory.
+
 ### 2026-10-13 · main · v2.102.0
 Playwright 2.1: walk the local page before deploy. Harness, plugin on
 127.0.0.1, CLI screenshot, contrast by computed style. Not Expo native.
@@ -65,10 +69,6 @@ off on Expo; native design-system seed.
 ### 2026-09-15 · main · v2.94.0
 Agents fork on react-native: auditor §4.RN, tester Jest+RNTL,
 documenter Expo paths. No web overlay / Vitest on Expo.
-
-### 2026-09-15 · main · v2.93.0
-New react-native stack (Expo). Setup picks app kind; seeds only an
-empty tree; RN memories + secure-coding stay off other stacks.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

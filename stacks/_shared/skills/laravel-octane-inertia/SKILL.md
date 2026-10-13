@@ -1,10 +1,10 @@
 ---
 name: laravel-octane-inertia
-version: 1.1.0
-description: "Laravel 12 + Octane (FrankenPHP/Swoole) + Inertia.js + React 19.3 production patterns for 2026. Covers stateless architecture, worker recycling (--max-requests), scoped bindings, Octane::concurrently(), Inertia SSR, React Server Components inside Inertia pages, queue integration with Horizon, and FrankenPHP as the recommended driver."
+version: 1.1.1
+description: "Laravel 13 + Octane (FrankenPHP/Swoole) + Inertia.js + React 19.3 production patterns for 2026. Covers stateless architecture, worker recycling (--max-requests), scoped bindings, Octane::concurrently(), Inertia SSR, React Server Components inside Inertia pages, queue integration with Horizon, and FrankenPHP as the recommended driver."
 ---
 
-# Laravel 12 + Octane + Inertia + React 19.3 (2026)
+# Laravel 13 + Octane + Inertia + React 19.3 (2026)
 
 **Invoke when building high-performance Laravel applications with Inertia + React frontend and Octane workers.**
 

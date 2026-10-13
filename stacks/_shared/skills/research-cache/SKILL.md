@@ -1,6 +1,6 @@
 ---
 name: research-cache
-version: 2.0.0
+version: 2.0.1
 description: "Caches web research findings under `.claude/skills/research-cache/cache/` to avoid redundant searches. Each entry has YAML frontmatter (`expires_on`, `sources`, `tier`, `engines`) so a session can grep-filter fresh entries without reading the body. Consumed by `research-web` v2.0.0 BEFORE any MCP / WebSearch call."
 ---
 
@@ -108,7 +108,7 @@ confidence: high
 | Topic kind | TTL | Example |
 |---|---|---|
 | Specification (W3C, RFC, OpenAPI) | 60 days | WCAG 2.2 conformance |
-| Stable framework (Laravel, Django, Express) | 30 days | Laravel 12 sessions |
+| Stable framework (Laravel, Django, Express) | 30 days | Laravel 13 sessions |
 | Fast-moving library (any minor < 1.0, anything pre-release) | 14 days | shadcn registries, AI SDKs |
 | Security advisory | 7 days | CVE feeds, OWASP draft |
 

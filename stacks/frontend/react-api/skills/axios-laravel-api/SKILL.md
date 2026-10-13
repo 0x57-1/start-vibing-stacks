@@ -1,13 +1,13 @@
 ---
 name: axios-laravel-api
-version: 2.1.0
-description: "Axios ≥1.20.0 HTTP client for Laravel 12 + Sanctum SPA in React 19.3 (Tailwind 4.3). Boolean `withCredentials` + `withXSRFToken`, `allowAbsoluteUrls: false`, bounded 419 retry, CSRF priming, interceptors for 401/403/422/5xx. Zod 4 at the boundary, TanStack Query v5 `signal`, React 19 Actions. Invoke when wiring or auditing the API client, login flow, or CSRF/cookie configuration."
+version: 2.1.1
+description: "Axios ≥1.20.0 HTTP client for Laravel 13 + Sanctum SPA in React 19.3 (Tailwind 4.3). Boolean `withCredentials` + `withXSRFToken`, `allowAbsoluteUrls: false`, bounded 419 retry, CSRF priming, interceptors for 401/403/422/5xx. Zod 4 at the boundary, TanStack Query v5 `signal`, React 19 Actions. Invoke when wiring or auditing the API client, login flow, or CSRF/cookie configuration."
 ---
 
 # Axios + Laravel Sanctum SPA Client
 
 **ALWAYS invoke when creating the API client, login flow, or CSRF/cookie
-configuration for a React (Vite) SPA hitting a Laravel 12 API.**
+configuration for a React (Vite) SPA hitting a Laravel 13 API.**
 
 ## Why this exists
 

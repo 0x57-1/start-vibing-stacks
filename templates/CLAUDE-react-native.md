@@ -20,7 +20,7 @@ API. Tokens live in SecureStore.
 
 | Component | Technology |
 |-----------|------------|
-| Runtime | Expo SDK 54+ / React Native |
+| Runtime | Expo SDK 57 / React Native 0.86 |
 | Language | TypeScript **strict mode** |
 | App kind | {{FRAMEWORK}} |
 | Local DB | {{DATABASE}} |

@@ -1,6 +1,6 @@
 ---
 name: react-server-components
-version: 1.1.0
+version: 1.1.1
 description: "React 19.3 Server Components (RSC) production patterns for 2026: Server Components as default, 'use client' only on interactive leaves, streaming with Suspense, parallel data fetching with Promise.all, serialization rules, layered caching, Server Actions, use(browser()), Fragment in Flight. Flight CVE floor (do not stop at the first React2Shell patch). Use with Next.js 16+ App Router."
 ---
 
@@ -10,7 +10,7 @@ description: "React 19.3 Server Components (RSC) production patterns for 2026: S
 
 > 2026 reality: Server Components are the default. 40%+ bundle size reduction is common when done correctly. The mental model is: **Server Components fetch and render on the server. Client Components add interactivity. Keep the boundary small and explicit.**
 >
-> **Flight floor:** new apps pin `react` / `react-dom` / `react-server-dom-*` to **≥ 19.3.0**. Older lines: **19.0.5 / 19.1.6 / 19.2.5**. The first React2Shell patches (19.0.1 / 19.1.2 / 19.2.1) are **not** enough — later DoS and source-exposure CVEs still hit those builds. Read `security-baseline/cve-watchlist.md` on lockfile hit. Do not invent exploit steps.
+> **Flight floor:** new apps pin `react` / `react-dom` / `react-server-dom-*` to **≥ 19.3.0**. Older lines: **19.0.6 / 19.1.7 / 19.2.6**. The first React2Shell patches (19.0.1 / 19.1.2 / 19.2.1) are **not** enough — later DoS and source-exposure CVEs still hit those builds. Read `security-baseline/cve-watchlist.md` on lockfile hit. Do not invent exploit steps.
 
 ---
 

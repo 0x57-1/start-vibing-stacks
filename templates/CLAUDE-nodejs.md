@@ -20,7 +20,7 @@ Initial project setup with start-vibing-stacks (Node.js).
 
 | Component | Technology |
 |-----------|------------|
-| Runtime | Bun / Node.js 20+ |
+| Runtime | Bun / Node.js 22+ (24 LTS) |
 | Language | TypeScript **strict mode** |
 | Framework | {{FRAMEWORK}} |
 | Database | {{DATABASE}} |

@@ -2,8 +2,8 @@
   "id": "nodejs",
   "name": "Node.js / TypeScript",
   "icon": "📦",
-  "runtime": "Bun / Node.js 20+",
-  "minVersion": "20.0.0",
+  "runtime": "Bun / Node.js 22+ (24 LTS for new apps)",
+  "minVersion": "22.0.0",
   "packageManager": "bun|npm|pnpm",
   "extensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
   "testExtensions": ["*.test.ts", "*.spec.ts", "*.test.tsx"],
@@ -127,10 +127,10 @@
       "name": "Node.js",
       "command": "node",
       "versionFlag": "--version",
-      "minVersion": "20.0.0",
+      "minVersion": "22.0.0",
       "installCommand": {
         "macos": "brew install node",
-        "linux": "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && sudo apt install -y nodejs"
+        "linux": "curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt install -y nodejs"
       },
       "versionRegex": "v?(\\d+\\.\\d+\\.\\d+)"
     }

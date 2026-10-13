@@ -1,14 +1,14 @@
 ---
 name: laravel-patterns
-version: 2.0.0
-description: Laravel 12 model/controller/service/job patterns — UUIDs, Loggable
+version: 2.0.1
+description: Laravel 13 model/controller/service/job patterns — UUIDs, Loggable
   trait, mass-assignment, JSON casts, thin Service-driven controllers, idempotent
   jobs, batch processing. API-first by default (controllers return Resources, NOT
   `Inertia::render()`). Use for any Laravel domain code. Pairs with
   `laravel-api-architecture` (the pipeline) and `laravel-octane` (worker safety).
 ---
 
-# Laravel 12 Patterns & Standards
+# Laravel 13 Patterns & Standards
 
 > **Default architecture is API-first.** Controllers return `JsonResponse` /
 > `JsonResource` consumed by a React+Axios SPA. The full pipeline

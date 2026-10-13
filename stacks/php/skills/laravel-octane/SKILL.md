@@ -1,6 +1,6 @@
 ---
 name: laravel-octane
-version: 2.0.2
+version: 2.0.3
 description: "Laravel Octane patterns for production 2026 — covers FrankenPHP (recommended for new projects: single binary, automatic HTTPS, HTTP/3, early hints, Brotli, ~5× FPM throughput), RoadRunner (mature, best raw RPS, gRPC/WebSocket), and Swoole (best for I/O-heavy workloads via coroutines). Long-lived worker rules: no static state, no globals, no superglobals, no config() mutations, no die/exit/dd, scoped bindings instead of singletons, persistent DB connections with Octane flush, instance-scoped memoization. Includes server selection matrix and per-server config. Invoke when adopting Octane, choosing a server, debugging worker leaks, or hardening for persistent processes."
 ---
 
@@ -28,7 +28,7 @@ Octane runs your app in a **long-lived worker process**. The application boots O
 | **RoadRunner** | Production at scale; need consistent top-tier RPS | Battle-tested; ~111% higher RPS than FPM; gRPC + WebSocket built-in; rich plugin ecosystem | Steeper DevOps curve; YAML config |
 | **Swoole** | Workloads dominated by 200–500 ms I/O waits (DB, upstream APIs) | Coroutine concurrency shines under high I/O latency | Lower RPS in light-I/O workloads; smaller adoption for new apps |
 
-Default recommendation for new Laravel 12 projects in 2026: **FrankenPHP** (developer experience + modern HTTP). Pick **RoadRunner** if you've already standardized on it or need its specific features.
+Default recommendation for new Laravel 13 projects in 2026: **FrankenPHP** (developer experience + modern HTTP). Pick **RoadRunner** if you've already standardized on it or need its specific features.
 
 ## Critical Rules
 
