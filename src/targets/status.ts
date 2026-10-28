@@ -79,9 +79,11 @@ export function collectTargetsStatus(projectDir: string): TargetStatusLine[] {
     ok: !kimi.localMissing && !kimi.blockMissing,
     detail: kimi.localMissing
       ? 'missing (will seed on migrate)'
-      : kimi.blockMissing
-        ? 'SVS block missing/outdated'
-        : 'ok (SVS block present)',
+      : kimi.skillsStale
+        ? 'skills pending (.kimi-code/skills curated+svs)'
+        : kimi.blockMissing
+          ? 'SVS block missing/outdated'
+          : 'ok (SVS block + skills)',
   });
 
   const grokSk = grokSkillsNeedsUpdate(projectDir);
@@ -203,7 +205,7 @@ export function countPendingTargetUpdates(projectDir: string): number {
   const cursor = cursorRulesNeedsUpdate(projectDir);
   if (cursor.missing || cursor.outdated) n++;
   const kimi = kimiLocalNeedsUpdate(projectDir);
-  if (kimi.localMissing || kimi.blockMissing || kimi.exampleMissing) n++;
+  if (kimi.localMissing || kimi.blockMissing || kimi.exampleMissing || kimi.skillsStale) n++;
   const grokSk = grokSkillsNeedsUpdate(projectDir);
   if (grokSk.blockMissing || grokSk.nativeMissing || grokSk.outdated || grokSk.curatedMissing > 0) {
     n++;

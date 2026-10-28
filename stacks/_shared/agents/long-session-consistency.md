@@ -1,6 +1,6 @@
 ---
 name: long-session-consistency
-version: 1.0.1
+version: 1.0.2
 description: >
   AUTOMATICALLY invoke when designing or auditing how Claude / Kimi / Grok stay
   aligned on the same project across long sessions (resume, compaction, next-day
@@ -63,7 +63,7 @@ Task frontmatter: `status`, `branch`, `updated_by: <target>/<short-id>`, `domain
 ## Anti-patterns (FORBIDDEN)
 
 - `compat.claude.skills = true` or copying huge skill trees into `.grok/skills/`
-- Mirroring all `.claude/memories/*` into Grok skills (keep `svs-memory-index` as pointers)
+- Mirroring all `.claude/memories/*` into Kimi or Grok skills (keep `svs-memory-index` as pointers)
 - Putting in-flight state in `.claude/state/` or into `CLAUDE.md` Recent Changes
 - Making `NOW.md` the only writable file (stomping)
 - Injecting full brain/journal every UserPromptSubmit
@@ -74,7 +74,7 @@ Task frontmatter: `status`, `branch`, `updated_by: <target>/<short-id>`, `domain
 | Target | Skills | Agents | Bus |
 |--------|--------|--------|-----|
 | Claude | `.claude/skills/` + memories | Task + `.claude/agents/` | `.claude/state/` |
-| Kimi | `extra_skill_dirs` → `.claude/skills/` plus `.kimi-code/skills/svs-memory-index` | `extra_agent_dirs` → `.claude/agents/` | same via bridge |
+| Kimi | `.kimi-code/skills/` curated + SVS (same set as Grok); `extra_skill_dirs` for other stack skills | `extra_agent_dirs` → `.claude/agents/` | same via bridge |
 | Grok | curated `.grok/skills/` only | `.grok/agents/` copy | same via bridge |
 
 If it must work on Kimi/Grok, implement in **hooks** or **committed markdown**, not Claude-only Task chains.

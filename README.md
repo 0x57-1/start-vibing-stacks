@@ -42,11 +42,11 @@ Prefer `@latest` — plain `npx start-vibing-stacks` can stick on an old cache.
 | Target | Instructions | Skills / agents | Hooks |
 |--------|--------------|-----------------|-------|
 | **Claude Code** | `CLAUDE.md` + `.claude/memories/` | `.claude/skills`, `.claude/agents` | `.claude/settings.json` |
-| **Kimi** | root `AGENTS.md` | Project `.claude/*` via `extra_*_dirs` in `.kimi-code/local.toml` | `svs-bridge` in local.toml / user config |
+| **Kimi** | root `AGENTS.md` | Own `.kimi-code/skills/` (same curated set as Grok + SVS skills). Other stack skills via `extra_skill_dirs`. Agents via `extra_agent_dirs` | `svs-bridge` in local.toml / user config |
 | **Grok** | `AGENTS.md` + curated `.grok/skills/` | Adapted `.grok/agents/` (`compat.claude.skills=false` — no `~/.claude/skills` dump) | `.grok/hooks/svs.json` + bridge; Launch `grok --always-approve --trust` |
 | **Cursor** | `AGENTS.md` + `.cursor/rules/svs-policy.mdc` | (reads project files) | — |
 
-Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). Curated project skills are mirrored into `.grok/skills/`. Frontend projects get a protected **`design-system`** skill (Claude + Grok copy; Kimi reads `.claude/skills`). `preline-moon` is installed only when the project uses Preline — a **pointer** to `~/.claude/skills/preline-moon` (5.0). Never symlink the global capture into the repo.
+Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). Curated project skills are mirrored into `.grok/skills/` and `.kimi-code/skills/`. Frontend projects get a protected **`design-system`** skill (Claude, Kimi, and Grok copies). `preline-moon` is installed only when the project uses Preline — a **pointer** to `~/.claude/skills/preline-moon` (5.0). Never symlink the global capture into the repo. Memory files stay in `.claude/memories/`; Kimi and Grok read them through `svs-memory-index`.
 
 ---
 

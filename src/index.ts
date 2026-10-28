@@ -280,10 +280,12 @@ async function main(): Promise<void> {
         if (sync.cursorRules.written) {
           ui.success(`Wrote .cursor/rules/svs-policy.mdc (svs-version ${sync.cursorRules.version})`);
         }
-        if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.memoryIndexWritten) {
+        if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.skillsWritten) {
           ui.success(
             'Updated .kimi-code/local.toml (SVS block)' +
-              (sync.kimiLocal.memoryIndexWritten ? ' + svs-memory-index' : '')
+              (sync.kimiLocal.skillsWritten
+                ? ` + skills (curated=${sync.kimiLocal.curatedCopied}, svs=${sync.kimiLocal.generatedWritten})`
+                : '')
           );
         }
         if (
@@ -385,10 +387,12 @@ async function main(): Promise<void> {
             forceGrokAgents: targetId === 'grok',
             forceMcp: true,
           });
-          if (sync.kimiLocal.localUpdated || sync.kimiLocal.localWritten || sync.kimiLocal.memoryIndexWritten) {
+          if (sync.kimiLocal.localUpdated || sync.kimiLocal.localWritten || sync.kimiLocal.skillsWritten) {
             ui.success(
               'Kimi local.toml refreshed' +
-                (sync.kimiLocal.memoryIndexWritten ? ' + svs-memory-index' : '')
+                (sync.kimiLocal.skillsWritten
+                  ? ` + skills (curated=${sync.kimiLocal.curatedCopied}, svs=${sync.kimiLocal.generatedWritten})`
+                  : '')
             );
           }
           if (

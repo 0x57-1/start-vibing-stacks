@@ -7,7 +7,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { GROK_SKILLS_VERSION, memoryIndexSkillBody, writeSkillMd } from './grok-skills.js';
+import { exportKimiSkills, kimiSkillsNeedsUpdate } from './kimi-skills.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,13 +21,15 @@ const EXAMPLE_SRC = join(
 );
 
 /**
- * 1.3.0: same memory index as Grok — `.kimi-code/skills/svs-memory-index`
- * points at `.claude/memories/` (no full copy).
+ * 1.4.0: own skill tree under `.kimi-code/skills/` — same curated set as Grok,
+ * plus Kimi svs-policy / svs-dev-process / svs-document / svs-memory-index.
+ * Memory bodies stay in `.claude/memories/`.
+ * 1.3.0: memory index only.
  * 1.2.0: default_permission_mode = yolo (parity with Claude Launch
  * --dangerously-skip-permissions) so MCP/tool calls are not prompted every turn.
  * Plan mode stays on (plan-then-act); exit plan still needs approval.
  */
-export const KIMI_LOCAL_VERSION = '1.3.0';
+export const KIMI_LOCAL_VERSION = '1.4.0';
 export const KIMI_LOCAL_REL = '.kimi-code/local.toml';
 export const KIMI_LOCAL_EXAMPLE_REL = '.kimi-code/local.toml.example';
 
@@ -37,7 +39,9 @@ export interface KimiLocalResult {
   exampleWritten: boolean;
   localWritten: boolean;
   localUpdated: boolean;
-  memoryIndexWritten: boolean;
+  skillsWritten: boolean;
+  curatedCopied: number;
+  generatedWritten: number;
   version: string;
   skippedReason?: string;
 }
@@ -49,7 +53,8 @@ function skillsBlock(projectDir: string): string {
     '# SVS:KIMI:START — managed by start-vibing-stacks migrate',
     `# svs-version: ${KIMI_LOCAL_VERSION}`,
     '# Root AGENTS.md = project instructions. MCP = .kimi-code/mcp.json',
-    '# Memories: .kimi-code/skills/svs-memory-index → .claude/memories/ (pointers only)',
+    '# Skills: .kimi-code/skills/ (curated + svs-*). Stack skills: extra_skill_dirs.',
+    '# Memories: svs-memory-index → .claude/memories/ (pointers only, no file copy)',
     '# yolo ≈ Claude --dangerously-skip-permissions (tools/MCP auto-approved).',
     '# Plan mode still on — approve the plan once; tools inside the turn are auto-allowed.',
     'default_plan_mode = true',
@@ -62,25 +67,16 @@ function skillsBlock(projectDir: string): string {
   ].join('\n');
 }
 
-function memoryIndexPath(projectDir: string): string {
-  return join(projectDir, '.kimi-code', 'skills', 'svs-memory-index', 'SKILL.md');
-}
-
-function memoryIndexStale(projectDir: string): boolean {
-  const p = memoryIndexPath(projectDir);
-  if (!existsSync(p)) return true;
-  try {
-    return !readFileSync(p, 'utf8').includes(`svs-version: "${GROK_SKILLS_VERSION}"`);
-  } catch {
-    return true;
-  }
+function skillsStale(projectDir: string): boolean {
+  const need = kimiSkillsNeedsUpdate(projectDir);
+  return need.nativeMissing || need.outdated || need.curatedMissing > 0;
 }
 
 export function kimiLocalNeedsUpdate(projectDir: string): {
   exampleMissing: boolean;
   localMissing: boolean;
   blockMissing: boolean;
-  memoryIndexStale: boolean;
+  skillsStale: boolean;
 } {
   const examplePath = join(projectDir, KIMI_LOCAL_EXAMPLE_REL);
   const localPath = join(projectDir, KIMI_LOCAL_REL);
@@ -98,7 +94,7 @@ export function kimiLocalNeedsUpdate(projectDir: string): {
     exampleMissing: !existsSync(examplePath),
     localMissing,
     blockMissing,
-    memoryIndexStale: memoryIndexStale(projectDir),
+    skillsStale: skillsStale(projectDir),
   };
 }
 
@@ -150,24 +146,18 @@ export function exportKimiLocal(
     }
   }
 
-  const indexPath = memoryIndexPath(projectDir);
-  const memoryIndexWritten = !existsSync(indexPath) || memoryIndexStale(projectDir);
-  if (memoryIndexWritten) {
-    writeSkillMd(
-      join(projectDir, '.kimi-code', 'skills'),
-      'svs-memory-index',
-      memoryIndexSkillBody()
-    );
-  }
+  const skills = exportKimiSkills(projectDir, { force: opts.force === true });
 
   return {
     exampleWritten,
     localWritten,
     localUpdated,
-    memoryIndexWritten,
+    skillsWritten: skills.nativeSkillWritten,
+    curatedCopied: skills.curatedCopied,
+    generatedWritten: skills.generatedWritten,
     version: KIMI_LOCAL_VERSION,
     skippedReason:
-      !exampleWritten && !localWritten && !localUpdated && !memoryIndexWritten
+      !exampleWritten && !localWritten && !localUpdated && !skills.nativeSkillWritten
         ? 'Kimi local.toml SVS block current'
         : undefined,
   };

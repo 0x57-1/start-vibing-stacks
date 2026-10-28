@@ -1,6 +1,6 @@
 ---
 name: project-ui-standard
-version: 1.1.0
+version: 1.1.1
 description: >-
   Create and protect the project design-system skill for Claude, Grok, and
   Kimi. Use when the repo has frontend/layout, a first UI task, Preline vs
@@ -17,9 +17,10 @@ The **central** skill is always:
 .claude/skills/design-system/SKILL.md
 ```
 
-Kimi loads it via `extra_skill_dirs` → `.claude/skills`. Grok gets a **copy**
-at `.grok/skills/design-system/` (never a symlink). `migrate` must not
-overwrite or delete either file.
+Kimi and Grok each get a **copy** (`.kimi-code/skills/design-system/`,
+`.grok/skills/design-system/`). Never a symlink. `migrate` must not
+overwrite or delete those files. Kimi still loads other stack skills from
+`.claude/skills` via `extra_skill_dirs`.
 
 ## Order (do not skip)
 
@@ -30,15 +31,16 @@ overwrite or delete either file.
     `View` / `Text` / StyleSheet. Load `react-native-theme`. Do **not**
     load Preline or memory `react-theme-parity`.
 2. **Read what already exists** before writing a skill:
-   - `.claude/skills/design-system/` and `.grok/skills/design-system/`
+   - `.claude/skills/design-system/`, `.kimi-code/skills/design-system/`, and `.grok/skills/design-system/`
    - `docs/design/**`, `docs/style-guide.md`, `DESIGN.md`
    - recipe files (`uiStyles.js`, theme CSS)
    - `.claude/config/project-ui.json`
 3. **If `design-system` is missing** — create it from those sources. Lift
    decisions already made. Do not invent a new look. Seed via
    `npx start-vibing-stacks migrate --apply` or write the skill yourself.
-4. **Mirror** the same `SKILL.md` to `.grok/skills/design-system/` if that
-   copy is missing. Do not replace a Grok copy that already exists.
+4. **Mirror** the same `SKILL.md` to `.kimi-code/skills/design-system/` and
+   `.grok/skills/design-system/` if that copy is missing. Do not replace a
+   copy that already exists.
 5. **Preline?**
    - New project: the operator chooses (setup prompt).
    - Existing project: `package.json` `preline`, `data-theme="theme-moon"`,

@@ -103,7 +103,9 @@ export interface SyncTargetsResult {
     exampleWritten: boolean;
     localWritten: boolean;
     localUpdated: boolean;
-    memoryIndexWritten: boolean;
+    skillsWritten: boolean;
+    curatedCopied: number;
+    generatedWritten: number;
     gitignoreUpdated: boolean;
     version: string;
     skippedReason?: string;
@@ -248,20 +250,24 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
         (kimiNeed.exampleMissing ||
         kimiNeed.localMissing ||
         kimiNeed.blockMissing ||
-        kimiNeed.memoryIndexStale)));
+        kimiNeed.skillsStale)));
 
   let kimiLocalResult: {
     exampleWritten: boolean;
     localWritten: boolean;
     localUpdated: boolean;
-    memoryIndexWritten: boolean;
+    skillsWritten: boolean;
+    curatedCopied: number;
+    generatedWritten: number;
     version: string;
     skippedReason?: string;
   } = {
     exampleWritten: false,
     localWritten: false,
     localUpdated: false,
-    memoryIndexWritten: false,
+    skillsWritten: false,
+    curatedCopied: 0,
+    generatedWritten: 0,
     version: KIMI_LOCAL_VERSION,
     skippedReason: syncKimi
       ? shouldWriteKimi

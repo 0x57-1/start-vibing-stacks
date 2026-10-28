@@ -1063,7 +1063,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const kimiNeed = kimiLocalNeedsUpdate(projectDir);
   const kimiPending =
     (migrateTarget === 'all' || migrateTarget === 'kimi') &&
-    (kimiNeed.exampleMissing || kimiNeed.localMissing || kimiNeed.blockMissing);
+    (kimiNeed.exampleMissing ||
+      kimiNeed.localMissing ||
+      kimiNeed.blockMissing ||
+      kimiNeed.skillsStale);
   const grokSkillsNeed = grokSkillsNeedsUpdate(projectDir);
   const grokSkillsPending =
     (migrateTarget === 'all' || migrateTarget === 'grok') &&
@@ -1134,7 +1137,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     if (kimiPending) {
       console.log(
         `    Kimi local.toml  bundled=${KIMI_LOCAL_VERSION}` +
-          (kimiNeed.localMissing ? '  (missing)' : '  (SVS block outdated)')
+          (kimiNeed.localMissing ? '  (missing)' : kimiNeed.skillsStale ? '  (skills pending)' : '  (SVS block outdated)')
       );
     }
     if (grokSkillsPending) {
@@ -1339,13 +1342,17 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     sync.kimiLocal.localWritten ||
     sync.kimiLocal.localUpdated ||
     sync.kimiLocal.exampleWritten ||
-    sync.kimiLocal.memoryIndexWritten
+    sync.kimiLocal.skillsWritten
   ) {
     const bits: string[] = [];
     if (sync.kimiLocal.exampleWritten) bits.push('local.toml.example');
     if (sync.kimiLocal.localWritten) bits.push('local.toml (seeded)');
     if (sync.kimiLocal.localUpdated) bits.push('local.toml (SVS block)');
-    if (sync.kimiLocal.memoryIndexWritten) bits.push('skills/svs-memory-index');
+    if (sync.kimiLocal.skillsWritten) {
+      bits.push(
+        `skills (curated=${sync.kimiLocal.curatedCopied}, svs=${sync.kimiLocal.generatedWritten})`
+      );
+    }
     ui.success(`targets: Kimi ${bits.join(', ')}`);
   }
   if (sync.kimiLocal.gitignoreUpdated) {

@@ -1,5 +1,5 @@
 ---
-version: 1.7.1
+version: 1.7.2
 ---
 
 # Memory: Multi-Target MCP Discovery & Migration
@@ -50,7 +50,7 @@ SVS **merges** Claude MCP from user-global + project, **filters**, then writes:
 
 | Claude | Grok |
 |--------|------|
-| `.claude/skills/` | **Off by default** (`compat.claude.skills=false`). Migrate copies a **curated allowlist** + `svs-policy` / `svs-dev-process` / `svs-memory-index` into `.grok/skills/` (never cybersecurity-suite) |
+| `.claude/skills/` | **Off by default** (`compat.claude.skills=false`). Migrate copies a **curated allowlist** + `svs-policy` / `svs-dev-process` / `svs-document` / `svs-memory-index` into `.grok/skills/` and the same set into `.kimi-code/skills/` (never cybersecurity-suite). Memory bodies stay in `.claude/memories/` |
 | `.claude/agents/` | Auto **and** copied to `.grok/agents/` by migrate. AGENTS.md documents the flow (no Task parity) |
 | `.claude/settings.json` hooks | Prefer `.grok/hooks/*.json` (paths relative to JSON); set user `compat.claude.hooks = false` |
 | `~/.claude.json` MCP | **Do not** rely on global dump — export to `.grok/config.toml`; user `compat.claude.mcps = false` |

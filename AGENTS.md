@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.31
+svs-version: 1.2.32
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-10-28 · main · v2.106.0
+Kimi skills match Grok: curated copies plus svs-policy, svs-dev-process,
+svs-document, and the memory index under `.kimi-code/skills/`.
 
 ### 2026-10-28 · main · v2.105.0
 Kimi memory index matches Grok: pointers in `.kimi-code/skills/svs-memory-index`,
@@ -66,10 +70,6 @@ Spawn pin no longer steals documenter turns.
 typesafe-jev 1.1: six decision shapes before the first Jev call.
 Cookbook metrics are examples, not floors.
 
-### 2026-09-21 · main · v2.96.0
-Skill typesafe-jev: System One primitives, data shapes, combinations.
-Own TYPESAFE_API_KEY only.
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -104,7 +104,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - Owned Expo / React Native app (user’s store listing): Expo Router, SecureStore, EAS, config plugins, axios to **their** mobile API. Native `View`/`Text` — not Preline HTML. No SSL-kill / jailbreak bypass; no tokens in `EXPO_PUBLIC_*`. `security-auditor` / `tester` / `documenter` fork on `stack=react-native` (SecureStore + Jest/RNTL + Expo paths; skip web §5 overlay / Vitest). Skills: `expo-testing`, `react-native-query`, `react-native-zod`, `react-native-theme`, `react-native-a11y`. Memory `react-native-theme.md` replaces `react-theme-parity` on this stack.
 - Local UI check before deploy (php / nodejs / python): boot the repo's local harness when it exists (isolated database; captcha off and insecure cookies only in that process — never production). Walk `127.0.0.1` with the Playwright plugin (navigate, click, fill, console, screenshot). `playwright-cli screenshot` for one picture. A measure script for contrast only. Skill `playwright-automation` **2.1**. React Native stays on Jest + RNTL unless the user asked for the Expo web URL on localhost. Do not open a third-party site in that browser.
-- React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
+- React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Kimi `.kimi-code/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts
@@ -158,7 +158,7 @@ After `npx start-vibing-stacks migrate --apply`, keep this `AGENTS.md` in sync w
 
 - `CLAUDE.md` — full Claude Code project rules
 - `.claude/memories/` — detailed always-on Claude memories (Read on demand from Kimi/Grok)
-- `.kimi-code/skills/svs-memory-index` — same pointer index Grok has under `.grok/skills/svs-memory-index`
+- `.kimi-code/skills/` — same curated set as `.grok/skills/`, plus Kimi `svs-policy`, `svs-dev-process`, `svs-document`, `svs-memory-index`
 - `.claude/memories/multi-target-mcp-discovery.md` — find/migrate MCP → Kimi/Grok/Cursor
 - `.claude/config/mcp-active.json` — Claude MCP source for `migrate --apply`
 - `.claude/config/svs-manifest.json` — package/target freshness

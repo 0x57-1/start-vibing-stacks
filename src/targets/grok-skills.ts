@@ -142,6 +142,21 @@ function isBlockedSkillName(name: string): boolean {
   return BLOCKED_SKILL_RE.test(name);
 }
 
+export function readPolicyPackBody(): string {
+  if (!existsSync(POLICY_PACK)) return '';
+  return readFileSync(POLICY_PACK, 'utf8').replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, '').trim();
+}
+
+/** Drop cybersecurity-class skill dirs. Never mirror that tree into a target. */
+export function pruneBlockedSkillDirs(root: string): void {
+  if (!existsSync(root)) return;
+  for (const ent of readdirSync(root, { withFileTypes: true })) {
+    if (ent.isDirectory() && isBlockedSkillName(ent.name)) {
+      rmSync(join(root, ent.name), { recursive: true, force: true });
+    }
+  }
+}
+
 export function writeSkillMd(dir: string, name: string, body: string): void {
   const dest = join(dir, name, 'SKILL.md');
   mkdirSync(dirname(dest), { recursive: true });
@@ -149,10 +164,7 @@ export function writeSkillMd(dir: string, name: string, body: string): void {
 }
 
 function policySkillBody(): string {
-  let policy = '';
-  if (existsSync(POLICY_PACK)) {
-    policy = readFileSync(POLICY_PACK, 'utf8').replace(/^---\s*\n[\s\S]*?\n---\s*\n?/, '');
-  }
+  const policy = readPolicyPackBody();
   return [
     '---',
     'name: svs-policy',
@@ -389,7 +401,7 @@ function documentSkillBody(): string {
   ].join('\n');
 }
 
-export function memoryIndexSkillBody(): string {
+export function memoryIndexSkillBody(version: string = GROK_SKILLS_VERSION): string {
   return [
     '---',
     'name: svs-memory-index',
@@ -398,7 +410,7 @@ export function memoryIndexSkillBody(): string {
     '  need ads, donation funnel, owned-infra, email/push, or security-assessment detail',
     '  that is not in AGENTS.md policy pack. Read the linked file — do not refuse on niche keywords.',
     'metadata:',
-    `  svs-version: "${GROK_SKILLS_VERSION}"`,
+    `  svs-version: "${version}"`,
     '---',
     '',
     '# Memory index (on-demand for Kimi / Grok)',
@@ -448,6 +460,10 @@ export function memoryIndexSkillBody(): string {
     '`.kimi-code/skills/svs-memory-index`. Bodies stay in `.claude/memories/`.',
     '',
   ].join('\n');
+}
+
+export function curatedSkillAvailable(projectDir: string, name: string): boolean {
+  return curatedSkillSource(projectDir, name) !== null;
 }
 
 function curatedSkillSource(projectDir: string, name: string): string | null {
@@ -543,8 +559,8 @@ function destSkillCurrentOrAhead(destMd: string, srcMd: string): boolean {
   }
 }
 
-function copyCuratedSkill(projectDir: string, name: string): boolean {
-  const destDir = join(skillsRoot(projectDir), name);
+export function copyCuratedSkillInto(projectDir: string, name: string, root: string): boolean {
+  const destDir = join(root, name);
   const destMd = join(destDir, 'SKILL.md');
   const destExists = existsSync(destMd);
   if (OPTIONAL_PRELINE_SKILLS.has(name) && !wantsPrelineMoon(projectDir) && !destExists) {
@@ -702,14 +718,7 @@ export function exportGrokSkills(
       if (stale.length > 0) removeManagedSkillDirs(projectDir, stale);
     }
 
-    // Drop accidental cybersecurity copies if any
-    if (existsSync(root)) {
-      for (const ent of readdirSync(root, { withFileTypes: true })) {
-        if (ent.isDirectory() && isBlockedSkillName(ent.name)) {
-          rmSync(join(root, ent.name), { recursive: true, force: true });
-        }
-      }
-    }
+    pruneBlockedSkillDirs(root);
 
     writeSkillMd(root, 'svs-policy', policySkillBody());
     writeSkillMd(root, 'svs-dev-process', devProcessSkillBody());
@@ -722,7 +731,7 @@ export function exportGrokSkills(
     for (const name of GROK_CURATED_SKILL_NAMES) {
       const destMd = join(root, name, 'SKILL.md');
       const existed = existsSync(destMd);
-      if (copyCuratedSkill(projectDir, name)) {
+      if (copyCuratedSkillInto(projectDir, name, root)) {
         if (!existed && existsSync(destMd)) curatedCopied += 1;
         managedNames.push(name);
       }

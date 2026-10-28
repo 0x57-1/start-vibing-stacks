@@ -618,7 +618,7 @@ export async function setupProject(
       `Setup complete: ${agentCount} agents, ${sharedSkillCount + stackSkillCount} skills, ${hookCount} hooks` +
         (sync.agentsMdWritten ? ' + AGENTS.md' : '') +
         (sync.cursorRules.written ? ' + Cursor rules' : '') +
-        (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.memoryIndexWritten
+        (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.skillsWritten
           ? ' + Kimi local'
           : '') +
         (sync.grokSkills.configUpdated ||

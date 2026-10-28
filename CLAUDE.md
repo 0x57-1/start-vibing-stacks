@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-10-28 · main · v2.106.0
+Kimi gets its own skill tree, same set as Grok: curated copies plus
+svs-policy, svs-dev-process, svs-document, and the memory index under
+`.kimi-code/skills/`. Memory files stay in `.claude/memories/`.
+
 ### 2026-10-28 · main · v2.105.0
 Kimi gets the same memory index as Grok: `.kimi-code/skills/svs-memory-index`
 points at `.claude/memories/`. The files themselves stay in one place.
@@ -53,10 +58,6 @@ wins over a "Recent Changes" phrase; Jest counts as tester.
 `typesafe-jev` **1.1**: decide with the six TypeSafe shapes before the
 first call (select-not-generate, verify+escalate, stale state). Cookbook
 percents stay examples. Own key only.
-
-### 2026-09-21 · main · v2.96.0
-Shared skill `typesafe-jev`: Jev System One (state, Choice/Score/Noul,
-confidence, combinations). HTTP + SDK companions. Own-key only.
 
 ---
 
