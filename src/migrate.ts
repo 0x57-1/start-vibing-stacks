@@ -1335,11 +1335,17 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   } else if (sync.cursorRules.skippedReason && (migrateTarget === 'all' || migrateTarget === 'cursor')) {
     ui.info(`targets Cursor rules: ${sync.cursorRules.skippedReason}`);
   }
-  if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.exampleWritten) {
+  if (
+    sync.kimiLocal.localWritten ||
+    sync.kimiLocal.localUpdated ||
+    sync.kimiLocal.exampleWritten ||
+    sync.kimiLocal.memoryIndexWritten
+  ) {
     const bits: string[] = [];
     if (sync.kimiLocal.exampleWritten) bits.push('local.toml.example');
     if (sync.kimiLocal.localWritten) bits.push('local.toml (seeded)');
     if (sync.kimiLocal.localUpdated) bits.push('local.toml (SVS block)');
+    if (sync.kimiLocal.memoryIndexWritten) bits.push('skills/svs-memory-index');
     ui.success(`targets: Kimi ${bits.join(', ')}`);
   }
   if (sync.kimiLocal.gitignoreUpdated) {

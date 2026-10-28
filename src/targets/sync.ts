@@ -103,6 +103,7 @@ export interface SyncTargetsResult {
     exampleWritten: boolean;
     localWritten: boolean;
     localUpdated: boolean;
+    memoryIndexWritten: boolean;
     gitignoreUpdated: boolean;
     version: string;
     skippedReason?: string;
@@ -244,18 +245,23 @@ export function syncTargets(projectDir: string, opts: SyncTargetsOptions = {}): 
     syncKimi &&
     (opts.forceKimiLocal === true ||
       (updateIfNeeded &&
-        (kimiNeed.exampleMissing || kimiNeed.localMissing || kimiNeed.blockMissing)));
+        (kimiNeed.exampleMissing ||
+        kimiNeed.localMissing ||
+        kimiNeed.blockMissing ||
+        kimiNeed.memoryIndexStale)));
 
   let kimiLocalResult: {
     exampleWritten: boolean;
     localWritten: boolean;
     localUpdated: boolean;
+    memoryIndexWritten: boolean;
     version: string;
     skippedReason?: string;
   } = {
     exampleWritten: false,
     localWritten: false,
     localUpdated: false,
+    memoryIndexWritten: false,
     version: KIMI_LOCAL_VERSION,
     skippedReason: syncKimi
       ? shouldWriteKimi

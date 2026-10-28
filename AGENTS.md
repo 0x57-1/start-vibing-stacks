@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-10-28 · main · v2.105.0
+Kimi memory index matches Grok: pointers in `.kimi-code/skills/svs-memory-index`,
+bodies still in `.claude/memories/`.
+
 ### 2026-10-13 · main · v2.104.0
 Podman on the Mac: machine plus a local test pod. Database container
 only when needed. An app with no database still runs in the pod.
@@ -65,10 +69,6 @@ Cookbook metrics are examples, not floors.
 ### 2026-09-21 · main · v2.96.0
 Skill typesafe-jev: System One primitives, data shapes, combinations.
 Own TYPESAFE_API_KEY only.
-
-### 2026-09-15 · main · v2.95.0
-RN skills: expo-testing, query, zod, theme, a11y. Theme-parity
-off on Expo; native design-system seed.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -158,6 +158,7 @@ After `npx start-vibing-stacks migrate --apply`, keep this `AGENTS.md` in sync w
 
 - `CLAUDE.md` — full Claude Code project rules
 - `.claude/memories/` — detailed always-on Claude memories (Read on demand from Kimi/Grok)
+- `.kimi-code/skills/svs-memory-index` — same pointer index Grok has under `.grok/skills/svs-memory-index`
 - `.claude/memories/multi-target-mcp-discovery.md` — find/migrate MCP → Kimi/Grok/Cursor
 - `.claude/config/mcp-active.json` — Claude MCP source for `migrate --apply`
 - `.claude/config/svs-manifest.json` — package/target freshness

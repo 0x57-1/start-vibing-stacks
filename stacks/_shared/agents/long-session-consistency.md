@@ -1,6 +1,6 @@
 ---
 name: long-session-consistency
-version: 1.0.0
+version: 1.0.1
 description: >
   AUTOMATICALLY invoke when designing or auditing how Claude / Kimi / Grok stay
   aligned on the same project across long sessions (resume, compaction, next-day
@@ -74,7 +74,7 @@ Task frontmatter: `status`, `branch`, `updated_by: <target>/<short-id>`, `domain
 | Target | Skills | Agents | Bus |
 |--------|--------|--------|-----|
 | Claude | `.claude/skills/` + memories | Task + `.claude/agents/` | `.claude/state/` |
-| Kimi | `extra_skill_dirs` → `.claude/skills/` | `extra_agent_dirs` → `.claude/agents/` | same via bridge |
+| Kimi | `extra_skill_dirs` → `.claude/skills/` plus `.kimi-code/skills/svs-memory-index` | `extra_agent_dirs` → `.claude/agents/` | same via bridge |
 | Grok | curated `.grok/skills/` only | `.grok/agents/` copy | same via bridge |
 
 If it must work on Kimi/Grok, implement in **hooks** or **committed markdown**, not Claude-only Task chains.

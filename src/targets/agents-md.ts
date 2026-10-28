@@ -148,6 +148,7 @@ export function generateAgentsMd(
     '### Skills & memories',
     '',
     '- **Kimi** — project `.claude/skills/` via `local.toml` `extra_skill_dirs`.',
+    '  Memories: `.kimi-code/skills/svs-memory-index` (same pointers as Grok). Read the linked `.claude/memories/` file.',
     '- **Grok** — curated + SVS skills under `.grok/skills/` only (`compat.claude.skills=false` for boot).',
     '  Load `svs-dev-process`, `svs-finalize`, `svs-memory-index`, `session-history`, `kimi-grok-session-lookup`.',
     '- **Shared bus** — `.claude/state/` (peers, locks, inbox; gitignored).',

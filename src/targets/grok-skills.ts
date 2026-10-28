@@ -142,7 +142,7 @@ function isBlockedSkillName(name: string): boolean {
   return BLOCKED_SKILL_RE.test(name);
 }
 
-function writeSkillMd(dir: string, name: string, body: string): void {
+export function writeSkillMd(dir: string, name: string, body: string): void {
   const dest = join(dir, name, 'SKILL.md');
   mkdirSync(dirname(dest), { recursive: true });
   writeFileSync(dest, body);
@@ -389,7 +389,7 @@ function documentSkillBody(): string {
   ].join('\n');
 }
 
-function memoryIndexSkillBody(): string {
+export function memoryIndexSkillBody(): string {
   return [
     '---',
     'name: svs-memory-index',
@@ -443,7 +443,9 @@ function memoryIndexSkillBody(): string {
     'All paths are under `.claude/memories/`.',
     '',
     'For past chats / `/resume` / transcripts across Claude·Kimi·Grok, load skill',
-    '`session-history` + `kimi-grok-session-lookup` (under `.grok/skills/` after migrate).',
+    '`session-history` + `kimi-grok-session-lookup`.',
+    'After migrate this index is `.grok/skills/svs-memory-index` and',
+    '`.kimi-code/skills/svs-memory-index`. Bodies stay in `.claude/memories/`.',
     '',
   ].join('\n');
 }

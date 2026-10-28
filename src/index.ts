@@ -280,8 +280,11 @@ async function main(): Promise<void> {
         if (sync.cursorRules.written) {
           ui.success(`Wrote .cursor/rules/svs-policy.mdc (svs-version ${sync.cursorRules.version})`);
         }
-        if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated) {
-          ui.success('Updated .kimi-code/local.toml (SVS block)');
+        if (sync.kimiLocal.localWritten || sync.kimiLocal.localUpdated || sync.kimiLocal.memoryIndexWritten) {
+          ui.success(
+            'Updated .kimi-code/local.toml (SVS block)' +
+              (sync.kimiLocal.memoryIndexWritten ? ' + svs-memory-index' : '')
+          );
         }
         if (
           sync.grokSkills.configUpdated ||
@@ -382,8 +385,11 @@ async function main(): Promise<void> {
             forceGrokAgents: targetId === 'grok',
             forceMcp: true,
           });
-          if (sync.kimiLocal.localUpdated || sync.kimiLocal.localWritten) {
-            ui.success('Kimi local.toml refreshed');
+          if (sync.kimiLocal.localUpdated || sync.kimiLocal.localWritten || sync.kimiLocal.memoryIndexWritten) {
+            ui.success(
+              'Kimi local.toml refreshed' +
+                (sync.kimiLocal.memoryIndexWritten ? ' + svs-memory-index' : '')
+            );
           }
           if (
             sync.grokSkills.nativeSkillWritten ||
