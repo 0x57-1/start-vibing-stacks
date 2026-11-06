@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.0.1
 ---
 
 # Memory: Claude / Cursor Permission Modes
@@ -17,6 +17,7 @@ When the user asks to “montar bypassPermissions” / reduce permission prompts
 ## Facts
 
 1. Project default from start-vibing-stacks: `permissions.defaultMode: "plan"` in `.claude/settings.json` (sessions start read-only).
+1b. File-tool allow rules are the bare name (`Read`, `Write`, `Edit`, `Grep`, `Glob`). Claude Code 2.1.319 treats `Read(*)` as working-directory-only and warns. The bare name allows every path. Do not put `(*)` back on those five.
 2. Local override (gitignored): copy `.claude/settings.local.example.json` → `.claude/settings.local.json` and set `acceptEdits` or `bypassPermissions` as needed.
 3. Cursor “Opened changes / Save file to continue” is **buffer sync**, not Bypass failure — see `cursor-ide-edit-sync.md` + skill `tool-resilience`.
 4. Extension tip: both `claudeCode.allowDangerouslySkipPermissions` and `claudeCode.initialPermissionMode: "bypassPermissions"` may be required for Bypass to stick across chats.

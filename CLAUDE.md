@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-06 · main · v2.107.0
+File-tool allow rules are bare names (`Read`, `Write`, `Edit`, `Grep`, `Glob`).
+Claude Code 2.1.319 warns on `Read(*)`: that form is working-directory-only.
+Migrate rewrites the five rules setup used to emit.
+
 ### 2026-10-28 · main · v2.106.0
 Kimi gets its own skill tree, same set as Grok: curated copies plus
 svs-policy, svs-dev-process, svs-document, and the memory index under
@@ -53,11 +58,6 @@ No key, or `SVS_JEV=0`, keeps the prose. CTR/CPA/ROAS stay in code.
 UPS Jev judge when `TYPESAFE_API_KEY` is set (`SVS_JEV=0` off). No key
 keeps regex. Grok ship head follows the gate. Spawn pin: documenter
 wins over a "Recent Changes" phrase; Jest counts as tester.
-
-### 2026-09-27 · main · v2.97.0
-`typesafe-jev` **1.1**: decide with the six TypeSafe shapes before the
-first call (select-not-generate, verify+escalate, stale state). Cookbook
-percents stay examples. Own key only.
 
 ---
 

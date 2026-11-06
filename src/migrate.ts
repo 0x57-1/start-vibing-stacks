@@ -660,6 +660,36 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     report.alreadyPresent.push('permissions.defaultMode');
   }
 
+  // Claude Code 2.1.319: Tool(*) on file tools means "working directories
+  // only" and warns. The bare name is every path (the old Tool(*) meaning).
+  // Rewrite only the five rules setup used to emit. Leave Read(./.env) and
+  // any other path rule alone.
+  const fileToolStarAllow = new Set(['Read(*)', 'Write(*)', 'Edit(*)', 'Grep(*)', 'Glob(*)']);
+  if (Array.isArray(settings.permissions.allow)) {
+    const allow = settings.permissions.allow as unknown[];
+    const next: unknown[] = [];
+    const seen = new Set<string>();
+    let changed = false;
+    for (const rule of allow) {
+      if (typeof rule !== 'string') {
+        next.push(rule);
+        continue;
+      }
+      const bare = fileToolStarAllow.has(rule) ? rule.slice(0, -3) : rule;
+      if (bare !== rule) changed = true;
+      if (seen.has(bare)) {
+        changed = true;
+        continue;
+      }
+      seen.add(bare);
+      next.push(bare);
+    }
+    if (changed) {
+      if (!dryRun) settings.permissions.allow = next;
+      report.added.push('permissions.allow: file tools without (*)');
+    }
+  }
+
   // Memory files — shared always-on + stack extras (see memories-canon.ts).
   const projectStack = loadProjectConfig(projectDir)?.stack;
   const requiredMemoryFiles = memoryFilesForStack(projectStack);

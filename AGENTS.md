@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-06 · main · v2.107.0
+File-tool allow rules drop `(*)`. Claude Code 2.1.319 warns: `Read(*)` is
+working-directory-only. The bare name allows every path. Migrate rewrites them.
+
 ### 2026-10-28 · main · v2.106.0
 Kimi skills match Grok: curated copies plus svs-policy, svs-dev-process,
 svs-document, and the memory index under `.kimi-code/skills/`.
@@ -65,10 +69,6 @@ No key keeps the written skill. Metric math stays in code.
 ### 2026-09-27 · main · v2.98.0
 UPS calls Jev only with TYPESAFE_API_KEY. Grok/Kimi get the same gate.
 Spawn pin no longer steals documenter turns.
-
-### 2026-09-27 · main · v2.97.0
-typesafe-jev 1.1: six decision shapes before the first Jev call.
-Cookbook metrics are examples, not floors.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

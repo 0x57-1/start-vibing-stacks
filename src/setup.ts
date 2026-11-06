@@ -372,13 +372,18 @@ export async function setupProject(
         // Opt into acceptEdits/bypassPermissions via .claude/settings.local.json
         // (copy from settings.local.example.json) — never change this default here.
         defaultMode: 'plan',
+        // File tools use the bare name. Claude Code 2.1.319 treats Read(*) /
+        // Write(*) / Edit(*) / Grep(*) / Glob(*) as "working directories only"
+        // and warns at startup. The bare name allows every path, which is what
+        // Tool(*) meant on older releases. Bash(*) stays: it is still equivalent
+        // to Bash and does not warn.
         allow: [
           'Bash(*)',
-          'Read(*)',
-          'Write(*)',
-          'Edit(*)',
-          'Grep(*)',
-          'Glob(*)',
+          'Read',
+          'Write',
+          'Edit',
+          'Grep',
+          'Glob',
           'WebSearch(*)',
           'WebFetch(*)',
         ],
