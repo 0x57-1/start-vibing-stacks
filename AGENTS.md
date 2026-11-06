@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-06 · main · v2.108.0
+Expo device loop: Jest first, then one simulator or Expo Go. Skill
+`expo-device`. Android Studio and Xcode are not installed unless asked.
+
 ### 2026-11-06 · main · v2.107.0
 File-tool allow rules drop `(*)`. Claude Code 2.1.319 warns: `Read(*)` is
 working-directory-only. The bare name allows every path. Migrate rewrites them.
@@ -65,10 +69,6 @@ and migrate say when Jev is on. Stack picks only on php/python.
 ### 2026-09-27 · main · v2.99.0
 Jev skill routes: security lane, email, tool errors, ads, stack pick.
 No key keeps the written skill. Metric math stays in code.
-
-### 2026-09-27 · main · v2.98.0
-UPS calls Jev only with TYPESAFE_API_KEY. Grok/Kimi get the same gate.
-Spawn pin no longer steals documenter turns.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

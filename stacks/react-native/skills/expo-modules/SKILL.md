@@ -1,6 +1,6 @@
 ---
 name: expo-modules
-version: 1.0.0
+version: 1.0.1
 description: >-
   Expo modules and config plugins for iOS and Android. Use when adding
   SecureStore, camera, notifications, splash, permissions, or a development
@@ -45,7 +45,8 @@ your edits die on the next prebuild.
 ## Development builds
 
 `npx expo run:ios` / `run:android` or EAS. Required as soon as a config plugin
-or custom native module is in the app.
+or custom native module is in the app. How to boot the simulator is
+`expo-device`.
 
 ## Forbidden
 

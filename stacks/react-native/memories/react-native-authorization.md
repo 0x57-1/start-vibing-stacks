@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: React Native / Expo (owned app)
@@ -15,7 +15,8 @@ version: 1.1.0
    Parse with `react-native-zod`; lists via `react-native-query`.
 3. Tokens: `expo-secure-store` only. Refresh is single-flight / one-time.
 4. Preline / Tailwind HTML **does not apply**. Native `View` / `Text`.
-   Tests: `expo-testing`. Labels: `react-native-a11y`.
+   Tests: `expo-testing` first. A visible screen then boots one device
+   (`expo-device`). Labels: `react-native-a11y`.
 
 ## Authorized
 

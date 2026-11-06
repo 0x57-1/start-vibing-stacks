@@ -1,6 +1,6 @@
 ---
 name: tester
-version: 1.4.0
+version: 1.5.0
 description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL). On a web UI change, walks the local page with Playwright before calling it done. On a Mac, starts a Podman pod when the test needs a database or the container image."
 model: sonnet
 tools: Read, Write, Edit, Bash, Grep, Glob
@@ -52,6 +52,10 @@ Follow the stack skill's patterns for:
 - Native primitives: `View` / `Text` / `Pressable` — no `div`, Preline, or `document`.
 - Mock `expo-secure-store` and the axios instance; never put live tokens in fixtures.
 - Optional Maestro / Detox only if the repo already has that runner. Do not invent Playwright for native screens.
+
+## Step 2d: Expo device
+
+On `react-native`, after `npm test` is green: if the change is a screen the user will see, or a native module Expo Go cannot load, follow `expo-device`. Boot one iOS Simulator when Xcode is installed. Boot an Android emulator only when an AVD exists or the user asked for Android. Do not install Xcode or Android Studio on your own. A store binary is `eas-release`, not this step.
 
 ## Step 2b: Web page — walk before done
 

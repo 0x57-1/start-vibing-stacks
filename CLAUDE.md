@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-06 · main · v2.108.0
+React Native can boot a device after Jest. Skill `expo-device` and memory
+`expo-device-loop`: one iOS Simulator when Xcode is there, Android only if
+an AVD exists, Expo Go for a phone. No store submit unless asked.
+
 ### 2026-11-06 · main · v2.107.0
 File-tool allow rules are bare names (`Read`, `Write`, `Edit`, `Grep`, `Glob`).
 Claude Code 2.1.319 warns on `Read(*)`: that form is working-directory-only.
@@ -53,11 +58,6 @@ is on. Stack-pick only on php/python. Full skill paths. `npm test` exists.
 Jev routes the skills that are judgments (security lane, email hard-limit,
 tool class, bundle vs backend, ads platform, Octane/HTTP/FastAPI pick).
 No key, or `SVS_JEV=0`, keeps the prose. CTR/CPA/ROAS stay in code.
-
-### 2026-09-27 · main · v2.98.0
-UPS Jev judge when `TYPESAFE_API_KEY` is set (`SVS_JEV=0` off). No key
-keeps regex. Grok ship head follows the gate. Spawn pin: documenter
-wins over a "Recent Changes" phrase; Jest counts as tester.
 
 ---
 

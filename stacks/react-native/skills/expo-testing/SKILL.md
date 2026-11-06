@@ -1,6 +1,6 @@
 ---
 name: expo-testing
-version: 1.0.1
+version: 1.0.2
 description: >-
   Jest + React Native Testing Library for Expo apps. Use when writing
   *.test.ts(x), mocking SecureStore/axios, or running npm test. Not Vitest,
@@ -57,7 +57,7 @@ tokens or refresh bodies in fixtures.
 | Verify in database | No local DB unless the screen uses expo-sqlite |
 | Never mock auth | **Do** mock SecureStore + 401 refresh |
 | Playwright viewports | One phone width is enough (375) |
-| E2E every page | Unit/RNTL for screens; E2E only if Maestro exists |
+| E2E every page | Unit/RNTL for screens. A device boot is `expo-device`, after this suite is green |
 
 ## Forbidden
 
@@ -73,3 +73,4 @@ tokens or refresh bodies in fixtures.
 - `react-native-a11y` — labels the queries need
 - `react-native-http` — mock this client
 - `test-coverage` — isolation / no `.skip` only
+- `expo-device` — simulator, emulator, Expo Go, after Jest is green

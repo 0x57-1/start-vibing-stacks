@@ -50,7 +50,7 @@ project/
 1. Screens → Expo Router groups
 2. API → axios + Zod (never fetch for JSON)
 3. Tokens → SecureStore; single-flight refresh
-4. TEST → tester + `expo-testing` (Jest + RNTL, not Vitest)
+4. TEST → tester + `expo-testing` (Jest + RNTL). A visible screen then `expo-device` (one simulator).
 5. DATA → `react-native-query` + `react-native-zod`
 6. UI → `react-native-theme` + `react-native-a11y` (not react-theme-parity)
 7. SECURITY → security-auditor §4.RN (not web overlay)

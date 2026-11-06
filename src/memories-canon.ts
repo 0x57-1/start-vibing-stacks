@@ -54,6 +54,7 @@ export const STACK_MEMORY_FILES: Record<string, readonly string[]> = {
     '.claude/memories/expo-router-modules.md',
     '.claude/memories/mobile-secure-coding.md',
     '.claude/memories/react-native-theme.md',
+    '.claude/memories/expo-device-loop.md',
   ],
 };
 

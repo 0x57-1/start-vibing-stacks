@@ -1,6 +1,6 @@
 ---
 name: eas-release
-version: 1.0.0
+version: 1.0.1
 description: >-
   EAS Build, Submit, and Update for Expo apps on iOS and Android. Use when
   preparing store binaries, credentials, or OTA JS updates. Not TestFlight
@@ -43,4 +43,5 @@ binary**. Do not promise “undetectable” store review bypass.
 ## See Also
 
 - `expo-modules` — when a binary is required
+- `expo-device` — prove the screen on a simulator before asking for a store build
 - memory `post-push-ci-verification` — watch the GitHub run after push

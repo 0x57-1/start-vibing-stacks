@@ -71,6 +71,7 @@
     "expo-router",
     "expo-modules",
     "expo-testing",
+    "expo-device",
     "react-native-security",
     "react-native-secure-coding",
     "react-native-http",
