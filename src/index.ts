@@ -54,6 +54,7 @@ const FLAGS = {
   version: args.includes('--version') || args.includes('-v'),
   apply: args.includes('--apply'),
   forceHooks: args.includes('--force-hooks') || args.includes('--force-legacy'),
+  /** Accepted so old scripts still parse. MOP is always installed. */
   withMemoryOptimization: args.includes('--with-memory-optimization'),
   skipUpdate: args.includes('--skip-update'),
   noLaunch: args.includes('--no-launch'),
@@ -65,16 +66,21 @@ if (FLAGS.version) {
   process.exit(0);
 }
 
+if (!FLAGS.help) {
+  const { reexecIfRegistryIsNewer } = await import('./version-check.js');
+  await reexecIfRegistryIsNewer(PKG_VERSION, args);
+}
+
 if (FLAGS.help) {
   console.log(ui.LOGO);
   console.log(`
   ${chalk.bold('Usage:')}
-    npx start-vibing-stacks [command] [options]
+    npx --yes start-vibing-stacks@latest [command] [options]
 
   ${chalk.bold('Commands:')}
     (default)         Setup or resume current project
-                      Resume: Launch auto-migrates when outdated; prefer
-                      npx start-vibing-stacks@latest (stale npx cache = old skills)
+                      Resume: Launch auto-migrates when outdated.
+                      npx @latest can stick; this CLI re-runs the registry version.
                       Launch Grok = grok --always-approve --trust
     migrate           Compare installed vs bundled skill/agent/memory versions
                       Syncs AGENTS.md + MCP + .cursor/rules (Kimi/Grok/Cursor)
@@ -94,7 +100,7 @@ if (FLAGS.help) {
     --no-mcp          Skip MCP server selection
     --no-install      Skip dependency installation
     --with-memory-optimization
-                      Install/refresh Memory Optimization Pipeline (setup AND migrate --apply)
+                      Ignored. The Memory Optimization Pipeline is always installed.
     --no-launch       After migrate --apply, exit instead of opening the launcher
     --help, -h        Show this help
     --version, -v     Show version
@@ -112,11 +118,13 @@ if (SUBCOMMAND === 'migrate') {
   const { runMigrate } = await import('./migrate.js');
   const { parseMigrateTarget } = await import('./targets/index.js');
   const migrateDir = process.cwd();
+  if (FLAGS.withMemoryOptimization) {
+    ui.info('MOP is always installed. --with-memory-optimization does nothing.');
+  }
   await runMigrate(migrateDir, {
     apply: FLAGS.apply,
     forceHooks: FLAGS.forceHooks,
     target: parseMigrateTarget(FLAGS.target),
-    withMemoryOptimization: FLAGS.withMemoryOptimization,
   });
   const configured = existsSync(join(migrateDir, '.claude', 'config', 'active-project.json'));
   const interactive =
@@ -189,7 +197,6 @@ async function main(): Promise<void> {
         await runMigrate(projectDir, {
           apply: true,
           forceHooks: FLAGS.forceHooks,
-          withMemoryOptimization: FLAGS.withMemoryOptimization,
         });
         const leftover = planMigration(projectDir, { apply: false }).filter(
           (it) => it.status === 'outdated' || it.status === 'missing'
@@ -215,9 +222,9 @@ async function main(): Promise<void> {
       const cliFresh = await checkCliFreshness(PKG_VERSION);
       if (cliFresh.stale && cliFresh.latest) {
         ui.warn(
-          `CLI running ${PKG_VERSION} but npm latest is ${cliFresh.latest} — npx cache is stale.`
+          `CLI running ${PKG_VERSION} but npm latest is ${cliFresh.latest} — npx did not switch.`
         );
-        ui.warn(`Re-run: npx start-vibing-stacks@latest`);
+        ui.warn(`Re-run: npx --yes start-vibing-stacks@${cliFresh.latest}`);
       }
 
       const launchChoices = availableLaunchTargets().map((t) => {
@@ -732,7 +739,6 @@ async function main(): Promise<void> {
   const setupOk = await setupProject(projectDir, config, {
     force: FLAGS.force,
     noClaude: FLAGS.noClaude,
-    withMemoryOptimization: FLAGS.withMemoryOptimization,
   });
 
   if (!setupOk) {

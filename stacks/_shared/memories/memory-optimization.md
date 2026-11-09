@@ -1,4 +1,11 @@
+---
+version: 1.1.0
+---
+
 # Memory: Memory Optimization Pipeline (MOP)
+
+Setup and `migrate --apply` always copy `.claude/memory-optimization/`.
+That copy is core. Running `memory optimize --apply` still needs an explicit yes.
 
 > **CARREGAR SEMPRE** — Esta memória explica o sistema de otimização de memórias estáticas do projeto. O agente deve entender que o MOP é uma ferramenta de manutenção segura, versionável e não intrusiva.
 
@@ -34,7 +41,7 @@ O agente deve sugerir o uso do MOP quando detectar:
 - Memória estática não atualizada há mais de 30 dias
 - Sinais de degradação de qualidade de memória (perda de decisões, padrões ou gotchas)
 
-**Nunca execute o MOP automaticamente.** Sempre sugira ou peça confirmação explícita (`npx start-vibing-stacks memory optimize --apply`).
+Do not run `memory optimize --apply` without an explicit yes. The directory install is already done (`npx start-vibing-stacks memory optimize --apply`).
 
 ---
 

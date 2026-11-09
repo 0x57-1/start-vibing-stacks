@@ -1,6 +1,6 @@
 ---
 name: kimi-grok-session-lookup
-version: 1.1.0
+version: 1.1.1
 description: >
   Locate and preview Kimi Code and Grok session folders on disk from Claude
   (or any SVS target). Use when the user asks what Kimi/Grok did earlier, where
@@ -33,6 +33,8 @@ ls "$CLAUDE_PROJECT_DIR/.claude/state/sessions/_archive/" | tail
 
 Each JSON may include `target` (`kimi`|`grok`|`claude`), `nativeSessionDir`, and
 `transcriptPath` (wire.jsonl / updates.jsonl when resolved).
+
+Read the live JSON files in `.claude/state/sessions/` together, in one turn, before editing a file another session lists in `filesTouched`. There is no `.kimi/state` and no `.grok/state`.
 
 | `sessionId` | Likely source |
 |-------------|---------------|

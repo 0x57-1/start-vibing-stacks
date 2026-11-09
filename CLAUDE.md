@@ -10,6 +10,12 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-09 · main · v2.109.0
+Memory Optimization Pipeline installs on every setup and `migrate --apply`.
+A stale `npx @latest` extract re-runs the registry version. Grok and Kimi
+memory index lists every Claude memory, including React Native stack files.
+Live sessions stay in `.claude/state/sessions/` and are read in one pass.
+
 ### 2026-11-06 · main · v2.108.0
 React Native can boot a device after Jest. Skill `expo-device` and memory
 `expo-device-loop`: one iOS Simulator when Xcode is there, Android only if
@@ -53,11 +59,6 @@ Same class as launcher ipRisk. Memory ad-review 1.1.
 Jev judge 1.2: redacts provider tokens, `name: value`, URL passwords, PEM.
 `SVS_JEV_KEY` beats an app's `TYPESAFE_API_KEY`; setup/migrate say when Jev
 is on. Stack-pick only on php/python. Full skill paths. `npm test` exists.
-
-### 2026-09-27 · main · v2.99.0
-Jev routes the skills that are judgments (security lane, email hard-limit,
-tool class, bundle vs backend, ads platform, Octane/HTTP/FastAPI pick).
-No key, or `SVS_JEV=0`, keeps the prose. CTR/CPA/ROAS stay in code.
 
 ---
 

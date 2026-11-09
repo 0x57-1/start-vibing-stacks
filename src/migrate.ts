@@ -88,7 +88,7 @@ export interface MigrateOptions {
   forceHooks?: boolean;
   /** Multi-target: claude | kimi | grok | cursor | all (default all) */
   target?: 'claude' | 'kimi' | 'grok' | 'cursor' | 'all';
-  /** Copy/refresh `.claude/memory-optimization/` (MOP) */
+  /** @deprecated MOP is always installed on --apply. Field ignored. */
   withMemoryOptimization?: boolean;
 }
 
@@ -1129,8 +1129,10 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     console.log('\n  RUNTIME — will copy:');
     for (const f of runtimePreview.copied) console.log(`    + ${f}`);
   }
-  if (opts.withMemoryOptimization) {
-    console.log('\n  MOP — will install/refresh `.claude/memory-optimization/`');
+  const mopDir = join(projectDir, '.claude', 'memory-optimization');
+  const mopMissing = !existsSync(mopDir);
+  if (mopMissing) {
+    console.log('\n  MOP — will install `.claude/memory-optimization/` (always on)');
   }
   if (runtimePreview.gitignoreUpdated) {
     console.log('\n  GITIGNORE — will append `.claude/state/`');
@@ -1207,7 +1209,7 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   const nothingSettings = settingsPreview.added.length === 0;
   const nothingRuntime =
     runtimePreview.created.length === 0 && runtimePreview.copied.length === 0 && !runtimePreview.gitignoreUpdated;
-  const mopPending = Boolean(opts.withMemoryOptimization);
+  const mopPending = mopMissing;
   const uiPending = projectUiNeedsSeed(projectDir);
 
   if (
@@ -1225,6 +1227,12 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
     !uiPending
   ) {
     console.log('');
+    if (opts.apply) {
+      const refreshed = installMemoryOptimization(projectDir, true);
+      if (refreshed > 0) {
+        ui.success(`MOP: refreshed ${refreshed} file(s) → .claude/memory-optimization/`);
+      }
+    }
     ui.success('Everything up to date.');
     return;
   }
@@ -1297,11 +1305,11 @@ export async function runMigrate(projectDir: string, opts: MigrateOptions): Prom
   }
 
   let mopCopied = 0;
-  if (opts.withMemoryOptimization) {
+  if (opts.apply) {
     mopCopied = installMemoryOptimization(projectDir, true);
     if (mopCopied > 0) {
       ui.success(`MOP: installed/refreshed ${mopCopied} file(s) → .claude/memory-optimization/`);
-    } else {
+    } else if (mopMissing) {
       ui.warn('MOP: bundled memory-optimization/ missing from this package');
     }
   }

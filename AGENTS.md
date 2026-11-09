@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-09 · main · v2.109.0
+MOP is always installed. Stale npx re-runs the registry version. Grok and
+Kimi index every Claude memory. Peer sessions share `.claude/state/sessions/`.
+
 ### 2026-11-06 · main · v2.108.0
 Expo device loop: Jest first, then one simulator or Expo Go. Skill
 `expo-device`. Android Studio and Xcode are not installed unless asked.
@@ -65,10 +69,6 @@ Fallback URL for platform ASN, campaign URL for the paid click.
 ### 2026-09-27 · main · v2.100.0
 Jev judge redacts real token shapes. SVS_JEV_KEY for the agent; setup
 and migrate say when Jev is on. Stack picks only on php/python.
-
-### 2026-09-27 · main · v2.99.0
-Jev skill routes: security lane, email, tool errors, ads, stack pick.
-No key keeps the written skill. Metric math stays in code.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

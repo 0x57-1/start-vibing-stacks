@@ -3,10 +3,10 @@
 CLI that installs a **shared AI engineering setup** into a repo: agents, skills, hooks, memories, and quality gates for **Claude Code**, **Kimi Code**, **Grok** (Build 1.0+), and **Cursor** — parametrized by stack (PHP / Node / Python / React Native).
 
 ```bash
-npx start-vibing-stacks@latest
+npx --yes start-vibing-stacks@latest
 ```
 
-Latest: **v2.93.0** — new **React Native / Expo** stack (app kind at setup; seed only if the tree is empty).
+Latest: **v2.109.0** — Memory Optimization Pipeline is always installed. A stale `npx @latest` extract re-runs the registry version.
 
 ---
 
@@ -14,7 +14,7 @@ Latest: **v2.93.0** — new **React Native / Expo** stack (app kind at setup; se
 
 | Job | How |
 |-----|-----|
-| Scaffold / upgrade project AI config | `npx start-vibing-stacks` then `migrate --apply` |
+| Scaffold / upgrade project AI config | `npx --yes start-vibing-stacks@latest` then `migrate --apply` |
 | Keep Claude · Kimi · Grok · Cursor in sync | Side-cars: `AGENTS.md`, MCP export, `.kimi-code/`, `.grok/`, `.cursor/` |
 | Enforce finish hygiene | Stop hooks block dirty tree, skipped docs, stale domain index |
 | Same finish chain on all targets | **Commit (scoped) → documenter → domain-updater → docs commit** |
@@ -29,11 +29,11 @@ Wires agents/skills/hooks around *your* codebase. Exception: the **react-native*
 
 ```bash
 cd your-project
-npx start-vibing-stacks@latest          # setup or resume (Launch auto-migrates if outdated)
-npx start-vibing-stacks@latest migrate --apply   # upgrade skills/hooks/memories/targets
+npx --yes start-vibing-stacks@latest
+npx --yes start-vibing-stacks@latest migrate --apply
 ```
 
-Prefer `@latest` — plain `npx start-vibing-stacks` can stick on an old cache.
+`@latest` can keep an old extract under `~/.npm/_npx`. The CLI asks the registry and, when that version is newer, runs `npx --yes start-vibing-stacks@<version>` with `prefer-online`. That is a new cache key. Do not wipe the whole npm cache. Right after publish the tarball can 404 for a few minutes on the CDN; retry the same command. Memory Optimization Pipeline installs on setup and on `migrate --apply`. `--with-memory-optimization` is accepted and ignored.
 
 ---
 
@@ -145,16 +145,17 @@ Heartbeat: **active &lt; 180s** (block) · idle → 30min (warn) · then archive
 ## CLI
 
 ```bash
-npx start-vibing-stacks@latest                 # setup / resume (+ Launch auto-migrate)
-npx start-vibing-stacks@latest migrate         # dry-run drift
-npx start-vibing-stacks@latest migrate --apply # update, then open launcher (TTY)
-npx start-vibing-stacks@latest migrate --apply --with-memory-optimization
-npx start-vibing-stacks@latest migrate --apply --no-launch   # CI: update and exit
-npx start-vibing-stacks@latest migrate --apply --force-legacy   # heal unversioned hooks/commands
-npx start-vibing-stacks@latest migrate --target kimi|grok|cursor|claude|all --apply
+npx --yes start-vibing-stacks@latest                 # setup / resume (+ Launch auto-migrate)
+npx --yes start-vibing-stacks@latest migrate         # dry-run drift
+npx --yes start-vibing-stacks@latest migrate --apply # update, then open launcher (TTY)
+npx --yes start-vibing-stacks@latest migrate --apply --no-launch   # CI: update and exit
+npx --yes start-vibing-stacks@latest migrate --apply --force-legacy   # heal unversioned hooks/commands
+npx --yes start-vibing-stacks@latest migrate --target kimi|grok|cursor|claude|all --apply
 ```
 
-Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--with-memory-optimization` · `--no-launch` · `--help` · `--version`
+Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--no-launch` · `--help` · `--version`
+
+`--with-memory-optimization` is accepted and ignored. The pipeline directory is always installed.
 
 `migrate` upgrades versioned skills/agents/hooks/commands/memories (including `frontendBaseSkillsDir`), patches hook wiring, refreshes target side-cars, and is idempotent.
 

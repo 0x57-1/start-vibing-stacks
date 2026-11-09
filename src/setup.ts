@@ -41,7 +41,7 @@ export function loadStackConfig(stackId: string): StackConfig | null {
 
 /**
  * Copy Memory Optimization Pipeline into `.claude/memory-optimization/`.
- * Used by setup and `migrate --apply --with-memory-optimization`.
+ * Always copied by setup and by `migrate --apply`.
  */
 export function installMemoryOptimization(projectDir: string, overwrite = false): number {
   const src = join(PACKAGE_ROOT, 'stacks', '_shared', 'memory-optimization');
@@ -96,7 +96,7 @@ function copyDirRecursive(
 export async function setupProject(
   projectDir: string,
   config: ProjectConfig,
-  options: { force?: boolean; noClaude?: boolean; withMemoryOptimization?: boolean } = {}
+  options: { force?: boolean; noClaude?: boolean } = {}
 ): Promise<boolean> {
   const spinner = ora('Setting up project...').start();
   const claudeDir = join(projectDir, '.claude');
@@ -336,12 +336,10 @@ export async function setupProject(
       copyDirRecursive(stackMemoriesDir, join(claudeDir, 'memories'), options.force);
     }
 
-    // 12c. Copy Memory Optimization Pipeline (MOP) if flag is present
-    if (options.withMemoryOptimization) {
-      const mopCopied = installMemoryOptimization(projectDir, Boolean(options.force));
-      if (mopCopied > 0) {
-        spinner.text = `Installed Memory Optimization Pipeline (${mopCopied} file(s))`;
-      }
+    // 12c. Memory Optimization Pipeline is core — always installed
+    const mopCopied = installMemoryOptimization(projectDir, Boolean(options.force));
+    if (mopCopied > 0) {
+      spinner.text = `Installed Memory Optimization Pipeline (${mopCopied} file(s))`;
     }
 
     // 13. Write settings.json for Claude Code (complete config)

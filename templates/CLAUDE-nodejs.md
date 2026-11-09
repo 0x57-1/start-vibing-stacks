@@ -332,5 +332,5 @@ Project settings in `.claude/config/`:
 
 ## Setup by start-vibing-stacks
 
-This project was set up with `npx start-vibing-stacks`.
-For updates: `npx start-vibing-stacks --force`
+This project was set up with `npx --yes start-vibing-stacks@latest`.
+For updates: `npx --yes start-vibing-stacks@latest migrate --apply`

@@ -42,6 +42,8 @@ export const SHARED_MEMORY_FILES = [
   '.claude/memories/remove-ai-watermarks.md',
   '.claude/memories/multi-instance-main-only.md',
   '.claude/memories/owned-wordpress-plugin-ops.md',
+  '.claude/memories/project-design-system.md',
+  '.claude/memories/memory-optimization.md',
 ] as const;
 
 /** Web CSS theme — drop from always-on when `$STACK` is `react-native`. */

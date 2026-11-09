@@ -1,6 +1,6 @@
 ---
 name: session-history
-version: 1.2.0
+version: 1.2.1
 description: >
   Find and read agent session history across Claude Code, Kimi Code, and Grok.
   Locate transcripts, list peers via .claude/state/, resume by id/title, and
@@ -37,6 +37,8 @@ $CLAUDE_PROJECT_DIR/.claude/state/sessions/*.json
 ```
 
 Each record may include `sessionId`, `title`, `transcriptPath`, `filesTouched`, `lastSeenAt`, `lastActivity`.
+
+Before editing a file, Read every live `sessions/*.json` in that one folder in the same turn (parallel). Open a transcript only when its `filesTouched` overlaps the files you are about to change. Do not walk Claude, then Kimi, then Grok as three separate hunts for the bus. Product transcripts stay in each CLI's home directory; the shared registry does not.
 
 | `sessionId` shape | Likely product |
 |-------------------|----------------|
