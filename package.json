@@ -1,7 +1,7 @@
 {
   "name": "start-vibing-stacks",
-  "version": "2.109.0",
-  "description": "AI-powered multi-stack dev workflow for Claude Code, Kimi Code, and Grok. Supports PHP, Node.js, Python, React Native / Expo and more.",
+  "version": "2.109.1",
+  "description": "One setup for Claude Code, Kimi, Grok, and Cursor. Agents, skills, hooks, and finish rules for PHP, Node.js, Python, and Expo.",
   "type": "module",
   "bin": {
     "start-vibing-stacks": "dist/index.js",
@@ -58,6 +58,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/f1sc4ll/start-vibing-stacks.git"
+    "url": "git+https://github.com/0x57-1/start-vibing-stacks.git"
+  },
+  "homepage": "https://github.com/0x57-1/start-vibing-stacks#readme",
+  "bugs": {
+    "url": "https://github.com/0x57-1/start-vibing-stacks/issues"
   }
 }

@@ -10,6 +10,10 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-09 · main · v2.109.1
+npm repository, homepage, and issues point at github.com/0x57-1/start-vibing-stacks.
+This publish also ships the product README.
+
 ### 2026-11-09 · main · v2.109.0
 Memory Optimization Pipeline installs on every setup and `migrate --apply`.
 A stale `npx @latest` extract re-runs the registry version. Grok and Kimi
@@ -54,11 +58,6 @@ on Jest. Policy pack 1.2.31. Pin `@playwright/test` 1.64.0.
 Grok policy pack names the owned short-link clocker: platform ASN/IP
 opens the link fallback URL, the paid click opens the campaign URL.
 Same class as launcher ipRisk. Memory ad-review 1.1.
-
-### 2026-09-27 · main · v2.100.0
-Jev judge 1.2: redacts provider tokens, `name: value`, URL passwords, PEM.
-`SVS_JEV_KEY` beats an app's `TYPESAFE_API_KEY`; setup/migrate say when Jev
-is on. Stack-pick only on php/python. Full skill paths. `npm test` exists.
 
 ---
 

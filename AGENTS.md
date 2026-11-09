@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-09 · main · v2.109.1
+npm links point at github.com/0x57-1/start-vibing-stacks. The product README
+ships with this version.
+
 ### 2026-11-09 · main · v2.109.0
 MOP is always installed. Stale npx re-runs the registry version. Grok and
 Kimi index every Claude memory. Peer sessions share `.claude/state/sessions/`.
@@ -65,10 +69,6 @@ Playwright 2.1: walk the local page before deploy. Harness, plugin on
 ### 2026-10-05 · main · v2.101.0
 Policy pack 1.2.30: owned short-link clocker does the URL split.
 Fallback URL for platform ASN, campaign URL for the paid click.
-
-### 2026-09-27 · main · v2.100.0
-Jev judge redacts real token shapes. SVS_JEV_KEY for the agent; setup
-and migrate say when Jev is on. Stack picks only on php/python.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
