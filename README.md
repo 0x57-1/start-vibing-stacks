@@ -1,189 +1,219 @@
 # start-vibing-stacks
 
-CLI that installs a **shared AI engineering setup** into a repo: agents, skills, hooks, memories, and quality gates for **Claude Code**, **Kimi Code**, **Grok** (Build 1.0+), and **Cursor** — parametrized by stack (PHP / Node / Python / React Native).
+**One setup for every coding agent on the repo.**  
+Agents, skills, hooks, and finish rules for Claude Code, Kimi, Grok, and Cursor — fitted to the stack you already ship.
+
+[![npm](https://img.shields.io/npm/v/start-vibing-stacks?style=flat-square&logo=npm&label=npm)](https://www.npmjs.com/package/start-vibing-stacks)
+[![node](https://img.shields.io/node/v/start-vibing-stacks?style=flat-square&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+[![license](https://img.shields.io/npm/l/start-vibing-stacks?style=flat-square)](https://www.npmjs.com/package/start-vibing-stacks)
 
 ```bash
 npx --yes start-vibing-stacks@latest
 ```
 
-Latest: **v2.109.0** — Memory Optimization Pipeline is always installed. A stale `npx @latest` extract re-runs the registry version.
+No global install. Run it in the project root. The first run detects the stack, writes the config, and opens a launcher. The next run resumes and applies anything the package has shipped since.
+
+| | |
+|---|---|
+| **Stacks** | PHP · Node.js · Python · React Native / Expo |
+| **Agents** | Claude Code · Kimi Code · Grok · Cursor |
+| **Keeps** | Your app code, your design system, your env |
 
 ---
 
-## What it does
-
-| Job | How |
-|-----|-----|
-| Scaffold / upgrade project AI config | `npx --yes start-vibing-stacks@latest` then `migrate --apply` |
-| Keep Claude · Kimi · Grok · Cursor in sync | Side-cars: `AGENTS.md`, MCP export, `.kimi-code/`, `.grok/`, `.cursor/` |
-| Enforce finish hygiene | Stop hooks block dirty tree, skipped docs, stale domain index |
-| Same finish chain on all targets | **Commit (scoped) → documenter → domain-updater → docs commit** |
-| Multi-instance safety | `.claude/state/` locks + `/svs-peers`; Claude ≥2.1.224 also has native `SendMessage` |
-| Theme-aware React UI | Preline moon corpus + `react-theme-apply` + `react-theme-parity` + `check-theme-tokens.mjs` |
-
-Wires agents/skills/hooks around *your* codebase. Exception: the **react-native** stack can seed an Expo Router app (tabs / auth-panel / blank) when `app.json` is missing.
-
----
-
-## Quick start
+## Install
 
 ```bash
 cd your-project
 npx --yes start-vibing-stacks@latest
+```
+
+Already configured, and you want the skills and memories from the current package:
+
+```bash
 npx --yes start-vibing-stacks@latest migrate --apply
 ```
 
-`@latest` can keep an old extract under `~/.npm/_npx`. The CLI asks the registry and, when that version is newer, runs `npx --yes start-vibing-stacks@<version>` with `prefer-online`. That is a new cache key. Do not wipe the whole npm cache. Right after publish the tarball can 404 for a few minutes on the CDN; retry the same command. Memory Optimization Pipeline installs on setup and on `migrate --apply`. `--with-memory-optimization` is accepted and ignored.
+That is the whole first flow. Setup copies the pipeline, the memories, and the side-cars. `migrate --apply` refreshes them in place and is safe to run again.
 
 ---
 
-## Targets
+## What you get
 
-| Target | Instructions | Skills / agents | Hooks |
-|--------|--------------|-----------------|-------|
-| **Claude Code** | `CLAUDE.md` + `.claude/memories/` | `.claude/skills`, `.claude/agents` | `.claude/settings.json` |
-| **Kimi** | root `AGENTS.md` | Own `.kimi-code/skills/` (same curated set as Grok + SVS skills). Other stack skills via `extra_skill_dirs`. Agents via `extra_agent_dirs` | `svs-bridge` in local.toml / user config |
-| **Grok** | `AGENTS.md` + curated `.grok/skills/` | Adapted `.grok/agents/` (`compat.claude.skills=false` — no `~/.claude/skills` dump) | `.grok/hooks/svs.json` + bridge; Launch `grok --always-approve --trust` |
-| **Cursor** | `AGENTS.md` + `.cursor/rules/svs-policy.mdc` | (reads project files) | — |
+It sits beside your framework and keeps the four agents on the same rules.
 
-Grok does **not** load the full `~/.claude/skills` tree by default (slow boot). Curated project skills are mirrored into `.grok/skills/` and `.kimi-code/skills/`. Frontend projects get a protected **`design-system`** skill (Claude, Kimi, and Grok copies). `preline-moon` is installed only when the project uses Preline — a **pointer** to `~/.claude/skills/preline-moon` (5.0). Never symlink the global capture into the repo. Memory files stay in `.claude/memories/`; Kimi and Grok read them through `svs-memory-index`.
+| You stop doing | The package does |
+|---|---|
+| Re-explaining the repo to every new session | Project rules in `CLAUDE.md`, `AGENTS.md`, and always-on memories |
+| One-off prompts per tool | The same skills and finish order on Claude, Kimi, Grok, and Cursor |
+| “It’s done” with a dirty tree | A stop check for docs, domain notes, and uncommitted work |
+| `git add -A` across parallel chats | A scoped commit of the files this session actually touched |
+| Drifting UI tokens | A protected `design-system` skill and a theme-token check |
 
----
-
-## Development flow (Claude = Kimi = Grok)
-
-Same order on every target. Claude may auto-`Task` agents; **Kimi must Read+execute agents**; **Grok must spawn native types** (`documenter`, `domain-updater`, `tester`, `research-web`, `security-auditor`, `claude-md-compactor`) with Grok Build tools (`search_tool`/`use_tool`, not Claude `mcp__*`) and a short prompt (skill `svs-finalize` / `svs-dev-process`). Do **not** pass `reasoning_effort` — Grok 1.0.x often omits it from the spawn schema; writer roles pin `low`. Do not tell the child to Read `svs-document` first. Commit with a HEREDOC body; `--push` after the docs commit on main. Fallback: parent Reads the Grok-native agent. Do not paste the agent file into the parent prompt.
-
-```
-1. Branch          feature/ | fix/ | refactor/
-2. Research        research-web (new features)
-3. Implement       stack skills + theme parity (React)
-4. Quality         typecheck / lint / test as configured
-5. Commit code     commit-manager → scope.ts commit  (never git add -A)
-6. Document        documenter → domains + _index.json
-7. Wisdom          domain-updater → CLAUDE.md ## Recent Changes (PREPEND)
-8. Commit docs     scope.ts commit "docs: …" if dirty
-9. Stop            stop-validator must pass (bridge: Grok decision:block / Kimi exit 2)
-```
-
-| Skip | Result |
-|------|--------|
-| documenter / domain-updater after source edits | Stop **blocks**; next session loses memory |
-| `git add -A` | Can bundle peer sessions’ files |
-| Code-only “done” | Forbidden — finalize required |
-
-```bash
-npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"
-```
-
-On Grok Build 1.0+, SessionEnd archives session state; SessionStart **rehydrates** `filesTouched` so `scope.ts` / Stop stay scoped after resume.
-
----
-
-## What gets installed
-
-| Layer | Contents |
-|-------|----------|
-| **Agents** | `research-web` · `documenter` · `domain-updater` · `commit-manager` · `tester` · `security-auditor` · `claude-md-compactor` (+ others) |
-| **Skills** | Universal + stack (PHP/Node/Python/React Native) + frontend (React: Preline, Tailwind, …) |
-| **Hooks** | SessionStart · UserPromptSubmit · Pre/PostToolUse · Stop · SessionEnd (+ plan-gate) |
-| **Commands** | `/feature` · `/fix` · `/research` · `/validate` · `/svs-peers` · `/commit-mine` |
-| **Memories** | Ads/funnel, checkout, security posture, theme parity, cross-session messaging, MCP discovery, … |
-| **CI** | Optional `ci.yml` + `security.yml` when `.github/workflows/` is empty |
-
-### Frontend (React)
-
-| Skill | Role |
-|-------|------|
-| **`design-system`** | Project SoT — decisions already made. Seeded, never overwritten. Claude + Grok + Kimi |
-| **`project-ui-standard`** | Order: read existing guides → seed `design-system` → Preline only if the app uses it |
-| **`preline-moon`** | Pointer to `~/.claude/skills/preline-moon` (5.0). Not in the tarball. Opt-in |
-| **`preline-ui`** | Short summary — install, CSS order, `HSStaticMethods.autoInit()` |
-| **`react-theme-apply`** | CSS-first token apply + `scripts/check-theme-tokens.mjs` (memory `react-theme-parity`) |
-| Others | `tailwind-patterns`, `react-standards`, `shadcn-ui`, … |
-
-Shipped for `react` / `react-api` / `react-inertia`. Setup asks whether the project uses Preline. Existing apps: detect `preline` / `theme-moon`. The 5.0 capture stays in `~/.claude/skills/preline-moon`.
-
-Layout:
+A React Native repo with no `app.json` can be seeded (tabs, auth panel, or blank). Every other stack only writes the AI config.
 
 ```
 your-project/
-├── CLAUDE.md                 # rules + Recent Changes
-├── AGENTS.md                 # Kimi / Grok / Cursor twin
-├── .claude/                  # agents, skills, hooks, memories, state/
-├── .kimi-code/               # local.toml + mcp.json (migrate)
-├── .grok/                    # skills, agents, hooks, config.toml (migrate)
-└── .cursor/rules/            # svs-policy.mdc (migrate)
+├── CLAUDE.md              # rules + Recent Changes
+├── AGENTS.md              # the same rules for Kimi, Grok, and Cursor
+├── .claude/               # agents, skills, hooks, memories, state/
+├── .kimi-code/            # skills, local.toml, mcp.json
+├── .grok/                 # skills, agents, hooks, config.toml
+└── .cursor/rules/         # svs-policy.mdc
 ```
+
+| Layer | What lands |
+|---|---|
+| **Agents** | research, docs, domain notes, commits, tests, security audit, `CLAUDE.md` size |
+| **Skills** | Shared, plus the stack you picked, plus the frontend if the app has one |
+| **Hooks** | Session start and end, prompt submit, tool use, stop |
+| **Commands** | `/feature` · `/fix` · `/research` · `/validate` · `/svs-peers` · `/commit-mine` |
+| **Memories** | The rules Claude loads on every turn. Kimi and Grok get an index that points at the same files |
+| **CI** | `ci.yml` and `security.yml` only when `.github/workflows/` is empty |
 
 ---
 
 ## Stacks
 
-| Stack | Typical frameworks |
-|-------|-------------------|
-| **PHP ≥ 8.3** | Laravel 13 (+ Octane), React API-first or Inertia/Blade |
-| **Node ≥ 22** (24 LTS) | Next.js, Nuxt, Fastify, Express, … |
-| **Python ≥ 3.12** | FastAPI, Django, Flask, scripts |
+| Stack | What setup expects | Typical app |
+|---|---|---|
+| **PHP ≥ 8.3** | Composer ≥ 2, Node ≥ 22 | Laravel 13, Octane, React or Inertia |
+| **Node ≥ 22** | 24 LTS for a new app | Next.js, Nuxt, Fastify, Express |
+| **Python ≥ 3.12** | — | FastAPI, Django, Flask |
+| **React Native** | Node ≥ 22, Expo SDK 57 | Expo Router. Jest first, then one simulator or Expo Go |
 
-Frontend add-ons: `react` · `react-api` (default for new API stacks) · `react-inertia` (legacy; inherits React base skills).
+Frontend add-ons, when the app has a web UI: `react`, `react-api`, `react-inertia`.
 
----
-
-## Multi-instance
-
-Shared bus: `.claude/state/` (gitignored).
-
-- **Locks** — PreToolUse blocks Edit/Write on files an active peer just touched  
-- **SVS notify** — `/svs-peers` → `peers.ts notify` (Claude · Kimi · Grok; next prompt)  
-- **Claude native** (≥2.1.224) — `ListAgents` / `SendMessage` for Claude↔Claude mid-turn (not Kimi/Grok)
-
-Heartbeat: **active &lt; 180s** (block) · idle → 30min (warn) · then archive. See memory `claude-cross-session-messaging`.
+| UI skill | Role |
+|---|---|
+| `design-system` | The look this repo already chose. Seeded once. Never overwritten, never deleted |
+| `project-ui-standard` | Read the guides that exist, then seed `design-system` |
+| `react-theme-apply` | Tokens, then recipes, then components. `scripts/check-theme-tokens.mjs` guards the drift |
+| `preline-moon` | Only if the app uses Preline. A pointer to `~/.claude/skills/preline-moon`. Not shipped inside the tarball |
 
 ---
 
-## CLI
+## One project, four agents
+
+| Agent | Where it reads | Where its skills live |
+|---|---|---|
+| **Claude Code** | `CLAUDE.md` + `.claude/memories/` | `.claude/skills`, `.claude/agents` |
+| **Kimi** | `AGENTS.md` | `.kimi-code/skills/`, plus stack skills from `.claude/skills` |
+| **Grok** | `AGENTS.md` | `.grok/skills/` and `.grok/agents/` only. Project skills, not the global Claude skill dump |
+| **Cursor** | `AGENTS.md` + `.cursor/rules/svs-policy.mdc` | The project files |
+
+Memory files stay in `.claude/memories/`. Grok and Kimi read them through `svs-memory-index`, which lists every memory the stack loads, including the React Native set. PHP, Node, and Python load the shared set.
+
+Live sessions share `.claude/state/sessions/`. Before an edit, the agent reads the live session files in that folder in one pass and opens a transcript only when it touches the same files.
+
+---
+
+## Day to day
+
+**First time.** `npx --yes start-vibing-stacks@latest` in the repo. Answer the stack questions. The Memory Optimization Pipeline is copied into `.claude/memory-optimization/` as part of that run.
+
+**Come back later.** Run the same command. If the project is already configured, the launcher resumes and applies pending updates.
+
+**Pull a newer package into an existing repo.**
 
 ```bash
-npx --yes start-vibing-stacks@latest                 # setup / resume (+ Launch auto-migrate)
-npx --yes start-vibing-stacks@latest migrate         # dry-run drift
-npx --yes start-vibing-stacks@latest migrate --apply # update, then open launcher (TTY)
-npx --yes start-vibing-stacks@latest migrate --apply --no-launch   # CI: update and exit
-npx --yes start-vibing-stacks@latest migrate --apply --force-legacy   # heal unversioned hooks/commands
-npx --yes start-vibing-stacks@latest migrate --target kimi|grok|cursor|claude|all --apply
+npx --yes start-vibing-stacks@latest migrate --apply
 ```
 
-Flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--no-launch` · `--help` · `--version`
+| Command | When |
+|---|---|
+| `migrate` | Show what would change. Writes nothing |
+| `migrate --apply` | Write the updates, then open the launcher |
+| `migrate --apply --no-launch` | Write the updates and exit. Use this in CI |
+| `migrate --apply --force-legacy` | Replace hooks and commands that predate version stamps. Each file gets a `.bak` |
+| `migrate --target kimi\|grok\|cursor\|claude\|all --apply` | Refresh one side-car. Default is all |
 
-`--with-memory-optimization` is accepted and ignored. The pipeline directory is always installed.
+Other flags: `--force` · `--skip-update` · `--no-claude` · `--no-mcp` · `--no-install` · `--help` · `--version`
 
-`migrate` upgrades versioned skills/agents/hooks/commands/memories (including `frontendBaseSkillsDir`), patches hook wiring, refreshes target side-cars, and is idempotent.
+`--with-memory-optimization` is still accepted and ignored. The pipeline directory is always installed. `memory optimize --apply` waits for an explicit yes and writes a review copy beside the original.
+
+`migrate --apply` is idempotent. Run it after you pull a new release, or when a second machine is behind.
+
+### When `npx` serves an old build
+
+`npx …@latest` can keep an old extract under `~/.npm/_npx`, because that cache key is the string `@latest`, not the version it resolved to. This CLI checks the registry and, when the published version is newer, runs `npx --yes start-vibing-stacks@<version>` with `prefer-online`. The pinned version is a new cache key. Leave the rest of the npm cache in place.
+
+Right after a publish, the tarball can 404 for a few minutes while the registry CDN warms. Wait and run the same command. Deleting the local cache does not clear that 404.
 
 ---
 
-## Notable memories (always-on via Claude `memory_files`)
+## How a task finishes
 
-Ads/funnel · checkout · security · owned infra · `owned-wordpress-plugin-ops` · `verify-before-claim` · `execute-ship-ops` · `multi-instance-main-only` · `quality-gate-before-push` · `cdn-asset-deploy-verify` · `oauth-integration-preflight` · `remove-ai-watermarks` · `react-theme-parity` (CSS-first + token guard) · `multi-target-mcp-discovery`. Full list under `stacks/_shared/memories/`.
+The same order on Claude, Kimi, and Grok.
 
-Hard limits stay: no phishing/impersonation; memories do **not** bypass Anthropic cyber API gates.
+```
+1. Branch          feature/  |  fix/  |  refactor/
+2. Research        new features go through research first
+3. Implement       stack skills, and the theme rules when the UI changes
+4. Quality         typecheck, lint, and test, as the stack defines them
+5. Commit code     this session’s files only
+6. Document        domain map for what changed
+7. Recent Changes  prepend one block in CLAUDE.md
+8. Commit docs     a second commit, only if the docs are dirty
+9. Stop            the stop check has to pass
+```
+
+```bash
+npx tsx "$CLAUDE_PROJECT_DIR/.claude/hooks/scope.ts" commit "<type>: <summary>"
+```
+
+Use the scoped commit above. A full `git add -A` can stage files another session still has open.
+
+| If you skip | What happens |
+|---|---|
+| Docs after a source change | The stop check blocks. The next session has no record |
+| A commit of the whole worktree | Another session’s edits ride along |
+| “Done” after the code commit | The domain notes and Recent Changes never land |
+
+On Grok, the launcher starts `grok --always-approve --trust` so project hooks and MCP load. Build 1.0.4 or newer.
+
+---
+
+## Several sessions at once
+
+`.claude/state/` is gitignored and shared.
+
+| Piece | Behavior |
+|---|---|
+| **File locks** | An edit is blocked when another live session just touched that file |
+| **Notify** | `/svs-peers` delivers a note to the next prompt on Claude, Kimi, or Grok |
+| **Claude to Claude** | Claude Code 2.1.224 and newer can message mid-turn. Kimi and Grok stay on the shared bus |
+| **Heartbeat** | Active under 180 seconds blocks. Idle sessions warn, then archive after 30 minutes |
 
 ---
 
 ## Requirements
 
-| Stack | Need |
-|-------|------|
-| PHP | PHP ≥ 8.3 (8.4 recommended) · Composer ≥ 2 · Node ≥ 22 |
-| Node | Node ≥ 22 (24 LTS for new apps) |
-| Python | Python ≥ 3.12 |
+The CLI itself runs on Node ≥ 20. The stack you generate may ask for more.
 
-Grok CLI: Build **1.0.4+** recommended (`grok --version`). SVS Launch runs `grok --always-approve --trust` (folder trust for hooks/MCP/LSP; `--trust` is hidden in `grok --help` but accepted). Subagents are on by default — the **child** Reads `.grok/agents/<name>.md`; keep the parent prompt short.
+| Stack | Tooling |
+|---|---|
+| PHP | PHP ≥ 8.3 (8.4 recommended) · Composer ≥ 2 · Node ≥ 22 |
+| Node | Node ≥ 22, 24 LTS for a new app |
+| Python | Python ≥ 3.12 |
+| React Native | Node ≥ 22 · Expo SDK 57 · Xcode or an Android emulator only if you ask to boot one |
 
 ---
 
-## Releases
+## Boundaries
 
-Bump `package.json` on `main` → `auto-release.yml` tags, GitHub Release, `npm publish`. Opt out with `[skip release]` in the commit body.
+The installed rules refuse impersonation and scans of systems you do not own. They do not turn off a model provider’s own checks.
+
+---
+
+## For maintainers
+
+A version bump in `package.json` on `main` tags a GitHub Release and publishes to npm. Put `[skip release]` in the commit body to push without publishing.
+
+```bash
+npm test
+npm run build
+```
 
 ---
 
