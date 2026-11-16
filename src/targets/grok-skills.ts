@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.53.0';
+export const GROK_SKILLS_VERSION = '1.54.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -80,6 +80,8 @@ export const GROK_CURATED_SKILL_NAMES = [
   'expo-modules',
   'expo-testing',
   'expo-device',
+  'expo-official',
+  'swift-macos',
   'react-native-security',
   'react-native-secure-coding',
   'react-native-http',
@@ -452,6 +454,7 @@ export function memoryIndexSkillBody(version: string = GROK_SKILLS_VERSION): str
     '| `react-theme-parity.md` | Web React UI only — omitted on `react-native` |',
     '| `react-native-theme.md` | Expo StyleSheet / design-system (RN stack only) |',
     '| `expo-device-loop.md` | Boot one simulator or Expo Go after Jest (RN stack only) |',
+    '| `app-runtimes.md` | Official Expo skills plus Swift on the Mac (RN stack only) |',
     '| `claude-cross-session-messaging.md` | Native Claude SendMessage vs SVS /svs-peers bus |',
     '| `competitive-intelligence-research.md` | Public market and funnel research (passive OSINT) |',
     '| `web-content-memory-ingestion.md` | Copy a public page into project memory |',
@@ -465,7 +468,7 @@ export function memoryIndexSkillBody(version: string = GROK_SKILLS_VERSION): str
     '| `mobile-secure-coding.md` | SecureStore; no tokens in EXPO_PUBLIC (react-native stack only) |',
     '',
     'PHP, Node, and Python load only the shared rows. React Native also loads',
-    'the five rows marked stack-only, and drops `react-theme-parity.md`.',
+    'the six rows marked stack-only, and drops `react-theme-parity.md`.',
     '',
     'Live sessions share one folder: `<project>/.claude/state/sessions/`.',
     'Read every live `*.json` there in the same turn before editing a file',

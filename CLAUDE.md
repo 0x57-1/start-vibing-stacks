@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-16 · main · v2.110.0
+React Native ships the official Expo skill snapshot (`expo-official`,
+MIT, expo/skills) and `swift-macos` for a native Mac or Simulator run.
+Jest, device boot, and store submit stay on the existing skills.
+
 ### 2026-11-16 · main · v2.109.2
 Publish check after the npm token was rotated in GitHub Actions.
 
@@ -51,11 +56,6 @@ database still runs in the pod. Tester 1.4. Grok skills 1.51.
 CVE floors: React 19.0.6 / 19.1.7 / 19.2.6, Next 15.5.27 / 16.3.8.
 Laravel 13 (12.x stays ≥ 12.69.0). Node minimum 22, 24 LTS for new apps.
 Expo seed SDK 57. Tailwind 4.3.3 and Inertia 3.x have no advisory.
-
-### 2026-10-13 · main · v2.102.0
-Playwright skill 2.1: local harness, plugin walk on 127.0.0.1, CLI for
-one picture, measure script for contrast. PHP, Node, Python. Expo stays
-on Jest. Policy pack 1.2.31. Pin `@playwright/test` 1.64.0.
 
 ---
 

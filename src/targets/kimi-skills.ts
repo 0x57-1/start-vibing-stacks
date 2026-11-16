@@ -22,7 +22,7 @@ import {
 import { OPTIONAL_PRELINE_SKILLS } from './skill-corpus.js';
 import { wantsPrelineMoon } from './project-ui.js';
 
-export const KIMI_SKILLS_VERSION = '1.1.0';
+export const KIMI_SKILLS_VERSION = '1.2.0';
 export const KIMI_SKILLS_DIR_REL = '.kimi-code/skills';
 export const KIMI_SKILLS_MANIFEST_REL = '.kimi-code/skills/.svs-managed.json';
 

@@ -80,7 +80,7 @@ your-project/
 | **PHP ≥ 8.3** | Composer ≥ 2, Node ≥ 22 | Laravel 13, Octane, React or Inertia |
 | **Node ≥ 22** | 24 LTS for a new app | Next.js, Nuxt, Fastify, Express |
 | **Python ≥ 3.12** | — | FastAPI, Django, Flask |
-| **React Native** | Node ≥ 22, Expo SDK 57 | Expo Router. Jest first, then one simulator or Expo Go |
+| **React Native** | Node ≥ 22, Expo SDK 57 | Expo Router. Official Expo skills included. Jest first, then one simulator or Expo Go. Native Swift on the Mac is `swift-macos` |
 
 Frontend add-ons, when the app has a web UI: `react`, `react-api`, `react-inertia`.
 

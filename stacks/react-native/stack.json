@@ -72,6 +72,7 @@
     "expo-modules",
     "expo-testing",
     "expo-device",
+    "expo-official",
     "react-native-security",
     "react-native-secure-coding",
     "react-native-http",

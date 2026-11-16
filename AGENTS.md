@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-16 · main · v2.110.0
+Official Expo skills ship inside `expo-official`. Native Swift on the
+Mac is `swift-macos`. Jest, one simulator, and no store submit stay.
+
 ### 2026-11-16 · main · v2.109.2
 Publish check after the npm token rotation.
 
@@ -64,10 +68,6 @@ only when needed. An app with no database still runs in the pod.
 ### 2026-10-13 · main · v2.103.0
 CVE floors raised for React and Next. New apps: Laravel 13, Node 24 LTS,
 Expo SDK 57. Tailwind and Inertia have no GitHub advisory.
-
-### 2026-10-13 · main · v2.102.0
-Playwright 2.1: walk the local page before deploy. Harness, plugin on
-127.0.0.1, CLI screenshot, contrast by computed style. Not Expo native.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

@@ -1,6 +1,6 @@
 ---
 name: expo-device
-version: 1.0.0
+version: 1.1.0
 description: >-
   Boot an Expo app on the iOS Simulator, an Android emulator, or Expo Go,
   and run the device checks Jest cannot see. Use on a Mac when a React
@@ -105,5 +105,7 @@ If the user asked for that flow and `maestro` is missing, install it from the of
 ## See Also
 
 - `expo-testing` — Jest + RNTL, always first
+- `expo-official` — Expo's own skills, including SwiftUI via `@expo/ui`
 - `eas-release` — the binary, after the device boot works
 - `expo-modules` — when Expo Go is no longer enough
+- `swift-macos` — a native Swift app with no Expo
