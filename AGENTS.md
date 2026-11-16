@@ -30,6 +30,9 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-16 · main · v2.109.2
+Publish check after the npm token rotation.
+
 ### 2026-11-09 · main · v2.109.1
 npm links point at github.com/0x57-1/start-vibing-stacks. The product README
 ships with this version.
@@ -65,10 +68,6 @@ Expo SDK 57. Tailwind and Inertia have no GitHub advisory.
 ### 2026-10-13 · main · v2.102.0
 Playwright 2.1: walk the local page before deploy. Harness, plugin on
 127.0.0.1, CLI screenshot, contrast by computed style. Not Expo native.
-
-### 2026-10-05 · main · v2.101.0
-Policy pack 1.2.30: owned short-link clocker does the URL split.
-Fallback URL for platform ASN, campaign URL for the paid click.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

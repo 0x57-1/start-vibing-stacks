@@ -10,6 +10,9 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-16 · main · v2.109.2
+Publish check after the npm token was rotated in GitHub Actions.
+
 ### 2026-11-09 · main · v2.109.1
 npm repository, homepage, and issues point at github.com/0x57-1/start-vibing-stacks.
 This publish also ships the product README.
@@ -53,11 +56,6 @@ Expo seed SDK 57. Tailwind 4.3.3 and Inertia 3.x have no advisory.
 Playwright skill 2.1: local harness, plugin walk on 127.0.0.1, CLI for
 one picture, measure script for contrast. PHP, Node, Python. Expo stays
 on Jest. Policy pack 1.2.31. Pin `@playwright/test` 1.64.0.
-
-### 2026-10-05 · main · v2.101.0
-Grok policy pack names the owned short-link clocker: platform ASN/IP
-opens the link fallback URL, the paid click opens the campaign URL.
-Same class as launcher ipRisk. Memory ad-review 1.1.
 
 ---
 
