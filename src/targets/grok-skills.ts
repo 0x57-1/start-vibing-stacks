@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.56.0';
+export const GROK_SKILLS_VERSION = '1.57.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -69,6 +69,7 @@ export const GROK_CURATED_SKILL_NAMES = [
   'project-ui-standard',
   'playwright-automation',
   'podman-patterns',
+  'supermemory-local',
   'ui-ux-audit',
   // Project-owned (not in the npm tree). Allowlist keeps prune from deleting it.
   'design-system',
@@ -466,6 +467,7 @@ export function memoryIndexSkillBody(version: string = GROK_SKILLS_VERSION): str
     '| `memory-optimization.md` | Pipeline dir is always installed. optimize needs a yes |',
     '| `model-split.md` | Opus 5.5 for code. Sonnet 5.5 for a lookup, docs, grep, or the suite |',
     '| `session-speed.md` | Short always-on memory. Bulky reads stay out of the parent |',
+    '| `supermemory-local.md` | Optional local server. Off means the repo files stay the memory |',
     '| `react-native-authorization.md` | Owned Expo app rules (react-native stack only) |',
     '| `expo-router-modules.md` | Expo Router and native modules (react-native stack only) |',
     '| `mobile-secure-coding.md` | SecureStore; no tokens in EXPO_PUBLIC (react-native stack only) |',

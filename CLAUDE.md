@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-20 · main · v2.113.0
+Supermemory Local is optional. One Podman server on the machine, one
+namespace per repo. Health down: Claude, Grok, and Kimi keep the files.
+Skill `supermemory-local` installs it on Mac or Windows when asked.
+
 ### 2026-11-20 · main · v2.112.0
 Grok does a lookup on the parent. A subagent is only for independent work
 or one `explore` when the read would fill the parent. Claude keeps
@@ -52,10 +57,6 @@ Migrate rewrites the five rules setup used to emit.
 Kimi gets its own skill tree, same set as Grok: curated copies plus
 svs-policy, svs-dev-process, svs-document, and the memory index under
 `.kimi-code/skills/`. Memory files stay in `.claude/memories/`.
-
-### 2026-10-28 · main · v2.105.0
-Kimi gets the same memory index as Grok: `.kimi-code/skills/svs-memory-index`
-points at `.claude/memories/`. The files themselves stay in one place.
 
 ---
 

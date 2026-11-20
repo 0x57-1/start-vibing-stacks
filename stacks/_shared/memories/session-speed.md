@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: Session speed
@@ -19,3 +19,4 @@ version: 1.0.0
 - Do not re-read a file already in the turn.
 - Do not switch model or effort mid-session. The prompt cache drops.
 - Unrelated next task: the user runs `/clear`. The same task, earlier turns finished: `/compact` with a focus. Do not run either unless asked.
+- A local Supermemory on `127.0.0.1:6767` is optional (`supermemory-local`). Health down means these files stay the memory.

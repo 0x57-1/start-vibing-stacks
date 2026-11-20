@@ -46,6 +46,7 @@ export const SHARED_MEMORY_FILES = [
   '.claude/memories/memory-optimization.md',
   '.claude/memories/model-split.md',
   '.claude/memories/session-speed.md',
+  '.claude/memories/supermemory-local.md',
 ] as const;
 
 /** Web CSS theme — drop from always-on when `$STACK` is `react-native`. */
