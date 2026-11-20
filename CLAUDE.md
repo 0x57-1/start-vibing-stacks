@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-20 · main · v2.112.0
+Grok does a lookup on the parent. A subagent is only for independent work
+or one `explore` when the read would fill the parent. Claude keeps
+`CLAUDE.md` and auto memory short (`session-speed`).
+
 ### 2026-11-20 · main · v2.111.0
 Sessions open on Opus 5.5 with the Fable 5.2 advisor and ultracode on.
 Lookups, docs, grep, and the test suite go to Sonnet 5.5. Memory
@@ -51,11 +56,6 @@ svs-policy, svs-dev-process, svs-document, and the memory index under
 ### 2026-10-28 · main · v2.105.0
 Kimi gets the same memory index as Grok: `.kimi-code/skills/svs-memory-index`
 points at `.claude/memories/`. The files themselves stay in one place.
-
-### 2026-10-13 · main · v2.104.0
-Podman skill 1.1: on a Mac, install the machine and run the local test
-pod. Database container only when the test needs one. App with no
-database still runs in the pod. Tester 1.4. Grok skills 1.51.
 
 ---
 

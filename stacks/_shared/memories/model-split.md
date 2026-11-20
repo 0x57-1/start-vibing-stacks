@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 ---
 
 # Memory: Model split
@@ -22,3 +22,4 @@ If it edits code, use Opus. If it only reads, runs, and reports, use Sonnet.
 - Do not start a workflow for a grep, a doc read, or a single-page check.
 - Synthesis of what the Sonnet agents found stays on the Opus parent.
 - A workflow already running keeps its models until the next phase boundary.
+- A read that would fill this session goes to one Sonnet agent. The parent keeps the summary and does not re-read the dump. Do not change model or effort in the middle of the session: that drops the prompt cache.

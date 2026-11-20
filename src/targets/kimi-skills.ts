@@ -22,7 +22,7 @@ import {
 import { OPTIONAL_PRELINE_SKILLS } from './skill-corpus.js';
 import { wantsPrelineMoon } from './project-ui.js';
 
-export const KIMI_SKILLS_VERSION = '1.3.0';
+export const KIMI_SKILLS_VERSION = '1.4.0';
 export const KIMI_SKILLS_DIR_REL = '.kimi-code/skills';
 export const KIMI_SKILLS_MANIFEST_REL = '.kimi-code/skills/.svs-managed.json';
 
@@ -106,7 +106,8 @@ function devProcessSkillBody(): string {
     '',
     '## Flow (do not reorder / skip)',
     '',
-    '1. **Research** (new features / unfamiliar tech) → agent `research-web`',
+    '1. **Research** — a short lookup is this turn. Read `research-web` only',
+    '   for a wide search.',
     '2. **Branch** — `feature/` | `fix/` | `refactor/` (avoid committing straight to `main`)',
     '3. **Implement** — keep edits scoped; hooks may run plan-gate + multi-instance locks',
     '4. **Security-sensitive** → `security-auditor` + `security-baseline` (named CVEs: `cve-watchlist.md` on lockfile hit)',

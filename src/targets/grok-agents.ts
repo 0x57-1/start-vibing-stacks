@@ -5,6 +5,7 @@
  * native `.grok/agents/` is the documented project location and shows up in
  * `/config-agents`. Copy (not symlink) so Grok works even if compat.agents is off.
  *
+ * v1.20.0: a lookup stays on the parent. Spawn only for independent work.
  * v1.19.0: tester boots one Expo simulator after Jest when a screen changed.
  * v1.18.0: tester starts a local Podman pod on macOS when a test needs a
  * database or the container image (podman-patterns 1.1).
@@ -62,7 +63,7 @@ const NATIVE_AGENTS_DIR = join(
   'grok-native-agents'
 );
 
-export const GROK_AGENTS_VERSION = '1.19.0';
+export const GROK_AGENTS_VERSION = '1.20.0';
 export const GROK_AGENTS_REL = '.grok/agents';
 export const GROK_PERSONAS_REL = '.grok/personas';
 export const GROK_ROLES_REL = '.grok/roles';
@@ -87,6 +88,19 @@ export const GROK_BANNER = '';
  */
 export const GROK_SPAWN_RECIPE_MD = [
   '## Grok spawn (type + role pin — parent stays thin)',
+  '',
+  'A subagent is its own session and is slower than the parent doing the step.',
+  'Skip it when the parent can do the work, the user is in the loop, or the',
+  'setup costs more than the parallelism (Grok Build subagents guide).',
+  '',
+  '- Lookup, grep, doc read, one-file edit: parent. No spawn.',
+  '- A read that would fill the parent: one `explore` (read + shell, no edits).',
+  '  Not a fan-out. Depth is 1. A child cannot spawn.',
+  '- Spawn for independent work: tests while the parent edits, or a review of a',
+  '  finished diff. `isolation: "none"` unless the child must edit beside the parent.',
+  '- Do **not** pass `model` on spawn. Inheritance on rejects a named model.',
+  '  Inheritance off uses the parent. A cheaper type is `[subagents.models]` in',
+  '  config. Do not invent a model id.',
   '',
   'Grok 1.0.x: `spawn_subagent` often has **no** `reasoning_effort` in the tool schema.',
   'Passing that key fails the schema and the child inherits the parent (`xhigh`).',

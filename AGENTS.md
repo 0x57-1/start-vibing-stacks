@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.32
+svs-version: 1.2.33
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-11-20 · main · v2.112.0
+Grok lookups stay on the parent. Spawn is for parallel work or one
+explore. Claude sessions keep CLAUDE.md and auto memory short.
 
 ### 2026-11-20 · main · v2.111.0
 Opus 5.5 opens the session, Fable 5.2 advises, ultracode stays on.
@@ -64,10 +68,6 @@ svs-document, and the memory index under `.kimi-code/skills/`.
 ### 2026-10-28 · main · v2.105.0
 Kimi memory index matches Grok: pointers in `.kimi-code/skills/svs-memory-index`,
 bodies still in `.claude/memories/`.
-
-### 2026-10-13 · main · v2.104.0
-Podman on the Mac: machine plus a local test pod. Database container
-only when needed. An app with no database still runs in the pod.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -112,6 +112,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 - Grok finalize: one `documenter` spawn (`why=` `slug=` `gotcha=` if any). Child stamps `codebase-knowledge` domains, prepends Recent Changes, writes one Attention crumb (P&S only if `gotcha=`). Do **not** spawn `domain-updater` after unless a leftover gotcha remains. `capability_mode: all`, `background: true`, `isolation: none`. Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; never “Read first: svs-document”. HEREDOC commit body. Do **not** `--push` C1 before documenter; `--push` after C2 on main. Parent-inline if ≤5 files. Do not restamp after docs:. Do not use `explore`/`plan` as documenter.
 - Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.
+- Grok spawn is its own session and is slow. The parent does a lookup, a grep, a doc read, and a one-file edit. Spawn only for independent work (tests while editing, a review of a finished diff) or one `explore` when the read would fill the parent. Depth is 1. Do not pass `model` on spawn. A cheaper type is `[subagents.models]` in config, not a hardcoded id. Writer roles stay `low`.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)
 
