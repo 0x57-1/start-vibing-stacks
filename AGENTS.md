@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.35
+svs-version: 1.2.36
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-11-20 · main · v2.115.0
+Supermemory Local is `podman run`. No Docker, no docker-compose, no
+`podman compose`. The container already on port 6767 is the server.
 
 ### 2026-11-20 · main · v2.114.0
 Empty local namespace: the parent writes one project summary
@@ -64,10 +68,6 @@ Kimi index every Claude memory. Peer sessions share `.claude/state/sessions/`.
 ### 2026-11-06 · main · v2.108.0
 Expo device loop: Jest first, then one simulator or Expo Go. Skill
 `expo-device`. Android Studio and Xcode are not installed unless asked.
-
-### 2026-11-06 · main · v2.107.0
-File-tool allow rules drop `(*)`. Claude Code 2.1.319 warns: `Read(*)` is
-working-directory-only. The bare name allows every path. Migrate rewrites them.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
@@ -112,7 +112,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Find and migrate MCP server configs across Claude → Kimi / Grok / Cursor (see below)
 - Grok finalize: one `documenter` spawn (`why=` `slug=` `gotcha=` if any). Child stamps `codebase-knowledge` domains, prepends Recent Changes, writes one Attention crumb (P&S only if `gotcha=`). Do **not** spawn `domain-updater` after unless a leftover gotcha remains. `capability_mode: all`, `background: true`, `isolation: none`. Do **not** pass `reasoning_effort`. Writer roles pin `low`. Short prompt; never “Read first: svs-document”. HEREDOC commit body. Do **not** `--push` C1 before documenter; `--push` after C2 on main. Parent-inline if ≤5 files. Do not restamp after docs:. Do not use `explore`/`plan` as documenter.
 - Grok natives (Grok Build tools only — `search_tool`/`use_tool`, no Claude `mcp__*` / `skills:`): also `tester`, `research-web`, `security-auditor`, `claude-md-compactor`. `model: inherit` (parent may be grok-code). Hook rewrites `general-purpose` → type. Agent = protocol; skill = corpus. **Never Read a skill first.** Named CVEs: `security-baseline/cve-watchlist.md` on lockfile hit only. UPS on Grok is a one-liner (no Claude TASK WORKFLOW). Dirty: answer OK; claim-done still needs finalize. security-auditor VETO is CRIT/HIGH only.
-- Supermemory Local is optional and shared across the user's projects. One Podman server on `127.0.0.1:6767`, namespace = repo name. Health down, or the user did not ask to install: Claude, Grok, and Kimi keep the repo files. Install steps are skill `supermemory-local`. When the server is up and this namespace has no `svs-project-seed`, the parent writes one summary of the repo's decisions, architecture, and gotchas, then continues. No secrets. Do not spawn an agent to reach it. The cloud MCP is a different account.
+- Supermemory Local is optional and shared across the user's projects. One Podman server on `127.0.0.1:6767`, namespace = repo name. Health down, or the user did not ask to install: Claude, Grok, and Kimi keep the repo files. Install steps are skill `supermemory-local`: `podman run`, not Docker, `docker-compose`, or `podman compose`. A container already on `127.0.0.1:6767` is the one server. When the server is up and this namespace has no `svs-project-seed`, the parent writes one summary of the repo's decisions, architecture, and gotchas, then continues. No secrets. Do not spawn an agent to reach it. The cloud MCP is a different account.
 - Grok spawn is its own session and is slow. The parent does a lookup, a grep, a doc read, and a one-file edit. Spawn only for independent work (tests while editing, a review of a finished diff) or one `explore` when the read would fill the parent. Depth is 1. Do not pass `model` on spawn. A cheaper type is `[subagents.models]` in config, not a hardcoded id. Writer roles stay `low`.
 
 ## MCP discovery & migration (Kimi / Grok / Cursor)

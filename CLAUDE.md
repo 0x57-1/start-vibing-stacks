@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-20 · main · v2.115.0
+Supermemory Local starts with `podman run`. Docker, docker-compose, and
+`podman compose` are out. A container already on `127.0.0.1:6767` is the
+one server.
+
 ### 2026-11-20 · main · v2.114.0
 An empty local namespace gets one project summary from Claude, Grok, or
 Kimi: decisions, architecture, and gotchas already in the repo. The
@@ -52,11 +57,6 @@ Live sessions stay in `.claude/state/sessions/` and are read in one pass.
 React Native can boot a device after Jest. Skill `expo-device` and memory
 `expo-device-loop`: one iOS Simulator when Xcode is there, Android only if
 an AVD exists, Expo Go for a phone. No store submit unless asked.
-
-### 2026-11-06 · main · v2.107.0
-File-tool allow rules are bare names (`Read`, `Write`, `Edit`, `Grep`, `Glob`).
-Claude Code 2.1.319 warns on `Read(*)`: that form is working-directory-only.
-Migrate rewrites the five rules setup used to emit.
 
 ---
 

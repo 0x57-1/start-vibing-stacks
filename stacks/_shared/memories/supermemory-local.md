@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: Local Supermemory
@@ -36,6 +36,8 @@ Namespace is the git repo name, one namespace per project, one server for all of
 Leave in the repo: code facts, authorization rules, secrets, tokens, and `.env`. The local server is not the system of record.
 
 Grok and Kimi call it from the parent turn. Do not spawn an agent to reach it.
+
+The container is `podman run`. Do not use Docker, `docker-compose`, or `podman compose`. A container already on `127.0.0.1:6767` is the server. Start it. Do not create a second one.
 
 ## See
 

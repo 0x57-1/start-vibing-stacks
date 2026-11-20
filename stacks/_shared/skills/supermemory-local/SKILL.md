@@ -1,6 +1,6 @@
 ---
 name: supermemory-local
-version: 1.1.0
+version: 1.2.0
 description: >-
   Install Supermemory Local in Podman on a Mac or Windows, then use that
   one server as optional memory across the user's projects. Use when the
@@ -13,17 +13,17 @@ description: >-
 
 One server in the user home, shared by every project. Each repo is its own namespace. The repo files stay the default when this server is down.
 
-Documented compose release: `server-v0.0.9`. If that download 404s, read https://supermemory.ai/docs/self-hosting/docker and use the compose file that page names. Do not invent a newer tag.
+Documented image tag: `0.0.9`, from the `server-v0.0.9` compose file. If that download 404s, read https://supermemory.ai/docs/self-hosting/docker and use the tag that page names. Do not invent a newer tag. The compose file is a reference. Do not execute it.
 
 ## Do not install until they ask
 
 A failed health check is not a request. Tell them the current files still work, and that this skill can put a server on `127.0.0.1:6767` when they want cross-project memory.
 
-When they ask, say what will happen: a Podman machine if needed, a compose file and a private `.env` in `~/supermemory`, one LLM provider key they type, and a local API key that stays out of the repo and out of chat.
+When they ask, say what will happen: a Podman machine if needed, one container started with `podman run`, a private `.env` in `~/supermemory`, one LLM provider key they type, and a local API key that stays out of the repo and out of chat.
 
 ## Podman
 
-Mac or Windows, the containers run in a Linux machine. Skill `podman-patterns` owns the machine. Do not install Podman unless they asked for this server.
+Mac or Windows, the containers run in a Linux machine. Skill `podman-patterns` owns the machine. Do not install Podman unless they asked for this server. The compose-provider steps in that skill do not apply here.
 
 Mac, when `podman` is missing and Homebrew is the package manager:
 
@@ -39,44 +39,45 @@ podman machine start
 podman info
 ```
 
-`podman compose` is the wrapper. On a Mac, a missing provider is `brew install docker-compose` (Compose v2, not Docker Desktop). On Windows, install Compose v2 the way that Podman page documents. Do not install Docker Desktop for this.
+This server is a Podman container. Do not run `docker`, `docker compose`, `docker-compose`, or `podman compose`. On a Mac, `podman compose` calls `docker-compose`, and that program reads `~/.docker/config.json`. Do not install Docker Desktop. Do not install `docker-compose`. Do not edit `~/.docker/config.json`. The name `docker.io/supermemory/supermemory` is the registry. Pull it with Podman.
 
 ## Server
 
-Empty directory in the home folder, not inside a git repo. Skip the download when `compose.yaml` is already there.
+One container on `127.0.0.1:6767`. Look before creating one.
 
 ```bash
-mkdir -p "$HOME/supermemory"
-cd "$HOME/supermemory"
-curl -fL "https://github.com/supermemoryai/supermemory/releases/download/server-v0.0.9/compose.yaml" -o compose.yaml
+podman ps -a --format '{{.Names}} {{.Image}} {{.Status}} {{.Ports}}'
 ```
 
-`.env` beside it. One provider key, theirs, typed into the file. `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`, or `GROQ_API_KEY`. Plus:
+A container whose image is `supermemory/supermemory`, or that already publishes `127.0.0.1:6767`, is the server. If it is stopped, `podman start` that name. Do not create a second container. Do not move it to another port. Do not delete its volume.
 
-```dotenv
-SUPERMEMORY_VERSION=0.0.9
-```
+When nothing is there, the `.env` lives in the home folder, not inside a git repo. One provider key, theirs, typed into the file: `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`, or `GEMINI_API_KEY`, or `GROQ_API_KEY`. Do not put `SUPERMEMORY_VERSION` in that file. `podman run --env-file` would pass it into the container.
 
 `chmod 600 .env`. Do not commit it. Do not print the provider key. Do not copy it into the project.
 
 ```bash
-unset SUPERMEMORY_VERSION
-podman compose pull
-podman compose up -d --wait --wait-timeout 180
+mkdir -p "$HOME/supermemory"
+podman pull docker.io/supermemory/supermemory:0.0.9
+podman run -d --name supermemory --init --stop-timeout 40 \
+  --restart unless-stopped \
+  -p 127.0.0.1:6767:6767 \
+  -v supermemory-data:/data \
+  --env-file "$HOME/supermemory/.env" \
+  docker.io/supermemory/supermemory:0.0.9
 curl --fail http://127.0.0.1:6767/v3/health
 ```
 
-The image binds `6767` to `127.0.0.1`. The first start downloads a local embedding model and needs network.
+The first start downloads a local embedding model and needs network.
 
-The local API key is a second secret, created inside the volume:
+The local API key is a second secret, created inside the volume. Use the container name that is actually running:
 
 ```bash
-podman compose exec -T supermemory cat /data/api-key
+podman exec supermemory cat /data/api-key
 ```
 
 The user puts that value in their own environment as `SUPERMEMORY_API_KEY`. Do not write it into a project file. Do not paste it into the chat. Repeat the command only so they can copy it locally.
 
-`podman compose down -v` deletes the store. Do not run it. `podman machine stop` stops every container on the machine. Use it only when they ask to shut the machine down.
+`podman volume rm supermemory-data` deletes the store. Do not run it. `podman machine stop` stops every container on the machine. Use it only when they ask to shut the machine down.
 
 ## Use it
 
