@@ -1,6 +1,6 @@
 ---
 name: supermemory-local
-version: 1.0.0
+version: 1.1.0
 description: >-
   Install Supermemory Local in Podman on a Mac or Windows, then use that
   one server as optional memory across the user's projects. Use when the
@@ -94,7 +94,46 @@ Search that mixes derived facts and source chunks uses `searchMode: "hybrid"`. A
 
 A changed fact: forget the old one by the memories API in those docs, then write the new one. Do not leave both as current.
 
-Code, rules, and secrets stay in the repo. This server is for a fact that changed and must be visible from another project on this machine.
+Code, rules, and secrets stay in the repo. This server is for a fact that changed and must be visible from another project on this machine. The one exception is the seed below: one project summary when that namespace is empty.
+
+## Seed an existing project
+
+Once per namespace. On the first turn of a session, when health is ok and `SUPERMEMORY_API_KEY` is set, the parent writes it and then continues the user's task. Do not ask. Do not spawn. Do not install anything in this step. Claude, Grok, and Kimi each do this themselves.
+
+```bash
+NS=$(basename "$(git rev-parse --show-toplevel)")
+curl --fail --max-time 5 \
+  -H "Authorization: Bearer ${SUPERMEMORY_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"svs-project-seed","searchMode":"hybrid"}' \
+  "http://127.0.0.1:6767/ns/${NS}/search"
+```
+
+A hit whose text contains `svs-project-seed` means this repo is already stored. Stop. Do not write again.
+
+No hit: summarize what the repo already wrote about itself.
+
+- `CLAUDE.md`: overview, stack, architecture, critical rules, NRY, recent changes.
+- Domain files under `.claude/skills/codebase-knowledge/domains/`: Attention Points and Last Update only.
+- `MEMORY.md`: the index lines, not every topic file.
+
+Do not walk the source tree. Leave out `.env`, tokens, API keys, and the authorization memories. Those stay in the repo and still load every turn.
+
+One document. `taskType` is `superrag`, so this is project knowledge and not a personal fact. The first line of `content` is `svs-project-seed` plus the namespace, then the summary in plain sentences.
+
+```bash
+curl --fail --max-time 20 \
+  -H "Authorization: Bearer ${SUPERMEMORY_API_KEY}" \
+  -H "Content-Type: application/json" \
+  --data-binary @seed.json \
+  "http://127.0.0.1:6767/ns/${NS}/document"
+```
+
+`seed.json` is `{"content":"...","taskType":"superrag"}`. Write it outside the repo, delete it after the call, and do not commit it. Do not print `SUPERMEMORY_API_KEY`.
+
+A 4xx on that write: re-read https://supermemory.ai/docs/llms.txt once, match the documented document fields, and retry once. Then continue the user's task either way.
+
+A later change still follows forget-then-write. Do not post this seed again.
 
 ## See also
 

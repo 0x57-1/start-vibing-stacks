@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-20 · main · v2.114.0
+An empty local namespace gets one project summary from Claude, Grok, or
+Kimi: decisions, architecture, and gotchas already in the repo. The
+marker is `svs-project-seed`. Secrets stay in the files.
+
 ### 2026-11-20 · main · v2.113.0
 Supermemory Local is optional. One Podman server on the machine, one
 namespace per repo. Health down: Claude, Grok, and Kimi keep the files.
@@ -52,11 +57,6 @@ an AVD exists, Expo Go for a phone. No store submit unless asked.
 File-tool allow rules are bare names (`Read`, `Write`, `Edit`, `Grep`, `Glob`).
 Claude Code 2.1.319 warns on `Read(*)`: that form is working-directory-only.
 Migrate rewrites the five rules setup used to emit.
-
-### 2026-10-28 · main · v2.106.0
-Kimi gets its own skill tree, same set as Grok: curated copies plus
-svs-policy, svs-dev-process, svs-document, and the memory index under
-`.kimi-code/skills/`. Memory files stay in `.claude/memories/`.
 
 ---
 
