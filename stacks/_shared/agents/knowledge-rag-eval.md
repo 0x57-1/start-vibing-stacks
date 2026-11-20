@@ -1,13 +1,13 @@
 ---
 name: knowledge-rag-eval
-version: 1.0.0
+version: 1.0.1
 description: >
   AUTOMATICALLY invoke when evaluating Obsidian vaults, wikilinks, embeddings,
   local RAG MCPs, or “second brain” patterns for coding agents in this package.
   Triggers: Obsidian, RAG, vector store, embeddings, Smart Connections, MOC,
   atomic notes, ADR, decision records, knowledge graph for agents.
   Verdict-oriented — prefer grep + domain markdown over shipping a vector index.
-model: opus
+model: claude-sonnet-5-5
 tools: Read, Grep, Glob, Bash, WebSearch, WebFetch
 skills: codebase-knowledge, docs-tracker, research-cache, session-history
 ---

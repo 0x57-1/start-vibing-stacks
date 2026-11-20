@@ -1,8 +1,8 @@
 ---
 name: tester
-version: 1.5.0
+version: 1.5.1
 description: "AUTOMATICALLY invoke AFTER implementing any function or utility. Creates tests using the stack-appropriate framework (PHPUnit / Vitest / pytest / Jest+RNTL). On a web UI change, walks the local page with Playwright before calling it done. On a Mac, starts a Podman pod when the test needs a database or the container image."
-model: sonnet
+model: claude-opus-5-5
 tools: Read, Write, Edit, Bash, Grep, Glob
 skills: test-coverage, playwright-automation
 ---

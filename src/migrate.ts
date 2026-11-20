@@ -14,10 +14,13 @@
  *    they are copied into `.claude/memories/` and auto-added to `settings.json#context.memory_files`.
  *  - .claude/settings.json — patched idempotently to ensure the bundled hook
  *    chain (SessionStart / UserPromptSubmit / PreToolUse / PostToolUse / Stop /
- *    SessionEnd) is wired, plus high-reasoning defaults `effortLevel: "xhigh"`
- *    and `permissions.defaultMode: "plan"` (only when MISSING — user choices are
- *    never clobbered). Existing entries are preserved; only missing entries
- *    are appended. Atomic write (.tmp + rename).
+ *    SessionEnd) is wired, plus `effortLevel: "xhigh"` and
+ *    `permissions.defaultMode: "plan"` when missing. `model` is pinned to
+ *    `claude-opus-5-5` only when it is missing or still the old alias
+ *    `sonnet` / `opus`. `advisorModel` is pinned to `claude-fable-5-2` when
+ *    missing or still the alias `fable`. `ultracode: true` is written only
+ *    when the key is absent. A pinned id or an explicit `ultracode: false`
+ *    is left alone. Atomic write (.tmp + rename).
  *  - .claude/state/ — runtime layout for multi-instance coordination is
  *    auto-created and the `_state.README.md` is staged as `.claude/state/README.md`.
  *  - .gitignore — `.claude/state/` is appended if not already covered.
@@ -642,9 +645,33 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
     }
   }
 
-  // High-reasoning defaults (v2.28.0). Only set when MISSING so we never clobber
-  // a user's explicit choice. `ultracode` is intentionally never written here:
-  // it is session-only (/effort) and cannot be persisted in settings.json.
+  // Session model. Rewrite only the old aliases setup used to emit.
+  const legacySessionModel =
+    settings.model === undefined || settings.model === 'sonnet' || settings.model === 'opus';
+  if (legacySessionModel) {
+    if (!dryRun) settings.model = 'claude-opus-5-5';
+    report.added.push('model:claude-opus-5-5');
+  } else {
+    report.alreadyPresent.push('model');
+  }
+  const legacyAdvisor =
+    settings.advisorModel === undefined || settings.advisorModel === 'fable';
+  if (legacyAdvisor) {
+    if (!dryRun) settings.advisorModel = 'claude-fable-5-2';
+    report.added.push('advisorModel:claude-fable-5-2');
+  } else {
+    report.alreadyPresent.push('advisorModel');
+  }
+  // Boolean, persisted by Claude Code 2.1.329. Absent means the old install
+  // never set it. An explicit false stays false.
+  if (settings.ultracode === undefined) {
+    if (!dryRun) settings.ultracode = true;
+    report.added.push('ultracode:true');
+  } else {
+    report.alreadyPresent.push('ultracode');
+  }
+
+  // High-reasoning default. Only set when MISSING so we never clobber a choice.
   if (settings.effortLevel === undefined) {
     if (!dryRun) settings.effortLevel = 'xhigh';
     report.added.push('effortLevel:xhigh');

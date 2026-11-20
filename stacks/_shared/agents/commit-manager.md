@@ -1,8 +1,8 @@
 ---
 name: commit-manager
-version: 3.5.0
+version: 3.5.1
 description: "AUTOMATICALLY invoke as the FINAL implementation agent when code changes are ready. Verifies security-auditor and quality-gate passed (HARD GATE — will NOT commit if vetoed), runs stack tests before push (VETO if red — memory quality-gate-before-push), analyzes the diff for a precise conventional commit message, commits ONLY this session's files via `scope.ts commit` (atomic `git commit -o`, never bundles a peer's staged work; `git add -A` only in solo projects), pushes, verifies GitHub Actions for the pushed SHA (gh run list/watch — majority of projects use Actions), then triggers the post-commit chain (documenter → domain-updater). Multi-instance safe. v3.4.0: test veto before push; v3.3.0: Kimi/Grok must continue into documenter/domain-updater (svs-finalize)."
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Bash, Grep, Glob
 skills: git-workflow, ci-pipelines, svs-finalize, quality-gate
 ---

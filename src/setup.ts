@@ -344,13 +344,16 @@ export async function setupProject(
 
     // 13. Write settings.json for Claude Code (complete config)
     const settings: Record<string, any> = {
-      model: 'sonnet',
+      model: 'claude-opus-5-5',
+      advisorModel: 'claude-fable-5-2',
+      // Standing dynamic workflows. Claude Code 2.1.329 persists this boolean.
+      // The /effort toggle does not write it. Subagents follow memory model-split:
+      // Sonnet 5.5 for a lookup, Opus 5.5 only when an agent edits code.
+      ultracode: true,
       max_tokens: 8192,
       max_turns: 100,
 
-      // Persistent high-reasoning effort. Note: 'ultracode' is session-only
-      // (set via /effort) and cannot be persisted here; 'xhigh' is the highest
-      // persistable level. On 'sonnet' it falls back to 'high'.
+      // Persistable effort for the Opus parent. Ultracode no longer forces this.
       effortLevel: 'xhigh',
 
       enableAllProjectMcpServers: true,

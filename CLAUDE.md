@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-20 · main · v2.111.0
+Sessions open on Opus 5.5 with the Fable 5.2 advisor and ultracode on.
+Lookups, docs, grep, and the test suite go to Sonnet 5.5. Memory
+`model-split`. A swarm of Opus agents is not how a survey runs.
+
 ### 2026-11-16 · main · v2.110.0
 React Native ships the official Expo skill snapshot (`expo-official`,
 MIT, expo/skills) and `swift-macos` for a native Mac or Simulator run.
@@ -51,11 +56,6 @@ points at `.claude/memories/`. The files themselves stay in one place.
 Podman skill 1.1: on a Mac, install the machine and run the local test
 pod. Database container only when the test needs one. App with no
 database still runs in the pod. Tester 1.4. Grok skills 1.51.
-
-### 2026-10-13 · main · v2.103.0
-CVE floors: React 19.0.6 / 19.1.7 / 19.2.6, Next 15.5.27 / 16.3.8.
-Laravel 13 (12.x stays ≥ 12.69.0). Node minimum 22, 24 LTS for new apps.
-Expo seed SDK 57. Tailwind 4.3.3 and Inertia 3.x have no advisory.
 
 ---
 

@@ -1,25 +1,21 @@
 #!/usr/bin/env node
-// @sv-version: 1.1.0
+// @sv-version: 1.2.0
 /**
- * PreToolUse Hook — Plan Gate (high-reasoning nudge)
+ * PreToolUse Hook — Plan Gate
  *
  * Wired with matcher `Edit|Write|MultiEdit|NotebookEdit`, alongside pre-tool-use.ts.
  * When a SINGLE session is about to touch MORE THAN the threshold (default 4)
  * DISTINCT **in-project** files, it fires ONCE per session: returns
- * `permissionDecision: "ask"` so Claude Code prompts the USER, recommending they
- * cancel, run `/effort` and select `ultracode`, then confirm a short plan before
- * the large change proceeds.
+ * `permissionDecision: "ask"` so the user sees the model split before the
+ * large edit continues. Ultracode is already on via settings.json. The waste
+ * to avoid is a swarm of Opus agents for a lookup.
  *
+ * v1.2.0: the prompt no longer asks the user to turn ultracode on.
  * v1.1.0: count only project-relative paths (scratchpads under /tmp/claude-* and
  * ~/.claude edits no longer inflate the distinct-file counter).
  *
- * WHY ONLY A RECOMMENDATION (hard limitation, confirmed in the hooks docs):
- *   "Command hooks communicate through stdout, stderr, and exit codes only. They
- *    cannot trigger `/` commands or tool calls."
- *   Effort level (`ultracode`) is also read-only metadata to hooks and is not
- *   persistable in settings.json. So switching to ultracode is necessarily a user
- *   keystroke — this hook just makes the moment impossible to miss. The
- *   `permissions.defaultMode: "plan"` setting handles the "plan first" half.
+ * Hooks cannot spawn agents or set their model. Memory `model-split` is what
+ * the session follows. This nudge only makes the split visible once.
  *
  * Distinct-file count = union(session.filesTouched, files this Edit will touch).
  * The one-shot marker (`SessionRecord.planGateNotifiedAt`) prevents re-prompting on
@@ -117,12 +113,11 @@ async function main(): Promise<void> {
 
   const reason =
     `This task is now touching ${distinct.size} distinct files (> ${threshold}). ` +
-    `For a change this size, consider switching to maximum reasoning before continuing:\n` +
-    `  1. Press ESC to cancel this edit.\n` +
-    `  2. Run /effort and select "ultracode".\n` +
-    `  3. Ask Claude for a short plan, confirm it, then implement.\n\n` +
-    `Hooks cannot run /effort for you (effort is read-only to hooks), so this is a ` +
-    `one-time nudge per session. Approve to continue WITHOUT switching.`;
+    `Ultracode is already on. Keep it cheap:\n` +
+    `  - One Sonnet 5.5 agent for a lookup, a doc read, a grep, or a test run.\n` +
+    `  - Opus 5.5 only when an agent edits code or reviews it.\n` +
+    `  - Do not fan out a swarm of Opus agents to survey the repo.\n\n` +
+    `One-time note for this session. Approve to continue.`;
 
   console.log(
     JSON.stringify({

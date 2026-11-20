@@ -29,7 +29,7 @@
  * normalization in extractTargetFiles is now repo-root-stable.
  *
  * v1.2.0: added optional `planGateNotifiedAt` to SessionRecord — a one-shot
- * marker so plan-gate.ts nudges the user toward `/effort ultracode` only once
+ * marker so plan-gate.ts states the Opus/Sonnet split only once
  * per session when a change crosses the distinct-file threshold.
  *
  * v1.3.0: `target` + `nativeSessionDir` on SessionRecord; resolve Kimi/Grok

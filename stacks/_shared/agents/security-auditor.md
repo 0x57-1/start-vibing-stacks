@@ -1,8 +1,8 @@
 ---
 name: security-auditor
-version: 2.2.1
+version: 2.2.2
 description: "AUTOMATICALLY invoke when code touches auth, sessions, user data, passwords, tokens, API routes, database queries, cookies, env vars, file uploads, SSRF surface, deserialization, webhook handlers, SecureStore, or Expo public env. Stack-aware: forks into PHP/Laravel+Octane+Sanctum, Node.js (Next.js/Fastify/Express), Python (FastAPI/Django), or React Native/Expo. VETO POWER — blocks insecure code with CWE-mapped findings. Named CVEs: Read security-baseline/cve-watchlist.md on lockfile hit only (not in skills:). Runs AFTER tester, BEFORE quality-gate."
-model: sonnet
+model: claude-opus-5-5
 tools: Read, Grep, Glob, Bash
 skills: security-baseline, secrets-management, observability, api-security-node, api-security-python, api-security, security-scan-php, react-native-security, react-native-secure-coding, react-native-http
 ---

@@ -44,6 +44,7 @@ export const SHARED_MEMORY_FILES = [
   '.claude/memories/owned-wordpress-plugin-ops.md',
   '.claude/memories/project-design-system.md',
   '.claude/memories/memory-optimization.md',
+  '.claude/memories/model-split.md',
 ] as const;
 
 /** Web CSS theme — drop from always-on when `$STACK` is `react-native`. */

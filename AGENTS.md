@@ -30,6 +30,10 @@ Run via `npx start-vibing-stacks` — no install required.
 
 ## Recent Changes (mirrored from CLAUDE.md)
 
+### 2026-11-20 · main · v2.111.0
+Opus 5.5 opens the session, Fable 5.2 advises, ultracode stays on.
+Sonnet 5.5 does the lookup, the docs read, the grep, and the suite.
+
 ### 2026-11-16 · main · v2.110.0
 Official Expo skills ship inside `expo-official`. Native Swift on the
 Mac is `swift-macos`. Jest, one simulator, and no store submit stay.
@@ -64,10 +68,6 @@ bodies still in `.claude/memories/`.
 ### 2026-10-13 · main · v2.104.0
 Podman on the Mac: machine plus a local test pod. Database container
 only when needed. An app with no database still runs in the pod.
-
-### 2026-10-13 · main · v2.103.0
-CVE floors raised for React and Next. New apps: Laravel 13, Node 24 LTS,
-Expo SDK 57. Tailwind and Inertia have no GitHub advisory.
 
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)

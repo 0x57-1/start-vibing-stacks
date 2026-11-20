@@ -1,8 +1,8 @@
 ---
 name: research-web
-version: 2.0.1
+version: 2.0.2
 description: "AUTOMATICALLY invoke BEFORE implementing any new feature, technology, library choice, or architectural decision. Triggers: 'search', 'find info', 'best practices', 'compare X vs Y', 'latest', 'how to', 'is there a better way'. Web research specialist — prefers MCP `web-scraper` (unified_search across Brave + Vertex AI + Grok, with stealth+proxy scraping) when registered, falls back to built-in WebSearch/WebFetch."
-model: sonnet
+model: claude-sonnet-5-5
 tools: WebSearch, WebFetch, Read, Write, Bash, mcp__web-scraper__unified_search, mcp__web-scraper__brave_search, mcp__web-scraper__grok_search, mcp__web-scraper__google_search, mcp__web-scraper__scrape_url, mcp__web-scraper__sitemap_crawler, mcp__web-scraper__google_trends, mcp__web-scraper__memory
 skills: research-cache, mcp-web-scraper
 ---

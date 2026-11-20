@@ -1,13 +1,13 @@
 ---
 name: long-session-consistency
-version: 1.0.2
+version: 1.0.3
 description: >
   AUTOMATICALLY invoke when designing or auditing how Claude / Kimi / Grok stay
   aligned on the same project across long sessions (resume, compaction, next-day
   continue, cross-CLI handoff). Triggers: long session, resume brief, project brain,
   journal, PreCompact, context lost, consistency across Kimi/Grok/Claude.
   AI memory architect — prefers markdown-first durable state over embeddings.
-model: opus
+model: claude-opus-5-5
 tools: Read, Grep, Glob, Bash, Write, Edit
 skills: session-history, multi-instance-coordination, codebase-knowledge, docs-tracker
 ---

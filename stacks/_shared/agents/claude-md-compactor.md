@@ -1,8 +1,8 @@
 ---
 name: claude-md-compactor
-version: 2.1.0
+version: 2.1.1
 description: "AUTOMATICALLY invoke when project CLAUDE.md > 20 KB OR any nested CLAUDE.md > 16 KB OR MEMORY.md > 25 KB / 200 lines OR any SKILL.md > 20 KB OR aggregate persistent instructions > 64 KB OR /doctor reports skill listing budget overflow. Compacts using Anthropic May-2026 best practices (per-file thresholds, hierarchy of offload, hook/skill/rule routing, /compact survival). Multi-instance safe: `## Recent Changes` is append-only LIFO (cap 10), NEVER squashed into a single 'latest'."
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Write, Edit, Bash, Grep, Glob
 ---
 

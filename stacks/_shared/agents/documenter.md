@@ -1,8 +1,8 @@
 ---
 name: documenter
-version: 3.2.0
+version: 3.2.1
 description: "AUTOMATICALLY invoke AFTER `commit-manager` succeeds. Maintains the project's local long-term memory under `.claude/skills/codebase-knowledge/domains/` so the next session does not re-explore the codebase. Search-optimized layout (YAML frontmatter + `_index.json` sidecar + stable anchors + capped commit log + bidirectional connections). Atomic files (≤ 8 KB / ~2k tokens / 200 lines). v3.2.0: stack-typical Files roles (Expo vs Laravel). v3.1.0: Kimi/Grok execute this file inline (no Task); required by svs-finalize / stop-validator."
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Write, Edit, Grep, Glob, Bash
 skills: docs-tracker, codebase-knowledge, svs-finalize
 ---

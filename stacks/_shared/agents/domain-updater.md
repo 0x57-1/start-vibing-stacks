@@ -1,8 +1,8 @@
 ---
 name: domain-updater
-version: 3.1.0
+version: 3.1.1
 description: "AUTOMATICALLY invoke AFTER `documenter` completes. Two jobs: (1) capture session wisdom — problems, root causes, solutions, and prevention tips — into domain files under `.claude/skills/codebase-knowledge/domains/`; (2) PREPEND a new `### YYYY-MM-DD · branch · vX.Y.Z` entry to the `## Recent Changes` section in the project's root `CLAUDE.md` (append-only LIFO, cap 10). Does NOT map files or commits (that is `documenter`'s job). Runs AFTER documenter, BEFORE session ends. v3.1.0: Kimi/Grok execute inline; stop-validator requires Recent Changes update after source edits."
-model: sonnet
+model: claude-sonnet-5-5
 tools: Read, Edit, Bash, Grep, Glob
 skills: codebase-knowledge, svs-finalize
 ---
