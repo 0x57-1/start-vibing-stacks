@@ -1,23 +1,21 @@
 ---
 name: laravel-patterns
-version: 2.0.1
-description: Laravel 13 model/controller/service/job patterns — UUIDs, Loggable
-  trait, mass-assignment, JSON casts, thin Service-driven controllers, idempotent
-  jobs, batch processing. API-first by default (controllers return Resources, NOT
-  `Inertia::render()`). Use for any Laravel domain code. Pairs with
-  `laravel-api-architecture` (the pipeline) and `laravel-octane` (worker safety).
+version: 2.1.0
+description: Laravel 13 model/controller/service/job patterns. A page returns
+  Inertia::render. A JSON route under routes/api.php returns a Resource. Thin
+  controllers, Form Requests, Services for the query. Use for any Laravel
+  domain code. Pairs with inertia-react and laravel-api-architecture.
 ---
 
 # Laravel 13 Patterns & Standards
 
-> **Default architecture is API-first.** Controllers return `JsonResponse` /
-> `JsonResource` consumed by a React+Axios SPA. The full pipeline
-> (Route → Controller → FormRequest → Policy → Service → Resource → JSON) lives
-> in `laravel-api-architecture`. This skill covers the building blocks
-> (Models, Services, Jobs, Caching) that compose into that pipeline.
+> **A page returns `Inertia::render`.** The controller calls one Service and
+> passes props. The React page lives in `resources/js/Pages`. Skill
+> `inertia-react` is the page contract.
 >
-> **Do NOT add new `Inertia::render()` controllers.** Inertia is supported only
-> for legacy projects (see `inertia-react` skill, marked LEGACY).
+> **A JSON endpoint is the exception.** It lives on `routes/api.php` and
+> follows `laravel-api-architecture` (FormRequest → Service → Resource). It is
+> not how a page loads its data.
 
 ## Model Standards
 
@@ -80,7 +78,24 @@ $user = User::create($request->validated());
 
 ## Controller Standards
 
-### Thin API Controllers (default)
+### Page controllers (default)
+
+```php
+public function show(Empresa $empresa): Response
+{
+    return Inertia::render('Empresa/Show', [
+        'empresa' => $this->empresas->page($empresa),
+    ]);
+}
+```
+
+The method stays short. The query is the Service. Shared props and the document head go through `app/Http/Middleware/HandleInertiaRequests.php`. A fixed table goes in `config/`. A Form Request covers input.
+
+Do not add `app/Data`. Do not put the page head, the nav, or a query in `app/Support` or in a Service whose job is HTTP. A tree that already has those folders came in from outside this standard. Run `node scripts/check-laravel-layout.mjs` and move the findings into this layout before adding a feature. Behavior stays the same.
+
+### Thin JSON controllers
+
+A route on `routes/api.php` only.
 
 Controllers ONLY handle HTTP concerns. Delegate to Services. Validation goes
 through FormRequest, authorization through Policy. Full end-to-end example

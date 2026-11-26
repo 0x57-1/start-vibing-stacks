@@ -1,7 +1,7 @@
 ---
 name: react-api-standards
-version: 2.1.1
-description: "React 19.3 + Vite 8 + Axios ≥1.20.0 standards for a Laravel-backed JSON API SPA. Page shell + skeleton-first paint, async data via `api.get`, 422 validation binding to React Hook Form, protected-route + catch-all routing, NO Inertia. Pairs with `axios-laravel-api` 2.1 (HTTP client) and `laravel-api-architecture` (backend). TanStack Query v5 (`isPending` + `signal`), Zod 4, `useOptimistic` / `useActionState` / `useFormStatus`, Tailwind 4.3 `@theme` + OKLCH. Invoke for any new page, layout, or component in a Laravel + Sanctum SPA."
+version: 2.1.2
+description: "React client for a Laravel JSON endpoint under routes/api.php. A page is Inertia::render (inertia-react, react-standards), not this skill. Use when a page already on screen calls a JSON route."
 ---
 
 # React 19.3 API-First Standards (Laravel + Axios) — 2026
@@ -485,7 +485,7 @@ resolve: {
 
 | Pattern | Reason | Use Instead |
 |--------|--------|-------------|
-| `Inertia::render()` for new pages | Blocks first paint on DB | `api.get()` from React |
+| `api.get()` for the page's first paint | A page is `Inertia::render` | `inertia-react` |
 | `fetch()` in components | Bypasses CSRF/interceptors | `api.get/post/...` |
 | `axios.get(...)` direct | Bypasses interceptors | `import api from '@/lib/api'` |
 | Absolute URL into `api.get` | Overrides `baseURL`, leaks cookies | Relative path only |

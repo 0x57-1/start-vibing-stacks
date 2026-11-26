@@ -10,14 +10,15 @@
      Compactor (`claude-md-compactor.md §5-§6`) enforces the cap, not the prepend. -->
 
 ### {{DATE}} · main · v0.1.0
-Initial project setup with start-vibing-stacks (PHP — API-first React SPA).
+Initial project setup with start-vibing-stacks (PHP — Inertia pages).
 
 ## 30 Seconds Overview
 
-{{PROJECT_NAME}} is a PHP 8.3+ project using {{FRAMEWORK}}, serving a JSON API
-consumed by a React 19.3 + Vite SPA via Axios ≥1.20.0. Authentication uses Laravel
-Sanctum SPA (HttpOnly session cookie + CSRF). Pages render shell + skeleton
-instantly; data is fetched async via the `api` Axios instance.
+{{PROJECT_NAME}} is a PHP 8.3+ project using {{FRAMEWORK}}. A page returns
+`Inertia::render` and the React page receives props. A JSON endpoint lives on
+`routes/api.php` and returns a Resource. Authentication uses Laravel Sanctum
+(HttpOnly session cookie + CSRF). Shared props and the document head go through
+`HandleInertiaRequests`.
 
 ## Stack
 
@@ -37,7 +38,14 @@ instantly; data is fetched async via the `api` Axios instance.
 | Testing | PHPUnit / Pest |
 | Code Style | PHP-CS-Fixer (PSR-12) |
 
-## Architecture (API-first — DEFAULT)
+## Architecture (pages are Inertia)
+
+A page is `routes/web.php` → a thin controller → `Inertia::render('Area/Page', props)`.
+The query is a Service. Input is a Form Request. The React file is
+`resources/js/Pages`. The diagram below is only a JSON endpoint under
+`routes/api.php`.
+
+## JSON endpoint (routes/api.php only)
 
 ```
 Browser (React Vite SPA)        Laravel 13 + Octane (RoadRunner)
@@ -177,9 +185,9 @@ project/
 
 ### React / Frontend
 
-- **Page contract** — render shell + skeleton on first paint; fetch via `api.get()`
-- **NO `Inertia::render()`** for new endpoints — pure JSON API + Axios
-- **`api` instance only** — never raw `axios` or `fetch` in components
+- **Page contract** — the controller returns `Inertia::render` and the page reads props
+- **JSON routes** — `routes/api.php` returns a Resource; the page does not load itself with `api.get`
+- **`api` instance only** — never raw `axios` or `fetch` when a JSON route is called
 - **422 binding** — render validation errors inline under fields (not toast)
 - **LABELS + STYLES const** above the component (stable refs, no Hook abuse)
 - **No tokens in `localStorage`** — Sanctum SPA cookie only
@@ -265,13 +273,13 @@ const stripePublishable = import.meta.env.VITE_STRIPE_KEY;   // pk_...
 
 | Action | Reason |
 |--------|--------|
-| `Inertia::render()` for new endpoints | Blocks first paint on DB query — use API + Axios |
+| A page loaded with `api.get` on first paint | A page returns `Inertia::render` |
 | Eloquent query inside a Controller | Move it to a Service |
 | FormRequest `authorize(): true` blindly | Must call Policy or be index w/ Service scope |
 | Resource performing DB queries | Use `whenLoaded()` and pre-load in Service |
 | `axios.get(...)` directly in components | Bypasses interceptors — use `@/lib/api` |
 | `localStorage.setItem('token', ...)` | XSS-readable — use HttpOnly Sanctum cookie |
-| Page that blocks render on first fetch | Defeats the API-first model |
+| Page that loads itself with Axios | A page is `Inertia::render` |
 
 ### Security
 
@@ -308,7 +316,7 @@ const stripePublishable = import.meta.env.VITE_STRIPE_KEY;   // pk_...
 
 | Action | Reason |
 |--------|--------|
-| `Inertia::render()` / `useForm()` from Inertia | Use API + Axios (Inertia is LEGACY) |
+| `Inertia::render` missing on a page controller | The page standard is `Inertia::render` |
 | `fetch()` for page data | Bypasses interceptors — use `api.get()` |
 | `<a href>` for internal links | Full page reload — use `<Link>` from react-router-dom |
 | `window.location` for SPA navigation | Full reload — use `useNavigate()` |

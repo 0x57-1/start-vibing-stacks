@@ -1,6 +1,6 @@
 {
   "name": "start-vibing-stacks",
-  "version": "2.116.0",
+  "version": "2.117.0",
   "description": "One setup for Claude Code, Kimi, Grok, and Cursor. Agents, skills, hooks, and finish rules for PHP, Node.js, Python, and Expo.",
   "type": "module",
   "bin": {

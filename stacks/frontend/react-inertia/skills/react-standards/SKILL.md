@@ -1,21 +1,20 @@
 ---
 name: react-standards
-version: 2.2.0
-description: LEGACY — React 19.3 + Tailwind 4.3 standards for Inertia.js
-  projects (controller props, useForm, Inertia router). Use ONLY in
-  pre-existing Inertia projects. For NEW projects use `react-api-standards`
-  (Axios + TanStack Query + React Router) instead. Theme: memory
-  react-theme-parity + skill react-theme-apply.
+version: 2.3.0
+description: React 19.3 + Tailwind 4.3 standards for an Inertia page
+  (controller props, useForm, Inertia router). A Laravel page uses this, not
+  a client-side fetch on first paint. Theme: memory react-theme-parity +
+  skill react-theme-apply.
 ---
 
-# React 19+ Standards with Inertia.js (LEGACY)
+# React 19+ Standards with Inertia.js
 
-> **STATUS: LEGACY.** New projects use `react-api-standards` (API-first SPA).
-> Keep this loaded only for legacy Inertia codebases.
+> **The page receives props from `Inertia::render`.** `react-api-standards` is
+> the JSON client, used when a route under `routes/api.php` exists.
 
 ## Version Requirements
 
-- **ReactJS >= 19.3** — MANDATORY for new work on a legacy Inertia app
+- **ReactJS >= 19.3** — MANDATORY
 - **TailwindCSS >= 4.3** — MANDATORY
 - **Inertia.js >= 2** — MANDATORY
 - Page forms stay on `useForm()` — **no axios / fetch** for Inertia submissions

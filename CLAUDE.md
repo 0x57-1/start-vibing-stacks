@@ -10,6 +10,12 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-26 · main · v2.117.0
+A Laravel page returns `Inertia::render`. A tree that arrived from outside
+(`app/Data`, a Support drawer, page head in a Service, a fat controller)
+is flagged by `scripts/check-laravel-layout.mjs` and corrected before the
+new feature. JSON stays on `routes/api.php`.
+
 ### 2026-11-26 · main · v2.116.0
 The advisor stays off. Supermemory is out. An ultracode `agent()` that
 only reads passes `claude-sonnet-5-5`. Omitting `model` inherits Opus.
@@ -51,12 +57,6 @@ Publish check after the npm token was rotated in GitHub Actions.
 ### 2026-11-09 · main · v2.109.1
 npm repository, homepage, and issues point at github.com/0x57-1/start-vibing-stacks.
 This publish also ships the product README.
-
-### 2026-11-09 · main · v2.109.0
-Memory Optimization Pipeline installs on every setup and `migrate --apply`.
-A stale `npx @latest` extract re-runs the registry version. Grok and Kimi
-memory index lists every Claude memory, including React Native stack files.
-Live sessions stay in `.claude/state/sessions/` and are read in one pass.
 
 ---
 

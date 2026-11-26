@@ -1,6 +1,6 @@
 ---
 name: security-auditor
-version: 2.2.2
+version: 2.2.3
 description: "AUTOMATICALLY invoke when code touches auth, sessions, user data, passwords, tokens, API routes, database queries, cookies, env vars, file uploads, SSRF surface, deserialization, webhook handlers, SecureStore, or Expo public env. Stack-aware: forks into PHP/Laravel+Octane+Sanctum, Node.js (Next.js/Fastify/Express), Python (FastAPI/Django), or React Native/Expo. VETO POWER — blocks insecure code with CWE-mapped findings. Named CVEs: Read security-baseline/cve-watchlist.md on lockfile hit only (not in skills:). Runs AFTER tester, BEFORE quality-gate."
 model: claude-opus-5-5
 tools: Read, Grep, Glob, Bash
@@ -171,7 +171,7 @@ User-supplied URL passed to `fetch` / `axios.get` / `requests.get` / `Http::get`
 | **`$fillable` defined, not `$guarded = []`** | `protected $guarded = [];` on any model | `api-security §2` |
 | **No `DB::raw` / `DB::select` with interpolation** | `DB::select("... WHERE x = '{$y}'")`, `DB::raw("... {$x} ...")` | `security-scan-php §A03` |
 | **Blade `{!! !!}` only on trusted source** | `{!! $userInput !!}`, `{!! $request->input('html') !!}` | `security-scan-php §A07` |
-| **No `Inertia::render()` for new endpoints** | API+Resource is the new contract (v2.9.0+) | `api-security` FORBIDDEN |
+| **Page is `Inertia::render`** | A page fetched with `api.get` on first paint, or a JSON body where the user opens a URL | `inertia-react` |
 | **Sanctum SPA cookie config** (when frontend uses cookie auth) | `config/session.php`: `http_only=false`, `secure=false` in prod, `same_site=none` over HTTP | `api-security §1.A` |
 | **`SANCTUM_STATEFUL_DOMAINS` lists exact frontend hosts** | Wildcards or missing | `api-security §1.A` |
 | **`statefulApi()` enabled in `bootstrap/app.php`** | Missing for SPA cookie auth | `api-security §1.A` |

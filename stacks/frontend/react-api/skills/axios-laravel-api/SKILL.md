@@ -1,7 +1,7 @@
 ---
 name: axios-laravel-api
-version: 2.1.1
-description: "Axios ≥1.20.0 HTTP client for Laravel 13 + Sanctum SPA in React 19.3 (Tailwind 4.3). Boolean `withCredentials` + `withXSRFToken`, `allowAbsoluteUrls: false`, bounded 419 retry, CSRF priming, interceptors for 401/403/422/5xx. Zod 4 at the boundary, TanStack Query v5 `signal`, React 19 Actions. Invoke when wiring or auditing the API client, login flow, or CSRF/cookie configuration."
+version: 2.1.2
+description: "Axios ≥1.20.0 HTTP client for a Laravel JSON endpoint (Sanctum cookie). A page is Inertia::render, not this client. Boolean `withCredentials` + `withXSRFToken`, `allowAbsoluteUrls: false`, bounded 419 retry, CSRF priming, interceptors for 401/403/422/5xx."
 ---
 
 # Axios + Laravel Sanctum SPA Client
@@ -11,17 +11,15 @@ configuration for a React (Vite) SPA hitting a Laravel 13 API.**
 
 ## Why this exists
 
-A modern React SPA must NOT block the first paint to wait for a controller to
-SELECT from the database. Instead:
+This client calls a JSON endpoint under `routes/api.php`. A page does not
+use it for the first load. A page returns `Inertia::render` and the React
+page receives props (`inertia-react`).
 
-1. Laravel serves a **single static shell** (Vite-built `index.html` /
-   `app.blade.php`) — instant.
-2. React mounts and renders **page shell + skeleton** — instant.
-3. Each page calls `api.get('/api/whatever')` (Axios) — async.
-4. Laravel's API Controller delegates to a Service and returns a Resource → JSON.
+Use Axios when a page that is already on screen needs a JSON route:
 
-This eliminates the `Inertia::render()` round-trip where the controller hits the
-DB before the first byte of HTML is sent.
+1. The page is already rendered from controller props.
+2. The page calls `api.get('/api/whatever')` for the extra request.
+3. Laravel's API controller delegates to a Service and returns a Resource.
 
 ## Architecture
 
@@ -457,7 +455,7 @@ VITE_API_URL=/                # same-origin → leave as "/"
 
 | Action | Reason |
 |--------|--------|
-| `Inertia::render()` for new pages | Blocks first paint on DB query — use `api.get` |
+| A page loaded with `api.get` on first paint | A page is `Inertia::render` (`inertia-react`) |
 | `localStorage.setItem('token', ...)` | XSS-readable; use HttpOnly session cookie |
 | `axios.get(...)` directly in component | Bypasses interceptors — always use `api` |
 | Hitting `/sanctum/csrf-cookie` on every POST | Wasteful — cache the priming |
@@ -475,7 +473,7 @@ VITE_API_URL=/                # same-origin → leave as "/"
 ## See Also
 
 - `laravel-api-architecture` — backend pipeline (Controller → FormRequest → Policy → Service → Resource)
-- `react-api-standards` — page/component conventions for API-first React
+- `react-api-standards` — the JSON client. A page is `inertia-react`
 - `react-patterns` — generic axios contract (Vite / Next client)
 - `api-security` — Sanctum config, CORS, rate limiting, brute-force protection
 - `security-baseline/cve-watchlist.md` — named axios / React floors (lockfile hit)

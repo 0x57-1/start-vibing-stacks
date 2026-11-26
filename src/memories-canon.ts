@@ -61,6 +61,7 @@ export const WEB_THEME_MEMORY = '.claude/memories/react-theme-parity.md';
 
 /** Copied from `stacks/{id}/memories/` and auto-loaded only on that stack. */
 export const STACK_MEMORY_FILES: Record<string, readonly string[]> = {
+  php: ['.claude/memories/laravel-page-layout.md'],
   'react-native': [
     '.claude/memories/react-native-authorization.md',
     '.claude/memories/expo-router-modules.md',

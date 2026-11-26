@@ -1,23 +1,19 @@
 ---
 name: inertia-react
-version: 2.1.2
-description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 frontend
-  integration with Laravel-rendered pages. Use ONLY in pre-existing Inertia
-  projects. For NEW projects use the `react-api` frontend stack
-  (`axios-laravel-api` + `react-api-standards`) which decouples render from
-  data fetching. v2.1.0 adds the "Vite Build Gotchas" section covering the
-  `manualChunks` × entry-chunk × `resolvePageComponent` glob interaction
-  that produces silent wrong-component renders (production post-mortem 2026-05).
+version: 2.2.0
+description: Inertia.js + React 19.3 + Tailwind 4.3. The controller returns
+  Inertia::render and the page receives props. This is the Laravel page
+  standard. Axios is for a JSON endpoint, not for the page's first load.
+  v2.1.0 Vite manualChunks gotchas still apply.
 ---
 
-# Inertia.js + React Integration (LEGACY)
+# Inertia.js + React
 
 Current packages (2026-10-13), no GitHub security advisory: `inertiajs/inertia-laravel` **3.5.1**, `@inertiajs/react` **3.9.1**. Tailwind **≥ 4.3** (patch 4.3.3).
 
-> **STATUS: LEGACY.** New projects use the **React API SPA** stack — Laravel
-> serves a Vite shell, React owns routing client-side, and data is fetched via
-> Axios with Sanctum cookie auth. See `axios-laravel-api` and
-> `react-api-standards`.
+> **A page is `Inertia::render`.** Props arrive with the response. Axios is
+> the client of a JSON endpoint under `routes/api.php`, not the way the page
+> loads.
 
 ## Architecture Overview
 

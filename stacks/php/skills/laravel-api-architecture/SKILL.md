@@ -1,18 +1,16 @@
 ---
 name: laravel-api-architecture
-version: 1.0.1
-description: Laravel 13 + Octane + Sanctum API-first architecture pipeline —
+version: 1.1.0
+description: Laravel 13 JSON endpoint pipeline for routes/api.php only —
   Route → Controller → FormRequest → Policy → Service → Resource → JSON.
-  Single-responsibility per layer, role-based bypass via Policy `before()`,
-  thin controllers, no DB queries before first byte. Use as the default
-  blueprint for every new API endpoint. Pairs with `axios-laravel-api` and
-  `react-api-standards`.
+  A page is not this pipeline. A page returns Inertia::render (inertia-react).
+  Use when adding a JSON endpoint a non-page client calls.
 ---
 
-# Laravel 13 API-First Architecture (the One Pipeline)
+# Laravel 13 JSON Endpoints
 
-**ALWAYS invoke when designing or implementing any Laravel API endpoint that
-will be consumed by a React (Vite/Axios) SPA.**
+**A page returns `Inertia::render`.** This skill is only the JSON route under
+`routes/api.php`. Do not turn a page into this pipeline.
 
 ## The Pipeline
 
@@ -631,7 +629,7 @@ PATCH /api/orders/{order} { "status": "cancelled" }   // hides side-effects
 | Eloquent query inside a Controller | Move it to a Service |
 | FormRequest `authorize()` returning `true` blindly | Must call Policy or be index |
 | Resource performing DB queries | Use `whenLoaded()` and pre-load in Service |
-| Returning `Inertia::render()` from new endpoints | Defeats the API-first model |
+| Returning JSON for a page the user opens | A page is `Inertia::render`. This pipeline is `routes/api.php` only |
 | Cross-cutting business logic in middleware | Middleware = HTTP concerns only |
 | `->get()->map()->...` followed by `->paginate()` | Forces full hydration; paginate first |
 | Skipping the FormRequest layer | Validation drift; CVE waiting to happen |

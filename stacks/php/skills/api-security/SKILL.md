@@ -1,6 +1,6 @@
 ---
 name: api-security
-version: 2.1.1
+version: 2.1.2
 description: Laravel 13 + Sanctum + Octane API hardening — cookie-based SPA auth
   by default, token auth for mobile/3rd-party, CORS/CSRF/HSTS/CSP, rate limiting,
   brute-force protection, audit logging, encryption at rest. Use when building
@@ -489,7 +489,7 @@ class RequestId
 - [ ] No `env()` outside `config/*.php`
 - [ ] No `*` in token abilities
 - [ ] No `$guarded = []` on models
-- [ ] No `Inertia::render()` for new endpoints (use API + Resource)
+- [ ] A page returns `Inertia::render`. A JSON route returns a Resource
 - [ ] No tokens in `localStorage` (cookie auth for SPAs)
 - [ ] Webhook signatures verified before processing
 - [ ] Error responses don't expose stack traces in production
@@ -514,4 +514,4 @@ class RequestId
 | Trust `X-Forwarded-For` directly | Use Laravel's trusted proxies config |
 | No token expiry | 24h max + rotate on sensitive actions |
 | Login route on `/api/*` | Login goes on `routes/web.php` (session middleware) |
-| `Inertia::render()` for new endpoints | API + Resource consumed by Axios |
+| A page that loads itself with Axios | `Inertia::render` and props |

@@ -1,29 +1,21 @@
 ---
 name: inertia-react
-version: 2.1.2
-description: LEGACY skill — Inertia.js + React 19.3 + Tailwind 4.3 with
-  Laravel-rendered pages. Use ONLY in pre-existing projects already built on
-  Inertia. For NEW projects use `laravel-api-architecture` + `axios-laravel-api`
-  + `react-api-standards` (API-first React SPA, no controller-rendered pages).
-  v2.1.0 adds the "Vite Build Gotchas" section covering the manualChunks ×
-  entry-chunk × resolvePageComponent glob collision (silent wrong-component
-  render post-mortem 2026-05).
+version: 2.2.0
+description: Inertia.js + React 19.3 + Tailwind 4.3 pages. The controller
+  returns Inertia::render and the page receives props. This is the Laravel
+  page standard. A JSON route under routes/api.php is laravel-api-architecture,
+  not a page. v2.1.0 Vite manualChunks gotchas still apply.
 ---
 
-# Inertia.js + React — Laravel Frontend (LEGACY)
+# Inertia.js + React — Laravel pages
 
 Current packages (2026-10-13), no GitHub security advisory: `inertiajs/inertia-laravel` **3.5.1**, `@inertiajs/react` **3.9.1**. Tailwind **≥ 4.3** (patch 4.3.3).
 
-> **STATUS: LEGACY.** Do NOT pick this stack for new projects. Inertia couples
-> the controller's first byte to a database query, blocking the page render.
-> The modern default is **Laravel API + Axios + React SPA** (see the skills
-> `laravel-api-architecture`, `axios-laravel-api`, `react-api-standards`).
->
-> Keep this skill loaded **only** when extending an existing Inertia codebase
-> that you cannot rewrite in the same change.
+> **A page is `Inertia::render`.** The controller passes props. Shared props
+> and the document head go through `HandleInertiaRequests`. Do not load the
+> page with `api.get` on first paint.
 
-**ALWAYS invoke when writing Inertia.js pages, components, or shared data in
-LEGACY projects only.**
+**ALWAYS invoke when writing a Laravel page, an Inertia component, or shared page data.**
 
 ## How Inertia Works
 

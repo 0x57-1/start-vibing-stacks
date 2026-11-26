@@ -1005,6 +1005,34 @@ export function ensureRuntimeArtefacts(projectDir: string, dryRun: boolean): Run
     }
   }
 
+  // PHP layout checker. Same version rule as the shared scripts.
+  if (loadProjectConfig(projectDir)?.stack === 'php') {
+    const phpScriptsDir = join(CLI_ROOT, 'stacks', 'php', 'scripts');
+    if (existsSync(phpScriptsDir)) {
+      const projectScriptsDir = join(projectDir, 'scripts');
+      for (const name of readdirSync(phpScriptsDir)) {
+        if (name !== 'check-laravel-layout.mjs') continue;
+        const src = join(phpScriptsDir, name);
+        const dest = join(projectScriptsDir, name);
+        const bundledVer = parseHookVersion(src) ?? '0.0.0';
+        const installedVer = existsSync(dest) ? parseHookVersion(dest) : null;
+        const shouldCopy =
+          !existsSync(dest) ||
+          (installedVer !== null &&
+            semver.valid(installedVer) !== null &&
+            semver.lt(installedVer, bundledVer)) ||
+          (existsSync(dest) && installedVer === null);
+        if (shouldCopy) {
+          if (!dryRun) {
+            mkdirSync(projectScriptsDir, { recursive: true });
+            copyFileSync(src, dest);
+          }
+          report.copied.push(relative(projectDir, dest));
+        }
+      }
+    }
+  }
+
   const giPath = join(projectDir, '.gitignore');
   if (existsSync(giPath)) {
     let gi = readFileSync(giPath, 'utf8');
