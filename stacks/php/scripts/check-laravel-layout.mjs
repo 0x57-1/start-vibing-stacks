@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.0.0
+// @sv-version: 1.1.0
 /**
  * Flags a Laravel tree that did not arrive from this package.
  *
@@ -28,6 +28,21 @@ if (!existsSync(join(root, 'composer.json')) || !existsSync(join(app, 'Http', 'C
 }
 
 const findings = [];
+
+function phpFilesHere(dir) {
+  if (!existsSync(dir)) return [];
+  const out = [];
+  for (const name of readdirSync(dir)) {
+    if (!name.endsWith('.php')) continue;
+    const path = join(dir, name);
+    try {
+      if (statSync(path).isFile()) out.push(path);
+    } catch {
+      /* skip */
+    }
+  }
+  return out;
+}
 
 function phpFiles(dir) {
   if (!existsSync(dir)) return [];
@@ -69,6 +84,46 @@ if (support.length > 3 || support.some((p) => drawerName.test(p))) {
   for (const path of support) {
     findings.push(
       `${rel(path)}: app/Support is a drawer. Page chrome goes to HandleInertiaRequests. A query goes to a Service. A fixed table goes to config/.`
+    );
+  }
+}
+
+for (const path of phpFilesHere(join(app, 'Services'))) {
+  findings.push(
+    `${rel(path)}: a service lives in app/Services/<Domain>/, beside the other classes of that domain. A job for it lives in app/Jobs/<Domain>/.`
+  );
+}
+
+for (const path of phpFilesHere(join(app, 'Jobs'))) {
+  findings.push(
+    `${rel(path)}: a job lives in app/Jobs/<Domain>/, the same domain as the service it calls.`
+  );
+}
+
+const jobsDir = join(app, 'Jobs');
+if (existsSync(jobsDir)) {
+  for (const name of readdirSync(jobsDir)) {
+    const path = join(jobsDir, name);
+    let st;
+    try {
+      st = statSync(path);
+    } catch {
+      continue;
+    }
+    if (!st.isDirectory() || name.startsWith('.')) continue;
+    if (!existsSync(join(app, 'Services', name))) {
+      findings.push(
+        `app/Jobs/${name}: no app/Services/${name}. The job calls that service. The query does not live in the job.`
+      );
+    }
+  }
+}
+
+for (const path of phpFiles(join(app, 'Jobs'))) {
+  const src = text(path);
+  if (/onQueue\(\s*['"]default['"]\s*\)/.test(src)) {
+    findings.push(
+      `${rel(path)}: queue name is default. Name a queue a worker on this host actually consumes.`
     );
   }
 }

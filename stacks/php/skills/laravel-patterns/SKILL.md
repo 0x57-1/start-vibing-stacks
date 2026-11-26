@@ -1,10 +1,10 @@
 ---
 name: laravel-patterns
-version: 2.1.0
+version: 2.2.0
 description: Laravel 13 model/controller/service/job patterns. A page returns
-  Inertia::render. A JSON route under routes/api.php returns a Resource. Thin
-  controllers, Form Requests, Services for the query. Use for any Laravel
-  domain code. Pairs with inertia-react and laravel-api-architecture.
+  Inertia::render. Services and jobs share a domain folder. A job runs when a
+  worker consumes its queue; the same service runs one bounded step when no
+  worker is up. A JSON route under routes/api.php returns a Resource.
 ---
 
 # Laravel 13 Patterns & Standards
@@ -346,6 +346,19 @@ class LeadResource extends JsonResource
     }
 }
 ```
+
+## Services and jobs
+
+A domain is a folder, and the job uses the same name.
+
+```
+app/Services/Ads/AdScraper.php
+app/Jobs/Ads/ScrapeAdsBatchJob.php
+```
+
+The job calls the service. The query stays in the service. The job sets `onQueue` to a name a worker on that host consumes. One name, shared with the process that runs `queue:work --queue=that-name`. `default` is the wrong name when nothing reads `default`. Dispatch `afterCommit()`.
+
+When a worker is up, it runs the job. When the host has no queue worker, the request runs one bounded call of the same service. When a worker is already running, that request path is a no-op.
 
 ## Job Design
 

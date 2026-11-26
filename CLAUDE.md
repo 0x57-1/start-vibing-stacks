@@ -10,6 +10,12 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-26 · main · v2.118.0
+Services and jobs share a domain folder. Heavy work is a job on a queue a
+worker consumes. The same service runs one bounded step when no worker is up.
+`scripts/check-laravel-layout.mjs` flags a flat service, a flat job, and a
+job whose domain has no service.
+
 ### 2026-11-26 · main · v2.117.0
 A Laravel page returns `Inertia::render`. A tree that arrived from outside
 (`app/Data`, a Support drawer, page head in a Service, a fat controller)
@@ -53,10 +59,6 @@ Jest, device boot, and store submit stay on the existing skills.
 
 ### 2026-11-16 · main · v2.109.2
 Publish check after the npm token was rotated in GitHub Actions.
-
-### 2026-11-09 · main · v2.109.1
-npm repository, homepage, and issues point at github.com/0x57-1/start-vibing-stacks.
-This publish also ships the product README.
 
 ---
 

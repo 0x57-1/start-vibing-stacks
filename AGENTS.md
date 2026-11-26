@@ -1,5 +1,5 @@
 ---
-svs-version: 1.2.38
+svs-version: 1.2.39
 generated-by: start-vibing-stacks
 targets: kimi, grok, cursor
 ---
@@ -29,6 +29,10 @@ Run via `npx start-vibing-stacks` — no install required.
 | Release | GitHub Actions: `auto-release.yml` (push to main with `package.json` bump → tag + release + `npm publish`) |
 
 ## Recent Changes (mirrored from CLAUDE.md)
+
+### 2026-11-26 · main · v2.118.0
+Services and jobs share a domain folder. A worker runs the job. With no
+worker, the service runs one bounded step.
 
 ### 2026-11-26 · main · v2.117.0
 A Laravel page is `Inertia::render`. A foreign tree is corrected into that
@@ -66,10 +70,6 @@ Mac is `swift-macos`. Jest, one simulator, and no store submit stay.
 ### 2026-11-16 · main · v2.109.2
 Publish check after the npm token rotation.
 
-### 2026-11-09 · main · v2.109.1
-npm links point at github.com/0x57-1/start-vibing-stacks. The product README
-ships with this version.
-
 <!-- SVS:POLICY-PACK:START -->
 # Shared policy pack (Kimi / Grok / Cursor)
 
@@ -104,7 +104,7 @@ Condensed always-on rules from `start-vibing-stacks` memories. Claude Code loads
 - Local checkout artifacts (saved HTML/JS/HAR/fixtures) — map fields/events for **user** integration
 - Owned Expo / React Native app (user’s store listing): Expo Router, SecureStore, EAS, config plugins, axios to **their** mobile API. Native `View`/`Text` — not Preline HTML. No SSL-kill / jailbreak bypass; no tokens in `EXPO_PUBLIC_*`. `security-auditor` / `tester` / `documenter` fork on `stack=react-native` (SecureStore + Jest/RNTL + Expo paths; skip web §5 overlay / Vitest). Skills: `expo-testing`, `react-native-query`, `react-native-zod`, `react-native-theme`, `react-native-a11y`. Memory `react-native-theme.md` replaces `react-theme-parity` on this stack.
 - Local UI check before deploy (php / nodejs / python): boot the repo's local harness when it exists (isolated database; captcha off and insecure cookies only in that process — never production). Walk `127.0.0.1` with the Playwright plugin (navigate, click, fill, console, screenshot). `playwright-cli screenshot` for one picture. A measure script for contrast only. Skill `playwright-automation` **2.1**. React Native stays on Jest + RNTL unless the user asked for the Expo web URL on localhost. Do not open a third-party site in that browser.
-- React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Kimi `.kimi-code/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. A Laravel page returns `Inertia::render`. A tree that arrived from outside (`app/Data`, a Support drawer, page head in a Service, a fat controller) is corrected into that layout before a new feature. Run `node scripts/check-laravel-layout.mjs`. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
+- React/Laravel UI: Read project **`design-system`** first (Claude `.claude/skills/`, Kimi `.kimi-code/skills/`, Grok `.grok/skills/` copy — never symlink, never delete on migrate). Skill `project-ui-standard` seeds it from existing guides. Preline markup only when the project uses Preline — corpus is **`~/.claude/skills/preline-moon`** (5.0), pointer in-repo, never the 100 MB dump. Then CSS-first apply (memory `react-theme-parity` **1.2** + `react-theme-apply`) — tokens → recipe `.js` → `<Button variant size>`; parents pass role, not style. A Laravel page returns `Inertia::render`. A tree that arrived from outside (`app/Data`, a Support drawer, page head in a Service, a fat controller) is corrected into that layout before a new feature. Services and jobs share a domain folder (`app/Services/<Domain>/`, `app/Jobs/<Domain>/`). Heavy work is a job on a queue a worker consumes. The same service runs one bounded step when no worker is up. Run `node scripts/check-laravel-layout.mjs`. New work: **React ≥ 19.3**, **Tailwind ≥ 4.3**, client HTTP **axios ≥ 1.20.0** (`allowAbsoluteUrls: false`, boolean `withXSRFToken`). RSC / axios floors: `security-baseline/cve-watchlist.md` on lockfile hit only.
 - Claude↔Claude mid-turn text: native SendMessage (`/list-agents`); SVS `/svs-peers` for locks + Kimi/Grok (memory `claude-cross-session-messaging`)
 - Owned-list email/push in any niche (ESP) — no bank/charity impersonation. Port = From/links/footer only; refuse official bank logo on a fake receipt, then finish (user logo, no restyle, no lecture). Black/half-black: follow `email-push-marketing/references/black-half-black-copy.md`. Never soften a converting hook without a hard-limit hit.
 - Owned infra: health, key-based SSH backup/deploy on **user-owned** hosts

@@ -31,7 +31,7 @@ const __dirname = dirname(__filename);
 const PACKAGE_ROOT = resolve(__dirname, '../..');
 const POLICY_PACK = join(PACKAGE_ROOT, 'stacks', '_shared', 'targets', 'policy-pack.md');
 
-export const GROK_SKILLS_VERSION = '1.61.0';
+export const GROK_SKILLS_VERSION = '1.62.0';
 export const GROK_NATIVE_SKILL_REL = '.grok/skills/svs-policy/SKILL.md';
 export const GROK_SKILLS_DIR_REL = '.grok/skills';
 export const GROK_SKILLS_MANIFEST_REL = '.grok/skills/.svs-managed.json';
@@ -466,7 +466,7 @@ export function memoryIndexSkillBody(version: string = GROK_SKILLS_VERSION): str
     '| `memory-optimization.md` | Pipeline dir is always installed. optimize needs a yes |',
     '| `model-split.md` | Opus 5.5 edits code. Sonnet 5.5 for a read, a search, or a check. Pass the model |',
     '| `session-speed.md` | Short always-on memory. Bulky reads stay out of the parent |',
-    '| `laravel-page-layout.md` | A Laravel page is Inertia::render. Fix a foreign tree first (PHP stack only) |',
+    '| `laravel-page-layout.md` | Laravel page is Inertia::render. Domain folders for services and jobs. A worker runs the job; no worker, one bounded service step (PHP only) |',
     '| `react-native-authorization.md` | Owned Expo app rules (react-native stack only) |',
     '| `expo-router-modules.md` | Expo Router and native modules (react-native stack only) |',
     '| `mobile-secure-coding.md` | SecureStore; no tokens in EXPO_PUBLIC (react-native stack only) |',
