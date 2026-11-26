@@ -1,25 +1,26 @@
 ---
-version: 1.1.0
+version: 1.2.0
 ---
 
 # Memory: Model split
 
-> **ALWAYS LOAD.** The session opens on Opus 5.5 with the Fable 5.2 advisor and ultracode on. A lookup, a doc read, a grep, or a test run does not get its own Opus agent.
+> **ALWAYS LOAD.** The session opens on Opus 5.5 with ultracode on. The advisor stays off. Do not call it.
 
 ## Who does the work
 
 | Work | Model | Effort |
 |---|---|---|
-| Edit repo code, fix a finding, adversarial review, architecture | `claude-opus-5-5` | `high` |
-| Read docs, search the web, grep, walk a page, run the suite and summarize, write docs from finished code, documenter, domain-updater | `claude-sonnet-5-5` | `low` |
+| Edit repository code | `claude-opus-5-5` | `high` |
+| Read, search, grep, draft from sources, check a finding by reading, run the suite and summarize, documenter, domain-updater | `claude-sonnet-5-5` | `low` |
 
-If it edits code, use Opus. If it only reads, runs, and reports, use Sonnet.
+If the agent edits code, use Opus. If it only reads, runs, and reports, use Sonnet.
 
 ## Ultracode
 
-- A lookup is one Sonnet agent, or no agent: the parent turn reads it.
-- Do not spawn a swarm of Opus agents to survey a repo, read documentation, or search.
-- Do not start a workflow for a grep, a doc read, or a single-page check.
-- Synthesis of what the Sonnet agents found stays on the Opus parent.
-- A workflow already running keeps its models until the next phase boundary.
-- A read that would fill this session goes to one Sonnet agent. The parent keeps the summary and does not re-read the dump. Do not change model or effort in the middle of the session: that drops the prompt cache.
+`agent()` with no `model` inherits this session, which is Opus 5.5. The workflow reference says to omit `model`. Do not omit it.
+
+Every `agent()` that does not edit repository code passes `model: 'claude-sonnet-5-5'` and `effort: 'low'`. A research fan-out, a doc read, a grep, a page walk, a test run, and a read-only review are Sonnet. A phase that only reads also sets `model: 'claude-sonnet-5-5'` on that phase.
+
+Pass `model: 'claude-opus-5-5'` and `effort: 'high'` only on the agent that edits code.
+
+Do not spawn a swarm of Opus agents. The parent keeps the synthesis. Do not change the parent model or effort in the middle of the session.

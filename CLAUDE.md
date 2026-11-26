@@ -10,6 +10,11 @@
      + 1–4 lines below it. Drop only the OLDEST entry when count > 10. NEVER edit a peer's entry.
      Compactor (`claude-md-compactor.md` §5–§6) enforces the cap, not the prepend. -->
 
+### 2026-11-26 · main · v2.116.0
+The advisor stays off. Supermemory is out. An ultracode `agent()` that
+only reads passes `claude-sonnet-5-5`. Omitting `model` inherits Opus.
+On Grok, that same read is `explore`. `general-purpose` edits.
+
 ### 2026-11-20 · main · v2.115.0
 Supermemory Local starts with `podman run`. Docker, docker-compose, and
 `podman compose` are out. A container already on `127.0.0.1:6767` is the
@@ -52,11 +57,6 @@ Memory Optimization Pipeline installs on every setup and `migrate --apply`.
 A stale `npx @latest` extract re-runs the registry version. Grok and Kimi
 memory index lists every Claude memory, including React Native stack files.
 Live sessions stay in `.claude/state/sessions/` and are read in one pass.
-
-### 2026-11-06 · main · v2.108.0
-React Native can boot a device after Jest. Skill `expo-device` and memory
-`expo-device-loop`: one iOS Simulator when Xcode is there, Android only if
-an AVD exists, Expo Go for a phone. No store submit unless asked.
 
 ---
 

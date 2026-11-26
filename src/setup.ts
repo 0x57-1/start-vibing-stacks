@@ -345,7 +345,6 @@ export async function setupProject(
     // 13. Write settings.json for Claude Code (complete config)
     const settings: Record<string, any> = {
       model: 'claude-opus-5-5',
-      advisorModel: 'claude-fable-5-2',
       // Standing dynamic workflows. Claude Code 2.1.329 persists this boolean.
       // The /effort toggle does not write it. Subagents follow memory model-split:
       // Sonnet 5.5 for a lookup, Opus 5.5 only when an agent edits code.

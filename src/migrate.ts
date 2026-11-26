@@ -17,8 +17,8 @@
  *    SessionEnd) is wired, plus `effortLevel: "xhigh"` and
  *    `permissions.defaultMode: "plan"` when missing. `model` is pinned to
  *    `claude-opus-5-5` only when it is missing or still the old alias
- *    `sonnet` / `opus`. `advisorModel` is pinned to `claude-fable-5-2` when
- *    missing or still the alias `fable`. `ultracode: true` is written only
+ *    `sonnet` / `opus`. `advisorModel` is removed when present so the advisor
+ *    stays off. `ultracode: true` is written only
  *    when the key is absent. A pinned id or an explicit `ultracode: false`
  *    is left alone. Atomic write (.tmp + rename).
  *  - .claude/state/ — runtime layout for multi-instance coordination is
@@ -36,6 +36,7 @@ import {
   readdirSync,
   renameSync,
   unlinkSync,
+  rmSync,
 } from 'fs';
 import { join, relative, dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -54,7 +55,7 @@ import {
   projectDesignSystemNeedsSeed,
   wantsPrelineMoon,
 } from './targets/project-ui.js';
-import { memoryFilesForStack, WEB_THEME_MEMORY } from './memories-canon.js';
+import { memoryFilesForStack, RETIRED_REL_PATHS, WEB_THEME_MEMORY } from './memories-canon.js';
 import { printJevNotice } from './jev-notice.js';
 
 const __m_filename = fileURLToPath(import.meta.url);
@@ -654,13 +655,9 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
   } else {
     report.alreadyPresent.push('model');
   }
-  const legacyAdvisor =
-    settings.advisorModel === undefined || settings.advisorModel === 'fable';
-  if (legacyAdvisor) {
-    if (!dryRun) settings.advisorModel = 'claude-fable-5-2';
-    report.added.push('advisorModel:claude-fable-5-2');
-  } else {
-    report.alreadyPresent.push('advisorModel');
+  if (settings.advisorModel !== undefined) {
+    if (!dryRun) delete settings.advisorModel;
+    report.added.push('advisorModel:removed');
   }
   // Boolean, persisted by Claude Code 2.1.329. Absent means the old install
   // never set it. An explicit false stays false.
@@ -725,16 +722,27 @@ export function patchSettings(projectDir: string, dryRun: boolean): SettingsPatc
   const currentMem = Array.isArray(settings.context.memory_files) ? settings.context.memory_files : [];
   const droppedTheme =
     projectStack === 'react-native' && currentMem.includes(WEB_THEME_MEMORY);
-  const baseMem = droppedTheme ? currentMem.filter((m) => m !== WEB_THEME_MEMORY) : currentMem;
+  const retiredSet = new Set<string>(RETIRED_REL_PATHS);
+  const droppedRetired = currentMem.filter((m) => retiredSet.has(m));
+  let baseMem = droppedTheme ? currentMem.filter((m) => m !== WEB_THEME_MEMORY) : currentMem;
+  if (droppedRetired.length > 0) baseMem = baseMem.filter((m) => !retiredSet.has(m));
   const missingMem = requiredMemoryFiles.filter((m) => !baseMem.includes(m));
-  if (missingMem.length > 0 || droppedTheme) {
+  if (missingMem.length > 0 || droppedTheme || droppedRetired.length > 0) {
     if (!dryRun) {
       settings.context.memory_files = [...baseMem, ...missingMem];
     }
     for (const m of missingMem) report.added.push(`memory_files: ${m}`);
     if (droppedTheme) report.added.push('memory_files: dropped react-theme-parity (native)');
+    for (const m of droppedRetired) report.added.push(`memory_files: dropped ${m}`);
   } else {
     report.alreadyPresent.push('memory_files');
+  }
+
+  for (const rel of RETIRED_REL_PATHS) {
+    const target = join(projectDir, rel);
+    if (!existsSync(target)) continue;
+    if (!dryRun) rmSync(target, { recursive: true, force: true });
+    report.added.push(`retired: ${rel}`);
   }
 
   // security-auditor agent registration (v2.37.0) — ensure the VETO auditor is in

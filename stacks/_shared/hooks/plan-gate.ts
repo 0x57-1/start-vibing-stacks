@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// @sv-version: 1.2.0
+// @sv-version: 1.3.0
 /**
  * PreToolUse Hook — Plan Gate
  *
@@ -10,6 +10,8 @@
  * large edit continues. Ultracode is already on via settings.json. The waste
  * to avoid is a swarm of Opus agents for a lookup.
  *
+ * v1.3.0: a read-only agent is Sonnet. Opus is the agent that edits.
+ *          Every agent() call passes model. The advisor stays off.
  * v1.2.0: the prompt no longer asks the user to turn ultracode on.
  * v1.1.0: count only project-relative paths (scratchpads under /tmp/claude-* and
  * ~/.claude edits no longer inflate the distinct-file counter).
@@ -113,10 +115,10 @@ async function main(): Promise<void> {
 
   const reason =
     `This task is now touching ${distinct.size} distinct files (> ${threshold}). ` +
-    `Ultracode is already on. Keep it cheap:\n` +
-    `  - One Sonnet 5.5 agent for a lookup, a doc read, a grep, or a test run.\n` +
-    `  - Opus 5.5 only when an agent edits code or reviews it.\n` +
-    `  - Do not fan out a swarm of Opus agents to survey the repo.\n\n` +
+    `Ultracode is already on. The advisor stays off.\n` +
+    `  - Every agent() that does not edit code passes model claude-sonnet-5-5 and effort low.\n` +
+    `  - Omitting model inherits Opus 5.5. Do not omit it.\n` +
+    `  - Opus 5.5 only for the agent that edits code.\n\n` +
     `One-time note for this session. Approve to continue.`;
 
   console.log(

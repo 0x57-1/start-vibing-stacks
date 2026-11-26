@@ -46,7 +46,14 @@ export const SHARED_MEMORY_FILES = [
   '.claude/memories/memory-optimization.md',
   '.claude/memories/model-split.md',
   '.claude/memories/session-speed.md',
+] as const;
+
+/** Installed by 2.113–2.115. migrate drops the files and the memory_files row. */
+export const RETIRED_REL_PATHS = [
   '.claude/memories/supermemory-local.md',
+  '.claude/skills/supermemory-local',
+  '.grok/skills/supermemory-local',
+  '.kimi-code/skills/supermemory-local',
 ] as const;
 
 /** Web CSS theme — drop from always-on when `$STACK` is `react-native`. */
